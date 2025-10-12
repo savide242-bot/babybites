@@ -10,6 +10,10 @@ import RecipeDetail from "./pages/RecipeDetail";
 import MealPlanner from "./pages/MealPlanner";
 import Advice from "./pages/Advice";
 import Chat from "./pages/Chat";
+import Community from "./pages/Community";
+import GrowthTracker from "./pages/GrowthTracker";
+import BarcodeScanner from "./pages/BarcodeScanner";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +33,10 @@ const App = () => (
             <Route path="/planner" element={<MealPlanner />} />
             <Route path="/advice" element={<Advice />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/growth" element={<GrowthTracker />} />
+            <Route path="/scanner" element={<BarcodeScanner />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

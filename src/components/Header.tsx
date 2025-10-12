@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Heart, Calendar, BookOpen, Home, Bot } from "lucide-react";
+import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sheet,
@@ -13,8 +13,9 @@ const Header = () => {
   const navLinks = [
     { to: "/", label: "Home", icon: Home },
     { to: "/recipes", label: "Recipes", icon: BookOpen },
-    { to: "/planner", label: "Meal Planner", icon: Calendar },
-    { to: "/advice", label: "Advice", icon: Heart },
+    { to: "/community", label: "Community", icon: Users },
+    { to: "/growth", label: "Growth", icon: TrendingUp },
+    { to: "/scanner", label: "Scanner", icon: Scan },
     { to: "/chat", label: "Chat with Bibi", icon: Bot },
   ];
 

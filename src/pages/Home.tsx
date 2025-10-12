@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Calendar, Heart, Sparkles, Clock, Users } from "lucide-react";
+import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bot, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 import { recipes } from "@/data/recipes";
@@ -34,8 +34,8 @@ const Home = () => {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="rounded-full">
-                  <Link to="/planner">
-                    Plan Your Week
+                  <Link to="/chat">
+                    Chat with Bibi AI
                   </Link>
                 </Button>
               </div>
@@ -74,77 +74,89 @@ const Home = () => {
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Recipe Library</CardTitle>
-                <CardDescription>
-                  200+ detailed recipes with nutrition info, age recommendations, and step-by-step instructions
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link to="/recipes">
+              <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg h-full">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <BookOpen className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Recipe Library</CardTitle>
+                  <CardDescription>
+                    200+ detailed recipes with nutrition info, age recommendations, and step-by-step instructions
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
-            <Card className="border-2 hover:border-secondary/50 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
-                  <Calendar className="h-6 w-6 text-secondary" />
-                </div>
-                <CardTitle>Meal Planner</CardTitle>
-                <CardDescription>
-                  Plan your week ahead and get automatic shopping lists organized by product type
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link to="/community">
+              <Card className="border-2 hover:border-secondary/50 transition-all hover:shadow-lg h-full">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
+                    <Users className="h-6 w-6 text-secondary" />
+                  </div>
+                  <CardTitle>Parent Community</CardTitle>
+                  <CardDescription>
+                    Connect with other parents, share experiences, and get advice from verified pediatricians
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
-            <Card className="border-2 hover:border-accent/50 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                  <Heart className="h-6 w-6 text-accent" />
-                </div>
-                <CardTitle>Expert Advice</CardTitle>
-                <CardDescription>
-                  Parenting tips from pediatricians and nutritionists on feeding, sleep, and development
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link to="/growth">
+              <Card className="border-2 hover:border-accent/50 transition-all hover:shadow-lg h-full">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                    <TrendingUp className="h-6 w-6 text-accent" />
+                  </div>
+                  <CardTitle>Growth Tracker</CardTitle>
+                  <CardDescription>
+                    Monitor your baby's growth with charts, track meals, and analyze nutritional balance
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
-            <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Clock className="h-6 w-6 text-primary" />
-                </div>
-                <CardTitle>Quick & Easy</CardTitle>
-                <CardDescription>
-                  Most recipes ready in under 30 minutes - perfect for busy parents
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link to="/scanner">
+              <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg h-full">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Scan className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Barcode Scanner</CardTitle>
+                  <CardDescription>
+                    Scan grocery products to check if they're safe for your baby and get recipe suggestions
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
-            <Card className="border-2 hover:border-secondary/50 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="h-6 w-6 text-secondary" />
-                </div>
-                <CardTitle>Age-Specific</CardTitle>
-                <CardDescription>
-                  Recipes tailored for 6-9, 9-12, 12-18, and 18-24 month age groups
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link to="/chat">
+              <Card className="border-2 hover:border-secondary/50 transition-all hover:shadow-lg h-full">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
+                    <Bot className="h-6 w-6 text-secondary" />
+                  </div>
+                  <CardTitle>Bibi AI Assistant</CardTitle>
+                  <CardDescription>
+                    Chat with our intelligent AI nutritionist for personalized advice and recipe suggestions
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
-            <Card className="border-2 hover:border-accent/50 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-accent" />
-                </div>
-                <CardTitle>Community</CardTitle>
-                <CardDescription>
-                  Join thousands of parents sharing tips, photos, and experiences
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link to="/recipes">
+              <Card className="border-2 hover:border-accent/50 transition-all hover:shadow-lg h-full">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                    <Clock className="h-6 w-6 text-accent" />
+                  </div>
+                  <CardTitle>Quick & Easy</CardTitle>
+                  <CardDescription>
+                    Most recipes ready in under 30 minutes - perfect for busy parents on the go
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
           </div>
         </div>
       </section>
@@ -202,11 +214,16 @@ const Home = () => {
             Ready to Start Your Baby's Food Journey?
           </h2>
           <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of parents making nutritious, homemade baby food with confidence
+            Join thousands of parents making nutritious, homemade baby food with confidence. Get personalized advice from Bibi, our AI nutritionist!
           </p>
-          <Button asChild size="lg" variant="secondary" className="rounded-full">
-            <Link to="/recipes">Get Started Free</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" variant="secondary" className="rounded-full">
+              <Link to="/auth">Get Started Free</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-full bg-transparent border-white text-white hover:bg-white/10">
+              <Link to="/chat">Try Bibi AI</Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>
