@@ -14,7 +14,279 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      baby_growth: {
+        Row: {
+          baby_name: string
+          created_at: string | null
+          height_cm: number | null
+          id: string
+          milestone: string | null
+          notes: string | null
+          recorded_at: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          baby_name: string
+          created_at?: string | null
+          height_cm?: number | null
+          id?: string
+          milestone?: string | null
+          notes?: string | null
+          recorded_at: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          baby_name?: string
+          created_at?: string | null
+          height_cm?: number | null
+          id?: string
+          milestone?: string | null
+          notes?: string | null
+          recorded_at?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      forum_posts: {
+        Row: {
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          id: string
+          image_urls: string[] | null
+          likes_count: number | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          image_urls?: string[] | null
+          likes_count?: number | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          image_urls?: string[] | null
+          likes_count?: number | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_logs: {
+        Row: {
+          baby_name: string
+          calories: number | null
+          carbs_g: number | null
+          created_at: string | null
+          eaten_at: string
+          fats_g: number | null
+          id: string
+          ingredients: string[] | null
+          meal_type: string
+          notes: string | null
+          protein_g: number | null
+          recipe_title: string | null
+          user_id: string
+        }
+        Insert: {
+          baby_name: string
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          eaten_at: string
+          fats_g?: number | null
+          id?: string
+          ingredients?: string[] | null
+          meal_type: string
+          notes?: string | null
+          protein_g?: number | null
+          recipe_title?: string | null
+          user_id: string
+        }
+        Update: {
+          baby_name?: string
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          eaten_at?: string
+          fats_g?: number | null
+          id?: string
+          ingredients?: string[] | null
+          meal_type?: string
+          notes?: string | null
+          protein_g?: number | null
+          recipe_title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      post_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string
+          id: string
+          is_verified_pediatrician: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name: string
+          id: string
+          is_verified_pediatrician?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          is_verified_pediatrician?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      saved_posts: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scanned_products: {
+        Row: {
+          barcode: string
+          id: string
+          is_baby_safe: boolean | null
+          product_name: string | null
+          safety_notes: string | null
+          scanned_at: string | null
+          suggested_recipes: string[] | null
+          user_id: string
+        }
+        Insert: {
+          barcode: string
+          id?: string
+          is_baby_safe?: boolean | null
+          product_name?: string | null
+          safety_notes?: string | null
+          scanned_at?: string | null
+          suggested_recipes?: string[] | null
+          user_id: string
+        }
+        Update: {
+          barcode?: string
+          id?: string
+          is_baby_safe?: boolean | null
+          product_name?: string | null
+          safety_notes?: string | null
+          scanned_at?: string | null
+          suggested_recipes?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
