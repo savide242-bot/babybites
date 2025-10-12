@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Heart, Calendar, BookOpen, Home } from "lucide-react";
+import { Menu, Heart, Calendar, BookOpen, Home, Bot } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sheet,
@@ -15,6 +15,7 @@ const Header = () => {
     { to: "/recipes", label: "Recipes", icon: BookOpen },
     { to: "/planner", label: "Meal Planner", icon: Calendar },
     { to: "/advice", label: "Advice", icon: Heart },
+    { to: "/chat", label: "Chat with Bibi", icon: Bot },
   ];
 
   const isActive = (path: string) => location.pathname === path;
