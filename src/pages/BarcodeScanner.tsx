@@ -51,8 +51,8 @@ const BarcodeScanner = () => {
     } catch (err) {
       console.error("Error starting camera:", err);
       toast({
-        title: "Erro de Câmera",
-        description: "Não foi possível acessar a câmera. Verifique as permissões.",
+        title: "Camera Error",
+        description: "Could not access camera. Please check permissions.",
         variant: "destructive",
       });
       setCameraScanning(false);
@@ -127,18 +127,18 @@ const BarcodeScanner = () => {
           <Card className="p-6 mb-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="barcode">Código de Barras do Produto</Label>
+                <Label htmlFor="barcode">Product Barcode</Label>
                 <div className="flex gap-2">
                   <Input
                     id="barcode"
                     value={barcode}
                     onChange={(e) => setBarcode(e.target.value)}
-                    placeholder="Digite o código de barras"
+                    placeholder="Enter barcode number"
                     disabled={scanning}
                   />
                   <Button onClick={() => handleScan()} disabled={scanning}>
                     <Scan className="w-4 h-4 mr-2" />
-                    {scanning ? "Escaneando..." : "Escanear"}
+                    {scanning ? "Scanning..." : "Scan"}
                   </Button>
                 </div>
               </div>
@@ -150,10 +150,10 @@ const BarcodeScanner = () => {
                   className="w-full"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Usar Câmera para Escanear
+                  Use Camera to Scan
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Aponte a câmera para o código de barras
+                  Point your camera at the barcode
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@ const BarcodeScanner = () => {
           <Card className="p-6 mb-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Escaneando com Câmera</h3>
+                <h3 className="font-semibold">Camera Scanning</h3>
                 <Button 
                   onClick={stopCameraScanner} 
                   variant="ghost"
@@ -173,7 +173,7 @@ const BarcodeScanner = () => {
               </div>
               <div id={qrCodeRegionId} className="w-full" />
               <p className="text-sm text-muted-foreground text-center">
-                Posicione o código de barras dentro da área destacada
+                Position the barcode within the highlighted area
               </p>
             </div>
           </Card>
@@ -218,12 +218,12 @@ const BarcodeScanner = () => {
         )}
 
         <Card className="p-6 mt-6 bg-primary/5">
-          <h3 className="font-semibold mb-2">Como funciona</h3>
+          <h3 className="font-semibold mb-2">How it works</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>Digite ou escaneie o código de barras de qualquer produto</li>
-            <li>Nosso sistema verifica os ingredientes contra diretrizes de segurança para bebês</li>
-            <li>Receba feedback instantâneo sobre segurança e informações de alérgenos</li>
-            <li>Descubra receitas que usam ingredientes seguros</li>
+            <li>Enter or scan the barcode of any grocery product</li>
+            <li>Our system checks the ingredients against baby safety guidelines</li>
+            <li>Get instant feedback on safety and allergen information</li>
+            <li>Discover recipes that use safe ingredients</li>
           </ol>
         </Card>
       </div>
