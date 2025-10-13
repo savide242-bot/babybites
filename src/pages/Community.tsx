@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Bookmark, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { z } from "zod";
+
+const postSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
+  content: z.string().trim().min(1, "Content is required").max(5000, "Content must be less than 5000 characters"),
+});
 
 interface Post {
   id: string;
@@ -82,18 +88,21 @@ const Community = () => {
       return;
     }
 
-    if (!newTitle.trim() || !newContent.trim()) {
+    // Validate inputs
+    const validation = postSchema.safeParse({ title: newTitle, content: newContent });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Missing information",
-        description: "Please provide both title and content",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
     }
 
     const { error } = await supabase.from("forum_posts").insert({
-      title: newTitle,
-      content: newContent,
+      title: validation.data.title,
+      content: validation.data.content,
       user_id: user.id,
     });
 

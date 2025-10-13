@@ -7,6 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  email: z.string().email("Invalid email address").max(255, "Email too long"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128, "Password too long"),
+  fullName: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
+});
+
+const signinSchema = z.object({
+  email: z.string().email("Invalid email address").max(255, "Email too long"),
+  password: z.string().min(1, "Password is required"),
+});
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -17,10 +29,13 @@ const Auth = () => {
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
-    if (!email || !password || !fullName) {
+    // Validate inputs
+    const validation = signupSchema.safeParse({ email, password, fullName });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Missing information",
-        description: "Please fill in all fields",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
@@ -28,8 +43,8 @@ const Auth = () => {
 
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: validation.data.email,
+      password: validation.data.password,
     });
 
     if (error) {
@@ -46,7 +61,7 @@ const Auth = () => {
       // Create profile
       await supabase.from("profiles").insert({
         id: data.user.id,
-        full_name: fullName,
+        full_name: validation.data.fullName,
       });
 
       toast({
@@ -60,10 +75,13 @@ const Auth = () => {
   };
 
   const handleSignIn = async () => {
-    if (!email || !password) {
+    // Validate inputs
+    const validation = signinSchema.safeParse({ email, password });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Missing information",
-        description: "Please enter email and password",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
@@ -71,8 +89,8 @@ const Auth = () => {
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: validation.data.email,
+      password: validation.data.password,
     });
 
     if (error) {

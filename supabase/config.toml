@@ -11,4 +11,4 @@ max_rows = 1000
 enabled = true
 
 [functions.bibi-chat]
-verify_jwt = false
+verify_jwt = true

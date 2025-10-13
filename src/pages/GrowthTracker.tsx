@@ -19,6 +19,22 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { z } from "zod";
+
+const growthSchema = z.object({
+  babyName: z.string().trim().min(1, "Baby name is required").max(100, "Name too long"),
+  weight: z.number().positive("Weight must be positive").max(50, "Weight seems too high"),
+  height: z.number().positive("Height must be positive").max(150, "Height seems too high"),
+  milestone: z.string().max(200, "Milestone too long").optional(),
+  notes: z.string().max(1000, "Notes too long").optional(),
+});
+
+const mealSchema = z.object({
+  babyName: z.string().trim().min(1, "Baby name is required").max(100, "Name too long"),
+  mealType: z.string().trim().min(1, "Meal type is required").max(50, "Meal type too long"),
+  recipeTitle: z.string().trim().min(1, "Recipe/food is required").max(200, "Title too long"),
+  calories: z.number().positive("Calories must be positive").max(10000, "Calories seem too high").optional(),
+});
 
 interface GrowthRecord {
   id: string;
@@ -103,21 +119,31 @@ const GrowthTracker = () => {
   };
 
   const handleAddGrowth = async () => {
-    if (!babyName || !weight || !height) {
+    // Validate inputs
+    const validation = growthSchema.safeParse({
+      babyName,
+      weight: parseFloat(weight),
+      height: parseFloat(height),
+      milestone: milestone || undefined,
+      notes: notes || undefined,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
     }
 
     const { error } = await supabase.from("baby_growth").insert({
-      baby_name: babyName,
-      weight_kg: parseFloat(weight),
-      height_cm: parseFloat(height),
-      milestone,
-      notes,
+      baby_name: validation.data.babyName,
+      weight_kg: validation.data.weight,
+      height_cm: validation.data.height,
+      milestone: validation.data.milestone || null,
+      notes: validation.data.notes || null,
       recorded_at: new Date().toISOString(),
       user_id: user.id,
     });
@@ -147,20 +173,29 @@ const GrowthTracker = () => {
   };
 
   const handleAddMeal = async () => {
-    if (!babyName || !mealType || !recipeTitle) {
+    // Validate inputs
+    const validation = mealSchema.safeParse({
+      babyName,
+      mealType,
+      recipeTitle,
+      calories: calories ? parseInt(calories) : undefined,
+    });
+
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
     }
 
     const { error } = await supabase.from("meal_logs").insert({
-      baby_name: babyName,
-      meal_type: mealType,
-      recipe_title: recipeTitle,
-      calories: calories ? parseInt(calories) : null,
+      baby_name: validation.data.babyName,
+      meal_type: validation.data.mealType,
+      recipe_title: validation.data.recipeTitle,
+      calories: validation.data.calories || null,
       eaten_at: new Date().toISOString(),
       user_id: user.id,
     });

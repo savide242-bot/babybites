@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Send, Loader2, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Message {
   role: "user" | "assistant";
@@ -18,7 +21,19 @@ const Chat = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -27,13 +42,19 @@ const Chat = () => {
   }, [messages]);
 
   const streamChat = async (userMessage: Message) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error("Not authenticated");
+    }
+
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bibi-chat`;
     
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({ messages: [...messages, userMessage] }),
     });
@@ -96,6 +117,16 @@ const Chat = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to chat with Bibi",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     const userMessage: Message = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
@@ -105,13 +136,21 @@ const Chat = () => {
       await streamChat(userMessage);
     } catch (error) {
       console.error("Error:", error);
+      const errorMessage = error instanceof Error && error.message === "Not authenticated" 
+        ? "Please sign in to continue chatting."
+        : "I'm sorry, I'm having trouble connecting right now. Please try again in a moment!";
+      
       setMessages(prev => [
         ...prev,
         {
           role: "assistant",
-          content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment!"
+          content: errorMessage
         }
       ]);
+      
+      if (error instanceof Error && error.message === "Not authenticated") {
+        navigate("/auth");
+      }
     } finally {
       setIsLoading(false);
     }
