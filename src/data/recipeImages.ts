@@ -47,32 +47,56 @@ export const recipeImages = {
 export const getRecipeImage = (keywords: string[]): string => {
   const keywordString = keywords.join(" ").toLowerCase();
   
+  // More specific matching first
+  if (keywordString.includes("avocado") && keywordString.includes("puree")) return avocadoPuree;
+  if (keywordString.includes("sweet potato") && keywordString.includes("carrot")) return sweetPotatoCarrot;
+  if (keywordString.includes("blueberry") && keywordString.includes("oatmeal")) return blueberryOatmeal;
+  if (keywordString.includes("egg") && keywordString.includes("muffin")) return eggMuffins;
+  if (keywordString.includes("banana") && keywordString.includes("pancake")) return bananaPancakes;
+  if (keywordString.includes("chicken") && (keywordString.includes("patty") || keywordString.includes("patties"))) return chickenPatties;
+  if (keywordString.includes("pea") && keywordString.includes("puree")) return peaPuree;
+  if (keywordString.includes("apple") && keywordString.includes("sauce")) return appleSauce;
+  if (keywordString.includes("pasta") && keywordString.includes("tomato")) return pastaTomato;
+  if (keywordString.includes("yogurt") && keywordString.includes("berries")) return yogurtBerries;
+  if (keywordString.includes("quinoa") && keywordString.includes("veggie")) return quinoaVeggies;
+  if (keywordString.includes("broccoli") && keywordString.includes("tot")) return broccoliTots;
+  if (keywordString.includes("salmon") && keywordString.includes("sweet potato")) return salmonSweetPotato;
+  if (keywordString.includes("rice") && keywordString.includes("banana")) return riceBanana;
+  if (keywordString.includes("lentil") && keywordString.includes("soup")) return lentilSoup;
+  if (keywordString.includes("mango") && (keywordString.includes("puree") || keywordString.includes("tropical"))) return mangoPuree;
+  if (keywordString.includes("beef") && keywordString.includes("stew")) return beefStew;
+  if (keywordString.includes("spinach") && keywordString.includes("quesadilla")) return spinachQuesadilla;
+  if (keywordString.includes("butternut") && keywordString.includes("squash")) return butternutSquash;
+  if (keywordString.includes("turkey") && keywordString.includes("meatball")) return turkeyMeatballs;
+  
+  // Single keyword matches
   if (keywordString.includes("avocado")) return avocadoPuree;
-  if (keywordString.includes("sweet potato") || keywordString.includes("carrot")) return sweetPotatoCarrot;
-  if (keywordString.includes("blueberry") || keywordString.includes("oatmeal")) return blueberryOatmeal;
-  if (keywordString.includes("egg") || keywordString.includes("muffin")) return eggMuffins;
-  if (keywordString.includes("pancake") || keywordString.includes("banana")) return bananaPancakes;
-  if (keywordString.includes("chicken") || keywordString.includes("patty")) return chickenPatties;
+  if (keywordString.includes("sweet potato")) return sweetPotatoCarrot;
+  if (keywordString.includes("blueberry")) return blueberryOatmeal;
+  if (keywordString.includes("egg")) return eggMuffins;
+  if (keywordString.includes("banana")) return bananaPancakes;
+  if (keywordString.includes("chicken")) return chickenPatties;
   if (keywordString.includes("pea") || keywordString.includes("green")) return peaPuree;
   if (keywordString.includes("apple") || keywordString.includes("pear")) return appleSauce;
-  if (keywordString.includes("pasta") || keywordString.includes("tomato")) return pastaTomato;
+  if (keywordString.includes("pasta")) return pastaTomato;
   if (keywordString.includes("yogurt") || keywordString.includes("berry")) return yogurtBerries;
   if (keywordString.includes("quinoa") || keywordString.includes("grain")) return quinoaVeggies;
-  if (keywordString.includes("broccoli") || keywordString.includes("tot")) return broccoliTots;
+  if (keywordString.includes("broccoli")) return broccoliTots;
   if (keywordString.includes("salmon") || keywordString.includes("fish")) return salmonSweetPotato;
   if (keywordString.includes("rice") || keywordString.includes("cereal")) return riceBanana;
   if (keywordString.includes("lentil") || keywordString.includes("soup")) return lentilSoup;
   if (keywordString.includes("mango") || keywordString.includes("tropical")) return mangoPuree;
-  if (keywordString.includes("beef") || keywordString.includes("stew")) return beefStew;
+  if (keywordString.includes("beef")) return beefStew;
   if (keywordString.includes("quesadilla") || keywordString.includes("spinach")) return spinachQuesadilla;
   if (keywordString.includes("squash") || keywordString.includes("butternut")) return butternutSquash;
   if (keywordString.includes("turkey") || keywordString.includes("meatball")) return turkeyMeatballs;
   
-  // Default fallbacks based on category
+  // Category-based fallbacks
   if (keywordString.includes("puree")) return avocadoPuree;
   if (keywordString.includes("finger food")) return chickenPatties;
   if (keywordString.includes("breakfast")) return bananaPancakes;
   if (keywordString.includes("snack")) return blueberryOatmeal;
+  if (keywordString.includes("lunch") || keywordString.includes("dinner")) return chickenPatties;
   
   return sweetPotatoCarrot; // Default image
 };

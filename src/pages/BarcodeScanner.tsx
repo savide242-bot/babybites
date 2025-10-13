@@ -1,20 +1,79 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Scan, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Scan, AlertTriangle, CheckCircle2, Camera, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Html5Qrcode } from "html5-qrcode";
 
 const BarcodeScanner = () => {
   const [barcode, setBarcode] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [cameraScanning, setCameraScanning] = useState(false);
   const [result, setResult] = useState<any>(null);
   const { toast } = useToast();
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const qrCodeRegionId = "qr-reader";
 
-  const handleScan = async () => {
-    if (!barcode.trim()) {
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(console.error);
+      }
+    };
+  }, []);
+
+  const startCameraScanner = async () => {
+    try {
+      setCameraScanning(true);
+      
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode(qrCodeRegionId);
+      }
+
+      await scannerRef.current.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
+          setBarcode(decodedText);
+          stopCameraScanner();
+          handleScan(decodedText);
+        },
+        (errorMessage) => {
+          // Silently handle scan errors
+        }
+      );
+    } catch (err) {
+      console.error("Error starting camera:", err);
+      toast({
+        title: "Erro de Câmera",
+        description: "Não foi possível acessar a câmera. Verifique as permissões.",
+        variant: "destructive",
+      });
+      setCameraScanning(false);
+    }
+  };
+
+  const stopCameraScanner = async () => {
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      }
+      setCameraScanning(false);
+    } catch (err) {
+      console.error("Error stopping camera:", err);
+    }
+  };
+
+  const handleScan = async (scannedCode?: string) => {
+    const codeToScan = scannedCode || barcode;
+    if (!codeToScan.trim()) {
       toast({
         title: "Missing barcode",
         description: "Please enter a barcode",
@@ -44,7 +103,7 @@ const BarcodeScanner = () => {
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           supabase.from("scanned_products").insert({
-            barcode,
+            barcode: codeToScan,
             product_name: mockResult.product_name,
             is_baby_safe: mockResult.is_baby_safe,
             safety_notes: mockResult.safety_notes,
@@ -64,31 +123,61 @@ const BarcodeScanner = () => {
           Scan products to check if they're safe for your baby
         </p>
 
-        <Card className="p-6 mb-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="barcode">Product Barcode</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="barcode"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="Enter barcode number"
-                  disabled={scanning}
-                />
-                <Button onClick={handleScan} disabled={scanning}>
-                  <Scan className="w-4 h-4 mr-2" />
-                  {scanning ? "Scanning..." : "Scan"}
+        {!cameraScanning ? (
+          <Card className="p-6 mb-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="barcode">Código de Barras do Produto</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="barcode"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    placeholder="Digite o código de barras"
+                    disabled={scanning}
+                  />
+                  <Button onClick={() => handleScan()} disabled={scanning}>
+                    <Scan className="w-4 h-4 mr-2" />
+                    {scanning ? "Escaneando..." : "Escanear"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Button 
+                  onClick={startCameraScanner} 
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Usar Câmera para Escanear
                 </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Aponte a câmera para o código de barras
+                </p>
               </div>
             </div>
-
-            <div className="text-center text-sm text-muted-foreground">
-              <p>📱 Camera scanning coming soon!</p>
-              <p className="mt-1">For now, enter the barcode manually</p>
+          </Card>
+        ) : (
+          <Card className="p-6 mb-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Escaneando com Câmera</h3>
+                <Button 
+                  onClick={stopCameraScanner} 
+                  variant="ghost"
+                  size="sm"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div id={qrCodeRegionId} className="w-full" />
+              <p className="text-sm text-muted-foreground text-center">
+                Posicione o código de barras dentro da área destacada
+              </p>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {result && (
           <Card className="p-6">
@@ -129,12 +218,12 @@ const BarcodeScanner = () => {
         )}
 
         <Card className="p-6 mt-6 bg-primary/5">
-          <h3 className="font-semibold mb-2">How it works</h3>
+          <h3 className="font-semibold mb-2">Como funciona</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>Enter or scan the barcode of any grocery product</li>
-            <li>Our system checks the ingredients against baby safety guidelines</li>
-            <li>Get instant feedback on safety and allergen information</li>
-            <li>Discover recipes that use safe ingredients</li>
+            <li>Digite ou escaneie o código de barras de qualquer produto</li>
+            <li>Nosso sistema verifica os ingredientes contra diretrizes de segurança para bebês</li>
+            <li>Receba feedback instantâneo sobre segurança e informações de alérgenos</li>
+            <li>Descubra receitas que usam ingredientes seguros</li>
           </ol>
         </Card>
       </div>
