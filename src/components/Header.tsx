@@ -62,23 +62,28 @@ const Header = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-64">
-              <nav className="flex flex-col space-y-4 mt-8">
+              <nav className="flex flex-col space-y-2 mt-8">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
                   return (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className={`flex items-center space-x-3 text-base font-medium transition-colors hover:text-primary p-3 rounded-xl ${
-                        isActive(link.to) ? "bg-muted text-primary" : "text-foreground"
-                      }`}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span>{link.label}</span>
-                    </Link>
+                    <SheetTrigger key={link.to} asChild>
+                      <Link
+                        to={link.to}
+                        className={`flex items-center space-x-3 text-base font-medium transition-colors hover:text-primary p-3 rounded-xl ${
+                          isActive(link.to) ? "bg-muted text-primary" : "text-foreground"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </SheetTrigger>
                   );
                 })}
-                <Button className="mt-4 rounded-full w-full">Get Started</Button>
+                <SheetTrigger asChild>
+                  <Link to="/auth">
+                    <Button className="mt-4 rounded-full w-full">Começar</Button>
+                  </Link>
+                </SheetTrigger>
               </nav>
             </SheetContent>
           </Sheet>

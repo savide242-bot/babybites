@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bot, MessageCircle } from "lucide-react";
+import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bot, MessageCircle, Star, Award, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 import { recipes } from "@/data/recipes";
@@ -9,150 +9,218 @@ const Home = () => {
   const featuredRecipes = recipes.slice(0, 3);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-16 md:py-24">
-        <div className="container">
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
-            <div className="space-y-6">
-              <div className="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-                Welcome to BabyBites 🍼
-              </div>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-                Healthy Meals for Your{" "}
+    <div className="min-h-screen overflow-hidden">
+      {/* Hero Section - Fantástico e Cativante */}
+      <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-60 -left-40 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-accent/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="container relative z-10">
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+            <div className="space-y-8 animate-fade-in">
+              <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm border border-primary/30">
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Little One
+                  Bem-vindo ao BabyBites
                 </span>
+              </div>
+              
+              <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl leading-tight">
+                Refeições{" "}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-pulse">
+                    Saudáveis
+                  </span>
+                  <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-full"></div>
+                </span>
+                {" "}para o Seu Bebê
               </h1>
-              <p className="text-lg text-muted-foreground max-w-xl">
-                Discover pediatrician-approved recipes, expert parenting advice, and meal planning tools designed for busy American parents. Make nutritious homemade baby food with confidence.
+              
+              <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
+                Descubra receitas aprovadas por pediatras, conselhos de especialistas e ferramentas de planejamento de refeições para pais ocupados. 
+                <span className="font-semibold text-foreground"> Comida caseira nutritiva com confiança.</span>
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="rounded-full">
+              
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all duration-300 text-lg px-8 py-6 group">
                   <Link to="/recipes">
-                    Explore Recipes
+                    <BookOpen className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                    Explorar Receitas
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="rounded-full">
+                <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-primary hover:bg-primary/10 transition-all duration-300 text-lg px-8 py-6 group">
                   <Link to="/chat">
-                    Chat with Bibi AI
+                    <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                    Chat com Bibi AI
                   </Link>
                 </Button>
               </div>
-            </div>
-            <div className="relative">
-              <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl">
-                <img
-                  src={heroImage}
-                  alt="Fresh healthy baby food ingredients"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="absolute -bottom-4 -left-4 bg-card rounded-2xl p-4 shadow-lg border">
-                <div className="flex items-center space-x-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-primary" />
+
+              {/* Stats */}
+              <div className="flex flex-wrap gap-8 pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Award className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">200+ Recipes</p>
-                    <p className="text-xs text-muted-foreground">Expert approved</p>
+                    <p className="text-2xl font-bold">200+</p>
+                    <p className="text-sm text-muted-foreground">Receitas</p>
                   </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">10K+</p>
+                    <p className="text-sm text-muted-foreground">Pais Felizes</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">100%</p>
+                    <p className="text-sm text-muted-foreground">Seguro</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative animate-fade-in delay-200">
+              <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl hover:shadow-hover transition-all duration-500 group">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+                <img
+                  src={heroImage}
+                  alt="Ingredientes frescos e saudáveis para comida de bebê"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+              
+              {/* Floating card */}
+              <div className="absolute -bottom-6 -left-6 bg-card rounded-2xl p-6 shadow-2xl border-2 border-primary/20 backdrop-blur-sm animate-pulse">
+                <div className="flex items-center space-x-4">
+                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
+                    <Sparkles className="h-7 w-7 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">Aprovado por Pediatras</p>
+                    <p className="text-sm text-muted-foreground">Nutrição Garantida</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Star rating floating card */}
+              <div className="absolute -top-6 -right-6 bg-card rounded-2xl p-4 shadow-2xl border-2 border-secondary/20 backdrop-blur-sm">
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-primary text-primary" />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 text-center">5.0 Avaliação</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 md:py-24 bg-muted/30">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Everything You Need in One Place</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              From first purees to toddler meals, we've got you covered with expert-approved content
+      {/* Features Section - Melhorado */}
+      <section className="py-20 md:py-32 bg-gradient-to-b from-background to-muted/30 relative">
+        <div className="container relative z-10">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              Tudo Que Você Precisa em Um Lugar
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              Desde os primeiros purês até refeições para crianças pequenas, temos tudo coberto com conteúdo aprovado por especialistas
             </p>
           </div>
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Link to="/recipes">
-              <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg h-full">
+            <Link to="/recipes" className="group">
+              <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <BookOpen className="h-6 w-6 text-primary" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
+                    <BookOpen className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle>Recipe Library</CardTitle>
-                  <CardDescription>
-                    200+ detailed recipes with nutrition info, age recommendations, and step-by-step instructions
+                  <CardTitle className="text-2xl">Biblioteca de Receitas</CardTitle>
+                  <CardDescription className="text-base">
+                    Mais de 200 receitas detalhadas com informações nutricionais, recomendações de idade e instruções passo a passo
                   </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
 
-            <Link to="/community">
-              <Card className="border-2 hover:border-secondary/50 transition-all hover:shadow-lg h-full">
+            <Link to="/community" className="group">
+              <Card className="border-2 hover:border-secondary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
-                    <Users className="h-6 w-6 text-secondary" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle>Parent Community</CardTitle>
-                  <CardDescription>
-                    Connect with other parents, share experiences, and get advice from verified pediatricians
+                  <CardTitle className="text-2xl">Comunidade de Pais</CardTitle>
+                  <CardDescription className="text-base">
+                    Conecte-se com outros pais, compartilhe experiências e obtenha conselhos de pediatras verificados
                   </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
 
-            <Link to="/growth">
-              <Card className="border-2 hover:border-accent/50 transition-all hover:shadow-lg h-full">
+            <Link to="/growth" className="group">
+              <Card className="border-2 hover:border-accent/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                    <TrendingUp className="h-6 w-6 text-accent" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <TrendingUp className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle>Growth Tracker</CardTitle>
-                  <CardDescription>
-                    Monitor your baby's growth with charts, track meals, and analyze nutritional balance
+                  <CardTitle className="text-2xl">Rastreador de Crescimento</CardTitle>
+                  <CardDescription className="text-base">
+                    Monitore o crescimento do seu bebê com gráficos, acompanhe refeições e analise o equilíbrio nutricional
                   </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
 
-            <Link to="/scanner">
-              <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg h-full">
+            <Link to="/scanner" className="group">
+              <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Scan className="h-6 w-6 text-primary" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
+                    <Scan className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle>Barcode Scanner</CardTitle>
-                  <CardDescription>
-                    Scan grocery products to check if they're safe for your baby and get recipe suggestions
+                  <CardTitle className="text-2xl">Scanner de Código de Barras</CardTitle>
+                  <CardDescription className="text-base">
+                    Escaneie produtos do supermercado para verificar se são seguros para o seu bebê e obter sugestões de receitas
                   </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
 
-            <Link to="/chat">
-              <Card className="border-2 hover:border-secondary/50 transition-all hover:shadow-lg h-full">
+            <Link to="/chat" className="group">
+              <Card className="border-2 hover:border-secondary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
-                    <Bot className="h-6 w-6 text-secondary" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Bot className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle>Bibi AI Assistant</CardTitle>
-                  <CardDescription>
-                    Chat with our intelligent AI nutritionist for personalized advice and recipe suggestions
+                  <CardTitle className="text-2xl">Assistente Bibi AI</CardTitle>
+                  <CardDescription className="text-base">
+                    Converse com nossa nutricionista AI inteligente para conselhos personalizados e sugestões de receitas
                   </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
 
-            <Link to="/recipes">
-              <Card className="border-2 hover:border-accent/50 transition-all hover:shadow-lg h-full">
+            <Link to="/recipes" className="group">
+              <Card className="border-2 hover:border-accent/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                    <Clock className="h-6 w-6 text-accent" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Clock className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle>Quick & Easy</CardTitle>
-                  <CardDescription>
-                    Most recipes ready in under 30 minutes - perfect for busy parents on the go
+                  <CardTitle className="text-2xl">Rápido & Fácil</CardTitle>
+                  <CardDescription className="text-base">
+                    A maioria das receitas prontas em menos de 30 minutos - perfeito para pais ocupados
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -162,43 +230,56 @@ const Home = () => {
       </section>
 
       {/* Featured Recipes */}
-      <section className="py-16 md:py-24">
+      <section className="py-20 md:py-32">
         <div className="container">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-16 animate-fade-in">
             <div>
-              <h2 className="text-3xl font-bold mb-2">Featured Recipes</h2>
-              <p className="text-muted-foreground">Start with these parent-approved favorites</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Receitas em Destaque
+              </h2>
+              <p className="text-lg text-muted-foreground">Comece com estes favoritos aprovados pelos pais</p>
             </div>
-            <Button asChild variant="outline" className="rounded-full">
-              <Link to="/recipes">View All</Link>
+            <Button asChild variant="outline" className="rounded-full border-2 hover:shadow-lg transition-all">
+              <Link to="/recipes">Ver Todas</Link>
             </Button>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {featuredRecipes.map((recipe) => (
-              <Card key={recipe.id} className="overflow-hidden hover:shadow-xl transition-shadow">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {featuredRecipes.map((recipe, index) => (
+              <Card 
+                key={recipe.id} 
+                className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 hover:border-primary/30 group animate-fade-in hover:-translate-y-2"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
                 <div className="aspect-video bg-muted relative overflow-hidden">
                   <img
                     src={recipe.image}
                     alt={recipe.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                     {recipe.ageGroup}
                   </div>
                 </div>
                 <CardHeader>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  <div className="flex items-center gap-3 text-sm mb-3">
+                    <span className="bg-gradient-to-r from-primary to-primary-glow text-white px-3 py-1.5 rounded-full font-semibold shadow-sm">
                       {recipe.category}
                     </span>
-                    <span>• {recipe.prepTime}</span>
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      {recipe.prepTime}
+                    </span>
                   </div>
-                  <CardTitle className="text-xl">{recipe.title}</CardTitle>
-                  <CardDescription>{recipe.description}</CardDescription>
+                  <CardTitle className="text-2xl group-hover:text-primary transition-colors">{recipe.title}</CardTitle>
+                  <CardDescription className="text-base">{recipe.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button asChild className="w-full rounded-full">
-                    <Link to={`/recipe/${recipe.id}`}>View Recipe</Link>
+                  <Button asChild className="w-full rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all group">
+                    <Link to={`/recipe/${recipe.id}`}>
+                      Ver Receita
+                      <Sparkles className="ml-2 w-4 h-4 group-hover:scale-110 transition-transform" />
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -207,22 +288,44 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-r from-primary to-secondary text-primary-foreground">
-        <div className="container text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Start Your Baby's Food Journey?
-          </h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of parents making nutritious, homemade baby food with confidence. Get personalized advice from Bibi, our AI nutritionist!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="rounded-full">
-              <Link to="/auth">Get Started Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full bg-transparent border-white text-white hover:bg-white/10">
-              <Link to="/chat">Try Bibi AI</Link>
-            </Button>
+      {/* CTA Section - Super Cativante */}
+      <section className="py-20 md:py-32 bg-gradient-to-br from-primary via-secondary to-accent text-white relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+        </div>
+
+        <div className="container text-center relative z-10">
+          <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-semibold">
+              <Heart className="w-4 h-4 animate-pulse" />
+              Junte-se à Nossa Comunidade
+            </div>
+            
+            <h2 className="text-4xl md:text-6xl font-extrabold leading-tight">
+              Pronto para Começar a Jornada Alimentar do Seu Bebê?
+            </h2>
+            
+            <p className="text-xl md:text-2xl opacity-95 max-w-3xl mx-auto leading-relaxed">
+              Junte-se a milhares de pais fazendo comida caseira nutritiva para bebês com confiança. 
+              Obtenha conselhos personalizados da Bibi, nossa nutricionista AI!
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-6">
+              <Button asChild size="lg" variant="secondary" className="rounded-full text-lg px-10 py-7 shadow-2xl hover:scale-105 transition-all duration-300 group">
+                <Link to="/auth">
+                  <Sparkles className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
+                  Começar Grátis
+                </Link>
+              </Button>
+              <Button asChild size="lg" className="rounded-full bg-white/20 border-2 border-white text-white hover:bg-white hover:text-primary transition-all duration-300 text-lg px-10 py-7 backdrop-blur-sm group">
+                <Link to="/chat">
+                  <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                  Experimente Bibi AI
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
