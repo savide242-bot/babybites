@@ -81,7 +81,7 @@ const Header = () => {
                 })}
                 <SheetTrigger asChild>
                   <Link to="/auth">
-                    <Button className="mt-4 rounded-full w-full">Começar</Button>
+                    <Button className="mt-4 rounded-full w-full">Get Started</Button>
                   </Link>
                 </SheetTrigger>
               </nav>

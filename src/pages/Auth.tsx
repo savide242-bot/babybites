@@ -180,7 +180,7 @@ const Auth = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                {loading ? "Carregando..." : "Entrar com Google"}
+                {loading ? "Loading..." : "Sign in with Google"}
               </Button>
 
               <div className="relative">
@@ -188,7 +188,7 @@ const Auth = () => {
                   <Separator />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Ou continue com email</span>
+                  <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
                 </div>
               </div>
 
@@ -199,11 +199,11 @@ const Auth = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
+                  placeholder="your@email.com"
                 />
               </div>
               <div>
-                <Label htmlFor="signin-password">Senha</Label>
+                <Label htmlFor="signin-password">Password</Label>
                 <Input
                   id="signin-password"
                   type="password"
@@ -213,7 +213,7 @@ const Auth = () => {
                 />
               </div>
               <Button onClick={handleSignIn} disabled={loading} className="w-full">
-                {loading ? "Entrando..." : "Entrar"}
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </TabsContent>
 
@@ -242,7 +242,7 @@ const Auth = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                {loading ? "Carregando..." : "Cadastrar com Google"}
+                {loading ? "Loading..." : "Sign up with Google"}
               </Button>
 
               <div className="relative">
@@ -250,17 +250,17 @@ const Auth = () => {
                   <Separator />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Ou cadastre-se com email</span>
+                  <span className="bg-card px-2 text-muted-foreground">Or sign up with email</span>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="signup-name">Nome Completo</Label>
+                <Label htmlFor="signup-name">Full Name</Label>
                 <Input
                   id="signup-name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="João Silva"
+                  placeholder="John Doe"
                 />
               </div>
               <div>
@@ -270,11 +270,11 @@ const Auth = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
+                  placeholder="your@email.com"
                 />
               </div>
               <div>
-                <Label htmlFor="signup-password">Senha</Label>
+                <Label htmlFor="signup-password">Password</Label>
                 <Input
                   id="signup-password"
                   type="password"
@@ -284,7 +284,7 @@ const Auth = () => {
                 />
               </div>
               <Button onClick={handleSignUp} disabled={loading} className="w-full">
-                {loading ? "Criando conta..." : "Cadastrar"}
+                {loading ? "Creating account..." : "Sign Up"}
               </Button>
             </TabsContent>
           </Tabs>

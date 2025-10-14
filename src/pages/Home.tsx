@@ -25,37 +25,37 @@ const Home = () => {
               <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm border border-primary/30">
                 <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Bem-vindo ao BabyBites
+                  Welcome to BabyBites
                 </span>
               </div>
               
               <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl leading-tight">
-                Refeições{" "}
+                Healthy{" "}
                 <span className="relative inline-block">
                   <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-pulse">
-                    Saudáveis
+                    Meals
                   </span>
                   <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-full"></div>
                 </span>
-                {" "}para o Seu Bebê
+                {" "}for Your Little One
               </h1>
               
               <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Descubra receitas aprovadas por pediatras, conselhos de especialistas e ferramentas de planejamento de refeições para pais ocupados. 
-                <span className="font-semibold text-foreground"> Comida caseira nutritiva com confiança.</span>
+                Discover pediatrician-approved recipes, expert parenting advice, and meal planning tools designed for busy American parents. 
+                <span className="font-semibold text-foreground"> Make nutritious homemade baby food with confidence.</span>
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all duration-300 text-lg px-8 py-6 group">
                   <Link to="/recipes">
                     <BookOpen className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                    Explorar Receitas
+                    Explore Recipes
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-primary hover:bg-primary/10 transition-all duration-300 text-lg px-8 py-6 group">
                   <Link to="/chat">
                     <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                    Chat com Bibi AI
+                    Chat with Bibi AI
                   </Link>
                 </Button>
               </div>
@@ -68,7 +68,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">200+</p>
-                    <p className="text-sm text-muted-foreground">Receitas</p>
+                    <p className="text-sm text-muted-foreground">Recipes</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -77,7 +77,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">10K+</p>
-                    <p className="text-sm text-muted-foreground">Pais Felizes</p>
+                    <p className="text-sm text-muted-foreground">Happy Parents</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">100%</p>
-                    <p className="text-sm text-muted-foreground">Seguro</p>
+                    <p className="text-sm text-muted-foreground">Safe</p>
                   </div>
                 </div>
               </div>
@@ -109,8 +109,8 @@ const Home = () => {
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold">Aprovado por Pediatras</p>
-                    <p className="text-sm text-muted-foreground">Nutrição Garantida</p>
+                    <p className="text-lg font-bold">Pediatrician Approved</p>
+                    <p className="text-sm text-muted-foreground">Guaranteed Nutrition</p>
                   </div>
                 </div>
               </div>
@@ -122,7 +122,7 @@ const Home = () => {
                     <Star key={star} className="w-5 h-5 fill-primary text-primary" />
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 text-center">5.0 Avaliação</p>
+                <p className="text-xs text-muted-foreground mt-1 text-center">5.0 Rating</p>
               </div>
             </div>
           </div>
@@ -134,10 +134,10 @@ const Home = () => {
         <div className="container relative z-10">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              Tudo Que Você Precisa em Um Lugar
+              Everything You Need in One Place
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Desde os primeiros purês até refeições para crianças pequenas, temos tudo coberto com conteúdo aprovado por especialistas
+              From first purees to toddler meals, we have got you covered with expert-approved content
             </p>
           </div>
 
@@ -148,9 +148,9 @@ const Home = () => {
                   <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
                     <BookOpen className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl">Biblioteca de Receitas</CardTitle>
+                  <CardTitle className="text-2xl">Recipe Library</CardTitle>
                   <CardDescription className="text-base">
-                    Mais de 200 receitas detalhadas com informações nutricionais, recomendações de idade e instruções passo a passo
+                    200+ detailed recipes with nutrition info, age recommendations, and step-by-step instructions
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -162,9 +162,9 @@ const Home = () => {
                   <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Users className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl">Comunidade de Pais</CardTitle>
+                  <CardTitle className="text-2xl">Parent Community</CardTitle>
                   <CardDescription className="text-base">
-                    Conecte-se com outros pais, compartilhe experiências e obtenha conselhos de pediatras verificados
+                    Connect with other parents, share experiences, and get advice from verified pediatricians
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -176,9 +176,9 @@ const Home = () => {
                   <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <TrendingUp className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl">Rastreador de Crescimento</CardTitle>
+                  <CardTitle className="text-2xl">Growth Tracker</CardTitle>
                   <CardDescription className="text-base">
-                    Monitore o crescimento do seu bebê com gráficos, acompanhe refeições e analise o equilíbrio nutricional
+                    Monitor your baby's growth with charts, track meals, and analyze nutritional balance
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -190,9 +190,9 @@ const Home = () => {
                   <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
                     <Scan className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl">Scanner de Código de Barras</CardTitle>
+                  <CardTitle className="text-2xl">Barcode Scanner</CardTitle>
                   <CardDescription className="text-base">
-                    Escaneie produtos do supermercado para verificar se são seguros para o seu bebê e obter sugestões de receitas
+                    Scan grocery products to check if they're safe for your baby and get recipe suggestions
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -204,9 +204,9 @@ const Home = () => {
                   <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Bot className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl">Assistente Bibi AI</CardTitle>
+                  <CardTitle className="text-2xl">Bibi AI Assistant</CardTitle>
                   <CardDescription className="text-base">
-                    Converse com nossa nutricionista AI inteligente para conselhos personalizados e sugestões de receitas
+                    Chat with our intelligent AI nutritionist for personalized advice and recipe suggestions
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -218,9 +218,9 @@ const Home = () => {
                   <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Clock className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl">Rápido & Fácil</CardTitle>
+                  <CardTitle className="text-2xl">Quick & Easy</CardTitle>
                   <CardDescription className="text-base">
-                    A maioria das receitas prontas em menos de 30 minutos - perfeito para pais ocupados
+                    Most recipes ready in under 30 minutes - perfect for busy parents on the go
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -235,12 +235,12 @@ const Home = () => {
           <div className="flex items-center justify-between mb-16 animate-fade-in">
             <div>
               <h2 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Receitas em Destaque
+                Featured Recipes
               </h2>
-              <p className="text-lg text-muted-foreground">Comece com estes favoritos aprovados pelos pais</p>
+              <p className="text-lg text-muted-foreground">Start with these parent-approved favorites</p>
             </div>
             <Button asChild variant="outline" className="rounded-full border-2 hover:shadow-lg transition-all">
-              <Link to="/recipes">Ver Todas</Link>
+              <Link to="/recipes">View All</Link>
             </Button>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -277,7 +277,7 @@ const Home = () => {
                 <CardContent>
                   <Button asChild className="w-full rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all group">
                     <Link to={`/recipe/${recipe.id}`}>
-                      Ver Receita
+                      View Recipe
                       <Sparkles className="ml-2 w-4 h-4 group-hover:scale-110 transition-transform" />
                     </Link>
                   </Button>
@@ -300,29 +300,29 @@ const Home = () => {
           <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-semibold">
               <Heart className="w-4 h-4 animate-pulse" />
-              Junte-se à Nossa Comunidade
+              Join Our Community
             </div>
             
             <h2 className="text-4xl md:text-6xl font-extrabold leading-tight">
-              Pronto para Começar a Jornada Alimentar do Seu Bebê?
+              Ready to Start Your Baby's Food Journey?
             </h2>
             
             <p className="text-xl md:text-2xl opacity-95 max-w-3xl mx-auto leading-relaxed">
-              Junte-se a milhares de pais fazendo comida caseira nutritiva para bebês com confiança. 
-              Obtenha conselhos personalizados da Bibi, nossa nutricionista AI!
+              Join thousands of parents making nutritious, homemade baby food with confidence. 
+              Get personalized advice from Bibi, our AI nutritionist!
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center pt-6">
               <Button asChild size="lg" variant="secondary" className="rounded-full text-lg px-10 py-7 shadow-2xl hover:scale-105 transition-all duration-300 group">
                 <Link to="/auth">
                   <Sparkles className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                  Começar Grátis
+                  Get Started Free
                 </Link>
               </Button>
               <Button asChild size="lg" className="rounded-full bg-white/20 border-2 border-white text-white hover:bg-white hover:text-primary transition-all duration-300 text-lg px-10 py-7 backdrop-blur-sm group">
                 <Link to="/chat">
                   <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                  Experimente Bibi AI
+                  Try Bibi AI
                 </Link>
               </Button>
             </div>
