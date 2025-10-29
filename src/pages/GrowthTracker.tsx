@@ -79,14 +79,12 @@ const GrowthTracker = () => {
   }, []);
 
   const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate("/auth");
-      return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setUser(session.user);
+      fetchGrowthRecords();
+      fetchMealLogs();
     }
-    setUser(user);
-    fetchGrowthRecords();
-    fetchMealLogs();
   };
 
   const fetchGrowthRecords = async () => {

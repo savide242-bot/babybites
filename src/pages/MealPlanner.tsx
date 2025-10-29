@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ShoppingCart, Plus, X } from "lucide-react";
+import { Calendar, ShoppingCart, Plus, X, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -18,7 +20,9 @@ interface MealPlan {
 }
 
 const MealPlanner = () => {
+  const { t } = useLanguage();
   const [mealPlan, setMealPlan] = useState<MealPlan>({});
+  const [activeTab, setActiveTab] = useState("custom");
 
   const handleAddMeal = (day: string, mealType: string, recipeId: string) => {
     setMealPlan((prev) => ({
@@ -66,18 +70,37 @@ const MealPlanner = () => {
       <div className="container max-w-6xl">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Weekly Meal Planner</h1>
+          <h1 className="text-4xl font-bold mb-4">{t('planner.title')}</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mb-6">
-            Plan your baby's meals for the week and generate an automatic shopping list
+            {t('planner.subtitle')}
           </p>
-          <Button onClick={generateShoppingList} size="lg" className="rounded-full">
-            <ShoppingCart className="mr-2 h-5 w-5" />
-            Generate Shopping List
-          </Button>
         </div>
 
-        {/* Meal Plan Grid */}
-        <div className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="suggestions">{t('planner.suggestions')}</TabsTrigger>
+            <TabsTrigger value="custom">{t('planner.custom')}</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="suggestions" className="mt-8">
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="text-center py-12">
+                  <Sparkles className="h-16 w-16 mx-auto mb-4 text-primary" />
+                  <h3 className="text-2xl font-bold mb-4">AI Meal Suggestions Coming Soon</h3>
+                  <p className="text-muted-foreground mb-6">Get personalized 7-day meal plans based on your baby's age and preferences</p>
+                  <Button size="lg" className="rounded-full" disabled>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    {t('planner.generateSuggestions')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="custom" className="mt-8">
+
+            <div className="space-y-6">
           {daysOfWeek.map((day) => (
             <Card key={day} className="border-2">
               <CardHeader className="bg-muted/30">
@@ -145,9 +168,9 @@ const MealPlanner = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {/* Tips Card */}
+            </div>
+          </TabsContent>
+        </Tabs>
         <Card className="mt-12 border-2 border-primary/20 bg-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

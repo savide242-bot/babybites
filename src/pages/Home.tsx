@@ -4,8 +4,10 @@ import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bo
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 import { recipes } from "@/data/recipes";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Home = () => {
+  const { t } = useLanguage();
   const featuredRecipes = recipes.slice(0, 3);
 
   return (
@@ -25,37 +27,29 @@ const Home = () => {
               <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm border border-primary/30">
                 <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Welcome to BabyBites
+                  {t('home.hero.title')}
                 </span>
               </div>
               
               <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl leading-tight">
-                Healthy{" "}
-                <span className="relative inline-block">
-                  <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-pulse">
-                    Meals
-                  </span>
-                  <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-full"></div>
-                </span>
-                {" "}for Your Little One
+                {t('home.hero.title')}
               </h1>
               
               <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Discover pediatrician-approved recipes, expert parenting advice, and meal planning tools designed for busy American parents. 
-                <span className="font-semibold text-foreground"> Make nutritious homemade baby food with confidence.</span>
+                {t('home.hero.subtitle')}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all duration-300 text-lg px-8 py-6 group">
                   <Link to="/recipes">
                     <BookOpen className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                    Explore Recipes
+                    {t('home.hero.getStarted')}
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-primary hover:bg-primary/10 transition-all duration-300 text-lg px-8 py-6 group">
                   <Link to="/chat">
                     <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                    Chat with Bibi AI
+                    {t('nav.chat')}
                   </Link>
                 </Button>
               </div>
@@ -68,7 +62,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">200+</p>
-                    <p className="text-sm text-muted-foreground">Recipes</p>
+                    <p className="text-sm text-muted-foreground">{t('home.stats.recipes')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -77,7 +71,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">10K+</p>
-                    <p className="text-sm text-muted-foreground">Happy Parents</p>
+                    <p className="text-sm text-muted-foreground">{t('home.stats.parents')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -86,7 +80,7 @@ const Home = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">100%</p>
-                    <p className="text-sm text-muted-foreground">Safe</p>
+                    <p className="text-sm text-muted-foreground">{t('home.stats.experts')}</p>
                   </div>
                 </div>
               </div>
@@ -109,8 +103,8 @@ const Home = () => {
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold">Pediatrician Approved</p>
-                    <p className="text-sm text-muted-foreground">Guaranteed Nutrition</p>
+                    <p className="text-lg font-bold">{t('home.floating.ageAppropriate')}</p>
+                    <p className="text-sm text-muted-foreground">{t('home.floating.nutritionTracking')}</p>
                   </div>
                 </div>
               </div>
@@ -134,10 +128,10 @@ const Home = () => {
         <div className="container relative z-10">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              Everything You Need in One Place
+              {t('home.features.title')}
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              From first purees to toddler meals, we have got you covered with expert-approved content
+              {t('home.hero.subtitle')}
             </p>
           </div>
 

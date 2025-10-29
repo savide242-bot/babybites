@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan } from "lucide-react";
+import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   Sheet,
   SheetContent,
@@ -9,14 +10,18 @@ import {
 
 const Header = () => {
   const location = useLocation();
+  const { t } = useLanguage();
   
   const navLinks = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/recipes", label: "Recipes", icon: BookOpen },
-    { to: "/community", label: "Community", icon: Users },
-    { to: "/growth", label: "Growth", icon: TrendingUp },
-    { to: "/scanner", label: "Scanner", icon: Scan },
-    { to: "/chat", label: "Chat with Bibi", icon: Bot },
+    { to: "/", label: t('nav.home'), icon: Home },
+    { to: "/recipes", label: t('nav.recipes'), icon: BookOpen },
+    { to: "/planner", label: t('nav.planner'), icon: Calendar },
+    { to: "/growth", label: t('nav.growth'), icon: TrendingUp },
+    { to: "/scanner", label: t('nav.scanner'), icon: Scan },
+    { to: "/community", label: t('nav.community'), icon: Users },
+    { to: "/advice", label: t('nav.advice'), icon: Heart },
+    { to: "/chat", label: t('nav.chat'), icon: Bot },
+    { to: "/settings", label: t('nav.settings'), icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -49,45 +54,34 @@ const Header = () => {
           })}
         </nav>
 
-        <div className="flex items-center space-x-4">
-          <Button variant="default" className="hidden md:flex rounded-full">
-            Get Started
-          </Button>
-
-          {/* Mobile Navigation */}
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="outline" size="icon" className="rounded-full">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-64">
-              <nav className="flex flex-col space-y-2 mt-8">
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <SheetTrigger key={link.to} asChild>
-                      <Link
-                        to={link.to}
-                        className={`flex items-center space-x-3 text-base font-medium transition-colors hover:text-primary p-3 rounded-xl ${
-                          isActive(link.to) ? "bg-muted text-primary" : "text-foreground"
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span>{link.label}</span>
-                      </Link>
-                    </SheetTrigger>
-                  );
-                })}
-                <SheetTrigger asChild>
-                  <Link to="/auth">
-                    <Button className="mt-4 rounded-full w-full">Get Started</Button>
-                  </Link>
-                </SheetTrigger>
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
+        {/* Mobile Navigation */}
+        <Sheet>
+          <SheetTrigger asChild className="md:hidden">
+            <Button variant="outline" size="icon" className="rounded-full">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-64">
+            <nav className="flex flex-col space-y-2 mt-8">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <SheetTrigger key={link.to} asChild>
+                    <Link
+                      to={link.to}
+                      className={`flex items-center space-x-3 text-base font-medium transition-colors hover:text-primary p-3 rounded-xl ${
+                        isActive(link.to) ? "bg-muted text-primary" : "text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{link.label}</span>
+                    </Link>
+                  </SheetTrigger>
+                );
+              })}
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   );
