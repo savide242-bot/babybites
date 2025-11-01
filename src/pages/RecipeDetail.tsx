@@ -5,8 +5,10 @@ import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar } from "lu
 import { Link, useParams } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const RecipeDetail = () => {
+  const { t } = useLanguage();
   const { id } = useParams();
   const recipe = recipes.find((r) => r.id === id);
 
@@ -14,9 +16,9 @@ const RecipeDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Recipe not found</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('recipes.recipeNotFound')}</h2>
           <Button asChild className="rounded-full">
-            <Link to="/recipes">Back to Recipes</Link>
+            <Link to="/recipes">{t('recipes.backToRecipes')}</Link>
           </Button>
         </div>
       </div>
@@ -24,8 +26,8 @@ const RecipeDetail = () => {
   }
 
   const handleAddToPlanner = () => {
-    toast.success("Added to meal planner!", {
-      description: `${recipe.title} has been added to your meal planner.`,
+    toast.success(t('recipes.addedToPlanner'), {
+      description: `${recipe.title} ${t('recipes.addedToPlannerDesc')}`,
     });
   };
 
@@ -36,7 +38,7 @@ const RecipeDetail = () => {
         <Button asChild variant="outline" className="mb-6 rounded-full">
           <Link to="/recipes">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Recipes
+            {t('recipes.backToRecipes')}
           </Link>
         </Button>
 
@@ -77,7 +79,7 @@ const RecipeDetail = () => {
 
             <Button onClick={handleAddToPlanner} size="lg" className="w-full rounded-full">
               <Calendar className="mr-2 h-5 w-5" />
-              Add to Meal Planner
+              {t('recipes.addToPlanner')}
             </Button>
           </div>
         </div>
@@ -85,7 +87,7 @@ const RecipeDetail = () => {
         {/* Ingredients */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">Ingredients</CardTitle>
+            <CardTitle className="text-2xl">{t('recipes.ingredients')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
@@ -102,7 +104,7 @@ const RecipeDetail = () => {
         {/* Instructions */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">Instructions</CardTitle>
+            <CardTitle className="text-2xl">{t('recipes.instructions')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ol className="space-y-4">
@@ -121,35 +123,35 @@ const RecipeDetail = () => {
         {/* Nutrition Info */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">Nutrition Information</CardTitle>
+            <CardTitle className="text-2xl">{t('recipes.nutrition')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="bg-muted/50 rounded-xl p-4">
-                <div className="text-sm text-muted-foreground mb-1">Calories</div>
+                <div className="text-sm text-muted-foreground mb-1">{t('recipes.calories')}</div>
                 <div className="text-2xl font-bold">{recipe.nutrition.calories}</div>
               </div>
               <div className="bg-muted/50 rounded-xl p-4">
-                <div className="text-sm text-muted-foreground mb-1">Protein</div>
+                <div className="text-sm text-muted-foreground mb-1">{t('recipes.protein')}</div>
                 <div className="text-2xl font-bold">{recipe.nutrition.protein}</div>
               </div>
               <div className="bg-muted/50 rounded-xl p-4">
-                <div className="text-sm text-muted-foreground mb-1">Carbs</div>
+                <div className="text-sm text-muted-foreground mb-1">{t('recipes.carbs')}</div>
                 <div className="text-2xl font-bold">{recipe.nutrition.carbs}</div>
               </div>
               <div className="bg-muted/50 rounded-xl p-4">
-                <div className="text-sm text-muted-foreground mb-1">Fat</div>
+                <div className="text-sm text-muted-foreground mb-1">{t('recipes.fat')}</div>
                 <div className="text-2xl font-bold">{recipe.nutrition.fat}</div>
               </div>
               <div className="bg-muted/50 rounded-xl p-4">
-                <div className="text-sm text-muted-foreground mb-1">Fiber</div>
+                <div className="text-sm text-muted-foreground mb-1">{t('recipes.fiber')}</div>
                 <div className="text-2xl font-bold">{recipe.nutrition.fiber}</div>
               </div>
             </div>
             
             {recipe.nutrition.vitamins.length > 0 && (
               <div className="mt-4">
-                <div className="text-sm font-medium mb-2">Key Vitamins & Minerals</div>
+                <div className="text-sm font-medium mb-2">{t('recipes.vitamins')}</div>
                 <div className="flex flex-wrap gap-2">
                   {recipe.nutrition.vitamins.map((vitamin) => (
                     <Badge key={vitamin} variant="outline" className="rounded-full">
@@ -169,12 +171,12 @@ const RecipeDetail = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-destructive" />
-                  Allergen Information
+                  {t('recipes.allergens')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-3">
-                  This recipe contains the following common allergens:
+                  {t('recipes.allergensDesc')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {recipe.allergens.map((allergen) => (
@@ -191,7 +193,7 @@ const RecipeDetail = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Refrigerator className="h-5 w-5" />
-                Storage Tips
+                {t('recipes.storage')}
               </CardTitle>
             </CardHeader>
             <CardContent>

@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Scan, AlertTriangle, CheckCircle2, Camera, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const BarcodeScanner = () => {
+  const { t } = useLanguage();
   const [barcode, setBarcode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [cameraScanning, setCameraScanning] = useState(false);
@@ -51,8 +53,8 @@ const BarcodeScanner = () => {
     } catch (err) {
       console.error("Error starting camera:", err);
       toast({
-        title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
+        title: t('scanner.cameraError'),
+        description: t('scanner.cameraErrorDesc'),
         variant: "destructive",
       });
       setCameraScanning(false);
@@ -75,8 +77,8 @@ const BarcodeScanner = () => {
     const codeToScan = scannedCode || barcode;
     if (!codeToScan.trim()) {
       toast({
-        title: "Missing barcode",
-        description: "Please enter a barcode",
+        title: t('scanner.missingBarcode'),
+        description: t('scanner.enterBarcodeError'),
         variant: "destructive",
       });
       return;
@@ -85,11 +87,10 @@ const BarcodeScanner = () => {
     setScanning(true);
     
     // Simulate scanning and safety check
-    // In a real app, this would call an external API or use the device camera
     setTimeout(() => {
       const mockResult = {
         product_name: "Baby Food Product",
-        is_baby_safe: Math.random() > 0.3, // 70% safe products
+        is_baby_safe: Math.random() > 0.3,
         safety_notes: Math.random() > 0.3 
           ? "This product is safe for babies 6+ months. Contains no common allergens."
           : "Warning: This product may contain honey (not recommended for babies under 12 months) or added sugar.",
@@ -99,7 +100,6 @@ const BarcodeScanner = () => {
       setResult(mockResult);
       setScanning(false);
 
-      // Save to database
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user) {
           supabase.from("scanned_products").insert({
@@ -118,27 +118,27 @@ const BarcodeScanner = () => {
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pt-20 pb-8">
       <div className="container max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-primary mb-2">Barcode Scanner</h1>
+        <h1 className="text-4xl font-bold text-primary mb-2">{t('scanner.title')}</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          Scan products to check if they're safe for your baby
+          {t('scanner.subtitle')}
         </p>
 
         {!cameraScanning ? (
           <Card className="p-6 mb-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="barcode">Product Barcode</Label>
+                <Label htmlFor="barcode">{t('scanner.barcode')}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="barcode"
                     value={barcode}
                     onChange={(e) => setBarcode(e.target.value)}
-                    placeholder="Enter barcode number"
+                    placeholder={t('scanner.enterBarcode')}
                     disabled={scanning}
                   />
                   <Button onClick={() => handleScan()} disabled={scanning}>
                     <Scan className="w-4 h-4 mr-2" />
-                    {scanning ? "Scanning..." : "Scan"}
+                    {scanning ? t('scanner.scanning') : t('scanner.scan')}
                   </Button>
                 </div>
               </div>
@@ -150,10 +150,10 @@ const BarcodeScanner = () => {
                   className="w-full"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Use Camera to Scan
+                  {t('scanner.useCamera')}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Point your camera at the barcode
+                  {t('scanner.cameraDesc')}
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@ const BarcodeScanner = () => {
           <Card className="p-6 mb-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Camera Scanning</h3>
+                <h3 className="font-semibold">{t('scanner.cameraScanning')}</h3>
                 <Button 
                   onClick={stopCameraScanner} 
                   variant="ghost"
@@ -173,7 +173,7 @@ const BarcodeScanner = () => {
               </div>
               <div id={qrCodeRegionId} className="w-full" />
               <p className="text-sm text-muted-foreground text-center">
-                Position the barcode within the highlighted area
+                {t('scanner.positionBarcode')}
               </p>
             </div>
           </Card>
@@ -191,19 +191,19 @@ const BarcodeScanner = () => {
                 <div>
                   <h2 className="text-xl font-bold mb-1">{result.product_name}</h2>
                   <p className={`font-semibold ${result.is_baby_safe ? "text-green-600" : "text-yellow-600"}`}>
-                    {result.is_baby_safe ? "✓ Safe for Babies" : "⚠ Use with Caution"}
+                    {result.is_baby_safe ? `✓ ${t('scanner.safe')}` : `⚠ ${t('scanner.caution')}`}
                   </p>
                 </div>
               </div>
 
               <div className="bg-muted p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">Safety Information</h3>
+                <h3 className="font-semibold mb-2">{t('scanner.safetyInfo')}</h3>
                 <p className="text-sm">{result.safety_notes}</p>
               </div>
 
               {result.suggested_recipes && result.suggested_recipes.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">Suggested Recipes</h3>
+                  <h3 className="font-semibold mb-2">{t('scanner.suggested')}</h3>
                   <ul className="list-disc list-inside space-y-1">
                     {result.suggested_recipes.map((recipe: string, index: number) => (
                       <li key={index} className="text-sm text-muted-foreground">
@@ -218,12 +218,12 @@ const BarcodeScanner = () => {
         )}
 
         <Card className="p-6 mt-6 bg-primary/5">
-          <h3 className="font-semibold mb-2">How it works</h3>
+          <h3 className="font-semibold mb-2">{t('scanner.howItWorks')}</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>Enter or scan the barcode of any grocery product</li>
-            <li>Our system checks the ingredients against baby safety guidelines</li>
-            <li>Get instant feedback on safety and allergen information</li>
-            <li>Discover recipes that use safe ingredients</li>
+            <li>{t('scanner.step1')}</li>
+            <li>{t('scanner.step2')}</li>
+            <li>{t('scanner.step3')}</li>
+            <li>{t('scanner.step4')}</li>
           </ol>
         </Card>
       </div>

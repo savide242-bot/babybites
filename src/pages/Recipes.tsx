@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Search, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Recipes = () => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState("All Ages");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -26,9 +28,9 @@ const Recipes = () => {
       <div className="container">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Recipe Library</h1>
+          <h1 className="text-4xl font-bold mb-4">{t('recipes.title')}</h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
-            Browse our collection of pediatrician-approved recipes designed for babies aged 6-24 months
+            {t('recipes.subtitle')}
           </p>
         </div>
 
@@ -37,7 +39,7 @@ const Recipes = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search recipes..."
+              placeholder={t('recipes.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 rounded-full"
@@ -47,7 +49,7 @@ const Recipes = () => {
           <div className="grid gap-4 sm:grid-cols-2">
             <Select value={selectedAge} onValueChange={setSelectedAge}>
               <SelectTrigger className="rounded-full">
-                <SelectValue placeholder="Select age group" />
+                <SelectValue placeholder={t('recipes.selectAge')} />
               </SelectTrigger>
               <SelectContent>
                 {ageGroups.map((age) => (
@@ -60,7 +62,7 @@ const Recipes = () => {
 
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="rounded-full">
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder={t('recipes.selectCategory')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -75,7 +77,7 @@ const Recipes = () => {
 
         {/* Results Count */}
         <div className="mb-6 text-sm text-muted-foreground">
-          Showing {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? "s" : ""}
+          {t('recipes.showing')} {filteredRecipes.length} {filteredRecipes.length !== 1 ? t('recipes.recipes') : t('recipes.recipe')}
         </div>
 
         {/* Recipe Grid */}
@@ -108,7 +110,7 @@ const Recipes = () => {
                 </CardHeader>
                 <CardContent>
                   <Button asChild className="w-full rounded-full">
-                    <Link to={`/recipe/${recipe.id}`}>View Recipe</Link>
+                    <Link to={`/recipe/${recipe.id}`}>{t('recipes.viewRecipe')}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -117,9 +119,9 @@ const Recipes = () => {
         ) : (
           <div className="text-center py-16">
             <div className="text-4xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold mb-2">No recipes found</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('recipes.noResults')}</h3>
             <p className="text-muted-foreground mb-6">
-              Try adjusting your filters or search query
+              {t('recipes.noResultsDesc')}
             </p>
             <Button
               onClick={() => {
@@ -130,7 +132,7 @@ const Recipes = () => {
               variant="outline"
               className="rounded-full"
             >
-              Clear Filters
+              {t('recipes.clearFilters')}
             </Button>
           </div>
         )}

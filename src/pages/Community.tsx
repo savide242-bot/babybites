@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Bookmark, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const postSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -29,6 +30,7 @@ interface Post {
 }
 
 const Community = () => {
+  const { t } = useLanguage();
   const [posts, setPosts] = useState<Post[]>([]);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
@@ -58,7 +60,6 @@ const Community = () => {
       return;
     }
 
-    // Fetch profiles separately
     if (data && data.length > 0) {
       const userIds = data.map(post => post.user_id);
       const { data: profilesData } = await supabase
@@ -80,20 +81,19 @@ const Community = () => {
   const handleCreatePost = async () => {
     if (!user) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to create posts",
+        title: t('community.signInRequired'),
+        description: t('community.signInToPost'),
         variant: "destructive",
       });
       navigate("/auth");
       return;
     }
 
-    // Validate inputs
     const validation = postSchema.safeParse({ title: newTitle, content: newContent });
     if (!validation.success) {
       const firstError = validation.error.errors[0];
       toast({
-        title: "Validation Error",
+        title: t('community.validationError'),
         description: firstError.message,
         variant: "destructive",
       });
@@ -108,16 +108,16 @@ const Community = () => {
 
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to create post",
+        title: t('community.error'),
+        description: t('community.postError'),
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      title: "Success",
-      description: "Post created successfully!",
+      title: t('community.success'),
+      description: t('community.postSuccess'),
     });
 
     setNewTitle("");
@@ -129,8 +129,8 @@ const Community = () => {
   const handleLike = async (postId: string) => {
     if (!user) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to like posts",
+        title: t('community.signInRequired'),
+        description: t('community.signInToLike'),
         variant: "destructive",
       });
       navigate("/auth");
@@ -155,36 +155,36 @@ const Community = () => {
       <div className="container max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">Parent Community</h1>
+            <h1 className="text-4xl font-bold text-primary mb-2">{t('community.title')}</h1>
             <p className="text-lg text-muted-foreground">
-              Share experiences, ask questions, and connect with other parents
+              {t('community.subtitle')}
             </p>
           </div>
           <Button onClick={() => setShowNewPost(!showNewPost)}>
             <Plus className="w-4 h-4 mr-2" />
-            New Post
+            {t('community.newPost')}
           </Button>
         </div>
 
         {showNewPost && (
           <Card className="p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">Create New Post</h2>
+            <h2 className="text-xl font-bold mb-4">{t('community.createPost')}</h2>
             <Input
-              placeholder="Post title..."
+              placeholder={t('community.postTitle')}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="mb-4"
             />
             <Textarea
-              placeholder="Share your thoughts, questions, or experiences..."
+              placeholder={t('community.postContent')}
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
               className="mb-4 min-h-[120px]"
             />
             <div className="flex gap-2">
-              <Button onClick={handleCreatePost}>Post</Button>
+              <Button onClick={handleCreatePost}>{t('community.post')}</Button>
               <Button variant="outline" onClick={() => setShowNewPost(false)}>
-                Cancel
+                {t('community.cancel')}
               </Button>
             </div>
           </Card>
@@ -202,11 +202,11 @@ const Community = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold">
-                      {post.profiles?.full_name || "Anonymous"}
+                      {post.profiles?.full_name || t('community.anonymous')}
                     </h3>
                     {post.profiles?.is_verified_pediatrician && (
                       <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-                        Verified Pediatrician
+                        {t('community.verifiedPediatrician')}
                       </span>
                     )}
                     <span className="text-sm text-muted-foreground">

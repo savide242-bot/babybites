@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Baby, Moon, Utensils, AlertCircle, Sparkles } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const adviceArticles = [
   {
@@ -90,14 +91,16 @@ const adviceArticles = [
 ];
 
 const Advice = () => {
+  const { t } = useLanguage();
+  
   return (
     <div className="min-h-screen py-12">
       <div className="container max-w-5xl">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Parents' Advice Hub</h1>
+          <h1 className="text-4xl font-bold mb-4">{t('advice.title')}</h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
-            Expert guidance from pediatricians and nutritionists to support your baby's feeding journey
+            {t('advice.subtitle')}
           </p>
         </div>
 
@@ -142,7 +145,7 @@ const Advice = () => {
         <Card className="mt-12 border-2 border-muted">
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">Medical Disclaimer:</strong> The information provided in this advice hub is for educational purposes only and should not replace professional medical advice. Always consult with your pediatrician or healthcare provider before making decisions about your baby's nutrition and health.
+              <strong className="text-foreground">{t('advice.disclaimer')}</strong> {t('advice.disclaimerText')}
             </p>
           </CardContent>
         </Card>

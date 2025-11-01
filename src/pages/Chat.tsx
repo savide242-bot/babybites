@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface Message {
   role: "user" | "assistant";
@@ -13,10 +14,11 @@ interface Message {
 }
 
 const Chat = () => {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hey Mom! 👋 I'm Bibi, your baby nutrition assistant! I'm here to help you with recipes, meal planning, parenting advice, and everything about feeding your little one. What can I help you with today?"
+      content: t('chat.welcome')
     }
   ]);
   const [input, setInput] = useState("");
@@ -69,7 +71,6 @@ const Chat = () => {
     let streamDone = false;
     let assistantContent = "";
 
-    // Add empty assistant message
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
     while (!streamDone) {
@@ -119,8 +120,8 @@ const Chat = () => {
 
     if (!user) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to chat with Bibi",
+        title: t('chat.signInRequired'),
+        description: t('chat.signInToChat'),
         variant: "destructive",
       });
       navigate("/auth");
@@ -137,8 +138,8 @@ const Chat = () => {
     } catch (error) {
       console.error("Error:", error);
       const errorMessage = error instanceof Error && error.message === "Not authenticated" 
-        ? "Please sign in to continue chatting."
-        : "I'm sorry, I'm having trouble connecting right now. Please try again in a moment!";
+        ? t('chat.notAuthenticated')
+        : t('chat.error');
       
       setMessages(prev => [
         ...prev,
@@ -169,10 +170,10 @@ const Chat = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Bot className="w-12 h-12 text-primary" />
-            <h1 className="text-4xl font-bold text-primary">Chat with Bibi</h1>
+            <h1 className="text-4xl font-bold text-primary">{t('chat.title')}</h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            Your warm and intelligent baby nutrition assistant
+            {t('chat.subtitle')}
           </p>
         </div>
 
@@ -211,7 +212,7 @@ const Chat = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask me about recipes, nutrition, parenting advice..."
+                placeholder={t('chat.placeholder')}
                 className="min-h-[60px] resize-none"
                 disabled={isLoading}
               />
@@ -232,7 +233,7 @@ const Chat = () => {
         </div>
 
         <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>💡 Try asking: "What's a good breakfast for my 8-month-old?" or "My baby won't eat vegetables"</p>
+          <p>{t('chat.tryAsking')}</p>
         </div>
       </div>
     </main>
