@@ -21,10 +21,31 @@ export interface Recipe {
   };
   allergens: string[];
   storage: string;
+  healthBenefits: string;
+  servingGuidance: string;
 }
 
 export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months"];
 export const categories = ["All Categories", "Puree", "Finger Food", "Breakfast", "Lunch", "Dinner", "Snack"];
+
+// Helper function to add default fields to recipes
+const addDefaultFields = (recipe: any): Recipe => {
+  if (!recipe.healthBenefits) {
+    recipe.healthBenefits = `This nutritious ${recipe.category.toLowerCase()} is specially designed for babies aged ${recipe.ageGroup}. It provides essential nutrients for healthy growth and development, supporting your baby's immune system, brain function, and overall well-being. The carefully selected ingredients ensure optimal nutrition while being gentle on your baby's developing digestive system.`;
+  }
+  if (!recipe.servingGuidance) {
+    const servingsByCategory: { [key: string]: string } = {
+      'Puree': 'Serve 2-4 tablespoons per meal, 1-2 times daily. Best offered at lunch or dinner, 3-4 times per week.',
+      'Breakfast': 'Serve 1 portion per breakfast, 3-5 times per week. Can also be offered as a substantial mid-morning snack.',
+      'Lunch': 'Serve 1 portion at lunchtime, 3-4 times weekly. Pair with vegetables or fruits for a complete meal.',
+      'Dinner': 'Serve 1 portion at dinner, 3-4 times weekly. Combine with other food groups for balanced nutrition.',
+      'Snack': 'Serve 1-2 pieces as a snack, 2-3 times daily between meals. Perfect for maintaining energy levels.',
+      'Finger Food': 'Serve 3-5 pieces per meal, 2-3 times daily. Great for developing self-feeding skills and hand-eye coordination.'
+    };
+    recipe.servingGuidance = servingsByCategory[recipe.category] || 'Serve appropriate portion sizes based on your baby\'s age and appetite, 2-3 times per week.';
+  }
+  return recipe as Recipe;
+};
 
 export const recipes: Recipe[] = [
   // PUREES - 6-9 MONTHS (40 recipes)
@@ -49,7 +70,9 @@ export const recipes: Recipe[] = [
     ],
     nutrition: { calories: "160", protein: "2g", carbs: "9g", fat: "15g", fiber: "7g", vitamins: ["Vitamin E", "Folate", "Potassium"] },
     allergens: [],
-    storage: "Use within 24 hours, refrigerated"
+    storage: "Use within 24 hours, refrigerated",
+    healthBenefits: "Avocados are a superfood for babies! They're packed with healthy monounsaturated fats that are essential for brain development and growth. Rich in folate for cell development, vitamin E for immune system support, and potassium for healthy heart function. The creamy texture is perfect for babies learning to eat, and the mild flavor is usually well-accepted. Avocados also contain oleic acid, which helps nutrient absorption.",
+    servingGuidance: "Serve 2-3 tablespoons per meal, 1-2 times per day. Best offered at lunch or dinner. Can be mixed with other purees or served alone. Start with 1-2 teaspoons for first-time eaters and gradually increase portion size."
   },
   {
     id: "2",
@@ -74,7 +97,9 @@ export const recipes: Recipe[] = [
     ],
     nutrition: { calories: "70", protein: "1g", carbs: "16g", fat: "0g", fiber: "3g", vitamins: ["Vitamin A", "Vitamin C", "Beta-carotene"] },
     allergens: [],
-    storage: "Refrigerate 3 days or freeze 3 months"
+    storage: "Refrigerate 3 days or freeze 3 months",
+    healthBenefits: "This vibrant orange puree is a powerhouse of beta-carotene, which converts to vitamin A in the body - crucial for healthy vision, immune function, and skin health. Sweet potatoes provide complex carbohydrates for sustained energy, while carrots add natural sweetness and additional nutrients. Both vegetables are rich in antioxidants that protect cells and support overall growth. The fiber content aids digestion and helps establish healthy bowel movements.",
+    servingGuidance: "Serve 3-4 tablespoons per meal, 1-2 times daily. Ideal for lunch or dinner. Can be offered 3-4 times per week as part of a varied diet. Mix with other vegetable or fruit purees for variety, or serve with iron-fortified baby cereal."
   },
   {
     id: "3",
@@ -99,7 +124,9 @@ export const recipes: Recipe[] = [
     ],
     nutrition: { calories: "62", protein: "4g", carbs: "11g", fat: "0g", fiber: "4g", vitamins: ["Vitamin K", "Vitamin C", "Folate"] },
     allergens: [],
-    storage: "Refrigerate up to 3 days"
+    storage: "Refrigerate up to 3 days",
+    healthBenefits: "Green peas are an excellent source of plant-based protein, essential for your baby's muscle development and growth. They're packed with vitamin K for bone health, vitamin C to boost immunity, and folate which supports cell growth and brain development. The fiber aids digestion and helps prevent constipation. Peas also contain antioxidants that protect cells and support eye health.",
+    servingGuidance: "Serve 2-3 tablespoons per meal, 1-2 times daily. Best served at lunch or dinner. Offer 2-3 times per week. Can be mixed with rice cereal, potato puree, or other vegetables for variety."
   },
   {
     id: "4",
@@ -331,7 +358,9 @@ export const recipes: Recipe[] = [
     ],
     nutrition: { calories: "45", protein: "3g", carbs: "6g", fat: "2g", fiber: "1g", vitamins: ["Protein", "Potassium", "B vitamins"] },
     allergens: ["Eggs"],
-    storage: "Refrigerate 3 days or freeze 1 month"
+    storage: "Refrigerate 3 days or freeze 1 month",
+    healthBenefits: "These simple pancakes combine the natural sweetness and potassium of bananas with the high-quality protein from eggs. Eggs provide essential amino acids for growth, brain development (choline), and iron for healthy blood. Bananas offer quick energy, support digestive health with their fiber content, and contain vitamin B6 for metabolism. This combination creates a balanced breakfast that keeps babies satisfied and energized throughout the morning.",
+    servingGuidance: "Serve 2-3 small pancakes per breakfast, 3-4 times per week. Can be offered as breakfast or a substantial mid-morning snack. Pair with fruit puree or yogurt for added nutrition. These pancakes are also excellent for baby-led weaning as they're easy to grip and chew."
   },
   {
     id: "17",
@@ -575,7 +604,9 @@ export const recipes: Recipe[] = [
         vitamins: ["Various nutrients"]
       },
       allergens: i % 5 === 0 ? ["Dairy"] : i % 7 === 0 ? ["Eggs"] : [],
-      storage: "Refrigerate 3 days or freeze"
+      storage: "Refrigerate 3 days or freeze",
+      healthBenefits: "",
+      servingGuidance: ""
     };
   })
-];
+].map(addDefaultFields);

@@ -129,6 +129,8 @@ const translations: Record<Language, Record<string, string>> = {
     'recipes.storage': 'Storage Tips',
     'recipes.addedToPlanner': 'Added to meal planner!',
     'recipes.addedToPlannerDesc': 'has been added to your meal planner.',
+    'recipes.healthBenefits': 'Health Benefits',
+    'recipes.servingGuidance': 'Serving Recommendations',
     
     // Scanner
     'scanner.title': 'Barcode Scanner',
@@ -302,6 +304,8 @@ const translations: Record<Language, Record<string, string>> = {
     'recipes.storage': 'Conseils de Conservation',
     'recipes.addedToPlanner': 'Ajouté au planificateur!',
     'recipes.addedToPlannerDesc': 'a été ajouté à votre planificateur de repas.',
+    'recipes.healthBenefits': 'Bienfaits pour la Santé',
+    'recipes.servingGuidance': 'Recommandations de Portion',
     
     'scanner.title': 'Scanner de Code-Barres',
     'scanner.subtitle': 'Scannez les produits pour vérifier s\'ils sont sûrs pour votre bébé',
@@ -470,6 +474,8 @@ const translations: Record<Language, Record<string, string>> = {
     'recipes.storage': 'Consejos de Almacenamiento',
     'recipes.addedToPlanner': '¡Añadido al planificador!',
     'recipes.addedToPlannerDesc': 'ha sido añadido a tu planificador de comidas.',
+    'recipes.healthBenefits': 'Beneficios para la Salud',
+    'recipes.servingGuidance': 'Recomendaciones de Porción',
     
     'scanner.title': 'Escáner de Código de Barras',
     'scanner.subtitle': 'Escanea productos para verificar si son seguros para tu bebé',
@@ -638,6 +644,8 @@ const translations: Record<Language, Record<string, string>> = {
     'recipes.storage': 'Aufbewahrungstipps',
     'recipes.addedToPlanner': 'Zum Essensplaner hinzugefügt!',
     'recipes.addedToPlannerDesc': 'wurde zu Ihrem Essensplaner hinzugefügt.',
+    'recipes.healthBenefits': 'Gesundheitsvorteile',
+    'recipes.servingGuidance': 'Portionsempfehlungen',
     
     'scanner.title': 'Barcode-Scanner',
     'scanner.subtitle': 'Scannen Sie Produkte, um zu prüfen, ob sie für Ihr Baby sicher sind',
@@ -806,6 +814,8 @@ const translations: Record<Language, Record<string, string>> = {
     'recipes.storage': 'Dicas de Armazenamento',
     'recipes.addedToPlanner': 'Adicionado ao planeador!',
     'recipes.addedToPlannerDesc': 'foi adicionado ao seu planeador de refeições.',
+    'recipes.healthBenefits': 'Benefícios para a Saúde',
+    'recipes.servingGuidance': 'Recomendações de Porção',
     
     'scanner.title': 'Scanner de Código de Barras',
     'scanner.subtitle': 'Escaneie produtos para verificar se são seguros para o seu bebé',

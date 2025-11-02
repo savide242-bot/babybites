@@ -165,7 +165,7 @@ const RecipeDetail = () => {
         </Card>
 
         {/* Allergens & Storage */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
           {recipe.allergens.length > 0 && (
             <Card>
               <CardHeader>
@@ -201,6 +201,32 @@ const RecipeDetail = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Health Benefits */}
+        <Card className="mb-8 border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <span className="text-2xl">✨</span>
+              {t('recipes.healthBenefits')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-base leading-relaxed">{recipe.healthBenefits}</p>
+          </CardContent>
+        </Card>
+
+        {/* Serving Guidance */}
+        <Card className="border-accent/20 bg-accent/5">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Users className="h-6 w-6 text-accent" />
+              {t('recipes.servingGuidance')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-base leading-relaxed">{recipe.servingGuidance}</p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

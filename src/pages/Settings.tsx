@@ -28,10 +28,13 @@ const Settings = () => {
     setIsSaving(true);
     try {
       await setLanguage(selectedLanguage);
-      toast.success(t('settings.saved'));
+      // Force a small delay to ensure the language state updates
+      setTimeout(() => {
+        toast.success(t('settings.saved'));
+        setIsSaving(false);
+      }, 300);
     } catch (error) {
       toast.error('Error saving language');
-    } finally {
       setIsSaving(false);
     }
   };
