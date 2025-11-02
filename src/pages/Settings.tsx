@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 type Language = 'en' | 'fr' | 'es' | 'de' | 'pt';
 
@@ -18,10 +19,21 @@ const languages: { code: Language; name: string }[] = [
 
 const Settings = () => {
   const { language, setLanguage, t } = useLanguage();
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleLanguageChange = async (newLang: Language) => {
-    await setLanguage(newLang);
-    toast.success(t('settings.saved'));
+  const hasChanges = selectedLanguage !== language;
+
+  const handleSaveLanguage = async () => {
+    setIsSaving(true);
+    try {
+      await setLanguage(selectedLanguage);
+      toast.success(t('settings.saved'));
+    } catch (error) {
+      toast.error('Error saving language');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -42,20 +54,40 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Label htmlFor="language">{t('settings.currentLanguage')}</Label>
-              <Select value={language} onValueChange={handleLanguageChange}>
-                <SelectTrigger id="language" className="rounded-xl">
+              <Select value={selectedLanguage} onValueChange={(value) => setSelectedLanguage(value as Language)}>
+                <SelectTrigger id="language" className="rounded-xl bg-background">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-2 z-50">
                   {languages.map((lang) => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.name}
+                    <SelectItem 
+                      key={lang.code} 
+                      value={lang.code}
+                      className="cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{lang.name}</span>
+                        {selectedLanguage === lang.code && (
+                          <Check className="h-4 w-4 ml-2" />
+                        )}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              
+              {hasChanges && (
+                <Button
+                  onClick={handleSaveLanguage}
+                  disabled={isSaving}
+                  size="lg"
+                  className="w-full rounded-xl"
+                >
+                  {isSaving ? t('settings.saving') : t('settings.save')}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

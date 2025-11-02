@@ -63,6 +63,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.changeLanguage': 'Change Language',
     'settings.currentLanguage': 'Current Language',
     'settings.save': 'Save Changes',
+    'settings.saving': 'Saving...',
     'settings.saved': 'Settings saved successfully!',
     
     // Meal Planner
@@ -238,6 +239,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.changeLanguage': 'Changer de Langue',
     'settings.currentLanguage': 'Langue Actuelle',
     'settings.save': 'Enregistrer',
+    'settings.saving': 'Enregistrement...',
     'settings.saved': 'Paramètres enregistrés avec succès!',
     
     'planner.title': 'Planificateur de Repas Hebdomadaire',
@@ -405,6 +407,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.changeLanguage': 'Cambiar Idioma',
     'settings.currentLanguage': 'Idioma Actual',
     'settings.save': 'Guardar Cambios',
+    'settings.saving': 'Guardando...',
     'settings.saved': '¡Configuración guardada con éxito!',
     
     'planner.title': 'Planificador de Comidas Semanal',
@@ -572,6 +575,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.changeLanguage': 'Sprache Ändern',
     'settings.currentLanguage': 'Aktuelle Sprache',
     'settings.save': 'Änderungen Speichern',
+    'settings.saving': 'Wird gespeichert...',
     'settings.saved': 'Einstellungen erfolgreich gespeichert!',
     
     'planner.title': 'Wöchentlicher Essensplaner',
@@ -739,6 +743,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.changeLanguage': 'Mudar Idioma',
     'settings.currentLanguage': 'Idioma Atual',
     'settings.save': 'Guardar Alterações',
+    'settings.saving': 'A guardar...',
     'settings.saved': 'Configurações guardadas com sucesso!',
     
     'planner.title': 'Planeador de Refeições Semanal',
