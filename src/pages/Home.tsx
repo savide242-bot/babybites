@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bot, MessageCircle, Star, Award, Shield } from "lucide-react";
+import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bot, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-image.jpg";
 import { recipes } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -11,211 +10,134 @@ const Home = () => {
   const featuredRecipes = recipes.slice(0, 3);
 
   return (
-    <div className="min-h-screen overflow-hidden">
-      {/* Hero Section - Fantástico e Cativante */}
-      <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-60 -left-40 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse delay-700"></div>
-          <div className="absolute bottom-20 right-1/3 w-64 h-64 bg-accent/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        <div className="container relative z-10">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-            <div className="space-y-8 animate-fade-in">
-              <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm border border-primary/30">
-                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {t('home.hero.title')}
-                </span>
-              </div>
-              
-              <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl md:text-7xl leading-tight">
-                {t('home.hero.title')}
-              </h1>
-              
-              <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
-                {t('home.hero.subtitle')}
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
+      {/* Welcome Section - Warm & Nurturing */}
+      <section className="relative pt-8 pb-6 px-4">
+        <div className="container max-w-4xl">
+          {/* Motivational Quote */}
+          <div className="text-center mb-6 animate-fade-in">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 via-accent/15 to-secondary/20 rounded-full px-6 py-3 backdrop-blur-sm border border-primary/20">
+              <Heart className="w-4 h-4 text-primary animate-pulse" />
+              <p className="text-sm font-medium text-foreground">
+                Every meal is a step toward your baby's healthy future 💛
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all duration-300 text-lg px-8 py-6 group">
-                  <Link to="/recipes">
-                    <BookOpen className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                    {t('home.hero.getStarted')}
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-primary hover:bg-primary/10 transition-all duration-300 text-lg px-8 py-6 group">
-                  <Link to="/chat">
-                    <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                    {t('nav.chat')}
-                  </Link>
-                </Button>
-              </div>
-
-              {/* Stats */}
-              <div className="flex flex-wrap gap-8 pt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Award className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">200+</p>
-                    <p className="text-sm text-muted-foreground">{t('home.stats.recipes')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">10K+</p>
-                    <p className="text-sm text-muted-foreground">{t('home.stats.parents')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">100%</p>
-                    <p className="text-sm text-muted-foreground">{t('home.stats.experts')}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative animate-fade-in delay-200">
-              <div className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl hover:shadow-hover transition-all duration-500 group">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
-                <img
-                  src={heroImage}
-                  alt="Ingredientes frescos e saudáveis para comida de bebê"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-              
-              {/* Floating card */}
-              <div className="absolute -bottom-6 -left-6 bg-card rounded-2xl p-6 shadow-2xl border-2 border-primary/20 backdrop-blur-sm animate-pulse">
-                <div className="flex items-center space-x-4">
-                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                    <Sparkles className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold">{t('home.floating.ageAppropriate')}</p>
-                    <p className="text-sm text-muted-foreground">{t('home.floating.nutritionTracking')}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Star rating floating card */}
-              <div className="absolute -top-6 -right-6 bg-card rounded-2xl p-4 shadow-2xl border-2 border-secondary/20 backdrop-blur-sm">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 text-center">5.0 Rating</p>
-              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Features Section - Melhorado */}
-      <section className="py-20 md:py-32 bg-gradient-to-b from-background to-muted/30 relative">
-        <div className="container relative z-10">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              {t('home.features.title')}
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              {t('home.hero.subtitle')}
+          {/* Welcome Message */}
+          <div className="text-center space-y-4 animate-fade-in">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
+              Hi, Mama 👶
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground font-light">
+              Here's today's plan!
             </p>
           </div>
+        </div>
+      </section>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Quick Access Cards - Main Features */}
+      <section className="py-8 px-4">
+        <div className="container max-w-5xl">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Recipes Card */}
             <Link to="/recipes" className="group">
-              <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                    <BookOpen className="h-8 w-8 text-white" />
+              <Card className="border border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <BookOpen className="h-7 w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">Recipe Library</CardTitle>
-                  <CardDescription className="text-base">
-                    200+ detailed recipes with nutrition info, age recommendations, and step-by-step instructions
-                  </CardDescription>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Recipes</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Healthy meals for every stage
+                    </CardDescription>
+                  </div>
                 </CardHeader>
               </Card>
             </Link>
 
-            <Link to="/community" className="group">
-              <Card className="border-2 hover:border-secondary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-8 w-8 text-white" />
+            {/* Weekly Planner Card */}
+            <Link to="/meal-planner" className="group">
+              <Card className="border border-border/50 hover:border-secondary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Calendar className="h-7 w-7 text-secondary" />
                   </div>
-                  <CardTitle className="text-2xl">Parent Community</CardTitle>
-                  <CardDescription className="text-base">
-                    Connect with other parents, share experiences, and get advice from verified pediatricians
-                  </CardDescription>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Weekly Planner</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Organize meals with ease
+                    </CardDescription>
+                  </div>
                 </CardHeader>
               </Card>
             </Link>
 
+            {/* Growth Tracker Card */}
             <Link to="/growth" className="group">
-              <Card className="border-2 hover:border-accent/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <TrendingUp className="h-8 w-8 text-white" />
+              <Card className="border border-border/50 hover:border-accent/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <TrendingUp className="h-7 w-7 text-accent" />
                   </div>
-                  <CardTitle className="text-2xl">Growth Tracker</CardTitle>
-                  <CardDescription className="text-base">
-                    Monitor your baby's growth with charts, track meals, and analyze nutritional balance
-                  </CardDescription>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Growth Tracker</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Monitor your baby's progress
+                    </CardDescription>
+                  </div>
                 </CardHeader>
               </Card>
             </Link>
 
+            {/* Food Scanner Card */}
             <Link to="/scanner" className="group">
-              <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-glow">
-                    <Scan className="h-8 w-8 text-white" />
+              <Card className="border border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Scan className="h-7 w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">Barcode Scanner</CardTitle>
-                  <CardDescription className="text-base">
-                    Scan grocery products to check if they're safe for your baby and get recipe suggestions
-                  </CardDescription>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Food Scanner</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Check products instantly
+                    </CardDescription>
+                  </div>
                 </CardHeader>
               </Card>
             </Link>
 
+            {/* Tips & Guidance Card */}
+            <Link to="/advice" className="group">
+              <Card className="border border-border/50 hover:border-secondary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="h-7 w-7 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Tips & Guidance</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Expert advice for parents
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            {/* Smart Chat Card */}
             <Link to="/chat" className="group">
-              <Card className="border-2 hover:border-secondary/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Bot className="h-8 w-8 text-white" />
+              <Card className="border border-border/50 hover:border-accent/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Bot className="h-7 w-7 text-accent" />
                   </div>
-                  <CardTitle className="text-2xl">Bibi AI Assistant</CardTitle>
-                  <CardDescription className="text-base">
-                    Chat with our intelligent AI nutritionist for personalized advice and recipe suggestions
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-
-            <Link to="/recipes" className="group">
-              <Card className="border-2 hover:border-accent/50 transition-all duration-300 hover:shadow-hover h-full bg-gradient-card hover:-translate-y-2">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent-glow flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Clock className="h-8 w-8 text-white" />
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Smart Chat</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      AI nutritionist at your service
+                    </CardDescription>
                   </div>
-                  <CardTitle className="text-2xl">Quick & Easy</CardTitle>
-                  <CardDescription className="text-base">
-                    Most recipes ready in under 30 minutes - perfect for busy parents on the go
-                  </CardDescription>
                 </CardHeader>
               </Card>
             </Link>
@@ -223,104 +145,82 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Recipes */}
-      <section className="py-20 md:py-32">
-        <div className="container">
-          <div className="flex items-center justify-between mb-16 animate-fade-in">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Featured Recipes
-              </h2>
-              <p className="text-lg text-muted-foreground">Start with these parent-approved favorites</p>
-            </div>
-            <Button asChild variant="outline" className="rounded-full border-2 hover:shadow-lg transition-all">
+      {/* Featured Recipes Section */}
+      <section className="py-12 px-4">
+        <div className="container max-w-5xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-foreground">Today's Favorites</h2>
+            <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary/80">
               <Link to="/recipes">View All</Link>
             </Button>
           </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {featuredRecipes.map((recipe, index) => (
-              <Card 
-                key={recipe.id} 
-                className="overflow-hidden hover:shadow-2xl transition-all duration-500 border-2 hover:border-primary/30 group animate-fade-in hover:-translate-y-2"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="aspect-video bg-muted relative overflow-hidden">
-                  <img
-                    src={recipe.image}
-                    alt={recipe.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                    {recipe.ageGroup}
+          
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredRecipes.map((recipe) => (
+              <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="group">
+                <Card className="overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-card transition-all duration-300 bg-card group-hover:scale-[1.02]">
+                  <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+                    <img
+                      src={recipe.image}
+                      alt={recipe.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 right-3 bg-card/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
+                      {recipe.ageGroup}
+                    </div>
                   </div>
-                </div>
-                <CardHeader>
-                  <div className="flex items-center gap-3 text-sm mb-3">
-                    <span className="bg-gradient-to-r from-primary to-primary-glow text-white px-3 py-1.5 rounded-full font-semibold shadow-sm">
-                      {recipe.category}
-                    </span>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      {recipe.prepTime}
-                    </span>
-                  </div>
-                  <CardTitle className="text-2xl group-hover:text-primary transition-colors">{recipe.title}</CardTitle>
-                  <CardDescription className="text-base">{recipe.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild className="w-full rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all group">
-                    <Link to={`/recipe/${recipe.id}`}>
-                      View Recipe
-                      <Sparkles className="ml-2 w-4 h-4 group-hover:scale-110 transition-transform" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
+                  <CardHeader className="space-y-2">
+                    <CardTitle className="text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                      {recipe.title}
+                    </CardTitle>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium">
+                        {recipe.category}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {recipe.prepTime}
+                      </span>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Super Cativante */}
-      <section className="py-20 md:py-32 bg-gradient-to-br from-primary via-secondary to-accent text-white relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-        </div>
-
-        <div className="container text-center relative z-10">
-          <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-semibold">
-              <Heart className="w-4 h-4 animate-pulse" />
-              Join Our Community
-            </div>
+      {/* Bottom CTA - Soft & Encouraging */}
+      <section className="py-12 px-4 pb-20">
+        <div className="container max-w-3xl">
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
             
-            <h2 className="text-4xl md:text-6xl font-extrabold leading-tight">
-              Ready to Start Your Baby's Food Journey?
-            </h2>
-            
-            <p className="text-xl md:text-2xl opacity-95 max-w-3xl mx-auto leading-relaxed">
-              Join thousands of parents making nutritious, homemade baby food with confidence. 
-              Get personalized advice from Bibi, our AI nutritionist!
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-6">
-              <Button asChild size="lg" variant="secondary" className="rounded-full text-lg px-10 py-7 shadow-2xl hover:scale-105 transition-all duration-300 group">
-                <Link to="/auth">
-                  <Sparkles className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                  Get Started Free
-                </Link>
-              </Button>
-              <Button asChild size="lg" className="rounded-full bg-white/20 border-2 border-white text-white hover:bg-white hover:text-primary transition-all duration-300 text-lg px-10 py-7 backdrop-blur-sm group">
-                <Link to="/chat">
-                  <Bot className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                  Try Bibi AI
-                </Link>
-              </Button>
-            </div>
-          </div>
+            <CardHeader className="text-center space-y-4 relative z-10 py-10 px-6">
+              <div className="inline-flex items-center justify-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mx-auto">
+                <Heart className="w-4 h-4 text-primary animate-pulse" />
+                <span className="text-foreground">Join Our Community</span>
+              </div>
+              
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+                You're doing amazing, Mama! 💕
+              </h3>
+              
+              <p className="text-base text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Every meal you prepare is filled with love. Let us help you make it nutritious and stress-free.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+                <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all">
+                  <Link to="/chat">
+                    <Bot className="mr-2 h-5 w-5" />
+                    Chat with Bibi AI
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
         </div>
       </section>
     </div>
