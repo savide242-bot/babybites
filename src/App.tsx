@@ -17,6 +17,7 @@ import GrowthTracker from "./pages/GrowthTracker";
 import BarcodeScanner from "./pages/BarcodeScanner";
 import LanguageSelector from "./pages/LanguageSelector";
 import Settings from "./pages/Settings";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -80,6 +81,7 @@ const AppContent = () => {
         <Route path="/growth" element={<GrowthTracker />} />
         <Route path="/scanner" element={<BarcodeScanner />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/install" element={<Install />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
