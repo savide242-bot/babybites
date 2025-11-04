@@ -1,24 +1,24 @@
-// Import all recipe images
-import avocadoPuree from "@/assets/recipes/avocado-puree.jpg";
-import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot.jpg";
-import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal.jpg";
-import eggMuffins from "@/assets/recipes/egg-muffins.jpg";
-import bananaPancakes from "@/assets/recipes/banana-pancakes.jpg";
-import chickenPatties from "@/assets/recipes/chicken-patties.jpg";
-import peaPuree from "@/assets/recipes/pea-puree.jpg";
-import appleSauce from "@/assets/recipes/apple-sauce.jpg";
-import pastaTomato from "@/assets/recipes/pasta-tomato.jpg";
-import yogurtBerries from "@/assets/recipes/yogurt-berries.jpg";
-import quinoaVeggies from "@/assets/recipes/quinoa-veggies.jpg";
-import broccoliTots from "@/assets/recipes/broccoli-tots.jpg";
-import salmonSweetPotato from "@/assets/recipes/salmon-sweet-potato.jpg";
-import riceBanana from "@/assets/recipes/rice-banana.jpg";
-import lentilSoup from "@/assets/recipes/lentil-soup.jpg";
-import mangoPuree from "@/assets/recipes/mango-puree.jpg";
-import beefStew from "@/assets/recipes/beef-stew.jpg";
-import spinachQuesadilla from "@/assets/recipes/spinach-quesadilla.jpg";
-import butternutSquash from "@/assets/recipes/butternut-squash.jpg";
-import turkeyMeatballs from "@/assets/recipes/turkey-meatballs.jpg";
+// Import all NEW recipe images (HD professional quality)
+import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
+import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
+import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
+import eggMuffins from "@/assets/recipes/egg-muffins-new.jpg";
+import bananaPancakes from "@/assets/recipes/banana-pancakes-new.jpg";
+import chickenPatties from "@/assets/recipes/chicken-patties-new.jpg";
+import peaPuree from "@/assets/recipes/pea-puree-new.jpg";
+import appleSauce from "@/assets/recipes/apple-sauce-new.jpg";
+import pastaTomato from "@/assets/recipes/pasta-tomato-new.jpg";
+import yogurtBerries from "@/assets/recipes/yogurt-berries-new.jpg";
+import quinoaVeggies from "@/assets/recipes/quinoa-veggies-new.jpg";
+import broccoliTots from "@/assets/recipes/broccoli-tots-new.jpg";
+import salmonSweetPotato from "@/assets/recipes/salmon-sweet-potato-new.jpg";
+import riceBanana from "@/assets/recipes/rice-banana-new.jpg";
+import lentilSoup from "@/assets/recipes/lentil-soup-new.jpg";
+import mangoPuree from "@/assets/recipes/mango-puree-new.jpg";
+import beefStew from "@/assets/recipes/beef-stew-new.jpg";
+import spinachQuesadilla from "@/assets/recipes/spinach-quesadilla-new.jpg";
+import butternutSquash from "@/assets/recipes/butternut-squash-new.jpg";
+import turkeyMeatballs from "@/assets/recipes/turkey-meatballs-new.jpg";
 
 export const recipeImages = {
   avocadoPuree,
