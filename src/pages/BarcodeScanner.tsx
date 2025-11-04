@@ -29,6 +29,29 @@ const BarcodeScanner = () => {
 
   const startCameraScanner = async () => {
     try {
+      // Check if running on HTTPS or localhost
+      if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+        toast({
+          title: "Conexão Segura Necessária",
+          description: "A câmera requer HTTPS. Por favor, aceda através de uma conexão segura.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Request camera permission explicitly
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop()); // Stop test stream
+      } catch (permissionError) {
+        toast({
+          title: "Permissão da Câmera Negada",
+          description: "Por favor, permita o acesso à câmera nas configurações do navegador.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setCameraScanning(true);
       
       if (!scannerRef.current) {
@@ -40,6 +63,7 @@ const BarcodeScanner = () => {
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
         },
         (decodedText) => {
           setBarcode(decodedText);
@@ -47,14 +71,14 @@ const BarcodeScanner = () => {
           handleScan(decodedText);
         },
         (errorMessage) => {
-          // Silently handle scan errors
+          // Silently handle scan errors during active scanning
         }
       );
     } catch (err) {
       console.error("Error starting camera:", err);
       toast({
-        title: t('scanner.cameraError'),
-        description: t('scanner.cameraErrorDesc'),
+        title: "Erro na Câmera",
+        description: "Não foi possível aceder à câmera. Verifique as permissões.",
         variant: "destructive",
       });
       setCameraScanning(false);

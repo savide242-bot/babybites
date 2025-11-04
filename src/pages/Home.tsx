@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Calendar, Heart, Sparkles, Clock, Users, TrendingUp, Scan, Bot, MessageCircle } from "lucide-react";
+import { BookOpen, Calendar, Heart, Sparkles, TrendingUp, Scan, Bot, MessageCircle, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -141,54 +141,45 @@ const Home = () => {
                 </CardHeader>
               </Card>
             </Link>
+
+            {/* Progress Reports Card */}
+            <Link to="/reports" className="group">
+              <Card className="border border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <TrendingUp className="h-7 w-7 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Progress Reports</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Track nutrition & growth insights
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            {/* Shopping List Card */}
+            <Link to="/shopping" className="group">
+              <Card className="border border-border/50 hover:border-secondary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
+                <CardHeader className="space-y-4 pb-6">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <ShoppingCart className="h-7 w-7 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-foreground mb-1">Shopping List</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      Smart lists from your planner
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured Recipes Section */}
-      <section className="py-12 px-4">
-        <div className="container max-w-5xl">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-foreground">Today's Favorites</h2>
-            <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-              <Link to="/recipes">View All</Link>
-            </Button>
-          </div>
-          
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredRecipes.map((recipe) => (
-              <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="group">
-                <Card className="overflow-hidden border border-border/50 hover:border-primary/30 hover:shadow-card transition-all duration-300 bg-card group-hover:scale-[1.02]">
-                  <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                    <img
-                      src={recipe.image}
-                      alt={recipe.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-3 right-3 bg-card/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium shadow-sm">
-                      {recipe.ageGroup}
-                    </div>
-                  </div>
-                  <CardHeader className="space-y-2">
-                    <CardTitle className="text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                      {recipe.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium">
-                        {recipe.category}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {recipe.prepTime}
-                      </span>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Featured Recipes Section - REMOVED per user request */}
 
       {/* Bottom CTA - Soft & Encouraging */}
       <section className="py-12 px-4 pb-20">

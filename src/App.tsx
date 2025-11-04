@@ -19,6 +19,8 @@ import LanguageSelector from "./pages/LanguageSelector";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import ProgressReports from "./pages/ProgressReports";
+import ShoppingList from "./pages/ShoppingList";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -82,6 +84,8 @@ const AppContent = () => {
         <Route path="/scanner" element={<BarcodeScanner />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/install" element={<Install />} />
+        <Route path="/reports" element={<ProgressReports />} />
+        <Route path="/shopping" element={<ShoppingList />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
