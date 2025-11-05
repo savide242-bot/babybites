@@ -46,7 +46,7 @@ const ProgressReports = () => {
 
       if (growth) {
         const formatted = growth.map(g => ({
-          date: new Date(g.recorded_at).toLocaleDateString('pt-PT', { month: 'short', day: 'numeric' }),
+          date: new Date(g.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           weight: g.weight_kg,
           height: g.height_cm,
           milestone: g.milestone || undefined
@@ -94,7 +94,7 @@ const ProgressReports = () => {
       const previous = growth[growth.length - 2];
       const weightGain = recent.weight_kg - previous.weight_kg;
       if (weightGain > 0) {
-        newInsights.push(`📈 Excelente progresso! O bebé ganhou ${weightGain.toFixed(1)}kg desde o último registo`);
+        newInsights.push(t('progressReports.insightWeightGain').replace('{weight}', weightGain.toFixed(1)));
       }
     }
 
@@ -106,55 +106,54 @@ const ProgressReports = () => {
     });
 
     if (recentMeals.length > 0) {
-      newInsights.push(`🍽️ ${recentMeals.length} refeições registadas esta semana - óptima consistência!`);
+      newInsights.push(t('progressReports.insightMealsWeek').replace('{count}', recentMeals.length.toString()));
     }
 
     // Vegetable intake
     const veggieMeals = meals.filter(m => 
       m.ingredients?.some((i: string) => 
-        i.toLowerCase().includes('vegetais') || 
-        i.toLowerCase().includes('legumes') ||
-        i.toLowerCase().includes('brócolis') ||
-        i.toLowerCase().includes('cenoura')
+        i.toLowerCase().includes('vegetable') || 
+        i.toLowerCase().includes('broccoli') ||
+        i.toLowerCase().includes('carrot')
       )
     );
 
     if (veggieMeals.length > 0) {
       const veggiePercentage = Math.round((veggieMeals.length / meals.length) * 100);
       if (veggiePercentage > 30) {
-        newInsights.push(`🥦 Fantástico! ${veggiePercentage}% das refeições incluem vegetais`);
+        newInsights.push(t('progressReports.insightVeggies').replace('{percentage}', veggiePercentage.toString()));
       }
     }
 
     // Protein intake
     const avgProtein = meals.reduce((sum, m) => sum + (m.protein_g || 0), 0) / meals.length;
     if (avgProtein > 8) {
-      newInsights.push(`💪 Excelente ingestão de proteína média: ${avgProtein.toFixed(1)}g por refeição`);
+      newInsights.push(t('progressReports.insightProtein').replace('{amount}', avgProtein.toFixed(1)));
     }
 
     // Variety
     const uniqueRecipes = new Set(meals.map(m => m.recipe_title).filter(Boolean));
     if (uniqueRecipes.size > 10) {
-      newInsights.push(`🌈 Grande variedade! ${uniqueRecipes.size} receitas diferentes este mês`);
+      newInsights.push(t('progressReports.insightVariety').replace('{count}', uniqueRecipes.size.toString()));
     }
 
     setInsights(newInsights.length > 0 ? newInsights : [
-      "Continue a registar refeições para gerar insights personalizados!",
-      "Acompanhe o crescimento do seu bebé regularmente para melhores resultados"
+      t('progressReports.insightDefault1'),
+      t('progressReports.insightDefault2')
     ]);
   };
 
   const handleExportPDF = () => {
     toast({
-      title: "Relatório Exportado",
-      description: "O relatório foi exportado em formato PDF com sucesso!",
+      title: t('progressReports.reportExported'),
+      description: t('progressReports.reportExportedDesc'),
     });
   };
 
   const handleShare = () => {
     toast({
-      title: "Partilhar Relatório",
-      description: "Pode partilhar este relatório com o pediatra ou nutricionista",
+      title: t('progressReports.shareReport'),
+      description: t('progressReports.shareReportDesc'),
     });
   };
 
@@ -175,19 +174,19 @@ const ProgressReports = () => {
       <div className="container max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">Relatórios de Progresso</h1>
+            <h1 className="text-4xl font-bold text-primary mb-2">{t('progressReports.title')}</h1>
             <p className="text-lg text-muted-foreground">
-              Acompanhe a evolução nutricional e crescimento do seu bebé
+              {t('progressReports.subtitle')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={handleExportPDF} variant="outline">
               <Download className="w-4 h-4 mr-2" />
-              Exportar PDF
+              {t('progressReports.exportPDF')}
             </Button>
             <Button onClick={handleShare}>
               <Share2 className="w-4 h-4 mr-2" />
-              Partilhar
+              {t('progressReports.share')}
             </Button>
           </div>
         </div>
@@ -206,7 +205,7 @@ const ProgressReports = () => {
           <Card className="p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-bold">Evolução de Crescimento</h2>
+              <h2 className="text-2xl font-bold">{t('progressReports.growthEvolution')}</h2>
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={growthData}>
@@ -222,7 +221,7 @@ const ProgressReports = () => {
                   dataKey="weight" 
                   stroke="hsl(var(--primary))" 
                   strokeWidth={2}
-                  name="Peso (kg)"
+                  name={t('progressReports.weightKg')}
                   dot={{ fill: "hsl(var(--primary))" }}
                 />
                 <Line 
@@ -231,7 +230,7 @@ const ProgressReports = () => {
                   dataKey="height" 
                   stroke="hsl(var(--secondary))" 
                   strokeWidth={2}
-                  name="Altura (cm)"
+                  name={t('progressReports.heightCm')}
                   dot={{ fill: "hsl(var(--secondary))" }}
                 />
               </LineChart>
@@ -244,7 +243,7 @@ const ProgressReports = () => {
           <Card className="p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Heart className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-bold">Distribuição Nutricional (Últimos 30 dias)</h2>
+              <h2 className="text-2xl font-bold">{t('progressReports.nutritionalDistribution')}</h2>
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={nutritionData}>
@@ -253,7 +252,7 @@ const ProgressReports = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="count" fill="hsl(var(--primary))" name="Número de refeições" />
+                <Bar dataKey="count" fill="hsl(var(--primary))" name={t('progressReports.mealCount')} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -265,7 +264,7 @@ const ProgressReports = () => {
             <div className="flex items-center gap-3 mb-2">
               <Scale className="w-8 h-8 text-primary" />
               <div>
-                <p className="text-sm text-muted-foreground">Peso Atual</p>
+                <p className="text-sm text-muted-foreground">{t('progressReports.currentWeight')}</p>
                 <p className="text-2xl font-bold">
                   {growthData.length > 0 ? `${growthData[growthData.length - 1].weight}kg` : "N/A"}
                 </p>
@@ -277,7 +276,7 @@ const ProgressReports = () => {
             <div className="flex items-center gap-3 mb-2">
               <Ruler className="w-8 h-8 text-secondary" />
               <div>
-                <p className="text-sm text-muted-foreground">Altura Atual</p>
+                <p className="text-sm text-muted-foreground">{t('progressReports.currentHeight')}</p>
                 <p className="text-2xl font-bold">
                   {growthData.length > 0 ? `${growthData[growthData.length - 1].height}cm` : "N/A"}
                 </p>
@@ -289,7 +288,7 @@ const ProgressReports = () => {
             <div className="flex items-center gap-3 mb-2">
               <Baby className="w-8 h-8 text-accent" />
               <div>
-                <p className="text-sm text-muted-foreground">Refeições Este Mês</p>
+                <p className="text-sm text-muted-foreground">{t('progressReports.mealsThisMonth')}</p>
                 <p className="text-2xl font-bold">
                   {nutritionData.reduce((sum, d) => sum + d.count, 0)}
                 </p>
@@ -301,12 +300,12 @@ const ProgressReports = () => {
         {growthData.length === 0 && (
           <Card className="p-8 text-center mt-6">
             <Baby className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Sem Dados Disponíveis</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('progressReports.noData')}</h3>
             <p className="text-muted-foreground mb-4">
-              Comece a registar o crescimento e refeições do seu bebé para visualizar relatórios detalhados
+              {t('progressReports.noDataDescription')}
             </p>
             <Button onClick={() => window.location.href = "/growth"}>
-              Adicionar Dados
+              {t('progressReports.addData')}
             </Button>
           </Card>
         )}

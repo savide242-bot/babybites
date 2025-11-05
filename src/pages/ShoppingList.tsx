@@ -36,30 +36,30 @@ const ShoppingList = () => {
 
   const categorizeIngredient = (ingredient: string): string => {
     const lower = ingredient.toLowerCase();
-    if (lower.includes("tomate") || lower.includes("cenoura") || lower.includes("brócolis") || 
-        lower.includes("espinafre") || lower.includes("couve") || lower.includes("pimento") ||
-        lower.includes("cebola") || lower.includes("alho")) {
-      return "Legumes";
+    if (lower.includes("tomato") || lower.includes("carrot") || lower.includes("broccoli") || 
+        lower.includes("spinach") || lower.includes("kale") || lower.includes("pepper") ||
+        lower.includes("onion") || lower.includes("garlic")) {
+      return t('shoppingList.categories.vegetables');
     }
-    if (lower.includes("banana") || lower.includes("maçã") || lower.includes("pera") || 
-        lower.includes("morango") || lower.includes("manga") || lower.includes("abacate") ||
-        lower.includes("melancia") || lower.includes("laranja")) {
-      return "Frutas";
+    if (lower.includes("banana") || lower.includes("apple") || lower.includes("pear") || 
+        lower.includes("strawberry") || lower.includes("mango") || lower.includes("avocado") ||
+        lower.includes("watermelon") || lower.includes("orange")) {
+      return t('shoppingList.categories.fruits');
     }
-    if (lower.includes("frango") || lower.includes("carne") || lower.includes("peixe") || 
-        lower.includes("salmão") || lower.includes("atum") || lower.includes("peru") ||
-        lower.includes("ovo")) {
-      return "Proteínas";
+    if (lower.includes("chicken") || lower.includes("beef") || lower.includes("fish") || 
+        lower.includes("salmon") || lower.includes("tuna") || lower.includes("turkey") ||
+        lower.includes("egg")) {
+      return t('shoppingList.categories.proteins');
     }
-    if (lower.includes("arroz") || lower.includes("massa") || lower.includes("pão") || 
-        lower.includes("aveia") || lower.includes("quinoa") || lower.includes("cereal")) {
-      return "Cereais";
+    if (lower.includes("rice") || lower.includes("pasta") || lower.includes("bread") || 
+        lower.includes("oat") || lower.includes("quinoa") || lower.includes("cereal")) {
+      return t('shoppingList.categories.cereals');
     }
-    if (lower.includes("leite") || lower.includes("queijo") || lower.includes("iogurte") || 
-        lower.includes("manteiga")) {
-      return "Laticínios";
+    if (lower.includes("milk") || lower.includes("cheese") || lower.includes("yogurt") || 
+        lower.includes("butter")) {
+      return t('shoppingList.categories.dairy');
     }
-    return "Outros";
+    return t('shoppingList.categories.others');
   };
 
   const generateShoppingList = (mealPlan: any) => {
@@ -106,8 +106,8 @@ const ShoppingList = () => {
 
   const handleExportPDF = () => {
     toast({
-      title: "Lista Exportada",
-      description: "A lista de compras foi exportada em formato PDF com sucesso!",
+      title: t('shoppingList.listExported'),
+      description: t('shoppingList.listExportedDesc'),
     });
   };
 
@@ -115,7 +115,7 @@ const ShoppingList = () => {
     const uncheckedItems = items.filter(i => !i.checked);
     const categories = [...new Set(uncheckedItems.map(i => i.category))];
     
-    let message = "🛒 *Lista de Compras - BabyBites*\n\n";
+    let message = "🛒 *Shopping List - BabyBites*\n\n";
     categories.forEach(cat => {
       const categoryItems = uncheckedItems.filter(i => i.category === cat);
       if (categoryItems.length > 0) {
@@ -133,19 +133,19 @@ const ShoppingList = () => {
 
   const handleSuggestSubstitutions = (ingredient: string) => {
     const substitutions: { [key: string]: string[] } = {
-      "leite": ["leite de amêndoa", "leite de coco", "leite de aveia"],
-      "manteiga": ["azeite", "óleo de coco"],
-      "açúcar": ["mel (12+ meses)", "puré de maçã", "banana esmagada"],
-      "farinha de trigo": ["farinha de aveia", "farinha de arroz"],
-      "ovo": ["linhaça moída + água", "puré de banana"],
+      "milk": ["almond milk", "coconut milk", "oat milk"],
+      "butter": ["olive oil", "coconut oil"],
+      "sugar": ["honey (12+ months)", "applesauce", "mashed banana"],
+      "wheat flour": ["oat flour", "rice flour"],
+      "egg": ["ground flaxseed + water", "mashed banana"],
     };
 
     const lower = ingredient.toLowerCase();
     for (const [key, subs] of Object.entries(substitutions)) {
       if (lower.includes(key)) {
         toast({
-          title: "Substituições Sugeridas",
-          description: `Para ${ingredient}: ${subs.join(", ")}`,
+          title: t('shoppingList.substitutions'),
+          description: t('shoppingList.substitutionsFor').replace('{ingredient}', ingredient).replace('{subs}', subs.join(", ")),
           duration: 5000,
         });
         return;
@@ -153,8 +153,8 @@ const ShoppingList = () => {
     }
 
     toast({
-      title: "Sem Substituições",
-      description: "Não foram encontradas substituições comuns para este ingrediente",
+      title: t('shoppingList.noSubstitutions'),
+      description: t('shoppingList.noSubstitutionsDesc'),
     });
   };
 
@@ -168,9 +168,9 @@ const ShoppingList = () => {
       <div className="container max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">Lista de Compras Inteligente</h1>
+            <h1 className="text-4xl font-bold text-primary mb-2">{t('shoppingList.title')}</h1>
             <p className="text-lg text-muted-foreground">
-              Gerada automaticamente com base no seu planeador semanal
+              {t('shoppingList.subtitle')}
             </p>
           </div>
           <ShoppingCart className="w-12 h-12 text-primary" />
@@ -180,8 +180,8 @@ const ShoppingList = () => {
         {items.length > 0 && (
           <Card className="p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Progresso das Compras</span>
-              <span className="text-sm text-muted-foreground">{completedCount} de {totalCount}</span>
+              <span className="text-sm font-medium">{t('shoppingList.progress')}</span>
+              <span className="text-sm text-muted-foreground">{completedCount} of {totalCount}</span>
             </div>
             <div className="w-full bg-secondary/20 rounded-full h-2">
               <div 
@@ -196,11 +196,11 @@ const ShoppingList = () => {
         <div className="flex gap-2 mb-6">
           <Button onClick={handleExportPDF} variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Exportar PDF
+            {t('shoppingList.exportPDF')}
           </Button>
           <Button onClick={handleShareWhatsApp}>
             <Share2 className="w-4 h-4 mr-2" />
-            Partilhar WhatsApp
+            {t('shoppingList.shareWhatsApp')}
           </Button>
         </div>
 
@@ -230,7 +230,7 @@ const ShoppingList = () => {
                       </p>
                       {item.fromRecipe && (
                         <p className="text-xs text-muted-foreground">
-                          De: {item.fromRecipe}
+                          {t('shoppingList.from')} {item.fromRecipe}
                         </p>
                       )}
                     </div>
@@ -239,7 +239,7 @@ const ShoppingList = () => {
                       variant="ghost"
                       onClick={() => handleSuggestSubstitutions(item.ingredient)}
                     >
-                      Substituir
+                      {t('shoppingList.substitute')}
                     </Button>
                     <Button
                       size="sm"
@@ -258,26 +258,26 @@ const ShoppingList = () => {
         {items.length === 0 && (
           <Card className="p-8 text-center">
             <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Lista Vazia</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('shoppingList.emptyList')}</h3>
             <p className="text-muted-foreground mb-4">
-              Adicione receitas ao seu planeador semanal para gerar automaticamente a lista de compras
+              {t('shoppingList.emptyListDesc')}
             </p>
             <Button onClick={() => window.location.href = "/planner"}>
               <Plus className="w-4 h-4 mr-2" />
-              Ir para Planeador
+              {t('shoppingList.goToPlanner')}
             </Button>
           </Card>
         )}
 
         {/* Tips */}
         <Card className="p-6 mt-6 bg-primary/5">
-          <h3 className="font-semibold mb-3">💡 Dicas de Compras</h3>
+          <h3 className="font-semibold mb-3">💡 {t('shoppingList.tipsTitle')}</h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• Compre produtos orgânicos sempre que possível para bebés</li>
-            <li>• Verifique sempre as datas de validade</li>
-            <li>• Prefira frutas e legumes da época</li>
-            <li>• Use a função "Substituir" para alternativas mais saudáveis</li>
-            <li>• Congele porções extras para poupar tempo</li>
+            <li>• {t('shoppingList.tip1')}</li>
+            <li>• {t('shoppingList.tip2')}</li>
+            <li>• {t('shoppingList.tip3')}</li>
+            <li>• {t('shoppingList.tip4')}</li>
+            <li>• {t('shoppingList.tip5')}</li>
           </ul>
         </Card>
       </div>

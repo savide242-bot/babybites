@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan, Settings } from "lucide-react";
+import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan, Settings, FileText, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
@@ -18,6 +18,8 @@ const Header = () => {
     { to: "/planner", label: t('nav.planner'), icon: Calendar },
     { to: "/growth", label: t('nav.growth'), icon: TrendingUp },
     { to: "/scanner", label: t('nav.scanner'), icon: Scan },
+    { to: "/progress-reports", label: t('nav.progressReports'), icon: FileText },
+    { to: "/shopping-list", label: t('nav.shoppingList'), icon: ShoppingCart },
     { to: "/community", label: t('nav.community'), icon: Users },
     { to: "/advice", label: t('nav.advice'), icon: Heart },
     { to: "/chat", label: t('nav.chat'), icon: Bot },
