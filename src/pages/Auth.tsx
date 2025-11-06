@@ -104,30 +104,13 @@ const Auth = () => {
         if (permission === 'granted') {
           // Get service worker registration
           const registration = await navigator.serviceWorker.ready;
-          
-          // Subscribe to push notifications
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(
-              'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U' // You'll need to replace this with your VAPID public key
-            ),
+
+          // Send welcome notification
+          registration.showNotification('Welcome Mom! 👶', {
+            body: 'Welcome to BabyBites! We\'re excited to help you on your parenting journey.',
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
           });
-
-          // Save subscription to database
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from('push_subscriptions').insert({
-              user_id: user.id,
-              subscription: JSON.stringify(subscription),
-            });
-
-            // Send welcome notification
-            registration.showNotification('Welcome Mom! 👶', {
-              body: 'Welcome to BabyBites! We\'re excited to help you on your parenting journey.',
-              icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-              badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-            });
-          }
         }
       } catch (error) {
         console.error('Error requesting notification permission:', error);
@@ -135,21 +118,6 @@ const Auth = () => {
     }
   };
 
-  // Helper function to convert VAPID key
-  const urlBase64ToUint8Array = (base64String: string) => {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-primary/5 to-background p-4">

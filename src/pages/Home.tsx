@@ -58,7 +58,7 @@ const Home = () => {
             </Link>
 
             {/* Weekly Planner Card */}
-            <Link to="/meal-planner" className="group">
+            <Link to="/planner" className="group">
               <Card className="border border-border/50 hover:border-secondary/40 transition-all duration-300 hover:shadow-card h-full bg-gradient-card group-hover:scale-[1.02]">
                 <CardHeader className="space-y-4 pb-6">
                   <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary-glow/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
