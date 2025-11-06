@@ -1,4 +1,8 @@
 import { getRecipeImage } from "./recipeImages";
+import { additionalRecipes } from "./additionalRecipes";
+import { recipes47to100 } from "./recipes47-100";
+import { recipes101to150 } from "./recipes101-150";
+import { recipes151to200 } from "./recipes151-200";
 
 export interface Recipe {
   id: string;
@@ -880,7 +884,243 @@ export const recipes: Recipe[] = [
   },
 
 
-  // Total: 40 complete recipes with detailed step-by-step instructions
+  // Total: 200 complete recipes with detailed step-by-step instructions
   // All recipes follow professional standards with specific ingredients and detailed preparation steps
+  
+  // Additional 169 recipes with complete details (IDs 32-200)
+  { 
+    id: "32", 
+    title: "Cottage Cheese & Peach Bowl", 
+    description: "Protein-rich breakfast", 
+    ageGroup: "9-12 months", 
+    category: "Breakfast", 
+    prepTime: "5 min", 
+    servings: "1 serving", 
+    image: getRecipeImage(["yogurt", "berry"]), 
+    ingredients: ["1/2 cup small curd cottage cheese", "1 ripe peach, peeled and diced"], 
+    instructions: [
+      "Select a ripe peach that yields slightly to gentle pressure. Wash it thoroughly under running water.",
+      "Bring a small pot of water to boil. Score an X on the bottom of the peach with a knife.",
+      "Place the peach in boiling water for 30-45 seconds to loosen the skin.",
+      "Transfer immediately to a bowl of ice water. The skin should now peel off easily with your fingers.",
+      "Cut the peeled peach in half and remove the pit. Dice the flesh into very small pieces no larger than 1/4 inch.",
+      "Measure 1/2 cup of small curd cottage cheese (full-fat for babies) and place it in a small serving bowl.",
+      "Add the diced peach pieces to the cottage cheese and gently fold together with a spoon.",
+      "Serve immediately. The cottage cheese provides protein and calcium while the peach adds natural sweetness and vitamins."
+    ], 
+    nutrition: { calories: "85", protein: "8g", carbs: "12g", fat: "1g", fiber: "1g", vitamins: ["Protein", "Calcium"] }, 
+    allergens: ["Dairy"], 
+    storage: "Best fresh" 
+  },
+  { 
+    id: "33", 
+    title: "Peanut Butter Banana Bites", 
+    description: "Energy-packed snack", 
+    ageGroup: "12-18 months", 
+    category: "Snack", 
+    prepTime: "5 min", 
+    servings: "8 bites", 
+    image: getRecipeImage(["banana"]), 
+    ingredients: ["1 ripe banana", "2 tbsp creamy natural peanut butter (no added sugar or salt)"], 
+    instructions: [
+      "Peel the banana completely and slice it into rounds about 1/2 inch thick. You should get approximately 8 slices.",
+      "Lay the banana slices flat on a clean plate, leaving space between each slice.",
+      "Take 2 tablespoons of creamy natural peanut butter. Make sure it's at room temperature for easier spreading.",
+      "Using a butter knife, spread about 1/2 teaspoon of peanut butter on top of each banana slice, covering the surface.",
+      "For variety, you can make banana-peanut butter sandwiches by placing another banana slice on top of the peanut butter.",
+      "Serve immediately. These bites are perfect for toddlers who have been introduced to peanuts with no allergic reaction.",
+      "Watch your child while eating to ensure safe chewing. These provide healthy fats, protein, and quick energy."
+    ], 
+    nutrition: { calories: "65", protein: "2g", carbs: "9g", fat: "3g", fiber: "1g", vitamins: ["Protein", "Healthy fats"] }, 
+    allergens: ["Peanuts"], 
+    storage: "Serve fresh" 
+  },
+  { 
+    id: "34", 
+    title: "Veggie Loaded Quesadilla", 
+    description: "Melted cheese and veggies", 
+    ageGroup: "12-18 months", 
+    category: "Lunch", 
+    prepTime: "15 min", 
+    servings: "4 triangles", 
+    image: getRecipeImage(["spinach", "quesadilla"]), 
+    ingredients: ["1 small whole wheat tortilla (6-inch)", "1/4 cup shredded mild cheddar cheese", "2 tbsp finely chopped fresh spinach", "2 tbsp finely diced ripe tomato", "1 tsp olive oil"], 
+    instructions: [
+      "Wash the spinach leaves thoroughly and pat them completely dry. Chop very finely into small pieces.",
+      "Wash the tomato, cut it in half, and scoop out the seeds. Dice the remaining flesh into very small pieces.",
+      "Lay the tortilla flat on a clean work surface. Sprinkle the shredded cheese evenly over one half of the tortilla.",
+      "Scatter the chopped spinach and diced tomato over the cheese, staying within the same half.",
+      "Fold the empty half of the tortilla over the filled half to create a half-moon shape.",
+      "Heat a non-stick skillet over medium-low heat. Add 1 teaspoon of olive oil and swirl to coat.",
+      "Carefully place the folded quesadilla in the skillet. Cook for 2-3 minutes until the bottom is golden and the cheese starts melting.",
+      "Flip carefully with a wide spatula and cook the other side for 2-3 minutes until golden and cheese is fully melted.",
+      "Transfer to a cutting board and let cool for 2-3 minutes. Cut into 4 small triangles.",
+      "Let cool to a safe temperature before serving. The melted cheese will be hot inside."
+    ], 
+    nutrition: { calories: "95", protein: "5g", carbs: "12g", fat: "3g", fiber: "2g", vitamins: ["Calcium", "Iron"] }, 
+    allergens: ["Dairy", "Gluten"], 
+    storage: "Best fresh" 
+  },
+  { 
+    id: "35", 
+    title: "Homemade Hummus", 
+    description: "Protein-rich dip", 
+    ageGroup: "12-18 months", 
+    category: "Snack", 
+    prepTime: "10 min", 
+    servings: "8 servings", 
+    image: getRecipeImage(["puree"]), 
+    ingredients: ["1 can (15 oz) chickpeas, drained and rinsed", "2 tbsp tahini", "2 tbsp fresh lemon juice", "1 small garlic clove", "2 tbsp olive oil", "2-3 tbsp water"], 
+    instructions: [
+      "Drain the canned chickpeas in a colander and rinse them thoroughly under cold running water for 1 minute.",
+      "For smoother hummus, remove the skins from the chickpeas by gently rubbing them between your fingers. This step is optional but creates creamier texture.",
+      "Peel one small garlic clove. For milder flavor suitable for babies, cut it in half and remove the green center germ.",
+      "Add the drained chickpeas, 2 tablespoons tahini, 2 tablespoons fresh lemon juice, garlic, and 2 tablespoons olive oil to a food processor.",
+      "Blend on high speed for 1 minute. Stop and scrape down the sides with a spatula.",
+      "Add 2 tablespoons of water and blend again for 1-2 minutes until very smooth and creamy.",
+      "If the hummus is still too thick, add another tablespoon of water and blend until you reach the desired consistency.",
+      "Taste and adjust - for babies, keep it mild. You can add a tiny pinch of cumin if desired.",
+      "Transfer to a serving bowl. Drizzle with a little olive oil on top if desired.",
+      "Serve with soft pita pieces, steamed vegetable sticks, or as a spread."
+    ], 
+    nutrition: { calories: "45", protein: "2g", carbs: "6g", fat: "2g", fiber: "2g", vitamins: ["Protein", "Iron"] }, 
+    allergens: ["Sesame"], 
+    storage: "Refrigerate 5 days" 
+  },
+  { 
+    id: "36", 
+    title: "Strawberry Chia Pudding", 
+    description: "Omega-3 rich dessert", 
+    ageGroup: "12-18 months", 
+    category: "Snack", 
+    prepTime: "5 min + 2 hrs", 
+    servings: "2 servings", 
+    image: getRecipeImage(["yogurt", "berry"]), 
+    ingredients: ["3 tbsp chia seeds", "3/4 cup whole milk", "1/2 cup fresh strawberries, hulled and diced", "1/2 tsp vanilla extract (optional)"], 
+    instructions: [
+      "Measure 3 tablespoons of chia seeds and place them in a medium bowl or jar with a lid.",
+      "Pour 3/4 cup of whole milk over the chia seeds. If using vanilla, add 1/2 teaspoon now.",
+      "Whisk vigorously with a fork or small whisk for 1-2 minutes, making sure no clumps form and seeds are evenly distributed.",
+      "Let sit for 5 minutes, then whisk again thoroughly. This prevents the seeds from clumping at the bottom.",
+      "Cover the bowl or jar and refrigerate for at least 2 hours, or overnight. The chia seeds will absorb the liquid and create a pudding-like consistency.",
+      "While pudding sets, wash the strawberries thoroughly. Remove the green tops and dice into very small pieces.",
+      "After the pudding has set, give it a final stir. It should be thick and creamy with a gel-like texture.",
+      "Divide the pudding between two small serving bowls. Top each portion with the diced strawberries.",
+      "Serve chilled. The pudding can be stored in the refrigerator and the strawberries added fresh just before serving."
+    ], 
+    nutrition: { calories: "110", protein: "4g", carbs: "14g", fat: "4g", fiber: "5g", vitamins: ["Omega-3", "Fiber", "Calcium"] }, 
+    allergens: ["Dairy"], 
+    storage: "Refrigerate 3 days" 
+  },
+  { 
+    id: "37", 
+    title: "Mini Meatloaf Muffins", 
+    description: "Individual portions", 
+    ageGroup: "12-18 months", 
+    category: "Dinner", 
+    prepTime: "35 min", 
+    servings: "12 muffins", 
+    image: getRecipeImage(["beef", "meatball"]), 
+    ingredients: ["1 lb lean ground beef (90% lean)", "1/2 cup rolled oats", "1 large egg", "1/4 cup low-sodium tomato sauce", "1 small carrot, grated", "1/4 tsp onion powder"], 
+    instructions: [
+      "Preheat your oven to 375°F (190°C). Grease a 12-cup standard muffin tin thoroughly with olive oil or use paper liners.",
+      "Wash and peel one small carrot. Grate it finely using the smallest holes on a box grater.",
+      "In a large mixing bowl, combine 1 pound of ground beef, 1/2 cup rolled oats, the grated carrot, and 1/4 teaspoon onion powder.",
+      "Crack the egg into a small bowl first to check for freshness, then add it to the meat mixture.",
+      "Add 1/4 cup of low-sodium tomato sauce to the bowl.",
+      "Using your hands (clean or wearing disposable gloves), mix all ingredients together thoroughly for 2-3 minutes until well combined and the mixture holds together.",
+      "Divide the mixture evenly among the 12 muffin cups, filling each about 3/4 full. Press down gently to compact.",
+      "Bake in the preheated oven for 25-28 minutes until the muffins are browned on top and cooked through. Internal temperature should reach 160°F.",
+      "Let cool in the tin for 5 minutes, then carefully remove each muffin. They should hold their shape well.",
+      "Allow to cool to a safe eating temperature. Cut in half or quarters for younger toddlers."
+    ], 
+    nutrition: { calories: "75", protein: "7g", carbs: "5g", fat: "4g", fiber: "1g", vitamins: ["Protein", "Iron"] }, 
+    allergens: ["Eggs"], 
+    storage: "Freeze 2 months" 
+  },
+  { 
+    id: "38", 
+    title: "Cucumber & Cream Cheese Rolls", 
+    description: "Cool refreshing snack", 
+    ageGroup: "12-18 months", 
+    category: "Snack", 
+    prepTime: "10 min", 
+    servings: "6 rolls", 
+    image: getRecipeImage(["green"]), 
+    ingredients: ["1 large cucumber", "3 tbsp cream cheese, softened", "1/4 tsp fresh dill, finely chopped (optional)"], 
+    instructions: [
+      "Wash the cucumber thoroughly under running water. Pat it completely dry with a clean towel.",
+      "Using a vegetable peeler, peel the cucumber in strips lengthwise, creating long, thin ribbons. Peel all the way around until you reach the seedy center.",
+      "Discard the seedy center part as it's too soft and watery for rolling. You should have 6-8 nice ribbons.",
+      "Lay the cucumber ribbons flat on a clean work surface or cutting board.",
+      "If using dill, wash it thoroughly and chop it very finely. Mix it with the softened cream cheese in a small bowl.",
+      "Using a butter knife, spread about 1/2 tablespoon of cream cheese along the length of each cucumber ribbon, covering it thinly and evenly.",
+      "Starting from one end, carefully roll up each cucumber ribbon. The cream cheese will help it stick together.",
+      "Place each roll seam-side down on a serving plate to help them hold their shape.",
+      "Refrigerate for 10-15 minutes if you want them firmer, or serve immediately at room temperature."
+    ], 
+    nutrition: { calories: "35", protein: "2g", carbs: "3g", fat: "2g", fiber: "0g", vitamins: ["Hydration", "Calcium"] }, 
+    allergens: ["Dairy"], 
+    storage: "Best fresh" 
+  },
+  { 
+    id: "39", 
+    title: "Tofu Scramble", 
+    description: "Plant-based protein breakfast", 
+    ageGroup: "12-18 months", 
+    category: "Breakfast", 
+    prepTime: "10 min", 
+    servings: "3 servings", 
+    image: getRecipeImage(["egg"]), 
+    ingredients: ["8 oz soft or silken tofu", "1/8 tsp turmeric powder", "1/4 cup finely diced bell pepper", "1/4 cup finely diced tomato", "1 tbsp olive oil", "Pinch of black pepper (optional)"], 
+    instructions: [
+      "Drain the tofu from its package. Gently press it between paper towels to remove excess water.",
+      "Using your hands or a fork, crumble the tofu into small, scrambled-egg-sized pieces in a bowl.",
+      "Wash the bell pepper and tomato. Dice both into very fine pieces no larger than 1/4 inch.",
+      "Heat 1 tablespoon of olive oil in a non-stick skillet over medium heat.",
+      "Add the diced bell pepper to the skillet and sauté for 2-3 minutes until it starts to soften.",
+      "Add the crumbled tofu to the skillet. Sprinkle 1/8 teaspoon of turmeric powder over the tofu - this gives it a yellow, egg-like color.",
+      "Cook, stirring gently with a spatula, for 3-4 minutes. The tofu should start to look slightly golden.",
+      "Add the diced tomato and cook for another 1-2 minutes, stirring occasionally.",
+      "Remove from heat and let cool for 3-5 minutes before serving.",
+      "Serve warm. This scramble provides plant-based protein and is a great egg alternative."
+    ], 
+    nutrition: { calories: "72", protein: "6g", carbs: "4g", fat: "4g", fiber: "2g", vitamins: ["Protein", "Iron", "Calcium"] }, 
+    allergens: ["Soy"], 
+    storage: "Refrigerate 3 days" 
+  },
+  { 
+    id: "40", 
+    title: "Watermelon Popsicles", 
+    description: "Hydrating frozen treat", 
+    ageGroup: "12-18 months", 
+    category: "Snack", 
+    prepTime: "5 min + freeze", 
+    servings: "6 pops", 
+    image: getRecipeImage(["tropical"]), 
+    ingredients: ["2 cups seedless watermelon chunks", "1 tbsp fresh lime juice (optional for 12+ months)"], 
+    instructions: [
+      "Cut the watermelon into chunks, removing all rind and any seeds (even in seedless varieties, check for white seeds).",
+      "Place 2 cups of watermelon chunks in a blender.",
+      "If your toddler is 12+ months and has tried citrus before, add 1 tablespoon of fresh lime juice for extra flavor. Otherwise, omit.",
+      "Blend on high speed for 30-60 seconds until completely smooth with no chunks remaining.",
+      "If you prefer a smoother texture, pour the blended watermelon through a fine-mesh strainer to remove any pulp.",
+      "Pour the watermelon puree into 6 popsicle molds, filling each about 3/4 full to leave room for expansion.",
+      "Insert popsicle sticks into each mold. If the sticks won't stay upright, freeze for 30 minutes first, then insert them.",
+      "Freeze for at least 4 hours or overnight until completely solid.",
+      "To remove, run the outside of the molds under warm water for 5-10 seconds, then pull out gently.",
+      "Supervise your toddler while eating frozen treats. These are perfect for hot days and teething relief."
+    ], 
+    nutrition: { calories: "28", protein: "0g", carbs: "7g", fat: "0g", fiber: "0g", vitamins: ["Vitamin C", "Hydration"] }, 
+    allergens: [], 
+    storage: "Freeze up to 2 months" 
+  },
+  
+  
+  // Import all additional recipes (recipes 44-200)
+  ...additionalRecipes,
+  ...recipes47to100,
+  ...recipes101to150,
+  ...recipes151to200,
   
 ].map(addDefaultFields);
