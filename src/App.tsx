@@ -21,6 +21,7 @@ import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import ProgressReports from "./pages/ProgressReports";
 import ShoppingList from "./pages/ShoppingList";
+import Auth from "./pages/Auth";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -86,6 +87,7 @@ const AppContent = () => {
         <Route path="/install" element={<Install />} />
         <Route path="/reports" element={<ProgressReports />} />
         <Route path="/shopping" element={<ShoppingList />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
