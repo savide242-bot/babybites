@@ -236,6 +236,8 @@ const translations: Record<Language, Record<string, string>> = {
     'community.postError': 'Failed to create post',
     'community.success': 'Success',
     'community.postSuccess': 'Post created successfully!',
+    'community.signInToComment': 'Please sign in to comment on posts',
+    'community.addComment': 'Add a comment...',
     
     // Advice
     'advice.title': 'Parents\' Advice Hub',
@@ -481,6 +483,8 @@ const translations: Record<Language, Record<string, string>> = {
     'community.postError': 'Échec de la création du post',
     'community.success': 'Succès',
     'community.postSuccess': 'Post créé avec succès!',
+    'community.signInToComment': 'Veuillez vous connecter pour commenter les posts',
+    'community.addComment': 'Ajouter un commentaire...',
     
     'advice.title': 'Centre de Conseils pour Parents',
     'advice.subtitle': 'Conseils d\'experts de pédiatres et nutritionnistes pour soutenir l\'alimentation de votre bébé',
@@ -664,6 +668,8 @@ const translations: Record<Language, Record<string, string>> = {
     'community.postError': 'Error al crear la publicación',
     'community.success': 'Éxito',
     'community.postSuccess': '¡Publicación creada con éxito!',
+    'community.signInToComment': 'Por favor inicia sesión para comentar en las publicaciones',
+    'community.addComment': 'Añadir un comentario...',
     
     'advice.title': 'Centro de Consejos para Padres',
     'advice.subtitle': 'Orientación experta de pediatras y nutricionistas para apoyar la alimentación de tu bebé',
@@ -847,6 +853,8 @@ const translations: Record<Language, Record<string, string>> = {
     'community.postError': 'Fehler beim Erstellen des Beitrags',
     'community.success': 'Erfolg',
     'community.postSuccess': 'Beitrag erfolgreich erstellt!',
+    'community.signInToComment': 'Bitte melden Sie sich an, um Beiträge zu kommentieren',
+    'community.addComment': 'Fügen Sie einen Kommentar hinzu...',
     
     'advice.title': 'Eltern-Ratgeberzentrum',
     'advice.subtitle': 'Expertenberatung von Kinderärzten und Ernährungsberatern zur Unterstützung der Ernährung Ihres Babys',
@@ -1030,6 +1038,8 @@ const translations: Record<Language, Record<string, string>> = {
     'community.postError': 'Falha ao criar a publicação',
     'community.success': 'Sucesso',
     'community.postSuccess': 'Publicação criada com sucesso!',
+    'community.signInToComment': 'Por favor inicie sessão para comentar publicações',
+    'community.addComment': 'Adicionar um comentário...',
     
     'advice.title': 'Centro de Conselhos para Pais',
     'advice.subtitle': 'Orientação especializada de pediatras e nutricionistas para apoiar a alimentação do seu bebé',

@@ -6,10 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Bookmark, Plus } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, Plus, Send } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { z } from "zod";
 import { useLanguage } from "@/hooks/useLanguage";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const postSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -29,6 +30,16 @@ interface Post {
   } | null;
 }
 
+interface Comment {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    full_name: string;
+  } | null;
+}
+
 const Community = () => {
   const { t } = useLanguage();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -38,6 +49,9 @@ const Community = () => {
   const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [postComments, setPostComments] = useState<{ [key: string]: Comment[] }>({});
+  const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
+  const [openComments, setOpenComments] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     checkUser();
@@ -150,6 +164,86 @@ const Community = () => {
     fetchPosts();
   };
 
+  const fetchComments = async (postId: string) => {
+    const { data, error } = await supabase
+      .from("post_comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching comments:", error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const userIds = data.map(comment => comment.user_id);
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      const commentsWithProfiles = data.map(comment => ({
+        ...comment,
+        profiles: profilesData?.find(p => p.id === comment.user_id) || null,
+      }));
+
+      setPostComments(prev => ({ ...prev, [postId]: commentsWithProfiles as Comment[] }));
+    } else {
+      setPostComments(prev => ({ ...prev, [postId]: [] }));
+    }
+  };
+
+  const handleToggleComments = async (postId: string) => {
+    const isOpen = !openComments[postId];
+    setOpenComments(prev => ({ ...prev, [postId]: isOpen }));
+    
+    if (isOpen && !postComments[postId]) {
+      await fetchComments(postId);
+    }
+  };
+
+  const handleAddComment = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: t('community.signInRequired'),
+        description: t('community.signInToComment'),
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    const commentText = newComment[postId]?.trim();
+    if (!commentText) {
+      toast({
+        title: t('community.validationError'),
+        description: "Comment cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.from("post_comments").insert({
+      post_id: postId,
+      user_id: user.id,
+      content: commentText,
+    });
+
+    if (error) {
+      toast({
+        title: t('community.error'),
+        description: "Failed to add comment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setNewComment(prev => ({ ...prev, [postId]: "" }));
+    await fetchComments(postId);
+    await fetchPosts();
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pt-20 pb-8">
       <div className="container max-w-4xl mx-auto px-4">
@@ -226,7 +320,11 @@ const Community = () => {
                       <Heart className="w-4 h-4 mr-1" />
                       {post.likes_count}
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleToggleComments(post.id)}
+                    >
                       <MessageCircle className="w-4 h-4 mr-1" />
                       {post.comments_count}
                     </Button>
@@ -234,6 +332,56 @@ const Community = () => {
                       <Bookmark className="w-4 h-4" />
                     </Button>
                   </div>
+
+                  {/* Comments Section */}
+                  <Collapsible open={openComments[post.id]}>
+                    <CollapsibleContent className="mt-4 space-y-4">
+                      {/* Existing Comments */}
+                      <div className="space-y-3 border-t pt-4">
+                        {postComments[post.id]?.map((comment) => (
+                          <div key={comment.id} className="flex gap-3 pl-4">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="text-xs">
+                                {comment.profiles?.full_name?.[0] || "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm font-semibold">
+                                  {comment.profiles?.full_name || t('community.anonymous')}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(comment.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {comment.content}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Comment */}
+                      <div className="flex gap-2 pl-4">
+                        <Textarea
+                          placeholder={t('community.addComment')}
+                          value={newComment[post.id] || ""}
+                          onChange={(e) =>
+                            setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))
+                          }
+                          className="min-h-[60px]"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddComment(post.id)}
+                          disabled={!newComment[post.id]?.trim()}
+                        >
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               </div>
             </Card>

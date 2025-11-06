@@ -134,6 +134,33 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_plans: {
+        Row: {
+          created_at: string | null
+          day_of_week: string
+          id: string
+          meal_type: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: string
+          id?: string
+          meal_type: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: string
+          id?: string
+          meal_type?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string
@@ -283,6 +310,36 @@ export type Database = {
           safety_notes?: string | null
           scanned_at?: string | null
           suggested_recipes?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shopping_list_items: {
+        Row: {
+          category: string
+          checked: boolean | null
+          created_at: string | null
+          from_recipe: string | null
+          id: string
+          ingredient: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          checked?: boolean | null
+          created_at?: string | null
+          from_recipe?: string | null
+          id?: string
+          ingredient: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          checked?: boolean | null
+          created_at?: string | null
+          from_recipe?: string | null
+          id?: string
+          ingredient?: string
           user_id?: string
         }
         Relationships: []

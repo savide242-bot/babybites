@@ -6,6 +6,7 @@ import { ShoppingCart, Download, Share2, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { recipes } from "@/data/recipes";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ShoppingItem {
   id: string;
@@ -20,19 +21,43 @@ const ShoppingList = () => {
   const { toast } = useToast();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load meal planner data from localStorage
-    const mealPlanData = localStorage.getItem("mealPlan");
-    if (mealPlanData) {
-      try {
-        const mealPlan = JSON.parse(mealPlanData);
-        generateShoppingList(mealPlan);
-      } catch (error) {
-        console.error("Error loading meal plan:", error);
-      }
-    }
+    checkUser();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUserId(user.id);
+      loadShoppingList(user.id);
+    }
+  };
+
+  const loadShoppingList = async (uid: string) => {
+    const { data, error } = await supabase
+      .from('shopping_list_items')
+      .select('*')
+      .eq('user_id', uid)
+      .order('category');
+
+    if (error) {
+      console.error('Error loading shopping list:', error);
+      return;
+    }
+
+    if (data) {
+      const mappedItems: ShoppingItem[] = data.map((item) => ({
+        id: item.id,
+        ingredient: item.ingredient,
+        category: item.category,
+        checked: item.checked,
+        fromRecipe: item.from_recipe || undefined,
+      }));
+      setItems(mappedItems);
+    }
+  };
 
   const categorizeIngredient = (ingredient: string): string => {
     const lower = ingredient.toLowerCase();
@@ -62,46 +87,23 @@ const ShoppingList = () => {
     return t('shoppingList.categories.others');
   };
 
-  const generateShoppingList = (mealPlan: any) => {
-    const ingredientMap = new Map<string, ShoppingItem>();
-    const usedRecipes = new Set<string>();
 
-    // Extract all recipes from meal plan
-    Object.values(mealPlan).forEach((day: any) => {
-      Object.values(day).forEach((recipeId: any) => {
-        if (recipeId) {
-          usedRecipes.add(recipeId);
-          const recipe = recipes.find(r => r.id === recipeId);
-          if (recipe) {
-            recipe.ingredients.forEach(ingredient => {
-              const cleanIngredient = ingredient.split(',')[0].trim();
-              if (!ingredientMap.has(cleanIngredient)) {
-                ingredientMap.set(cleanIngredient, {
-                  id: Math.random().toString(36).substr(2, 9),
-                  ingredient: cleanIngredient,
-                  category: categorizeIngredient(cleanIngredient),
-                  checked: false,
-                  fromRecipe: recipe.title
-                });
-              }
-            });
-          }
-        }
-      });
-    });
+  const toggleItem = async (id: string) => {
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
 
-    setSelectedRecipes(Array.from(usedRecipes));
-    setItems(Array.from(ingredientMap.values()).sort((a, b) => a.category.localeCompare(b.category)));
+    const newChecked = !item.checked;
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, checked: newChecked } : i)));
+
+    await supabase
+      .from('shopping_list_items')
+      .update({ checked: newChecked })
+      .eq('id', id);
   };
 
-  const toggleItem = (id: string) => {
-    setItems(prev => prev.map(item => 
-      item.id === id ? { ...item, checked: !item.checked } : item
-    ));
-  };
-
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+  const removeItem = async (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    await supabase.from('shopping_list_items').delete().eq('id', id);
   };
 
   const handleExportPDF = () => {

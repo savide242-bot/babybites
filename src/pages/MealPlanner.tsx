@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ShoppingCart, Plus, X, Sparkles } from "lucide-react";
+import { Calendar, ShoppingCart, Plus, X, Sparkles, Save } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import { supabase } from "@/integrations/supabase/client";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -23,6 +24,46 @@ const MealPlanner = () => {
   const { t } = useLanguage();
   const [mealPlan, setMealPlan] = useState<MealPlan>({});
   const [activeTab, setActiveTab] = useState("custom");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [savedDays, setSavedDays] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUserId(user.id);
+      loadMealPlan(user.id);
+    }
+  };
+
+  const loadMealPlan = async (uid: string) => {
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .select('*')
+      .eq('user_id', uid);
+
+    if (error) {
+      console.error('Error loading meal plan:', error);
+      return;
+    }
+
+    if (data) {
+      const plan: MealPlan = {};
+      const saved = new Set<string>();
+      data.forEach((item) => {
+        if (!plan[item.day_of_week]) {
+          plan[item.day_of_week] = {};
+        }
+        plan[item.day_of_week][item.meal_type] = item.recipe_id;
+        saved.add(item.day_of_week);
+      });
+      setMealPlan(plan);
+      setSavedDays(saved);
+    }
+  };
 
   const handleAddMeal = (day: string, mealType: string, recipeId: string) => {
     setMealPlan((prev) => ({
@@ -47,23 +88,161 @@ const MealPlanner = () => {
     toast.info("Meal removed from planner");
   };
 
-  const getRecipeById = (id: string) => recipes.find((r) => r.id === id);
+  const handleSaveDay = async (day: string) => {
+    if (!userId) {
+      toast.error("Please login to save meal plans");
+      return;
+    }
 
-  const generateShoppingList = () => {
-    const ingredients = new Set<string>();
-    Object.values(mealPlan).forEach((dayMeals) => {
-      Object.values(dayMeals).forEach((recipeId) => {
-        const recipe = getRecipeById(recipeId);
+    const dayMeals = mealPlan[day];
+    if (!dayMeals || Object.keys(dayMeals).length === 0) {
+      toast.error("No meals to save for this day");
+      return;
+    }
+
+    try {
+      // Delete existing meals for this day
+      await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('user_id', userId)
+        .eq('day_of_week', day);
+
+      // Insert new meals
+      const mealsToInsert = Object.entries(dayMeals).map(([mealType, recipeId]) => ({
+        user_id: userId,
+        day_of_week: day,
+        meal_type: mealType,
+        recipe_id: recipeId,
+      }));
+
+      const { error } = await supabase
+        .from('meal_plans')
+        .insert(mealsToInsert);
+
+      if (error) throw error;
+
+      setSavedDays((prev) => new Set([...prev, day]));
+      await updateShoppingList();
+      toast.success(`${day} meal plan saved!`);
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+      toast.error("Failed to save meal plan");
+    }
+  };
+
+  const handleRemoveDay = async (day: string) => {
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('user_id', userId)
+        .eq('day_of_week', day);
+
+      if (error) throw error;
+
+      setMealPlan((prev) => {
+        const newPlan = { ...prev };
+        delete newPlan[day];
+        return newPlan;
+      });
+
+      setSavedDays((prev) => {
+        const newSaved = new Set(prev);
+        newSaved.delete(day);
+        return newSaved;
+      });
+
+      await updateShoppingList();
+      toast.success(`${day} meal plan removed`);
+    } catch (error) {
+      console.error('Error removing meal plan:', error);
+      toast.error("Failed to remove meal plan");
+    }
+  };
+
+  const updateShoppingList = async () => {
+    if (!userId) return;
+
+    try {
+      // Delete all existing shopping items
+      await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('user_id', userId);
+
+      // Get all current meal plans
+      const { data: mealPlans } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!mealPlans || mealPlans.length === 0) return;
+
+      // Collect all ingredients
+      const ingredientMap = new Map<string, { category: string; fromRecipe: string }>();
+
+      mealPlans.forEach((plan) => {
+        const recipe = recipes.find((r) => r.id === plan.recipe_id);
         if (recipe) {
-          recipe.ingredients.forEach((ing) => ingredients.add(ing));
+          recipe.ingredients.forEach((ingredient) => {
+            const cleanIngredient = ingredient.split(',')[0].trim();
+            if (!ingredientMap.has(cleanIngredient)) {
+              ingredientMap.set(cleanIngredient, {
+                category: categorizeIngredient(cleanIngredient),
+                fromRecipe: recipe.title,
+              });
+            }
+          });
         }
       });
-    });
-    
-    toast.success("Shopping list generated!", {
-      description: `You have ${ingredients.size} unique ingredients to buy.`,
-    });
+
+      // Insert new shopping items
+      const itemsToInsert = Array.from(ingredientMap.entries()).map(([ingredient, info]) => ({
+        user_id: userId,
+        ingredient,
+        category: info.category,
+        from_recipe: info.fromRecipe,
+        checked: false,
+      }));
+
+      if (itemsToInsert.length > 0) {
+        await supabase.from('shopping_list_items').insert(itemsToInsert);
+      }
+    } catch (error) {
+      console.error('Error updating shopping list:', error);
+    }
   };
+
+  const categorizeIngredient = (ingredient: string): string => {
+    const lower = ingredient.toLowerCase();
+    if (lower.includes("tomato") || lower.includes("carrot") || lower.includes("broccoli") || 
+        lower.includes("spinach") || lower.includes("kale") || lower.includes("pepper") ||
+        lower.includes("onion") || lower.includes("garlic")) {
+      return "Vegetables";
+    }
+    if (lower.includes("banana") || lower.includes("apple") || lower.includes("pear") || 
+        lower.includes("strawberry") || lower.includes("mango") || lower.includes("avocado")) {
+      return "Fruits";
+    }
+    if (lower.includes("chicken") || lower.includes("beef") || lower.includes("fish") || 
+        lower.includes("salmon") || lower.includes("turkey") || lower.includes("egg")) {
+      return "Proteins";
+    }
+    if (lower.includes("rice") || lower.includes("pasta") || lower.includes("bread") || 
+        lower.includes("oat") || lower.includes("quinoa")) {
+      return "Cereals";
+    }
+    if (lower.includes("milk") || lower.includes("cheese") || lower.includes("yogurt")) {
+      return "Dairy";
+    }
+    return "Others";
+  };
+
+  const getRecipeById = (id: string) => recipes.find((r) => r.id === id);
+
 
   return (
     <div className="min-h-screen py-12">
@@ -109,6 +288,28 @@ const MealPlanner = () => {
                     <Calendar className="h-5 w-5" />
                     {day}
                   </CardTitle>
+                  <div className="flex gap-2">
+                    {savedDays.has(day) ? (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveDay(day)}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Remove
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleSaveDay(day)}
+                        disabled={!mealPlan[day] || Object.keys(mealPlan[day]).length === 0}
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
