@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import ProgressReports from "./pages/ProgressReports";
 import ShoppingList from "./pages/ShoppingList";
 import Auth from "./pages/Auth";
+import PrivateRoute from "./components/PrivateRoute";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -72,23 +73,29 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
-      <Header />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/recipes" element={<Recipes />} />
-        <Route path="/recipe/:id" element={<RecipeDetail />} />
-        <Route path="/planner" element={<MealPlanner />} />
-        <Route path="/advice" element={<Advice />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/community" element={<Community />} />
-        <Route path="/growth" element={<GrowthTracker />} />
-        <Route path="/scanner" element={<BarcodeScanner />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/install" element={<Install />} />
-        <Route path="/reports" element={<ProgressReports />} />
-        <Route path="/shopping" element={<ShoppingList />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/*" element={
+          <PrivateRoute>
+            <Header />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/recipes" element={<Recipes />} />
+              <Route path="/recipe/:id" element={<RecipeDetail />} />
+              <Route path="/planner" element={<MealPlanner />} />
+              <Route path="/advice" element={<Advice />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/growth" element={<GrowthTracker />} />
+              <Route path="/scanner" element={<BarcodeScanner />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/install" element={<Install />} />
+              <Route path="/reports" element={<ProgressReports />} />
+              <Route path="/shopping" element={<ShoppingList />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PrivateRoute>
+        } />
       </Routes>
     </div>
   );

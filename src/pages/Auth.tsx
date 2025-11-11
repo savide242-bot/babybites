@@ -1,85 +1,25 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
-import { z } from "zod";
-import { Chrome } from "lucide-react";
-
-const emailSchema = z.string().email("Invalid email address");
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+import { Chrome, Sparkles } from "lucide-react";
 
 const Auth = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      // Validate inputs
-      emailSchema.parse(email);
-      passwordSchema.parse(password);
-
-      if (isSignUp) {
-        if (!fullName.trim()) {
-          toast.error("Please enter your name");
-          setLoading(false);
-          return;
-        }
-
-        const redirectUrl = `${window.location.origin}/`;
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl,
-            data: {
-              full_name: fullName,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        toast.success(t('auth.signUpSuccess'));
-        
-        // Request push notification permission after signup
-        await requestNotificationPermission();
-        
-        navigate("/");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
-        toast.success(t('auth.signInSuccess'));
+  useEffect(() => {
+    // Check if user is already authenticated
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         navigate("/");
       }
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-      } else if (error.message) {
-        toast.error(error.message);
-      } else {
-        toast.error(t('auth.error'));
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleGoogleAuth = async () => {
     try {
@@ -92,112 +32,78 @@ const Auth = () => {
 
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || t('auth.googleError'));
+      toast.error(error.message || 'Failed to sign in with Google');
     }
   };
-
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window && 'serviceWorker' in navigator) {
-      try {
-        const permission = await Notification.requestPermission();
-        
-        if (permission === 'granted') {
-          // Get service worker registration
-          const registration = await navigator.serviceWorker.ready;
-
-          // Send welcome notification
-          registration.showNotification('Welcome Mom! 👶', {
-            body: 'Welcome to BabyBites! We\'re excited to help you on your parenting journey.',
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
-          });
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
-      }
-    }
-  };
-
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background via-primary/5 to-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            {isSignUp ? t('auth.signUp') : t('auth.signIn')}
-          </CardTitle>
-          <CardDescription className="text-center">
-            {isSignUp ? t('auth.signUpDescription') : t('auth.signInDescription')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleEmailAuth} className="space-y-4">
-            {isSignUp && (
-              <div>
-                <Input
-                  type="text"
-                  placeholder={t('auth.fullName')}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </div>
-            )}
-            <div>
-              <Input
-                type="email"
-                placeholder={t('auth.email')}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                type="password"
-                placeholder={t('auth.password')}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('auth.loading') : isSignUp ? t('auth.signUp') : t('auth.signIn')}
-            </Button>
-          </form>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/10 via-mint/10 to-background flex items-center justify-center p-4">
+      {/* Animated Background Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full animate-particle-float" style={{ animationDelay: '0s' }} />
+        <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-mint/40 rounded-full animate-particle-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-primary-glow/30 rounded-full animate-particle-float" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-1/2 right-1/4 w-3 h-3 bg-mint-glow/30 rounded-full animate-particle-float" style={{ animationDelay: '6s' }} />
+        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-primary/20 rounded-full animate-particle-float" style={{ animationDelay: '8s' }} />
+      </div>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                {t('auth.orContinueWith')}
-              </span>
+      {/* Main Auth Card */}
+      <div className="w-full max-w-md relative z-10 animate-fade-in-up">
+        <div 
+          className="backdrop-blur-xl bg-[var(--glass-bg)] rounded-[32px] p-8 md:p-10 border border-border/50"
+          style={{ boxShadow: 'var(--shadow-glass)' }}
+        >
+          {/* Logo/Icon with Animation */}
+          <div className="flex justify-center mb-6 animate-bounce-soft">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-mint flex items-center justify-center shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
           </div>
 
+          {/* Title Section */}
+          <div className="text-center space-y-2 mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-mint to-primary bg-clip-text text-transparent">
+              Welcome to BabyBites
+            </h1>
+            <p className="text-muted-foreground text-base md:text-lg">
+              Your baby's nutrition journey starts here 💕
+            </p>
+          </div>
+
+          {/* Google Sign In Button */}
           <Button
-            variant="outline"
-            className="w-full"
             onClick={handleGoogleAuth}
+            size="lg"
+            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-mint to-primary hover:from-mint-glow hover:to-primary-glow text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
           >
-            <Chrome className="mr-2 h-4 w-4" />
-            {t('auth.continueWithGoogle')}
+            <Chrome className="mr-3 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+            Continue with Google
           </Button>
 
-          <div className="mt-4 text-center text-sm">
-            {isSignUp ? t('auth.haveAccount') : t('auth.noAccount')}{' '}
-            <Button
-              variant="link"
-              className="p-0"
-              onClick={() => setIsSignUp(!isSignUp)}
-            >
-              {isSignUp ? t('auth.signIn') : t('auth.signUp')}
-            </Button>
+          {/* Trust Indicator */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+              ⭐ Trusted by 10,000+ moms worldwide
+            </p>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Footer Links */}
+          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <button className="hover:text-foreground transition-colors">
+              Privacy Policy
+            </button>
+            <span>•</span>
+            <button className="hover:text-foreground transition-colors">
+              Terms of Service
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Decorative Text */}
+        <p className="text-center mt-6 text-sm text-muted-foreground">
+          Join our community of caring mothers 🌸
+        </p>
+      </div>
     </div>
   );
 };
