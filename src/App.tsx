@@ -15,7 +15,6 @@ import Chat from "./pages/Chat";
 import Community from "./pages/Community";
 import GrowthTracker from "./pages/GrowthTracker";
 import BarcodeScanner from "./pages/BarcodeScanner";
-import LanguageSelector from "./pages/LanguageSelector";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
@@ -28,48 +27,6 @@ import { supabase } from "@/integrations/supabase/client";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isLoading } = useLanguage();
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
-  const [isCheckingPreferences, setIsCheckingPreferences] = useState(true);
-
-  useEffect(() => {
-    checkUserPreferences();
-  }, []);
-
-  const checkUserPreferences = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const { data } = await supabase
-          .from('user_preferences')
-          .select('language')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        setShowLanguageSelector(!data);
-      } else {
-        setShowLanguageSelector(true);
-      }
-    } catch (error) {
-      console.error('Error checking preferences:', error);
-      setShowLanguageSelector(true);
-    } finally {
-      setIsCheckingPreferences(false);
-    }
-  };
-
-  if (isLoading || isCheckingPreferences) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (showLanguageSelector) {
-    return <LanguageSelector onComplete={() => setShowLanguageSelector(false)} />;
-  }
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">

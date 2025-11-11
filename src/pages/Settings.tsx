@@ -1,43 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/useLanguage';
-import { Settings as SettingsIcon, Check } from 'lucide-react';
-import { toast } from 'sonner';
-import { useState } from 'react';
-
-type Language = 'en' | 'fr' | 'es' | 'de' | 'pt';
-
-const languages: { code: Language; name: string }[] = [
-  { code: 'en', name: 'English' },
-  { code: 'fr', name: 'Français' },
-  { code: 'es', name: 'Español' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'pt', name: 'Português' },
-];
+import { Settings as SettingsIcon } from 'lucide-react';
 
 const Settings = () => {
-  const { language, setLanguage, t } = useLanguage();
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const hasChanges = selectedLanguage !== language;
-
-  const handleSaveLanguage = async () => {
-    setIsSaving(true);
-    try {
-      await setLanguage(selectedLanguage);
-      // Force a small delay to ensure the language state updates
-      setTimeout(() => {
-        toast.success(t('settings.saved'));
-        setIsSaving(false);
-      }, 300);
-    } catch (error) {
-      toast.error('Error saving language');
-      setIsSaving(false);
-    }
-  };
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen py-12">
@@ -51,46 +17,22 @@ const Settings = () => {
 
         <Card className="border-2 shadow-elegant">
           <CardHeader>
-            <CardTitle>{t('settings.language')}</CardTitle>
+            <CardTitle>Language</CardTitle>
             <CardDescription>
-              {t('settings.changeLanguage')}
+              Application language settings
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <Label htmlFor="language">{t('settings.currentLanguage')}</Label>
-              <Select value={selectedLanguage} onValueChange={(value) => setSelectedLanguage(value as Language)}>
-                <SelectTrigger id="language" className="rounded-xl bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-2 z-50">
-                  {languages.map((lang) => (
-                    <SelectItem 
-                      key={lang.code} 
-                      value={lang.code}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span>{lang.name}</span>
-                        {selectedLanguage === lang.code && (
-                          <Check className="h-4 w-4 ml-2" />
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {hasChanges && (
-                <Button
-                  onClick={handleSaveLanguage}
-                  disabled={isSaving}
-                  size="lg"
-                  className="w-full rounded-xl"
-                >
-                  {isSaving ? t('settings.saving') : t('settings.save')}
-                </Button>
-              )}
+              <div className="flex items-center justify-between p-4 bg-muted rounded-xl">
+                <div>
+                  <p className="font-medium">Current Language</p>
+                  <p className="text-sm text-muted-foreground">The app is available in English</p>
+                </div>
+                <div className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium">
+                  English
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
