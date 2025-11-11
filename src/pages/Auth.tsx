@@ -1,25 +1,172 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useLanguage } from "@/hooks/useLanguage";
-import { Chrome, Sparkles } from "lucide-react";
+import { ArrowLeft, Mail, User, Lock, Sparkles, Loader2 } from "lucide-react";
+import { z } from "zod";
+import GoogleLogo from "@/components/auth/GoogleLogo";
+import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
+import FormInput from "@/components/auth/FormInput";
+import WelcomeModal from "@/components/auth/WelcomeModal";
+
+const emailSchema = z.object({
+  email: z.string().email("Invalid email format").max(255),
+});
+
+const signupSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email().max(255),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/[0-9]/, "Password must contain a number"),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
+});
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1, "Password is required")
+});
 
 const Auth = () => {
-  const { t } = useLanguage();
   const navigate = useNavigate();
+  const [step, setStep] = useState<'email' | 'signup' | 'login'>('email');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
-    // Check if user is already authenticated
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/");
+        const userName = session.user.user_metadata?.full_name || 
+                        session.user.user_metadata?.name || 
+                        session.user.email?.split('@')[0] || 
+                        'Mom';
+        setCurrentUser({ id: session.user.id, name: userName });
       }
     };
     checkAuth();
   }, [navigate]);
+
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false }
+      });
+      return !error || !error.message.includes('Signups not allowed');
+    } catch {
+      return false;
+    }
+  };
+
+  const handleEmailSubmit = async () => {
+    setErrors({});
+    const validation = emailSchema.safeParse({ email });
+    
+    if (!validation.success) {
+      setErrors({ email: validation.error.errors[0].message });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const exists = await checkEmailExists(email);
+      setStep(exists ? 'login' : 'signup');
+    } catch (error: any) {
+      toast.error("Failed to verify email. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async () => {
+    setErrors({});
+    const validation = signupSchema.safeParse({ fullName, email, password, confirmPassword });
+    
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.errors.forEach(err => {
+        newErrors[err.path[0] as string] = err.message;
+      });
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.user) {
+        toast.success("Account created successfully! Welcome! 🎉");
+        setCurrentUser({ id: data.user.id, name: fullName });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create account');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    setErrors({});
+    const validation = loginSchema.safeParse({ email, password });
+    
+    if (!validation.success) {
+      const newErrors: Record<string, string> = {};
+      validation.error.errors.forEach(err => {
+        newErrors[err.path[0] as string] = err.message;
+      });
+      setErrors(newErrors);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid")) {
+          setErrors({ password: "Incorrect password" });
+          toast.error("Incorrect password. Try again or reset your password.");
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      if (data.user) {
+        toast.success("Welcome back! 💕");
+        navigate("/");
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sign in');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleAuth = async () => {
     try {
@@ -35,6 +182,17 @@ const Auth = () => {
       toast.error(error.message || 'Failed to sign in with Google');
     }
   };
+
+  const goBack = () => {
+    setStep('email');
+    setPassword('');
+    setConfirmPassword('');
+    setErrors({});
+  };
+
+  if (currentUser) {
+    return <WelcomeModal userId={currentUser.id} userName={currentUser.name} />;
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/10 via-mint/10 to-background flex items-center justify-center p-4">
@@ -63,22 +221,223 @@ const Auth = () => {
           {/* Title Section */}
           <div className="text-center space-y-2 mb-8">
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-mint to-primary bg-clip-text text-transparent">
-              Welcome to BabyBites
+              {step === 'email' ? 'Welcome to BabyBites' : step === 'signup' ? 'Create Account' : 'Welcome Back'}
             </h1>
             <p className="text-muted-foreground text-base md:text-lg">
-              Your baby's nutrition journey starts here 💕
+              {step === 'email' ? "Your baby's nutrition journey starts here 💕" : 
+               step === 'signup' ? 'Join 10,000+ caring mothers 🌸' : 
+               'Great to see you again! 💕'}
             </p>
           </div>
 
-          {/* Google Sign In Button */}
-          <Button
-            onClick={handleGoogleAuth}
-            size="lg"
-            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-mint to-primary hover:from-mint-glow hover:to-primary-glow text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
-          >
-            <Chrome className="mr-3 h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-            Continue with Google
-          </Button>
+          {/* STEP 1: Email Input */}
+          {step === 'email' && (
+            <div className="space-y-6 animate-fade-in">
+              <FormInput
+                id="email"
+                label="Email address"
+                type="email"
+                value={email}
+                onChange={setEmail}
+                error={errors.email}
+                icon={Mail}
+                placeholder="mom@example.com"
+                autoFocus
+              />
+
+              <Button
+                onClick={handleEmailSubmit}
+                disabled={isLoading || !email}
+                size="lg"
+                className="w-full h-12 text-base font-semibold"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[var(--glass-bg)] px-2 text-muted-foreground">
+                    Or
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleGoogleAuth}
+                variant="outline"
+                size="lg"
+                className="w-full h-12 text-base font-semibold border-2 hover:bg-accent"
+              >
+                <GoogleLogo />
+                <span className="ml-3">Continue with Google</span>
+              </Button>
+            </div>
+          )}
+
+          {/* STEP 2A: Signup */}
+          {step === 'signup' && (
+            <div className="space-y-6 animate-fade-in">
+              <button
+                onClick={goBack}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {email}
+              </button>
+
+              <FormInput
+                id="fullName"
+                label="Full Name"
+                type="text"
+                value={fullName}
+                onChange={setFullName}
+                error={errors.fullName}
+                icon={User}
+                placeholder="Your name"
+                autoFocus
+              />
+
+              <FormInput
+                id="password"
+                label="Create Password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                error={errors.password}
+                icon={Lock}
+                placeholder="••••••••"
+              />
+
+              <PasswordStrengthIndicator password={password} />
+
+              <FormInput
+                id="confirmPassword"
+                label="Confirm Password"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                error={errors.confirmPassword}
+                icon={Lock}
+                placeholder="••••••••"
+              />
+
+              <Button
+                onClick={handleSignup}
+                disabled={isLoading || !fullName || !password || !confirmPassword}
+                size="lg"
+                className="w-full h-12 text-base font-semibold"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[var(--glass-bg)] px-2 text-muted-foreground">
+                    Or
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleGoogleAuth}
+                variant="outline"
+                size="lg"
+                className="w-full h-12 text-base font-semibold border-2 hover:bg-accent"
+              >
+                <GoogleLogo />
+                <span className="ml-3">Sign up with Google</span>
+              </Button>
+            </div>
+          )}
+
+          {/* STEP 2B: Login */}
+          {step === 'login' && (
+            <div className="space-y-6 animate-fade-in">
+              <button
+                onClick={goBack}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {email}
+              </button>
+
+              <FormInput
+                id="loginPassword"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                error={errors.password}
+                icon={Lock}
+                placeholder="••••••••"
+                autoFocus
+              />
+
+              <button
+                onClick={() => toast.info("Password reset feature coming soon!")}
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot password?
+              </button>
+
+              <Button
+                onClick={handleLogin}
+                disabled={isLoading || !password}
+                size="lg"
+                className="w-full h-12 text-base font-semibold"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[var(--glass-bg)] px-2 text-muted-foreground">
+                    Or
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleGoogleAuth}
+                variant="outline"
+                size="lg"
+                className="w-full h-12 text-base font-semibold border-2 hover:bg-accent"
+              >
+                <GoogleLogo />
+                <span className="ml-3">Continue with Google</span>
+              </Button>
+            </div>
+          )}
 
           {/* Trust Indicator */}
           <div className="mt-8 text-center">
