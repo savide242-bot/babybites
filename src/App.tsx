@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import ProgressReports from "./pages/ProgressReports";
 import ShoppingList from "./pages/ShoppingList";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,6 +33,7 @@ const AppContent = () => {
     <div className="min-h-screen bg-background font-sans antialiased">
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/*" element={
           <PrivateRoute>
             <Header />

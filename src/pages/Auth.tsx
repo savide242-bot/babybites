@@ -9,6 +9,7 @@ import GoogleLogo from "@/components/auth/GoogleLogo";
 import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
 import FormInput from "@/components/auth/FormInput";
 import WelcomeModal from "@/components/auth/WelcomeModal";
+import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 
 const emailSchema = z.object({
   email: z.string().email("Invalid email format").max(255),
@@ -43,6 +44,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -195,7 +197,14 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/10 via-mint/10 to-background flex items-center justify-center p-4">
+    <>
+      <ForgotPasswordModal
+        email={email}
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+      />
+      
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/10 via-mint/10 to-background flex items-center justify-center p-4">
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full animate-particle-float" style={{ animationDelay: '0s' }} />
@@ -393,12 +402,15 @@ const Auth = () => {
                 autoFocus
               />
 
-              <button
-                onClick={() => toast.info("Password reset feature coming soon!")}
-                className="text-sm text-primary hover:underline"
-              >
-                Forgot password?
-              </button>
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
 
               <Button
                 onClick={handleLogin}
@@ -464,6 +476,7 @@ const Auth = () => {
         </p>
       </div>
     </div>
+    </>
   );
 };
 
