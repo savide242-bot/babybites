@@ -268,18 +268,10 @@ const Home = () => {
                   <Progress value={growthProgress} className="h-2" />
                   <div className="flex justify-between text-sm mt-2">
                     <span className="text-muted-foreground">
-                      {growthProgress}% Completo
+                      {growthProgress}% Complete
                     </span>
                     <span className="text-primary font-medium">
-                      {growthProgress < 100 ? `${100 - growthProgress}% restante!` : 'Perfeito! 🎉'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm mt-2">
-                    <span className="text-muted-foreground">
-                      {growthProgress}% Completo
-                    </span>
-                    <span className="text-primary font-medium">
-                      {growthProgress < 100 ? `${100 - growthProgress}% restante!` : 'Perfeito! 🎉'}
+                      {growthProgress < 100 ? `${100 - growthProgress}% remaining!` : 'Perfect! 🎉'}
                     </span>
                   </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
