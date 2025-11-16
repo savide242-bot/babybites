@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
+import { LanguageProvider } from "@/hooks/useLanguage";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
@@ -23,11 +22,9 @@ import ShoppingList from "./pages/ShoppingList";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
-import { supabase } from "@/integrations/supabase/client";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 const queryClient = new QueryClient();
-
-import WhatsAppButton from "@/components/WhatsAppButton";
 
 const AppContent = () => {
 
