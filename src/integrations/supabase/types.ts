@@ -347,6 +347,7 @@ export type Database = {
       user_preferences: {
         Row: {
           created_at: string | null
+          has_seen_welcome: boolean | null
           id: string
           language: string
           updated_at: string | null
@@ -354,6 +355,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          has_seen_welcome?: boolean | null
           id?: string
           language?: string
           updated_at?: string | null
@@ -361,6 +363,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          has_seen_welcome?: boolean | null
           id?: string
           language?: string
           updated_at?: string | null
