@@ -1,5 +1,8 @@
 // Custom Service Worker for BabyBites PWA Notifications
 
+// Workbox will inject the precache manifest here
+self.__WB_MANIFEST;
+
 const NOTIFICATION_TAG = 'babybites-daily';
 const NOTIFICATION_TIMES = [
   { hour: 8, minute: 0, message: 'Good morning! Breakfast time 🍎', title: 'BabyBites Reminder' },
