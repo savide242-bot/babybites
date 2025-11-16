@@ -144,8 +144,8 @@ const Home = () => {
                 <Bell className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">Nunca Perca uma Refeição!</h3>
-                <p className="text-sm text-muted-foreground">Receba lembretes diários sobre a nutrição do bebê</p>
+                <h3 className="font-semibold text-foreground">Never Miss a Meal!</h3>
+                <p className="text-sm text-muted-foreground">Get daily reminders for baby's nutrition</p>
               </div>
               <div className="flex gap-2">
                 <Button 

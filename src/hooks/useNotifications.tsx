@@ -31,16 +31,16 @@ export const useNotifications = () => {
       
       if (result === 'granted') {
         toast({
-          title: "Notificações Ativadas! 🔔",
-          description: "Vamos lembrá-la das refeições do bebê diariamente.",
+          title: "Notifications Enabled! 🔔",
+          description: "We'll remind you about baby's meals daily.",
         });
         
         await setupNotifications();
         return true;
       } else {
         toast({
-          title: "Notificações Desativadas",
-          description: "Você não receberá lembretes de refeições.",
+          title: "Notifications Disabled",
+          description: "You won't receive meal reminders.",
           variant: "destructive"
         });
         return false;
