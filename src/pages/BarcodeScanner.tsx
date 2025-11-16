@@ -29,8 +29,10 @@ const BarcodeScanner = () => {
 
   const startCameraScanner = async () => {
     try {
-      // Check if running on HTTPS or localhost
-      if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+      console.log("Starting camera scanner...");
+      
+      // Simplified secure context check
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
         toast({
           title: "Conexão Segura Necessária",
           description: "A câmera requer HTTPS. Por favor, aceda através de uma conexão segura.",
@@ -39,11 +41,47 @@ const BarcodeScanner = () => {
         return;
       }
 
+      // Check if QR reader element exists
+      const qrReaderElement = document.getElementById(qrCodeRegionId);
+      if (!qrReaderElement) {
+        console.error("QR reader element not found");
+        toast({
+          title: "Erro",
+          description: "Elemento de scanner não encontrado. Tente recarregar a página.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("QR element found:", !!qrReaderElement);
+      console.log("Is secure context:", window.isSecureContext);
+
+      // Check camera permissions
+      try {
+        if (navigator.permissions) {
+          const permissions = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          
+          if (permissions.state === 'denied') {
+            toast({
+              title: "Permissão da Câmera Negada",
+              description: "Por favor, permita o acesso à câmera nas configurações do navegador.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        // Some browsers don't support permissions API - continue anyway
+        console.log("Permissions API not supported:", e);
+      }
+
       // Request camera permission explicitly
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        console.log("Camera access granted");
         stream.getTracks().forEach(track => track.stop()); // Stop test stream
       } catch (permissionError) {
+        console.error("Camera permission error:", permissionError);
         toast({
           title: "Permissão da Câmera Negada",
           description: "Por favor, permita o acesso à câmera nas configurações do navegador.",
@@ -57,6 +95,8 @@ const BarcodeScanner = () => {
       if (!scannerRef.current) {
         scannerRef.current = new Html5Qrcode(qrCodeRegionId);
       }
+      
+      console.log("Scanner initialized, starting camera...");
 
       await scannerRef.current.start(
         { facingMode: "environment" },
@@ -88,12 +128,18 @@ const BarcodeScanner = () => {
   const stopCameraScanner = async () => {
     try {
       if (scannerRef.current) {
-        await scannerRef.current.stop();
+        const state = await scannerRef.current.getState();
+        if (state === 2) { // 2 = SCANNING state
+          await scannerRef.current.stop();
+        }
+        await scannerRef.current.clear();
         scannerRef.current = null;
       }
       setCameraScanning(false);
+      console.log("Camera stopped successfully");
     } catch (err) {
       console.error("Error stopping camera:", err);
+      setCameraScanning(false);
     }
   };
 
