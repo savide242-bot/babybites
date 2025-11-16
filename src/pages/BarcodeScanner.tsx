@@ -7,10 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Scan, AlertTriangle, CheckCircle2, Camera, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
-import { useLanguage } from "@/hooks/useLanguage";
-
 const BarcodeScanner = () => {
-  const { t } = useLanguage();
   const [barcode, setBarcode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [cameraScanning, setCameraScanning] = useState(false);
@@ -34,8 +31,8 @@ const BarcodeScanner = () => {
       // Simplified secure context check
       if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
         toast({
-          title: "Conexão Segura Necessária",
-          description: "A câmera requer HTTPS. Por favor, aceda através de uma conexão segura.",
+          title: "Secure Connection Required",
+          description: "Camera requires HTTPS. Please access through a secure connection.",
           variant: "destructive",
         });
         return;
@@ -46,8 +43,8 @@ const BarcodeScanner = () => {
       if (!qrReaderElement) {
         console.error("QR reader element not found");
         toast({
-          title: "Erro",
-          description: "Elemento de scanner não encontrado. Tente recarregar a página.",
+          title: "Error",
+          description: "Scanner element not found. Try reloading the page.",
           variant: "destructive",
         });
         return;
@@ -63,8 +60,8 @@ const BarcodeScanner = () => {
           
           if (permissions.state === 'denied') {
             toast({
-              title: "Permissão da Câmera Negada",
-              description: "Por favor, permita o acesso à câmera nas configurações do navegador.",
+              title: "Camera Permission Denied",
+              description: "Please allow camera access in your browser settings.",
               variant: "destructive",
             });
             return;
@@ -77,14 +74,26 @@ const BarcodeScanner = () => {
 
       // Request camera permission explicitly
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "environment" } 
+        });
         console.log("Camera access granted");
-        stream.getTracks().forEach(track => track.stop()); // Stop test stream
-      } catch (permissionError) {
+        stream.getTracks().forEach(track => track.stop());
+      } catch (permissionError: any) {
         console.error("Camera permission error:", permissionError);
+        
+        let errorMessage = "Please allow camera access in your browser settings.";
+        if (permissionError.name === "NotAllowedError") {
+          errorMessage = "Camera access was denied. Please check your browser permissions.";
+        } else if (permissionError.name === "NotFoundError") {
+          errorMessage = "No camera found on this device.";
+        } else if (permissionError.name === "NotReadableError") {
+          errorMessage = "Camera is already in use by another application.";
+        }
+        
         toast({
-          title: "Permissão da Câmera Negada",
-          description: "Por favor, permita o acesso à câmera nas configurações do navegador.",
+          title: "Camera Access Error",
+          description: errorMessage,
           variant: "destructive",
         });
         return;
@@ -106,6 +115,7 @@ const BarcodeScanner = () => {
           aspectRatio: 1.0,
         },
         (decodedText) => {
+          console.log("Barcode detected:", decodedText);
           setBarcode(decodedText);
           stopCameraScanner();
           handleScan(decodedText);
@@ -114,11 +124,25 @@ const BarcodeScanner = () => {
           // Silently handle scan errors during active scanning
         }
       );
-    } catch (err) {
+      
+      console.log("Camera started successfully");
+    } catch (err: any) {
       console.error("Error starting camera:", err);
+      
+      let errorMessage = "Could not access camera. Please check permissions.";
+      if (err.message) {
+        if (err.message.includes("NotAllowedError")) {
+          errorMessage = "Camera access was denied. Please allow camera access.";
+        } else if (err.message.includes("NotFoundError")) {
+          errorMessage = "No camera found on your device.";
+        } else if (err.message.includes("NotReadableError")) {
+          errorMessage = "Camera is being used by another application.";
+        }
+      }
+      
       toast({
-        title: "Erro na Câmera",
-        description: "Não foi possível aceder à câmera. Verifique as permissões.",
+        title: "Camera Error",
+        description: errorMessage,
         variant: "destructive",
       });
       setCameraScanning(false);
@@ -147,8 +171,8 @@ const BarcodeScanner = () => {
     const codeToScan = scannedCode || barcode;
     if (!codeToScan.trim()) {
       toast({
-        title: t('scanner.missingBarcode'),
-        description: t('scanner.enterBarcodeError'),
+        title: "Missing Barcode",
+        description: "Please enter a barcode or scan one with your camera.",
         variant: "destructive",
       });
       return;
@@ -188,27 +212,27 @@ const BarcodeScanner = () => {
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pt-20 pb-8">
       <div className="container max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-primary mb-2">{t('scanner.title')}</h1>
+        <h1 className="text-4xl font-bold text-primary mb-2">Product Scanner</h1>
         <p className="text-lg text-muted-foreground mb-8">
-          {t('scanner.subtitle')}
+          Scan products to check if they're safe for your baby
         </p>
 
         {!cameraScanning ? (
           <Card className="p-6 mb-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="barcode">{t('scanner.barcode')}</Label>
+                <Label htmlFor="barcode">Barcode Number</Label>
                 <div className="flex gap-2">
                   <Input
                     id="barcode"
                     value={barcode}
                     onChange={(e) => setBarcode(e.target.value)}
-                    placeholder={t('scanner.enterBarcode')}
+                    placeholder="Enter barcode number"
                     disabled={scanning}
                   />
                   <Button onClick={() => handleScan()} disabled={scanning}>
                     <Scan className="w-4 h-4 mr-2" />
-                    {scanning ? t('scanner.scanning') : t('scanner.scan')}
+                    {scanning ? "Scanning..." : "Scan"}
                   </Button>
                 </div>
               </div>
@@ -220,10 +244,10 @@ const BarcodeScanner = () => {
                   className="w-full"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  {t('scanner.useCamera')}
+                  Use Camera to Scan
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {t('scanner.cameraDesc')}
+                  Scan product barcodes with your device camera
                 </p>
               </div>
             </div>
@@ -232,7 +256,7 @@ const BarcodeScanner = () => {
           <Card className="p-6 mb-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">{t('scanner.cameraScanning')}</h3>
+                <h3 className="font-semibold">Camera Scanning Active</h3>
                 <Button 
                   onClick={stopCameraScanner} 
                   variant="ghost"
@@ -243,7 +267,7 @@ const BarcodeScanner = () => {
               </div>
               <div id={qrCodeRegionId} className="w-full" />
               <p className="text-sm text-muted-foreground text-center">
-                {t('scanner.positionBarcode')}
+                Position the barcode within the frame to scan
               </p>
             </div>
           </Card>
@@ -261,19 +285,19 @@ const BarcodeScanner = () => {
                 <div>
                   <h2 className="text-xl font-bold mb-1">{result.product_name}</h2>
                   <p className={`font-semibold ${result.is_baby_safe ? "text-green-600" : "text-yellow-600"}`}>
-                    {result.is_baby_safe ? `✓ ${t('scanner.safe')}` : `⚠ ${t('scanner.caution')}`}
+                    {result.is_baby_safe ? "✓ Safe for Baby" : "⚠ Use with Caution"}
                   </p>
                 </div>
               </div>
 
               <div className="bg-muted p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">{t('scanner.safetyInfo')}</h3>
+                <h3 className="font-semibold mb-2">Safety Information</h3>
                 <p className="text-sm">{result.safety_notes}</p>
               </div>
 
               {result.suggested_recipes && result.suggested_recipes.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">{t('scanner.suggested')}</h3>
+                  <h3 className="font-semibold mb-2">Suggested Recipes</h3>
                   <ul className="list-disc list-inside space-y-1">
                     {result.suggested_recipes.map((recipe: string, index: number) => (
                       <li key={index} className="text-sm text-muted-foreground">
@@ -288,12 +312,12 @@ const BarcodeScanner = () => {
         )}
 
         <Card className="p-6 mt-6 bg-primary/5">
-          <h3 className="font-semibold mb-2">{t('scanner.howItWorks')}</h3>
+          <h3 className="font-semibold mb-2">How It Works</h3>
           <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>{t('scanner.step1')}</li>
-            <li>{t('scanner.step2')}</li>
-            <li>{t('scanner.step3')}</li>
-            <li>{t('scanner.step4')}</li>
+            <li>Enter a barcode number manually or click "Use Camera to Scan"</li>
+            <li>Allow camera access when prompted by your browser</li>
+            <li>Point your camera at the product barcode</li>
+            <li>View safety information and suggested recipes instantly</li>
           </ol>
         </Card>
       </div>
