@@ -13,8 +13,8 @@ export const useNotifications = () => {
   const requestPermission = async () => {
     if (!('Notification' in window)) {
       toast({
-        title: "Não Suportado",
-        description: "Seu navegador não suporta notificações.",
+        title: "Not Supported",
+        description: "Your browser doesn't support notifications.",
         variant: "destructive"
       });
       return false;
@@ -53,25 +53,52 @@ export const useNotifications = () => {
 
   const setupNotifications = async () => {
     try {
-      // Register service worker
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        
-        // Register background sync if supported
-        if ('sync' in registration && 'SyncManager' in window) {
-          try {
-            await (registration as any).sync.register('check-inactivity');
-          } catch (e) {
-            console.log('Background sync not supported:', e);
-          }
-        }
-      }
-      
       // Save last visit timestamp
       await updateLastVisit();
+      
+      // Schedule daily meal reminders
+      scheduleDailyReminders();
     } catch (error) {
       console.error('Error setting up notifications:', error);
     }
+  };
+
+  const scheduleDailyReminders = () => {
+    const scheduleNotification = (hour: number, minute: number, title: string, message: string) => {
+      const now = new Date();
+      const scheduledTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hour,
+        minute,
+        0
+      );
+      
+      // If time already passed today, schedule for tomorrow
+      if (scheduledTime < now) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1);
+      }
+      
+      const delay = scheduledTime.getTime() - now.getTime();
+      
+      setTimeout(() => {
+        if (Notification.permission === 'granted') {
+          new Notification(title, {
+            body: message,
+            icon: '/icon-192x192.png',
+            tag: 'babybites-meal-reminder'
+          });
+        }
+        // Re-schedule for next day
+        scheduleDailyReminders();
+      }, delay);
+    };
+
+    // Schedule meal reminders
+    scheduleNotification(8, 0, 'BabyBites Reminder', 'Good morning! Breakfast time 🍎');
+    scheduleNotification(12, 30, 'Meal Time!', 'Lunch time for baby! 🥗');
+    scheduleNotification(18, 0, 'Evening Meal', 'Dinner time! 🍽️');
   };
 
   return { permission, requestPermission };
