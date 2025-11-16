@@ -116,6 +116,12 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        blob: {
+          "0%": { transform: "translate(0px, 0px) scale(1)" },
+          "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+          "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+          "100%": { transform: "translate(0px, 0px) scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -126,6 +132,7 @@ export default {
         "breathe": "breathe 4s ease-in-out infinite",
         "particle-float": "particleFloat 20s linear infinite",
         "bounce-soft": "bounceSoft 2s ease-in-out",
+        "blob": "blob 7s infinite",
       },
     },
   },

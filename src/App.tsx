@@ -27,6 +27,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
+import WhatsAppButton from "@/components/WhatsAppButton";
+
 const AppContent = () => {
 
   return (
@@ -36,23 +38,26 @@ const AppContent = () => {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/*" element={
           <PrivateRoute>
-            <Header />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/recipes" element={<Recipes />} />
-              <Route path="/recipe/:id" element={<RecipeDetail />} />
-              <Route path="/planner" element={<MealPlanner />} />
-              <Route path="/advice" element={<Advice />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/growth" element={<GrowthTracker />} />
-              <Route path="/scanner" element={<BarcodeScanner />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/install" element={<Install />} />
-              <Route path="/reports" element={<ProgressReports />} />
-              <Route path="/shopping" element={<ShoppingList />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <>
+              <Header />
+              <WhatsAppButton />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/recipes" element={<Recipes />} />
+                <Route path="/recipe/:id" element={<RecipeDetail />} />
+                <Route path="/planner" element={<MealPlanner />} />
+                <Route path="/advice" element={<Advice />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/growth" element={<GrowthTracker />} />
+                <Route path="/scanner" element={<BarcodeScanner />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/install" element={<Install />} />
+                <Route path="/reports" element={<ProgressReports />} />
+                <Route path="/shopping" element={<ShoppingList />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </>
           </PrivateRoute>
         } />
       </Routes>

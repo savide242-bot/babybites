@@ -17,6 +17,8 @@ const emailSchema = z.object({
 
 const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
+  motherName: z.string().min(2, "Mother's name must be at least 2 characters").max(100),
+  babyName: z.string().min(2, "Baby's name must be at least 2 characters").max(100),
   email: z.string().email().max(255),
   password: z.string()
     .min(8, "Password must be at least 8 characters")
@@ -41,6 +43,8 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [motherName, setMotherName] = useState('');
+  const [babyName, setBabyName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
@@ -94,7 +98,7 @@ const Auth = () => {
 
   const handleSignup = async () => {
     setErrors({});
-    const validation = signupSchema.safeParse({ fullName, email, password, confirmPassword });
+    const validation = signupSchema.safeParse({ fullName, motherName, babyName, email, password, confirmPassword });
     
     if (!validation.success) {
       const newErrors: Record<string, string> = {};
@@ -111,7 +115,11 @@ const Auth = () => {
         email,
         password,
         options: {
-          data: { full_name: fullName },
+          data: { 
+            full_name: fullName,
+            mother_name: motherName,
+            baby_name: babyName
+          },
           emailRedirectTo: `${window.location.origin}/`
         }
       });
@@ -314,6 +322,28 @@ const Auth = () => {
                 icon={User}
                 placeholder="Your name"
                 autoFocus
+              />
+
+              <FormInput
+                id="motherName"
+                label="Mother's Name"
+                type="text"
+                value={motherName}
+                onChange={setMotherName}
+                error={errors.motherName}
+                icon={User}
+                placeholder="Your name as a mother"
+              />
+
+              <FormInput
+                id="babyName"
+                label="Baby's Name"
+                type="text"
+                value={babyName}
+                onChange={setBabyName}
+                error={errors.babyName}
+                icon={User}
+                placeholder="Your baby's name"
               />
 
               <FormInput
