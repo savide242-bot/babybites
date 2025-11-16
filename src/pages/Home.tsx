@@ -21,6 +21,22 @@ const Home = () => {
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const { permission, requestPermission } = useNotifications();
 
+  const getRecipeOfTheDay = () => {
+    const dayOfWeek = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+    const weeklyRecipes = [
+      "1",  // Sunday: Banana Pancakes
+      "2",  // Monday: Sweet Potato & Carrot Puree
+      "3",  // Tuesday: Blueberry Oatmeal
+      "4",  // Wednesday: Chicken Patties
+      "5",  // Thursday: Pasta with Tomato Sauce
+      "6",  // Friday: Turkey Meatballs
+      "7",  // Saturday: Salmon & Sweet Potato
+    ];
+    
+    const todayRecipeId = weeklyRecipes[dayOfWeek];
+    return recipes.find(r => r.id === todayRecipeId) || recipes[0];
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -48,8 +64,8 @@ const Home = () => {
 
     fetchUserData();
     
-    const randomIndex = Math.floor(Math.random() * recipes.length);
-    setMealOfTheDay(recipes[randomIndex]);
+    const todaysRecipe = getRecipeOfTheDay();
+    setMealOfTheDay(todaysRecipe);
   }, []);
 
   useEffect(() => {
@@ -282,7 +298,7 @@ const Home = () => {
       <section className="py-6 px-4">
         <div className="container max-w-4xl">
           <h2 className="text-2xl font-bold text-foreground mb-4">Recipe of the Day</h2>
-          <Link to={`/recipes/${mealOfTheDay.id}`} className="block group">
+          <Link to={`/recipe/${mealOfTheDay.id}`} className="block group">
             <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card group-hover:scale-[1.02]">
               <div className="aspect-video relative overflow-hidden">
                 <img 
