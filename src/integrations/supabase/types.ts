@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_tasks: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          task_date: string | null
+          task_type: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          task_date?: string | null
+          task_type: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          task_date?: string | null
+          task_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       forum_posts: {
         Row: {
           comments_count: number | null

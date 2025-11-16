@@ -6,7 +6,7 @@ import {
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
   ShoppingCart, Users, MessageCircle, BarChart3, 
   Sparkles, ChevronRight, Apple, Droplets, Moon, Clock,
-  MoreVertical
+  Menu, Bell
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,57 +17,103 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
   const [babyName, setBabyName] = useState<string>("");
   const [mealOfTheDay, setMealOfTheDay] = useState(recipes[0]);
   const [growthProgress, setGrowthProgress] = useState(0);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const { permission, requestPermission } = useNotifications();
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('mother_name, baby_name')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (profile) {
-          setMotherName(profile.mother_name || session.user.user_metadata?.mother_name || "Mom");
-          setBabyName(profile.baby_name || session.user.user_metadata?.baby_name || "Baby");
-        } else {
-          setMotherName(session.user.user_metadata?.mother_name || "Mom");
-          setBabyName(session.user.user_metadata?.baby_name || "Baby");
-        }
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('mother_name, baby_name')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profile) {
+            setMotherName(profile.mother_name || "");
+            setBabyName(profile.baby_name || "");
+          }
 
-        // Fetch growth records to calculate progress
-        const { data: growthRecords } = await supabase
-          .from('baby_growth')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('recorded_at', { ascending: false })
-          .limit(2);
-
-        if (growthRecords && growthRecords.length > 1) {
-          const progress = Math.min(
-            ((growthRecords[0].weight_kg || 0) / (growthRecords[0].weight_kg || 1)) * 100,
-            100
-          );
-          setGrowthProgress(progress);
-        } else {
-          setGrowthProgress(65);
+          // Calculate REAL progress based on 4 pillars (25% each)
+          const realProgress = await calculateRealProgress(session.user.id, profile);
+          setGrowthProgress(realProgress);
         }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
       }
     };
 
     fetchUserData();
-
+    
     // Random meal of the day
     const randomIndex = Math.floor(Math.random() * recipes.length);
     setMealOfTheDay(recipes[randomIndex]);
   }, []);
+
+  useEffect(() => {
+    // Show notification banner after 3 seconds if permission not granted
+    const timer = setTimeout(() => {
+      if (permission === 'default') {
+        setShowNotificationBanner(true);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [permission]);
+
+  const calculateRealProgress = async (userId: string, profile: any) => {
+    let totalProgress = 0;
+    
+    // 1. Growth Records (25 points)
+    const { data: growthData } = await supabase
+      .from('baby_growth')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (growthData && growthData.length > 0) {
+      totalProgress += 25;
+    }
+    
+    // 2. Meal Logs (25 points)
+    const { data: mealData } = await supabase
+      .from('meal_logs')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (mealData && mealData.length > 0) {
+      totalProgress += 25;
+    }
+    
+    // 3. Profile Complete (25 points)
+    if (profile?.mother_name && profile?.baby_name) {
+      totalProgress += 25;
+    }
+    
+    // 4. Tasks Completed Today (25 points)
+    const today = new Date().toISOString().split('T')[0];
+    const { data: tasksData } = await supabase
+      .from('daily_tasks')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('task_date', today)
+      .eq('completed', true);
+    
+    if (tasksData && tasksData.length > 0) {
+      totalProgress += 25;
+    }
+    
+    return totalProgress;
+  };
 
   const quickActions = [
     { icon: BookOpen, label: "Recipes", path: "/recipes", color: "from-primary to-primary-glow" },
@@ -89,6 +135,42 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
+      {/* Notification Permission Banner */}
+      {showNotificationBanner && (
+        <div className="fixed top-4 left-4 right-4 z-50 animate-in slide-in-from-top">
+          <Card className="border-primary/50 bg-gradient-to-r from-primary/10 to-mint/10">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-mint flex items-center justify-center flex-shrink-0">
+                <Bell className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">Nunca Perca uma Refeição!</h3>
+                <p className="text-sm text-muted-foreground">Receba lembretes diários sobre a nutrição do bebê</p>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={async () => {
+                    await requestPermission();
+                    setShowNotificationBanner(false);
+                  }}
+                  className="bg-gradient-to-r from-primary to-mint"
+                >
+                  Ativar
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => setShowNotificationBanner(false)}
+                >
+                  Depois
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Hero Section with Personalized Greeting */}
       <section className="relative pt-8 pb-6 px-4 overflow-hidden">
         {/* Animated Background Blobs */}
@@ -104,7 +186,7 @@ const Home = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted">
-                  <MoreVertical className="h-5 w-5" />
+                  <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -183,7 +265,23 @@ const Home = () => {
                   </div>
                   <span className="text-sm text-muted-foreground">{growthProgress}%</span>
                 </div>
-                <Progress value={growthProgress} className="h-2" />
+                  <Progress value={growthProgress} className="h-2" />
+                  <div className="flex justify-between text-sm mt-2">
+                    <span className="text-muted-foreground">
+                      {growthProgress}% Completo
+                    </span>
+                    <span className="text-primary font-medium">
+                      {growthProgress < 100 ? `${100 - growthProgress}% restante!` : 'Perfeito! 🎉'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-2">
+                    <span className="text-muted-foreground">
+                      {growthProgress}% Completo
+                    </span>
+                    <span className="text-primary font-medium">
+                      {growthProgress < 100 ? `${100 - growthProgress}% restante!` : 'Perfeito! 🎉'}
+                    </span>
+                  </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Sparkles className="w-4 h-4 text-mint animate-pulse" />
                   <span>{babyName} is growing beautifully!</span>

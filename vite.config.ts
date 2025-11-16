@@ -16,6 +16,9 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt"],
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'custom-sw.js',
       manifest: {
         name: "BabyBites - Baby Nutrition & Meal Planning",
         short_name: "BabyBites",
@@ -84,6 +87,10 @@ export default defineConfig(({ mode }) => ({
             }
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     })
   ].filter(Boolean),

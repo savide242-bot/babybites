@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { useEffect } from "react";
+import { updateLastVisit } from "@/hooks/useNotifications";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
@@ -27,6 +29,10 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
+  useEffect(() => {
+    // Update last visit timestamp on app load
+    updateLastVisit().catch(console.error);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
