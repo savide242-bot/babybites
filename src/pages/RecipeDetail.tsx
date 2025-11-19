@@ -12,6 +12,8 @@ import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
+import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
+import { DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
@@ -418,7 +420,7 @@ const RecipeDetail = () => {
           
           <div className="space-y-6">
             <div>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <Badge variant="secondary" className="rounded-full px-3 py-1">
                   {recipe.category}
                 </Badge>
@@ -426,6 +428,25 @@ const RecipeDetail = () => {
                   {recipe.ageGroup}
                 </Badge>
               </div>
+
+              {/* Dietary Tags */}
+              {getRecipeDietaryTags(recipe.id).length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {getRecipeDietaryTags(recipe.id).map((tag) => {
+                    const option = DIETARY_OPTIONS.find(o => o.value === tag);
+                    return (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className={`rounded-full ${option?.color || ''}`}
+                      >
+                        {option?.label}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+
               <h1 className="text-4xl font-bold mb-4">{recipe.title}</h1>
               <p className="text-lg text-muted-foreground">{recipe.description}</p>
             </div>

@@ -4,21 +4,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Users, Heart, History, Eye } from "lucide-react";
+import { Search, Clock, Users, Heart, History, Eye, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
+import { useDietaryPreferences, DietaryTag, DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
+import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
+import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
 
 const Recipes = () => {
   const { t } = useLanguage();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { recentlyViewed, loading: historyLoading, getRecentRecipes, getMostViewed } = useRecipeHistory();
+  const { preferences, isRecipeCompatible } = useDietaryPreferences();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState("All Ages");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [dietaryFilters, setDietaryFilters] = useState<DietaryTag[]>([]);
 
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
@@ -29,8 +34,19 @@ const Recipes = () => {
     const matchesAge = selectedAge === "All Ages" || recipe.ageGroup === selectedAge;
     const matchesCategory = selectedCategory === "All Categories" || recipe.category === selectedCategory;
     
-    return matchesSearch && matchesAge && matchesCategory;
+    // Check dietary compatibility
+    const recipeTags = getRecipeDietaryTags(recipe.id);
+    const matchesDietary = dietaryFilters.length === 0 || 
+                          dietaryFilters.every(filter => recipeTags.includes(filter));
+    
+    return matchesSearch && matchesAge && matchesCategory && matchesDietary;
   });
+
+  // Check if recipe matches user's saved preferences for highlighting
+  const isCompatibleWithUserPrefs = (recipeId: string) => {
+    const recipeTags = getRecipeDietaryTags(recipeId);
+    return isRecipeCompatible(recipeTags);
+  };
 
   return (
     <div className="min-h-screen py-12">
@@ -55,7 +71,7 @@ const Recipes = () => {
             />
           </div>
           
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Select value={selectedAge} onValueChange={setSelectedAge}>
               <SelectTrigger className={`rounded-full transition-all duration-200 ${selectedAge !== 'All Ages' ? 'animate-bounceSoft' : ''}`}>
                 <SelectValue placeholder={t('recipes.selectAge')} />
@@ -81,6 +97,12 @@ const Recipes = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            <DietaryFilterSelect
+              selectedFilters={dietaryFilters}
+              onFilterChange={setDietaryFilters}
+              userPreferences={preferences}
+            />
           </div>
         </div>
 
@@ -164,11 +186,17 @@ const Recipes = () => {
             {filteredRecipes.map((recipe, index) => {
               const RecipeCard = () => {
                 const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+                const recipeTags = getRecipeDietaryTags(recipe.id);
+                const isCompatible = isCompatibleWithUserPrefs(recipe.id);
                 
                 return (
                   <div ref={ref}>
                     <Card 
-                      className={`overflow-hidden hover:shadow-xl transition-all border-2 hover:border-primary/50 ${
+                      className={`overflow-hidden hover:shadow-xl transition-all border-2 ${
+                        isCompatible && preferences.length > 0
+                          ? 'border-green-500/50 bg-green-500/5'
+                          : 'hover:border-primary/50'
+                      } ${
                         isVisible ? 'animate-fade-in' : 'opacity-0'
                       }`}
                       style={{ animationDelay: `${(index % 6) * 50}ms` }}
@@ -179,8 +207,16 @@ const Recipes = () => {
                           alt={recipe.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
-                        <div className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
-                          {recipe.ageGroup}
+                        <div className="absolute top-3 left-3 flex gap-2">
+                          <div className="bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
+                            {recipe.ageGroup}
+                          </div>
+                          {isCompatible && preferences.length > 0 && (
+                            <div className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 animate-pulse">
+                              <Sparkles className="h-3 w-3" />
+                              Perfect Match
+                            </div>
+                          )}
                         </div>
                         <Button
                           size="icon"
@@ -195,7 +231,7 @@ const Recipes = () => {
                         </Button>
                       </div>
                       <CardHeader>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 flex-wrap">
                           <span className={`bg-primary/10 text-primary px-2 py-1 rounded-full font-medium ${
                             isVisible ? 'animate-scale-in' : 'opacity-0'
                           }`} style={{ animationDelay: `${(index % 6) * 50 + 200}ms` }}>
@@ -206,6 +242,30 @@ const Recipes = () => {
                             {recipe.prepTime}
                           </span>
                         </div>
+
+                        {/* Dietary Tags */}
+                        {recipeTags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {recipeTags.slice(0, 3).map((tag) => {
+                              const option = DIETARY_OPTIONS.find(o => o.value === tag);
+                              return (
+                                <Badge
+                                  key={tag}
+                                  variant="outline"
+                                  className={`text-xs rounded-full ${option?.color || ''}`}
+                                >
+                                  {option?.label}
+                                </Badge>
+                              );
+                            })}
+                            {recipeTags.length > 3 && (
+                              <Badge variant="outline" className="text-xs rounded-full">
+                                +{recipeTags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
                         <CardTitle className="text-xl line-clamp-1">{recipe.title}</CardTitle>
                         <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
                       </CardHeader>
@@ -243,6 +303,7 @@ const Recipes = () => {
                 setSearchQuery("");
                 setSelectedAge("All Ages");
                 setSelectedCategory("All Categories");
+                setDietaryFilters([]);
               }}
               variant="outline"
               className="rounded-full"

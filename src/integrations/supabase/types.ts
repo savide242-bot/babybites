@@ -279,6 +279,7 @@ export type Database = {
           baby_name: string | null
           bio: string | null
           created_at: string | null
+          dietary_preferences: string[] | null
           full_name: string
           id: string
           is_verified_pediatrician: boolean | null
@@ -290,6 +291,7 @@ export type Database = {
           baby_name?: string | null
           bio?: string | null
           created_at?: string | null
+          dietary_preferences?: string[] | null
           full_name: string
           id: string
           is_verified_pediatrician?: boolean | null
@@ -301,6 +303,7 @@ export type Database = {
           baby_name?: string | null
           bio?: string | null
           created_at?: string | null
+          dietary_preferences?: string[] | null
           full_name?: string
           id?: string
           is_verified_pediatrician?: boolean | null
