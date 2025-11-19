@@ -11,64 +11,88 @@ export const useServiceWorkerUpdate = () => {
       return;
     }
 
-    // Check for existing service worker
-    const checkServiceWorker = async () => {
+    let updateCheckInterval: NodeJS.Timeout;
+
+    const setupServiceWorker = async () => {
       try {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg) {
-          setRegistration(reg);
-          console.log('Service Worker found:', reg);
+        // Register with updateViaCache: 'none' to prevent HTTP caching
+        const reg = await navigator.serviceWorker.register('/sw.js', {
+          updateViaCache: 'none'
+        });
+        
+        setRegistration(reg);
+        console.log('✅ Service Worker registered:', reg);
 
-          // Check for updates immediately
-          await reg.update();
+        // Check for updates immediately
+        await reg.update();
 
-          // Check for updates every 60 seconds
-          const interval = setInterval(async () => {
-            try {
-              await reg.update();
-            } catch (error) {
-              console.error('Error checking for updates:', error);
+        // Check for updates every 10 seconds (aggressive)
+        updateCheckInterval = setInterval(async () => {
+          try {
+            console.log('🔍 Checking for updates...');
+            await reg.update();
+          } catch (error) {
+            console.error('Error checking for updates:', error);
+          }
+        }, 10000);
+
+        // Listen for new service worker installation
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+
+          console.log('📦 New service worker found, installing...');
+
+          newWorker.addEventListener('statechange', () => {
+            console.log(`SW state: ${newWorker.state}`);
+            
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🎉 New version available!');
+              setNeedRefresh(true);
+              
+              toast({
+                title: "🎉 Update Available!",
+                description: "Updating BabyBites now...",
+                duration: 2000,
+              });
+
+              // Force skip waiting immediately
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+              
+              // Reload after 1 second
+              setTimeout(() => {
+                console.log('🔄 Reloading page...');
+                window.location.reload();
+              }, 1000);
             }
-          }, 60000);
-
-          // Listen for updates
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (!newWorker) return;
-
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New service worker available
-                setNeedRefresh(true);
-                
-                toast({
-                  title: "🎉 Update Available!",
-                  description: "A new version of BabyBites is ready. Updating now...",
-                  duration: 3000,
-                });
-
-                // Auto-update after 2 seconds
-                setTimeout(() => {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                  window.location.reload();
-                }, 2000);
-              }
-            });
           });
+        });
 
-          // Listen for controller change (new SW activated)
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            window.location.reload();
-          });
+        // Listen for controller change
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          console.log('🔄 Controller changed, reloading...');
+          window.location.reload();
+        });
 
-          return () => clearInterval(interval);
+        // Check if there's already a waiting SW
+        if (reg.waiting) {
+          console.log('⚠️ SW already waiting, activating now...');
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          window.location.reload();
         }
+
       } catch (error) {
-        console.error('Error checking service worker:', error);
+        console.error('❌ Error setting up service worker:', error);
       }
     };
 
-    checkServiceWorker();
+    setupServiceWorker();
+
+    return () => {
+      if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+      }
+    };
   }, []);
 
   const forceUpdate = async () => {
@@ -77,6 +101,13 @@ export const useServiceWorkerUpdate = () => {
       if (newWorker) {
         newWorker.postMessage({ type: 'SKIP_WAITING' });
         window.location.reload();
+      } else {
+        // Force check for updates
+        await registration.update();
+        toast({
+          title: "Checking for Updates",
+          description: "Looking for new version...",
+        });
       }
     }
   };
