@@ -266,6 +266,8 @@ const BarcodeScanner = () => {
 
       console.log('📹 Selected camera:', selectedDevice.label);
 
+      console.log('🎬 Starting ZXing decode...');
+      
       await codeReader.decodeFromVideoDevice(
         selectedDevice.deviceId,
         videoRef.current,
@@ -278,10 +280,20 @@ const BarcodeScanner = () => {
         }
       );
 
+      console.log('✅ ZXing decode started, setting state to SCANNING');
       setCameraState('SCANNING');
       setScanningStatus('scanning');
       setStatusMessage('Point camera at barcode...');
-      console.log('✅ ZXing scanner initialized');
+      
+      console.log('📊 Scanner State:', {
+        cameraState: 'SCANNING',
+        scanningStatus: 'scanning',
+        videoElement: !!videoRef.current,
+        videoSrcObject: !!videoRef.current?.srcObject,
+        videoPlaying: !videoRef.current?.paused,
+        videoWidth: videoRef.current?.videoWidth,
+        videoHeight: videoRef.current?.videoHeight
+      });
       
       return true;
     } catch (error: any) {
@@ -314,6 +326,8 @@ const BarcodeScanner = () => {
       const html5QrCode = new Html5Qrcode("barcode-reader");
       html5QrCodeRef.current = html5QrCode;
 
+      console.log('🎬 Starting HTML5-QRCode...');
+      
       const startPromise = html5QrCode.start(
         { facingMode: cameraFacingMode },
         {
@@ -342,10 +356,17 @@ const BarcodeScanner = () => {
         initTimeoutRef.current = null;
       }
 
+      console.log('✅ HTML5-QRCode started, setting state to SCANNING');
       setCameraState('SCANNING');
       setScanningStatus('scanning');
       setStatusMessage('Point camera at barcode...');
-      console.log('✅ HTML5-QRCode scanner initialized');
+      
+      console.log('📊 Scanner State:', {
+        cameraState: 'SCANNING',
+        scanningStatus: 'scanning',
+        videoElement: !!videoRef.current,
+        videoSrcObject: !!videoRef.current?.srcObject
+      });
       
       return true;
     } catch (error: any) {
