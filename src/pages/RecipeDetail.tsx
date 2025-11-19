@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar } from "lucide-react";
+import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
@@ -29,6 +31,173 @@ const RecipeDetail = () => {
     toast.success(t('recipes.addedToPlanner'), {
       description: `${recipe.title} ${t('recipes.addedToPlannerDesc')}`,
     });
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(24);
+      doc.setTextColor(255, 105, 180);
+      doc.text(recipe.title, 20, 25);
+      
+      // Add category and age group
+      doc.setFontSize(10);
+      doc.setTextColor(64, 224, 208);
+      doc.text(`${recipe.category} | ${recipe.ageGroup}`, 20, 35);
+      
+      // Add separator line
+      doc.setDrawColor(255, 182, 193);
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, 190, 40);
+      
+      // Add description
+      doc.setFontSize(11);
+      doc.setTextColor(100, 100, 100);
+      const descLines = doc.splitTextToSize(recipe.description, 170);
+      doc.text(descLines, 20, 48);
+      
+      let yPos = 48 + (descLines.length * 6) + 8;
+      
+      // Add prep time and servings
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`⏱️ Prep Time: ${recipe.prepTime}`, 20, yPos);
+      doc.text(`👥 Servings: ${recipe.servings}`, 120, yPos);
+      yPos += 12;
+      
+      // Add ingredients section
+      doc.setFontSize(16);
+      doc.setTextColor(255, 105, 180);
+      doc.text('Ingredients', 20, yPos);
+      yPos += 8;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      recipe.ingredients.forEach((ingredient) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(`• ${ingredient}`, 25, yPos);
+        yPos += 6;
+      });
+      
+      yPos += 8;
+      
+      // Add instructions section
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(16);
+      doc.setTextColor(255, 105, 180);
+      doc.text('Instructions', 20, yPos);
+      yPos += 8;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      recipe.instructions.forEach((instruction, index) => {
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        const stepLines = doc.splitTextToSize(`${index + 1}. ${instruction}`, 165);
+        doc.text(stepLines, 25, yPos);
+        yPos += (stepLines.length * 6) + 4;
+      });
+      
+      // Add nutrition info
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 20;
+      } else {
+        yPos += 8;
+      }
+      
+      doc.setFontSize(16);
+      doc.setTextColor(255, 105, 180);
+      doc.text('Nutrition Information', 20, yPos);
+      yPos += 8;
+      
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Nutrient', 'Amount']],
+        body: [
+          ['Calories', `${recipe.nutrition.calories} kcal`],
+          ['Protein', `${recipe.nutrition.protein}g`],
+          ['Carbs', `${recipe.nutrition.carbs}g`],
+          ['Fats', `${recipe.nutrition.fat}g`]
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [255, 182, 193], textColor: [0, 0, 0] },
+        margin: { left: 25 }
+      });
+      
+      yPos = (doc as any).lastAutoTable.finalY + 10;
+      
+      // Add allergens if present
+      if (recipe.allergens && recipe.allergens.length > 0) {
+        doc.setFontSize(12);
+        doc.setTextColor(255, 99, 71);
+        doc.text(`⚠️ Allergens: ${recipe.allergens.join(', ')}`, 20, yPos);
+      }
+      
+      // Add footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `Page ${i} of ${pageCount} | BabyBites Recipe 💕`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+      }
+      
+      // Save PDF
+      const fileName = `babybites-${recipe.title.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+      doc.save(fileName);
+      
+      toast.success("✅ Recipe Downloaded!", {
+        description: `${recipe.title} has been saved as PDF`,
+      });
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error("❌ Export Failed", {
+        description: "Could not generate PDF. Please try again.",
+      });
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    try {
+      let message = `🍽️ *${recipe.title}*\n\n`;
+      message += `📌 ${recipe.category} | ${recipe.ageGroup}\n`;
+      message += `⏱️ ${recipe.prepTime} | 👥 ${recipe.servings}\n\n`;
+      message += `${recipe.description}\n\n`;
+      message += `*Ingredients:*\n`;
+      recipe.ingredients.forEach(ing => {
+        message += `• ${ing}\n`;
+      });
+      message += `\n📱 Shared from BabyBites`;
+      
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      toast.success("✅ Opening WhatsApp", {
+        description: "Recipe is ready to share!",
+      });
+    } catch (error) {
+      console.error('WhatsApp sharing error:', error);
+      toast.error("❌ Sharing Failed", {
+        description: "Could not open WhatsApp. Please try again.",
+      });
+    }
   };
 
   return (
@@ -77,10 +246,23 @@ const RecipeDetail = () => {
               </div>
             </div>
 
-            <Button onClick={handleAddToPlanner} size="lg" className="w-full rounded-full">
-              <Calendar className="mr-2 h-5 w-5" />
-              {t('recipes.addToPlanner')}
-            </Button>
+            <div className="space-y-3">
+              <Button onClick={handleAddToPlanner} size="lg" className="w-full rounded-full">
+                <Calendar className="mr-2 h-5 w-5" />
+                {t('recipes.addToPlanner')}
+              </Button>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={handleExportPDF} variant="outline" size="lg" className="rounded-full">
+                  <FileDown className="mr-2 h-5 w-5" />
+                  Export PDF
+                </Button>
+                <Button onClick={handleShareWhatsApp} variant="outline" size="lg" className="rounded-full">
+                  <Share2 className="mr-2 h-5 w-5" />
+                  Share
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 

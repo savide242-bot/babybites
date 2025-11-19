@@ -353,9 +353,10 @@ const BarcodeScanner = () => {
         <Card className="p-6 space-y-4">
           <div className="relative">
             <div className="relative rounded-lg overflow-hidden border-2 border-primary/30 bg-black">
+              {/* Always render video element - hide when not scanning */}
               <video 
                 ref={videoRef}
-                className="w-full h-auto"
+                className={`w-full h-auto ${cameraState === 'SCANNING' ? 'block' : 'hidden'}`}
                 style={{ maxHeight: '500px' }}
                 autoPlay
                 playsInline

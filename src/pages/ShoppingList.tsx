@@ -7,6 +7,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { recipes } from "@/data/recipes";
 import { supabase } from "@/integrations/supabase/client";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ShoppingItem {
   id: string;
@@ -107,30 +109,180 @@ const ShoppingList = () => {
   };
 
   const handleExportPDF = () => {
-    toast({
-      title: t('shoppingList.listExported'),
-      description: t('shoppingList.listExportedDesc'),
-    });
+    try {
+      const doc = new jsPDF();
+      
+      // Add title with vibrant colors
+      doc.setFontSize(24);
+      doc.setTextColor(255, 105, 180); // Pink
+      doc.text('🛒 BabyBites Shopping List', 20, 25);
+      
+      // Add date
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })}`, 20, 35);
+      
+      // Add line separator
+      doc.setDrawColor(255, 182, 193);
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, 190, 40);
+      
+      // Prepare data by category
+      const uncheckedItems = items.filter(i => !i.checked);
+      
+      if (uncheckedItems.length === 0) {
+        doc.setFontSize(12);
+        doc.setTextColor(150, 150, 150);
+        doc.text('All items are checked off! 🎉', 20, 55);
+      } else {
+        const categories = [...new Set(uncheckedItems.map(i => i.category))];
+        let yPosition = 50;
+        
+        categories.forEach((category, index) => {
+          const categoryItems = uncheckedItems.filter(i => i.category === category);
+          if (categoryItems.length > 0) {
+            // Category header
+            doc.setFontSize(14);
+            doc.setTextColor(64, 224, 208); // Turquoise
+            doc.text(`${category} (${categoryItems.length} items)`, 20, yPosition);
+            yPosition += 8;
+            
+            // Items as table
+            const tableData = categoryItems.map(item => [
+              '☐',
+              item.ingredient,
+              item.fromRecipe || '-'
+            ]);
+            
+            autoTable(doc, {
+              startY: yPosition,
+              head: [['✓', 'Ingredient', 'From Recipe']],
+              body: tableData,
+              theme: 'striped',
+              headStyles: { 
+                fillColor: [255, 182, 193], // Light pink
+                textColor: [0, 0, 0],
+                fontStyle: 'bold',
+                fontSize: 11
+              },
+              bodyStyles: {
+                fontSize: 10
+              },
+              alternateRowStyles: {
+                fillColor: [255, 245, 250] // Very light pink
+              },
+              margin: { left: 25, right: 20 },
+              columnStyles: {
+                0: { cellWidth: 10 },
+                1: { cellWidth: 80 },
+                2: { cellWidth: 65, fontStyle: 'italic', textColor: [100, 100, 100] }
+              }
+            });
+            
+            yPosition = (doc as any).lastAutoTable.finalY + 10;
+            
+            // Add page break if needed
+            if (yPosition > 250 && index < categories.length - 1) {
+              doc.addPage();
+              yPosition = 20;
+            }
+          }
+        });
+      }
+      
+      // Add footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `Page ${i} of ${pageCount} | Created with BabyBites 💕`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        );
+      }
+      
+      // Save PDF
+      const fileName = `babybites-shopping-list-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      // Show success popup
+      toast({
+        title: "✅ PDF Downloaded!",
+        description: `Your shopping list has been saved as ${fileName}`,
+      });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast({
+        title: "❌ Export Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleShareWhatsApp = () => {
-    const uncheckedItems = items.filter(i => !i.checked);
-    const categories = [...new Set(uncheckedItems.map(i => i.category))];
-    
-    let message = "🛒 *Shopping List - BabyBites*\n\n";
-    categories.forEach(cat => {
-      const categoryItems = uncheckedItems.filter(i => i.category === cat);
-      if (categoryItems.length > 0) {
-        message += `*${cat}:*\n`;
-        categoryItems.forEach(item => {
-          message += `  • ${item.ingredient}\n`;
+    try {
+      const uncheckedItems = items.filter(i => !i.checked);
+      
+      if (uncheckedItems.length === 0) {
+        toast({
+          title: "Nothing to Share",
+          description: "All items are already checked off! ✓",
+          variant: "destructive"
         });
-        message += "\n";
+        return;
       }
-    });
-
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+      
+      const categories = [...new Set(uncheckedItems.map(i => i.category))];
+      
+      let message = "🛒 *Shopping List - BabyBites*\n\n";
+      categories.forEach(cat => {
+        const categoryItems = uncheckedItems.filter(i => i.category === cat);
+        if (categoryItems.length > 0) {
+          message += `*${cat}* (${categoryItems.length} items):\n`;
+          categoryItems.forEach(item => {
+            message += `  ☐ ${item.ingredient}`;
+            if (item.fromRecipe) {
+              message += ` _(from ${item.fromRecipe})_`;
+            }
+            message += `\n`;
+          });
+          message += "\n";
+        }
+      });
+      
+      message += `📱 Generated by BabyBites\n${new Date().toLocaleDateString('en-US', { 
+        weekday: 'short',
+        month: 'short', 
+        day: 'numeric' 
+      })}`;
+      
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
+      
+      toast({
+        title: "✅ Opening WhatsApp",
+        description: "Your shopping list is ready to share!",
+      });
+    } catch (error) {
+      console.error('WhatsApp sharing error:', error);
+      toast({
+        title: "❌ Sharing Failed",
+        description: "Could not open WhatsApp. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSuggestSubstitutions = (ingredient: string) => {
