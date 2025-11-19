@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X } from "lucide-react";
+import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X, Heart } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
@@ -10,11 +10,13 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
   const { id } = useParams();
   const recipe = recipes.find((r) => r.id === id);
+  const { toggleFavorite, isFavorite } = useFavorites();
   
   // State management
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -430,10 +432,23 @@ const RecipeDetail = () => {
             </div>
 
             <div className="space-y-3">
-              <Button onClick={handleAddToPlanner} size="lg" className="w-full rounded-full">
-                <Calendar className="mr-2 h-5 w-5" />
-                {t('recipes.addToPlanner')}
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={handleAddToPlanner} size="lg" className="rounded-full">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  Add to Plan
+                </Button>
+                <Button 
+                  onClick={() => recipe && toggleFavorite(recipe.id)} 
+                  size="lg" 
+                  variant={isFavorite(recipe?.id || '') ? "default" : "outline"}
+                  className="rounded-full"
+                >
+                  <Heart 
+                    className={`mr-2 h-5 w-5 ${isFavorite(recipe?.id || '') ? 'fill-current' : ''}`}
+                  />
+                  {isFavorite(recipe?.id || '') ? 'Favorited' : 'Favorite'}
+                </Button>
+              </div>
               
               <div className="grid grid-cols-2 gap-3">
                 <Button onClick={handleExportPDF} variant="outline" size="lg" className="rounded-full">

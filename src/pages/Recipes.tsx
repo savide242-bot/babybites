@@ -3,14 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Search, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Clock, Users, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const Recipes = () => {
   const { t } = useLanguage();
+  const { toggleFavorite, isFavorite } = useFavorites();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState("All Ages");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -102,9 +105,20 @@ const Recipes = () => {
                           alt={recipe.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
-                        <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
+                        <div className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
                           {recipe.ageGroup}
                         </div>
+                        <Button
+                          size="icon"
+                          variant={isFavorite(recipe.id) ? "default" : "secondary"}
+                          className="absolute top-3 right-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleFavorite(recipe.id);
+                          }}
+                        >
+                          <Heart className={`h-4 w-4 ${isFavorite(recipe.id) ? 'fill-current' : ''}`} />
+                        </Button>
                       </div>
                       <CardHeader>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
@@ -122,9 +136,18 @@ const Recipes = () => {
                         <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <Button asChild className="w-full rounded-full">
-                          <Link to={`/recipe/${recipe.id}`}>{t('recipes.viewRecipe')}</Link>
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button asChild className="rounded-full">
+                            <Link to={`/recipe/${recipe.id}`}>{t('recipes.viewRecipe')}</Link>
+                          </Button>
+                          <Button 
+                            variant={isFavorite(recipe.id) ? "default" : "outline"}
+                            className="rounded-full"
+                            onClick={() => toggleFavorite(recipe.id)}
+                          >
+                            <Heart className={`h-4 w-4 ${isFavorite(recipe.id) ? 'fill-current' : ''}`} />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>

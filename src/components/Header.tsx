@@ -15,6 +15,7 @@ const Header = () => {
   const navLinks = [
     { to: "/", label: t('nav.home'), icon: Home },
     { to: "/recipes", label: t('nav.recipes'), icon: BookOpen },
+    { to: "/favorites", label: "Favorites", icon: Heart },
     { to: "/planner", label: t('nav.planner'), icon: Calendar },
     { to: "/growth", label: t('nav.growth'), icon: TrendingUp },
     { to: "/scanner", label: t('nav.scanner'), icon: Scan },
