@@ -745,12 +745,28 @@ const BarcodeScanner = () => {
                   <>
                     <div className="absolute inset-0 pointer-events-none">
                       <div className="absolute inset-0 border-2 border-primary/50 animate-pulse" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 border-2 border-primary rounded-lg" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 border-2 border-primary rounded-lg transition-all duration-300" />
                     </div>
 
                     {scanningStatus === 'confirming' && (
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
+                      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-sm font-medium animate-in zoom-in-50 duration-300 shadow-lg">
                         ✓ Detected! Confirming...
+                      </div>
+                    )}
+                    
+                    {scanningStatus === 'verifying' && (
+                      <div className="absolute inset-0 bg-green-500/20 animate-pulse backdrop-blur-sm flex items-center justify-center">
+                        <div className="bg-green-500 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl animate-in zoom-in-75 duration-500">
+                          ✓ Verifying Product...
+                        </div>
+                      </div>
+                    )}
+                    
+                    {scanningStatus === 'success' && (
+                      <div className="absolute inset-0 bg-green-500/30 animate-in fade-in duration-300 backdrop-blur-sm flex items-center justify-center">
+                        <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold shadow-2xl animate-in zoom-in-95 duration-700 scale-110">
+                          ✓ Success!
+                        </div>
                       </div>
                     )}
                   </>
