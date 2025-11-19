@@ -54,24 +54,36 @@ const BarcodeScanner = () => {
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
+  const [retryCount, setRetryCount] = useState(0);
   
   const { toast } = useToast();
   const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const CONFIRMATION_THRESHOLD = 2;
   const COOLDOWN_DURATION = 3000;
+  const INIT_TIMEOUT = 10000;
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     return () => {
       stopCameraScanner();
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
     };
   }, []);
 
   const stopCameraScanner = async () => {
     console.log('🛑 Stopping scanner...');
+    
+    if (initTimeoutRef.current) {
+      clearTimeout(initTimeoutRef.current);
+      initTimeoutRef.current = null;
+    }
     
     if (scannerRef.current) {
       scannerRef.current = null;
@@ -159,6 +171,40 @@ const BarcodeScanner = () => {
     }
   };
 
+  const waitForVideoReady = async (video: HTMLVideoElement, timeout: number): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Video initialization timeout'));
+      }, timeout);
+
+      const checkReady = () => {
+        if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+          clearTimeout(timeoutId);
+          resolve();
+        } else if (video.readyState >= 2) {
+          video.addEventListener('loadeddata', () => {
+            clearTimeout(timeoutId);
+            resolve();
+          }, { once: true });
+        } else {
+          video.addEventListener('loadedmetadata', () => {
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+              clearTimeout(timeoutId);
+              resolve();
+            } else {
+              video.addEventListener('loadeddata', () => {
+                clearTimeout(timeoutId);
+                resolve();
+              }, { once: true });
+            }
+          }, { once: true });
+        }
+      };
+
+      checkReady();
+    });
+  };
+
   const initializeZXingScanner = async (): Promise<boolean> => {
     try {
       console.log('🔧 Initializing ZXing scanner...');
@@ -169,18 +215,19 @@ const BarcodeScanner = () => {
         throw new Error('Video element not found');
       }
 
-      await new Promise<void>((resolve) => {
-        if (videoRef.current!.readyState >= 2) {
-          resolve();
-        } else {
-          videoRef.current!.addEventListener('loadedmetadata', () => resolve(), { once: true });
-        }
-      });
+      console.log('⏳ Waiting for video element to be ready...');
+      await waitForVideoReady(videoRef.current, INIT_TIMEOUT);
+      console.log('✅ Video element ready');
 
       const codeReader = new BrowserMultiFormatReader();
       scannerRef.current = codeReader;
 
       const videoDevices = await BrowserMultiFormatReader.listVideoInputDevices();
+      
+      if (videoDevices.length === 0) {
+        throw new Error('No camera devices found');
+      }
+
       const selectedDevice = videoDevices.find(device => 
         device.label.toLowerCase().includes(cameraFacingMode === 'environment' ? 'back' : 'front')
       ) || videoDevices[0];
@@ -207,6 +254,7 @@ const BarcodeScanner = () => {
       return true;
     } catch (error: any) {
       console.error('❌ ZXing initialization error:', error);
+      setStatusMessage(error.message || 'Scanner initialization failed');
       return false;
     }
   };
@@ -220,7 +268,7 @@ const BarcodeScanner = () => {
       const html5QrCode = new Html5Qrcode("barcode-reader");
       html5QrCodeRef.current = html5QrCode;
 
-      await html5QrCode.start(
+      const startPromise = html5QrCode.start(
         { facingMode: cameraFacingMode },
         {
           fps: 10,
@@ -235,6 +283,19 @@ const BarcodeScanner = () => {
         }
       );
 
+      const timeoutPromise = new Promise((_, reject) => {
+        initTimeoutRef.current = setTimeout(() => {
+          reject(new Error('HTML5-QRCode initialization timeout'));
+        }, INIT_TIMEOUT);
+      });
+
+      await Promise.race([startPromise, timeoutPromise]);
+      
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+        initTimeoutRef.current = null;
+      }
+
       setCameraState('SCANNING');
       setScanningStatus('scanning');
       setStatusMessage('Point camera at barcode...');
@@ -243,60 +304,109 @@ const BarcodeScanner = () => {
       return true;
     } catch (error: any) {
       console.error('❌ HTML5-QRCode initialization error:', error);
+      setStatusMessage(error.message || 'Fallback scanner initialization failed');
       return false;
     }
+  };
+
+  const checkBrowserCompatibility = (): { compatible: boolean; issues: string[] } => {
+    const issues: string[] = [];
+    
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      issues.push('Camera access not supported in this browser');
+    }
+    
+    if (!window.MediaStream) {
+      issues.push('Media streaming not supported');
+    }
+    
+    const isSecureContext = window.isSecureContext || location.protocol === 'https:';
+    if (!isSecureContext && location.hostname !== 'localhost') {
+      issues.push('Camera requires HTTPS connection');
+    }
+    
+    return {
+      compatible: issues.length === 0,
+      issues
+    };
   };
 
   const startCameraScanner = async () => {
     try {
       console.log('🚀 Starting camera scanner...');
       
+      const compatibility = checkBrowserCompatibility();
+      if (!compatibility.compatible) {
+        throw new Error(`Browser incompatibility: ${compatibility.issues.join(', ')}`);
+      }
+      
       const hasPermission = await requestCameraPermission();
       if (!hasPermission) return;
 
+      let success = false;
+
       if (scannerMethod === 'zxing') {
-        const zxingSuccess = await initializeZXingScanner();
-        if (!zxingSuccess) {
-          console.log('⚠️ ZXing failed, trying HTML5-QRCode fallback...');
+        console.log('🎯 Attempting ZXing scanner...');
+        success = await initializeZXingScanner();
+        
+        if (!success && retryCount < MAX_RETRIES) {
+          console.log(`⚠️ ZXing failed, trying HTML5-QRCode fallback (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
           toast({
             title: "Switching Scanner",
-            description: "Primary scanner failed, trying alternative method...",
+            description: "Trying alternative scanning method...",
           });
           setScannerMethod('html5qrcode');
-          const fallbackSuccess = await initializeHtml5QrCodeScanner();
-          if (!fallbackSuccess) {
-            throw new Error('Both scanner methods failed');
-          }
+          success = await initializeHtml5QrCodeScanner();
         }
       } else {
-        const html5Success = await initializeHtml5QrCodeScanner();
-        if (!html5Success) {
-          console.log('⚠️ HTML5-QRCode failed, trying ZXing fallback...');
+        console.log('🎯 Attempting HTML5-QRCode scanner...');
+        success = await initializeHtml5QrCodeScanner();
+        
+        if (!success && retryCount < MAX_RETRIES) {
+          console.log(`⚠️ HTML5-QRCode failed, trying ZXing fallback (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
           toast({
             title: "Switching Scanner",
-            description: "Primary scanner failed, trying alternative method...",
+            description: "Trying alternative scanning method...",
           });
           setScannerMethod('zxing');
-          const fallbackSuccess = await initializeZXingScanner();
-          if (!fallbackSuccess) {
-            throw new Error('Both scanner methods failed');
-          }
+          success = await initializeZXingScanner();
         }
       }
 
-      toast({
-        title: "Scanner Ready",
-        description: "Point your camera at a product barcode",
-      });
+      if (!success) {
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1);
+          const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+          console.log(`🔄 Retrying in ${delay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
+          
+          toast({
+            title: "Retrying Scanner",
+            description: `Attempting to reconnect (${retryCount + 1}/${MAX_RETRIES})...`,
+          });
+          
+          setTimeout(() => {
+            startCameraScanner();
+          }, delay);
+        } else {
+          throw new Error('All scanner initialization attempts failed. Please use manual entry.');
+        }
+      } else {
+        setRetryCount(0);
+        toast({
+          title: "Scanner Ready",
+          description: "Point your camera at a product barcode",
+        });
+      }
     } catch (error: any) {
       console.error('❌ Failed to start scanner:', error);
       setCameraState('ERROR');
-      setStatusMessage('Failed to start scanner. Please try again.');
+      setStatusMessage(error.message || 'Failed to start scanner. Please use manual entry.');
       toast({
         title: "Scanner Error",
-        description: error.message || "Failed to initialize camera scanner",
+        description: error.message || "Failed to initialize camera. Please try manual entry.",
         variant: "destructive"
       });
+      setRetryCount(0);
     }
   };
 
