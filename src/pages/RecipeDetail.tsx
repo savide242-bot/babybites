@@ -11,12 +11,14 @@ import autoTable from 'jspdf-autotable';
 import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
   const { id } = useParams();
   const recipe = recipes.find((r) => r.id === id);
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { trackRecipeView } = useRecipeHistory();
   
   // State management
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -62,6 +64,14 @@ const RecipeDetail = () => {
     setTimerMinutes(mins);
     setTimerSeconds(secs);
   }, [totalSeconds]);
+
+  // Track recipe view on mount
+  useEffect(() => {
+    if (recipe?.id) {
+      trackRecipeView(recipe.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipe?.id]);
 
   if (!recipe) {
     return (

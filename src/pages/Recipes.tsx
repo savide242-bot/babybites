@@ -4,19 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Users, Heart } from "lucide-react";
+import { Search, Clock, Users, Heart, History, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 
 const Recipes = () => {
   const { t } = useLanguage();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { recentlyViewed, loading: historyLoading, getRecentRecipes, getMostViewed } = useRecipeHistory();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState("All Ages");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
+
+  const recentRecipes = getRecentRecipes();
+  const mostViewedRecipes = getMostViewed();
 
   const filteredRecipes = recipes.filter((recipe) => {
     const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,6 +83,75 @@ const Recipes = () => {
             </Select>
           </div>
         </div>
+
+        {/* Recently Viewed Section */}
+        {!historyLoading && recentRecipes.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-bold">Recently Viewed</h2>
+              </div>
+              <Badge variant="secondary" className="rounded-full">
+                {recentlyViewed.length} {recentlyViewed.length === 1 ? 'recipe' : 'recipes'}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {recentRecipes.slice(0, 6).map((recipe) => {
+                if (!recipe) return null;
+                const viewData = recentlyViewed.find(v => v.recipe_id === recipe.id);
+                
+                return (
+                  <Link key={recipe.id} to={`/recipe/${recipe.id}`} className="group">
+                    <Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
+                      <div className="aspect-square relative overflow-hidden">
+                        <img
+                          src={recipe.image}
+                          alt={recipe.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <h3 className="text-white font-semibold text-sm line-clamp-2">
+                            {recipe.title}
+                          </h3>
+                          {viewData && viewData.view_count > 1 && (
+                            <div className="flex items-center gap-1 mt-1 text-xs text-white/80">
+                              <Eye className="h-3 w-3" />
+                              <span>{viewData.view_count}x viewed</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Most Viewed Badge */}
+            {mostViewedRecipes.length > 0 && (
+              <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 text-sm">
+                  <Eye className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-foreground">Most Viewed:</span>
+                  <span className="text-muted-foreground">
+                    {mostViewedRecipes.map((view, idx) => {
+                      const recipe = recipes.find(r => r.id === view.recipe_id);
+                      return (
+                        <span key={view.recipe_id}>
+                          {recipe?.title} ({view.view_count}x)
+                          {idx < mostViewedRecipes.length - 1 && ', '}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Results Count */}
         <div className="mb-6 text-sm text-muted-foreground">

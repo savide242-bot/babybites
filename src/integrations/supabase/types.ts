@@ -309,6 +309,27 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_views: {
+        Row: {
+          id: string
+          recipe_id: string
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          id?: string
+          recipe_id: string
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          id?: string
+          recipe_id?: string
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: []
+      }
       saved_posts: {
         Row: {
           created_at: string | null
