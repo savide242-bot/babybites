@@ -115,6 +115,7 @@ const BarcodeScanner = () => {
     setStatusMessage('');
     setScanBuffer(new Map());
     setTorchEnabled(false);
+    setRetryCount(0); // Reset retry count when stopping
   };
 
   const requestCameraPermission = async (): Promise<boolean> => {
@@ -211,7 +212,11 @@ const BarcodeScanner = () => {
       setCameraState('INITIALIZING');
       setStatusMessage('Initializing scanner...');
 
+      // Wait for React to render the video element
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (!videoRef.current) {
+        console.error('❌ Video element not found after wait');
         throw new Error('Video element not found');
       }
 
@@ -264,6 +269,15 @@ const BarcodeScanner = () => {
       console.log('🔧 Initializing HTML5-QRCode scanner (fallback)...');
       setCameraState('INITIALIZING');
       setStatusMessage('Initializing fallback scanner...');
+
+      // Wait for React to render the barcode-reader element
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      const readerElement = document.getElementById('barcode-reader');
+      if (!readerElement) {
+        console.error('❌ barcode-reader element not found after wait');
+        throw new Error('HTML Element with id=barcode-reader not found');
+      }
 
       const html5QrCode = new Html5Qrcode("barcode-reader");
       html5QrCodeRef.current = html5QrCode;
@@ -375,13 +389,14 @@ const BarcodeScanner = () => {
 
       if (!success) {
         if (retryCount < MAX_RETRIES) {
-          setRetryCount(prev => prev + 1);
+          const nextRetry = retryCount + 1;
+          setRetryCount(nextRetry);
           const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-          console.log(`🔄 Retrying in ${delay}ms... (${retryCount + 1}/${MAX_RETRIES})`);
+          console.log(`🔄 Retrying in ${delay}ms... (${nextRetry}/${MAX_RETRIES})`);
           
           toast({
             title: "Retrying Scanner",
-            description: `Attempting to reconnect (${retryCount + 1}/${MAX_RETRIES})...`,
+            description: `Attempting to reconnect (${nextRetry}/${MAX_RETRIES})...`,
           });
           
           setTimeout(() => {
@@ -617,10 +632,12 @@ const BarcodeScanner = () => {
   };
 
   const resetScanner = () => {
+    stopCameraScanner();
     setResult(null);
     setScanningStatus('idle');
     setStatusMessage('');
     setBarcode('');
+    setRetryCount(0); // Reset retry count
   };
 
   return (
