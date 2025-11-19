@@ -203,13 +203,18 @@ const BarcodeScanner = () => {
       setCameraState('INITIALIZING');
       if (scannerRef.current) await scannerRef.current.stop();
       
-      scannerRef.current = new Html5Qrcode(qrCodeRegionId);
+      scannerRef.current = new Html5Qrcode(qrCodeRegionId, {
+        verbose: false,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E
+        ]
+      });
       await scannerRef.current.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 }, formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E
-        ]},
+        { fps: 10, qrbox: { width: 250, height: 250 } },
         handleBarcodeDetected,
         () => {}
       );
