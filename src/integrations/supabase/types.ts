@@ -319,34 +319,55 @@ export type Database = {
       }
       scanned_products: {
         Row: {
+          allergens: string[] | null
           barcode: string
+          barcode_type: string | null
+          brands: string | null
           id: string
+          image_url: string | null
           is_baby_safe: boolean | null
+          nutrition_grade: string | null
           product_name: string | null
           safety_notes: string | null
           scanned_at: string | null
           suggested_recipes: string[] | null
           user_id: string
+          verification_source: string | null
+          verified: boolean | null
         }
         Insert: {
+          allergens?: string[] | null
           barcode: string
+          barcode_type?: string | null
+          brands?: string | null
           id?: string
+          image_url?: string | null
           is_baby_safe?: boolean | null
+          nutrition_grade?: string | null
           product_name?: string | null
           safety_notes?: string | null
           scanned_at?: string | null
           suggested_recipes?: string[] | null
           user_id: string
+          verification_source?: string | null
+          verified?: boolean | null
         }
         Update: {
+          allergens?: string[] | null
           barcode?: string
+          barcode_type?: string | null
+          brands?: string | null
           id?: string
+          image_url?: string | null
           is_baby_safe?: boolean | null
+          nutrition_grade?: string | null
           product_name?: string | null
           safety_notes?: string | null
           scanned_at?: string | null
           suggested_recipes?: string[] | null
           user_id?: string
+          verification_source?: string | null
+          verified?: boolean | null
         }
         Relationships: []
       }
