@@ -135,6 +135,23 @@ const BarcodeScanner = () => {
       streamRef.current = stream;
       console.log('✅ Camera permission granted');
 
+      // CRITICAL: Connect stream to video element immediately
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        console.log('✅ Stream connected to video element');
+        
+        try {
+          await videoRef.current.play();
+          console.log('✅ Video playing');
+        } catch (playError) {
+          console.warn('⚠️ Video play warning:', playError);
+        }
+      } else {
+        console.warn('⚠️ Video element not ready yet');
+      }
+
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       setHasMultipleCameras(videoDevices.length > 1);
@@ -212,17 +229,27 @@ const BarcodeScanner = () => {
       setCameraState('INITIALIZING');
       setStatusMessage('Initializing scanner...');
 
-      // Wait for React to render the video element
       await new Promise(resolve => setTimeout(resolve, 200));
 
       if (!videoRef.current) {
-        console.error('❌ Video element not found after wait');
+        console.error('❌ Video element not found');
         throw new Error('Video element not found');
       }
 
-      console.log('⏳ Waiting for video element to be ready...');
+      // CRITICAL: Ensure stream is connected to video
+      if (!videoRef.current.srcObject && streamRef.current) {
+        console.log('🔗 Connecting stream to video...');
+        videoRef.current.srcObject = streamRef.current;
+        await videoRef.current.play();
+      }
+
+      if (!videoRef.current.srcObject) {
+        throw new Error('Video has no stream source');
+      }
+
+      console.log('⏳ Waiting for video to be ready...');
       await waitForVideoReady(videoRef.current, INIT_TIMEOUT);
-      console.log('✅ Video element ready');
+      console.log('✅ Video ready:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
 
       const codeReader = new BrowserMultiFormatReader();
       scannerRef.current = codeReader;
@@ -270,13 +297,18 @@ const BarcodeScanner = () => {
       setCameraState('INITIALIZING');
       setStatusMessage('Initializing fallback scanner...');
 
-      // Wait for React to render the barcode-reader element
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const readerElement = document.getElementById('barcode-reader');
       if (!readerElement) {
-        console.error('❌ barcode-reader element not found after wait');
+        console.error('❌ barcode-reader element not found');
         throw new Error('HTML Element with id=barcode-reader not found');
+      }
+
+      // Connect stream to video if available
+      if (streamRef.current && videoRef.current && !videoRef.current.srcObject) {
+        videoRef.current.srcObject = streamRef.current;
+        await videoRef.current.play();
       }
 
       const html5QrCode = new Html5Qrcode("barcode-reader");
@@ -354,62 +386,43 @@ const BarcodeScanner = () => {
         throw new Error(`Browser incompatibility: ${compatibility.issues.join(', ')}`);
       }
       
+      setCameraState('INITIALIZING');
+      
       const hasPermission = await requestCameraPermission();
       if (!hasPermission) return;
 
       let success = false;
 
+      // Try ZXing first
       if (scannerMethod === 'zxing') {
-        console.log('🎯 Attempting ZXing scanner...');
         success = await initializeZXingScanner();
         
-        if (!success && retryCount < MAX_RETRIES) {
-          console.log(`⚠️ ZXing failed, trying HTML5-QRCode fallback (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+        if (!success) {
+          console.log('⚠️ ZXing failed, trying HTML5-QRCode...');
           toast({
             title: "Switching Scanner",
-            description: "Trying alternative scanning method...",
+            description: "Trying alternative method...",
           });
           setScannerMethod('html5qrcode');
           success = await initializeHtml5QrCodeScanner();
         }
       } else {
-        console.log('🎯 Attempting HTML5-QRCode scanner...');
         success = await initializeHtml5QrCodeScanner();
         
-        if (!success && retryCount < MAX_RETRIES) {
-          console.log(`⚠️ HTML5-QRCode failed, trying ZXing fallback (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
-          toast({
-            title: "Switching Scanner",
-            description: "Trying alternative scanning method...",
-          });
+        if (!success) {
+          console.log('⚠️ HTML5-QRCode failed, trying ZXing...');
           setScannerMethod('zxing');
           success = await initializeZXingScanner();
         }
       }
 
       if (!success) {
-        if (retryCount < MAX_RETRIES) {
-          const nextRetry = retryCount + 1;
-          setRetryCount(nextRetry);
-          const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-          console.log(`🔄 Retrying in ${delay}ms... (${nextRetry}/${MAX_RETRIES})`);
-          
-          toast({
-            title: "Retrying Scanner",
-            description: `Attempting to reconnect (${nextRetry}/${MAX_RETRIES})...`,
-          });
-          
-          setTimeout(() => {
-            startCameraScanner();
-          }, delay);
-        } else {
-          throw new Error('All scanner initialization attempts failed. Please use manual entry.');
-        }
+        throw new Error('Scanner initialization failed. Please check camera permissions and try again.');
       } else {
         setRetryCount(0);
         toast({
-          title: "Scanner Ready",
-          description: "Point your camera at a product barcode",
+          title: "Scanner Ready ✅",
+          description: "Point your camera at a barcode",
         });
       }
     } catch (error: any) {
