@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { useEffect } from "react";
 import { updateLastVisit } from "@/hooks/useNotifications";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { useMealReminders } from "@/hooks/useMealReminders";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
@@ -29,6 +31,12 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
+  // Activate PWA install detection and welcome notifications
+  usePWAInstall();
+  
+  // Activate meal time reminders
+  useMealReminders();
+  
   useEffect(() => {
     // Update last visit timestamp on app load
     updateLastVisit().catch(console.error);

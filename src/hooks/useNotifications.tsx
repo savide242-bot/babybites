@@ -21,7 +21,6 @@ export const useNotifications = () => {
     }
 
     if (Notification.permission === 'granted') {
-      await setupNotifications();
       return true;
     }
 
@@ -32,10 +31,16 @@ export const useNotifications = () => {
       if (result === 'granted') {
         toast({
           title: "Notifications Enabled! 🔔",
-          description: "We'll remind you about baby's meals daily.",
+          description: "You'll receive meal reminders throughout the day.",
         });
         
-        await setupNotifications();
+        // Send immediate test notification
+        new Notification('🎉 Notifications Activated!', {
+          body: 'You will now receive meal time reminders for your baby. Stay on track! 🍎',
+          icon: '/icon-192x192.png',
+          badge: '/icon-192x192.png'
+        });
+        
         return true;
       } else {
         toast({
