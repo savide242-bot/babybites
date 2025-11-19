@@ -116,6 +116,27 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "slide-in-bottom": {
+          "0%": { transform: "translateY(100%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-down": {
+          "0%": { transform: "translateY(-100%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(0)", opacity: "1" },
+          "100%": { transform: "translateY(-100%)", opacity: "0" },
+        },
+        pulse: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.05)" },
+        },
+        checkmark: {
+          "0%": { transform: "scale(0) rotate(0deg)", opacity: "0" },
+          "50%": { transform: "scale(1.2) rotate(180deg)", opacity: "1" },
+          "100%": { transform: "scale(1) rotate(360deg)", opacity: "1" },
+        },
         blob: {
           "0%": { transform: "translate(0px, 0px) scale(1)" },
           "33%": { transform: "translate(30px, -50px) scale(1.1)" },
@@ -133,6 +154,11 @@ export default {
         "particle-float": "particleFloat 20s linear infinite",
         "bounce-soft": "bounceSoft 2s ease-in-out",
         "blob": "blob 7s infinite",
+        "slide-in-bottom": "slide-in-bottom 0.6s ease-out",
+        "slide-down": "slide-down 0.4s ease-out",
+        "slide-up": "slide-up 0.4s ease-out",
+        "pulse": "pulse 2s ease-in-out infinite",
+        "checkmark": "checkmark 0.5s ease-out",
       },
     },
   },

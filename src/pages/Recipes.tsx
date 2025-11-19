@@ -7,6 +7,7 @@ import { Search, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 const Recipes = () => {
   const { t } = useLanguage();
@@ -48,7 +49,7 @@ const Recipes = () => {
           
           <div className="grid gap-4 sm:grid-cols-2">
             <Select value={selectedAge} onValueChange={setSelectedAge}>
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className={`rounded-full transition-all duration-200 ${selectedAge !== 'All Ages' ? 'animate-bounceSoft' : ''}`}>
                 <SelectValue placeholder={t('recipes.selectAge')} />
               </SelectTrigger>
               <SelectContent>
@@ -61,7 +62,7 @@ const Recipes = () => {
             </Select>
 
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className={`rounded-full transition-all duration-200 ${selectedCategory !== 'All Categories' ? 'animate-bounceSoft' : ''}`}>
                 <SelectValue placeholder={t('recipes.selectCategory')} />
               </SelectTrigger>
               <SelectContent>
@@ -83,38 +84,55 @@ const Recipes = () => {
         {/* Recipe Grid */}
         {filteredRecipes.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredRecipes.map((recipe) => (
-              <Card key={recipe.id} className="overflow-hidden hover:shadow-xl transition-all border-2 hover:border-primary/50">
-                <div className="aspect-video bg-muted relative overflow-hidden">
-                  <img
-                    src={recipe.image}
-                    alt={recipe.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
-                    {recipe.ageGroup}
+            {filteredRecipes.map((recipe, index) => {
+              const RecipeCard = () => {
+                const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+                
+                return (
+                  <div ref={ref}>
+                    <Card 
+                      className={`overflow-hidden hover:shadow-xl transition-all border-2 hover:border-primary/50 ${
+                        isVisible ? 'animate-fade-in' : 'opacity-0'
+                      }`}
+                      style={{ animationDelay: `${(index % 6) * 50}ms` }}
+                    >
+                      <div className="aspect-video bg-muted relative overflow-hidden group">
+                        <img
+                          src={recipe.image}
+                          alt={recipe.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium">
+                          {recipe.ageGroup}
+                        </div>
+                      </div>
+                      <CardHeader>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                          <span className={`bg-primary/10 text-primary px-2 py-1 rounded-full font-medium ${
+                            isVisible ? 'animate-scale-in' : 'opacity-0'
+                          }`} style={{ animationDelay: `${(index % 6) * 50 + 200}ms` }}>
+                            {recipe.category}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {recipe.prepTime}
+                          </span>
+                        </div>
+                        <CardTitle className="text-xl line-clamp-1">{recipe.title}</CardTitle>
+                        <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button asChild className="w-full rounded-full">
+                          <Link to={`/recipe/${recipe.id}`}>{t('recipes.viewRecipe')}</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
                   </div>
-                </div>
-                <CardHeader>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                    <span className="bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
-                      {recipe.category}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {recipe.prepTime}
-                    </span>
-                  </div>
-                  <CardTitle className="text-xl line-clamp-1">{recipe.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">{recipe.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild className="w-full rounded-full">
-                    <Link to={`/recipe/${recipe.id}`}>{t('recipes.viewRecipe')}</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                );
+              };
+              
+              return <RecipeCard key={recipe.id} />;
+            })}
           </div>
         ) : (
           <div className="text-center py-16">

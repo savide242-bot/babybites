@@ -18,7 +18,9 @@ const Home = () => {
   const [babyName, setBabyName] = useState<string>("");
   const [mealOfTheDay, setMealOfTheDay] = useState(recipes[0]);
   const [growthProgress, setGrowthProgress] = useState(0);
+  const [animatedProgress, setAnimatedProgress] = useState(0);
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const { permission, requestPermission } = useNotifications();
 
   const getRecipeOfTheDay = () => {
@@ -56,6 +58,12 @@ const Home = () => {
 
           const realProgress = await calculateRealProgress(session.user.id, profile);
           setGrowthProgress(realProgress);
+          
+          // Animate progress bar from 0
+          setTimeout(() => setAnimatedProgress(realProgress), 100);
+          
+          // Animate progress bar from 0
+          setTimeout(() => setAnimatedProgress(realProgress), 100);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -135,7 +143,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
       {showNotificationBanner && (
-        <div className="fixed top-4 left-4 right-4 z-50 animate-in slide-in-from-top">
+        <div className="fixed top-4 left-4 right-4 z-50 animate-slide-down">
           <Card className="border-primary/50 bg-gradient-to-r from-primary/10 to-mint/10">
             <CardContent className="p-4 flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-mint flex items-center justify-center flex-shrink-0">
@@ -152,7 +160,7 @@ const Home = () => {
                     await requestPermission();
                     setShowNotificationBanner(false);
                   }}
-                  className="bg-gradient-to-r from-primary to-mint"
+                  className="bg-gradient-to-r from-primary to-mint animate-pulse"
                 >
                   Enable
                 </Button>
@@ -210,7 +218,7 @@ const Home = () => {
                   </div>
                   <span className="text-sm text-muted-foreground">{growthProgress}%</span>
                 </div>
-                <Progress value={growthProgress} className="h-2" />
+                <Progress value={animatedProgress} className="h-2" />
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-muted-foreground">
                     {growthProgress}% Complete
@@ -260,9 +268,12 @@ const Home = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {quickActions.map((action, index) => (
               <Link key={index} to={action.path} className="group">
-                <Card className="border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card bg-card group-hover:scale-105 h-full">
+                <Card 
+                  className="border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card bg-card group-hover:scale-105 h-full animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 animate-float`}>
                       <action.icon className="w-6 h-6 text-white" />
                     </div>
                     <span className="text-sm font-medium text-foreground">{action.label}</span>
@@ -299,14 +310,18 @@ const Home = () => {
         <div className="container max-w-4xl">
           <h2 className="text-2xl font-bold text-foreground mb-4">Recipe of the Day</h2>
           <Link to={`/recipe/${mealOfTheDay.id}`} className="block group">
-            <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card group-hover:scale-[1.02]">
+            <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card group-hover:scale-[1.02] animate-slide-in-bottom relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000">
               <div className="aspect-video relative overflow-hidden">
                 <img 
                   src={mealOfTheDay.image} 
                   alt={mealOfTheDay.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-4 py-2 rounded-full font-semibold flex items-center gap-2 shadow-lg">
+                  <Sparkles className="h-4 w-4" />
+                  Recipe of the Day
+                </div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <h3 className="text-xl font-bold text-white mb-1">{mealOfTheDay.title}</h3>
                   <p className="text-sm text-white/90">{mealOfTheDay.ageGroup}</p>

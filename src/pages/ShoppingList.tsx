@@ -95,7 +95,18 @@ const ShoppingList = () => {
     if (!item) return;
 
     const newChecked = !item.checked;
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, checked: newChecked } : i)));
+    
+    // Optimistic update with animation
+    setItems((prev) => {
+      const updated = prev.map((i) => (i.id === id ? { ...i, checked: newChecked } : i));
+      // Move checked items to end
+      if (newChecked) {
+        const checkedItem = updated.find(i => i.id === id);
+        const others = updated.filter(i => i.id !== id);
+        return [...others, checkedItem!];
+      }
+      return updated;
+    });
 
     await supabase
       .from('shopping_list_items')
@@ -104,6 +115,13 @@ const ShoppingList = () => {
   };
 
   const removeItem = async (id: string) => {
+    // Add slide-out animation
+    const itemEl = document.querySelector(`[data-item-id="${id}"]`);
+    if (itemEl) {
+      itemEl.classList.add('animate-slide-out-right');
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
     setItems((prev) => prev.filter((item) => item.id !== id));
     await supabase.from('shopping_list_items').delete().eq('id', id);
   };
