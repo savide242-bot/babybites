@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Scan, AlertTriangle, CheckCircle2, Camera, X, Loader2, Flashlight, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BrowserMultiFormatReader, BarcodeFormat } from "@zxing/browser";
+import { DecodeHintType } from "@zxing/library";
 import { Html5Qrcode } from "html5-qrcode";
 
 type CameraState = 'IDLE' | 'REQUESTING_PERMISSION' | 'INITIALIZING' | 'SCANNING' | 'ERROR';
@@ -251,7 +252,23 @@ const BarcodeScanner = () => {
       await waitForVideoReady(videoRef.current, INIT_TIMEOUT);
       console.log('✅ Video ready:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
 
-      const codeReader = new BrowserMultiFormatReader();
+      // Configure hints with all barcode formats
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.QR_CODE,
+        BarcodeFormat.DATA_MATRIX
+      ]);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      
+      console.log('📋 ZXing hints configured for multiple formats');
+
+      const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
 
       const videoDevices = await BrowserMultiFormatReader.listVideoInputDevices();
@@ -274,7 +291,8 @@ const BarcodeScanner = () => {
         (result, error) => {
           if (result) {
             const detectedCode = result.getText();
-            console.log('📸 ZXing detected:', detectedCode);
+            const format = result.getBarcodeFormat();
+            console.log('📸 ZXing detected:', detectedCode, 'Format:', BarcodeFormat[format]);
             handleBarcodeDetected(detectedCode);
           }
         }
@@ -326,16 +344,17 @@ const BarcodeScanner = () => {
       const html5QrCode = new Html5Qrcode("barcode-reader");
       html5QrCodeRef.current = html5QrCode;
 
-      console.log('🎬 Starting HTML5-QRCode...');
+      console.log('🎬 Starting HTML5-QRCode with enhanced detection...');
       
       const startPromise = html5QrCode.start(
         { facingMode: cameraFacingMode },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
+          fps: 15,
+          qrbox: { width: 300, height: 200 }
         },
-        (decodedText) => {
-          console.log('📸 HTML5-QRCode detected:', decodedText);
+        (decodedText, decodedResult) => {
+          const format = decodedResult.result?.format?.formatName || 'UNKNOWN';
+          console.log('📸 HTML5-QRCode detected:', decodedText, 'Format:', format);
           handleBarcodeDetected(decodedText);
         },
         (errorMessage) => {
@@ -495,19 +514,31 @@ const BarcodeScanner = () => {
   };
 
   const handleBarcodeDetected = (decodedText: string) => {
-    if (scanCooldown) return;
+    console.log('🔍 Barcode detection triggered:', decodedText);
+    
+    if (scanCooldown) {
+      console.log('⏸️ In cooldown period, ignoring detection');
+      return;
+    }
 
     const validation = validateBarcode(decodedText);
-    if (!validation.valid) return;
+    console.log('📋 Validation result:', validation);
+    
+    if (!validation.valid) {
+      console.log('❌ Invalid barcode format, ignoring');
+      return;
+    }
 
     const newBuffer = new Map(scanBuffer);
     const count = (newBuffer.get(decodedText) || 0) + 1;
     newBuffer.set(decodedText, count);
     setScanBuffer(newBuffer);
     
+    console.log(`✅ Scan ${count}/${CONFIRMATION_THRESHOLD} for barcode: ${decodedText}`);
     setStatusMessage(`Scan ${count}/${CONFIRMATION_THRESHOLD} - Keep steady...`);
 
     if (count >= CONFIRMATION_THRESHOLD) {
+      console.log('🎉 Confirmation threshold reached, processing scan...');
       processConfirmedScan(decodedText, validation.type);
     }
   };
@@ -777,9 +808,30 @@ const BarcodeScanner = () => {
                 
                 {cameraState === 'SCANNING' && (
                   <>
+                    {/* Scanning Active Indicator */}
+                    <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 shadow-lg z-50">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                      Scanning Active
+                    </div>
+
+                    {/* Enhanced Viewfinder */}
                     <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute inset-0 border-2 border-primary/50 animate-pulse" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 border-2 border-primary rounded-lg transition-all duration-300" />
+                      <div className="absolute inset-0 border-2 border-primary/30" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-48 border-4 border-green-500 rounded-2xl shadow-lg transition-all duration-300">
+                        {/* Animated Corners */}
+                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-400 rounded-tl-xl animate-pulse" />
+                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-400 rounded-tr-xl animate-pulse" />
+                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-400 rounded-bl-xl animate-pulse" />
+                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-400 rounded-bl-xl animate-pulse" />
+                        
+                        {/* Animated Scanning Line */}
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent animate-scan" />
+                      </div>
+                    </div>
+
+                    {/* Status Message */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-2 rounded-full text-sm backdrop-blur-sm">
+                      {statusMessage}
                     </div>
 
                     {scanningStatus === 'confirming' && (
@@ -814,6 +866,18 @@ const BarcodeScanner = () => {
                   Stop
                 </Button>
               </div>
+              
+              {/* Debug Test Button */}
+              {cameraState === 'SCANNING' && (
+                <Button 
+                  onClick={() => handleBarcodeDetected('5060292302294')} 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full mt-2"
+                >
+                  🧪 Test Detection (Debug)
+                </Button>
+              )}
             </div>
           )}
 
