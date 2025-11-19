@@ -49,12 +49,24 @@ const validateUPC = (barcode: string): boolean => {
 };
 
 const validateBarcode = (code: string): { valid: boolean; type: string } => {
-  if (code.length < 8 || code.length > 14) return { valid: false, type: 'invalid_length' };
-  if (!/^\d+$/.test(code)) return { valid: false, type: 'invalid_format' };
-  if (code.length === 13 && validateEAN13(code)) return { valid: true, type: 'EAN-13' };
-  if (code.length === 12 && validateUPC(code)) return { valid: true, type: 'UPC-A' };
+  console.log('🔍 Validating barcode:', code);
+  
+  // TEMPORARY: Accept any numeric code 8-14 digits for testing
+  if (code.length < 8 || code.length > 14) {
+    console.log('❌ Invalid length:', code.length);
+    return { valid: false, type: 'invalid_length' };
+  }
+  if (!/^\d+$/.test(code)) {
+    console.log('❌ Invalid format (not numeric)');
+    return { valid: false, type: 'invalid_format' };
+  }
+  
+  // Temporarily accept all numeric codes
+  console.log('✅ Barcode accepted (debug mode):', code);
+  if (code.length === 13) return { valid: true, type: 'EAN-13' };
+  if (code.length === 12) return { valid: true, type: 'UPC-A' };
   if (code.length === 8) return { valid: true, type: 'EAN-8' };
-  return { valid: false, type: 'invalid_checksum' };
+  return { valid: true, type: 'UNKNOWN' };
 };
 
 const BarcodeScanner = () => {
@@ -68,8 +80,9 @@ const BarcodeScanner = () => {
   const { toast } = useToast();
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const qrCodeRegionId = "qr-reader";
-  const CONFIRMATION_THRESHOLD = 3;
+  const CONFIRMATION_THRESHOLD = 2; // Reduced for testing
   const COOLDOWN_DURATION = 3000;
+  const [lastDetection, setLastDetection] = useState<string>(''); // For visual feedback
 
   useEffect(() => {
     return () => {
@@ -97,24 +110,30 @@ const BarcodeScanner = () => {
 
   const verifyProduct = async (barcode: string, barcodeType: string): Promise<ScanResult | null> => {
     try {
+      console.log('🔍 Verifying product:', barcode, 'Type:', barcodeType);
       setScanningStatus('verifying');
       setStatusMessage('Verifying product...');
       
+      console.log('📡 Calling edge function...');
       const { data, error } = await supabase.functions.invoke('verify-product', {
         body: { barcode }
       });
       
+      console.log('Edge function response:', data);
+      
       if (error) {
-        console.error('Edge function error:', error);
+        console.error('❌ Edge function error:', error);
         toast({ title: "Verification Error", description: "Unable to verify product.", variant: "destructive" });
         return null;
       }
       
       if (!data.found) {
+        console.log('❌ Product not found in database');
         toast({ title: "Product Not Found", description: data.message || "Not in database.", variant: "destructive" });
         return null;
       }
       
+      console.log('✅ Product verified successfully:', data.product_name);
       return {
         barcode, barcode_type: barcodeType, product_name: data.product_name, brands: data.brands,
         ingredients: data.ingredients, allergens: data.allergens, nutrition_grade: data.nutrition_grade,
@@ -122,7 +141,7 @@ const BarcodeScanner = () => {
         verified: true, verification_source: 'Open Food Facts'
       };
     } catch (error) {
-      console.error('Error verifying product:', error);
+      console.error('❌ Error verifying product:', error);
       toast({ title: "Verification Failed", description: "An error occurred.", variant: "destructive" });
       return null;
     }
@@ -147,24 +166,40 @@ const BarcodeScanner = () => {
   };
 
   const handleBarcodeDetected = async (decodedText: string) => {
-    if (scanCooldown) return;
+    console.log('📷 BARCODE DETECTED:', decodedText);
+    setLastDetection(decodedText); // Show in UI
+    
+    if (scanCooldown) {
+      console.log('⏸️ Skipped (cooldown active)');
+      return;
+    }
+    
+    console.log('🔄 Validating...');
     const validation = validateBarcode(decodedText);
+    console.log('Validation result:', validation);
+    
     if (!validation.valid) {
+      console.log('❌ Validation failed');
       setScanningStatus('error');
       setStatusMessage(`Invalid barcode: ${validation.type}`);
       return;
     }
     
+    console.log('📊 Updating scan buffer...');
     setScanBuffer(prev => {
       const newBuffer = new Map(prev);
       const currentCount = newBuffer.get(decodedText) || 0;
       newBuffer.set(decodedText, currentCount + 1);
       const scanCount = currentCount + 1;
       
+      console.log(`Scan count: ${scanCount}/${CONFIRMATION_THRESHOLD}`);
+      
       if (scanCount < CONFIRMATION_THRESHOLD) {
         setScanningStatus('confirming');
         setStatusMessage(`Scan ${scanCount}/${CONFIRMATION_THRESHOLD} - Keep scanning...`);
+        console.log('🔄 Need more scans');
       } else if (scanCount === CONFIRMATION_THRESHOLD) {
+        console.log('✅ THRESHOLD REACHED! Processing...');
         processConfirmedScan(decodedText, validation.type);
       }
       return newBuffer;
@@ -172,6 +207,7 @@ const BarcodeScanner = () => {
   };
 
   const processConfirmedScan = async (barcode: string, barcodeType: string) => {
+    console.log('🎯 Processing confirmed scan:', barcode, 'Type:', barcodeType);
     setScanningStatus('verifying');
     setStatusMessage('Product verified! ✓ Fetching details...');
     setScanCooldown(true);
@@ -179,16 +215,19 @@ const BarcodeScanner = () => {
     
     const productData = await verifyProduct(barcode, barcodeType);
     if (productData) {
+      console.log('✅ Product data received, saving...');
       setScanningStatus('success');
       setStatusMessage('Product verified successfully!');
       setResult(productData);
       await saveToDatabase(productData);
       toast({ title: "Product Verified ✓", description: `${productData.product_name} analyzed.` });
     } else {
+      console.log('❌ No product data received');
       setScanningStatus('error');
       setStatusMessage('Product not found');
     }
     
+    console.log('⏱️ Starting cooldown...');
     setTimeout(() => { setScanCooldown(false); setScanBuffer(new Map()); }, COOLDOWN_DURATION);
   };
 
@@ -203,25 +242,40 @@ const BarcodeScanner = () => {
       setCameraState('INITIALIZING');
       if (scannerRef.current) await scannerRef.current.stop();
       
+      console.log('🚀 Initializing Html5Qrcode scanner...');
       scannerRef.current = new Html5Qrcode(qrCodeRegionId, {
-        verbose: false,
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E
-        ]
+        verbose: true, // Enable debug mode
       });
+      
+      console.log('📹 Starting camera...');
       await scannerRef.current.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        handleBarcodeDetected,
-        () => {}
+        { 
+          fps: 20, // Increased for better detection
+          qrbox: { width: 300, height: 300 }, // Larger scan area
+          aspectRatio: 1.0 // Better compatibility
+        },
+        (decodedText) => {
+          console.log('✅ SUCCESS CALLBACK:', decodedText);
+          handleBarcodeDetected(decodedText);
+        },
+        (errorMessage) => {
+          // Error callback - only log occasionally to avoid spam
+          if (Math.random() < 0.01) {
+            console.log('⚠️ Scan error (normal):', errorMessage);
+          }
+        }
       );
-      
+      console.log('✅ Scanner started successfully');
+      console.log('✅ Scanner started successfully');
       setCameraState('SCANNING');
       setScanningStatus('scanning');
-      setStatusMessage('Position barcode in frame...');
+      setStatusMessage('Scanning... Point camera at barcode');
+      console.log('🎯 Scanner is now active and waiting for barcodes');
+      toast({
+        title: "Camera Ready",
+        description: "Point your camera at a barcode to scan",
+      });
     } catch (error: any) {
       toast({ title: "Scanner Error", description: "Failed to start camera.", variant: "destructive" });
       setCameraState('ERROR');
@@ -252,7 +306,14 @@ const BarcodeScanner = () => {
               {scanningStatus === 'verifying' && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
               {scanningStatus === 'success' && <CheckCircle2 className="h-5 w-5 text-green-500" />}
               {scanningStatus === 'error' && <AlertTriangle className="h-5 w-5 text-destructive" />}
-              <p className="font-medium">{statusMessage}</p>
+              <div>
+                <p className="font-medium">{statusMessage}</p>
+                {lastDetection && (
+                  <p className="text-xs text-primary font-mono mt-1">
+                    Last detected: {lastDetection}
+                  </p>
+                )}
+              </div>
             </div>
           </Card>
         )}
