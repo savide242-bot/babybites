@@ -1,31 +1,33 @@
 import { useState, useEffect } from "react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ShoppingCart, Plus, X, Sparkles, Save } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShoppingCart, Check, ChefHat, Trash2 } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
-import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
+
+interface MealSlot {
+  recipeId: string;
+  prepared: boolean;
+  dbId?: string;
+}
 
 interface MealPlan {
-  [key: string]: {
-    breakfast?: string;
-    lunch?: string;
-    dinner?: string;
-    snack?: string;
+  [day: string]: {
+    [mealType: string]: MealSlot;
   };
 }
 
 const MealPlanner = () => {
-  const { t } = useLanguage();
   const [mealPlan, setMealPlan] = useState<MealPlan>({});
-  const [activeTab, setActiveTab] = useState("custom");
   const [userId, setUserId] = useState<string | null>(null);
-  const [savedDays, setSavedDays] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     checkUser();
@@ -52,222 +54,175 @@ const MealPlanner = () => {
 
     if (data) {
       const plan: MealPlan = {};
-      const saved = new Set<string>();
       data.forEach((item) => {
         if (!plan[item.day_of_week]) {
           plan[item.day_of_week] = {};
         }
-        plan[item.day_of_week][item.meal_type] = item.recipe_id;
-        saved.add(item.day_of_week);
+        plan[item.day_of_week][item.meal_type] = {
+          recipeId: item.recipe_id,
+          prepared: item.prepared || false,
+          dbId: item.id,
+        };
       });
       setMealPlan(plan);
-      setSavedDays(saved);
     }
   };
 
-  const handleAddMeal = (day: string, mealType: string, recipeId: string) => {
-    setMealPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: recipeId,
-      },
-    }));
-    
-    // Show success checkmark animation
-    const checkmarkToast = document.createElement('div');
-    checkmarkToast.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground rounded-full p-4 shadow-lg animate-checkmark z-50';
-    checkmarkToast.innerHTML = '✓';
-    checkmarkToast.style.fontSize = '48px';
-    document.body.appendChild(checkmarkToast);
-    
-    setTimeout(() => {
-      checkmarkToast.style.opacity = '0';
-      checkmarkToast.style.transition = 'opacity 0.3s';
-      setTimeout(() => checkmarkToast.remove(), 300);
-    }, 1000);
-    
-    toast.success("Meal added to planner!");
-  };
+  const onDragEnd = async (result: DropResult) => {
+    if (!result.destination || !userId) return;
 
-  const handleRemoveMeal = (day: string, mealType: string) => {
-    setMealPlan((prev) => {
-      const dayMeals = { ...prev[day] };
-      delete dayMeals[mealType as keyof typeof dayMeals];
-      return {
-        ...prev,
-        [day]: dayMeals,
-      };
-    });
-    toast.info("Meal removed from planner");
-  };
+    const recipeId = result.draggableId;
+    const [day, mealType] = result.destination.droppableId.split('-');
 
-  const handleSaveDay = async (day: string) => {
-    if (!userId) {
-      toast.error("Please login to save meal plans");
+    // Check if slot already has a meal
+    if (mealPlan[day]?.[mealType]) {
+      toast.error("This slot already has a meal. Remove it first!");
       return;
     }
 
-    const dayMeals = mealPlan[day];
-    if (!dayMeals || Object.keys(dayMeals).length === 0) {
-      toast.error("No meals to save for this day");
-      return;
-    }
-
-    // Button animation state
-    const buttonEl = document.querySelector(`[data-save-day="${day}"]`) as HTMLButtonElement;
-    if (buttonEl) {
-      buttonEl.classList.add('scale-95');
-      buttonEl.disabled = true;
-    }
-
-    try {
-      // Delete existing meals for this day
-      await supabase
-        .from('meal_plans')
-        .delete()
-        .eq('user_id', userId)
-        .eq('day_of_week', day);
-
-      // Insert new meals
-      const mealsToInsert = Object.entries(dayMeals).map(([mealType, recipeId]) => ({
+    // Add to meal plan
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .insert({
         user_id: userId,
         day_of_week: day,
         meal_type: mealType,
         recipe_id: recipeId,
-      }));
+        prepared: false,
+      })
+      .select()
+      .single();
 
-      const { error } = await supabase
-        .from('meal_plans')
-        .insert(mealsToInsert);
-
-      if (error) throw error;
-
-      setSavedDays((prev) => new Set([...prev, day]));
-      await updateShoppingList();
-      
-      // Success animation
-      if (buttonEl) {
-        buttonEl.classList.remove('scale-95');
-        buttonEl.classList.add('bg-green-500', 'text-white');
-        buttonEl.innerHTML = '✓ Saved';
-        
-        setTimeout(() => {
-          buttonEl.classList.remove('bg-green-500', 'text-white');
-          buttonEl.innerHTML = '<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Day';
-          buttonEl.disabled = false;
-        }, 2000);
-      }
-      
-      toast.success(`${day} meal plan saved!`);
-    } catch (error) {
-      console.error('Error saving meal plan:', error);
-      toast.error("Failed to save meal plan");
-      if (buttonEl) {
-        buttonEl.classList.remove('scale-95');
-        buttonEl.disabled = false;
-      }
+    if (error) {
+      toast.error("Failed to add meal");
+      console.error(error);
+      return;
     }
+
+    setMealPlan((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [mealType]: {
+          recipeId,
+          prepared: false,
+          dbId: data.id,
+        },
+      },
+    }));
+
+    toast.success("Meal added! Shopping list updated automatically.");
+    updateShoppingList();
   };
 
-  const handleRemoveDay = async (day: string) => {
-    if (!userId) return;
+  const removeMeal = async (day: string, mealType: string) => {
+    const slot = mealPlan[day]?.[mealType];
+    if (!slot?.dbId) return;
 
-    try {
-      const { error } = await supabase
-        .from('meal_plans')
-        .delete()
-        .eq('user_id', userId)
-        .eq('day_of_week', day);
+    const { error } = await supabase
+      .from('meal_plans')
+      .delete()
+      .eq('id', slot.dbId);
 
-      if (error) throw error;
-
-      setMealPlan((prev) => {
-        const newPlan = { ...prev };
-        delete newPlan[day];
-        return newPlan;
-      });
-
-      setSavedDays((prev) => {
-        const newSaved = new Set(prev);
-        newSaved.delete(day);
-        return newSaved;
-      });
-
-      await updateShoppingList();
-      toast.success(`${day} meal plan removed`);
-    } catch (error) {
-      console.error('Error removing meal plan:', error);
-      toast.error("Failed to remove meal plan");
+    if (error) {
+      toast.error("Failed to remove meal");
+      return;
     }
+
+    setMealPlan((prev) => {
+      const newPlan = { ...prev };
+      delete newPlan[day][mealType];
+      return newPlan;
+    });
+
+    toast.info("Meal removed");
+    updateShoppingList();
+  };
+
+  const togglePrepared = async (day: string, mealType: string) => {
+    const slot = mealPlan[day]?.[mealType];
+    if (!slot?.dbId) return;
+
+    const newPrepared = !slot.prepared;
+
+    const { error } = await supabase
+      .from('meal_plans')
+      .update({ prepared: newPrepared })
+      .eq('id', slot.dbId);
+
+    if (error) {
+      toast.error("Failed to update meal status");
+      return;
+    }
+
+    setMealPlan((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [mealType]: {
+          ...slot,
+          prepared: newPrepared,
+        },
+      },
+    }));
+
+    toast.success(newPrepared ? "Meal marked as prepared!" : "Meal marked as not prepared");
   };
 
   const updateShoppingList = async () => {
     if (!userId) return;
 
-    try {
-      // Delete all existing shopping items
-      await supabase
-        .from('shopping_list_items')
-        .delete()
-        .eq('user_id', userId);
-
-      // Get all current meal plans
-      const { data: mealPlans } = await supabase
-        .from('meal_plans')
-        .select('*')
-        .eq('user_id', userId);
-
-      if (!mealPlans || mealPlans.length === 0) return;
-
-      // Collect all ingredients
-      const ingredientMap = new Map<string, { category: string; fromRecipe: string }>();
-
-      mealPlans.forEach((plan) => {
-        const recipe = recipes.find((r) => r.id === plan.recipe_id);
+    // Get all ingredients from meal plan
+    const allIngredients: { ingredient: string; fromRecipe: string }[] = [];
+    
+    Object.entries(mealPlan).forEach(([_, dayMeals]) => {
+      Object.values(dayMeals).forEach((slot) => {
+        const recipe = recipes.find((r) => r.id === slot.recipeId);
         if (recipe) {
-          recipe.ingredients.forEach((ingredient) => {
-            const cleanIngredient = ingredient.split(',')[0].trim();
-            if (!ingredientMap.has(cleanIngredient)) {
-              ingredientMap.set(cleanIngredient, {
-                category: categorizeIngredient(cleanIngredient),
-                fromRecipe: recipe.title,
-              });
-            }
+          recipe.ingredients.forEach((ing) => {
+            allIngredients.push({
+              ingredient: ing,
+              fromRecipe: recipe.title,
+            });
           });
         }
       });
+    });
 
-      // Insert new shopping items
-      const itemsToInsert = Array.from(ingredientMap.entries()).map(([ingredient, info]) => ({
+    // Clear existing shopping list
+    await supabase
+      .from('shopping_list_items')
+      .delete()
+      .eq('user_id', userId);
+
+    // Add new items
+    if (allIngredients.length > 0) {
+      const items = allIngredients.map((item) => ({
         user_id: userId,
-        ingredient,
-        category: info.category,
-        from_recipe: info.fromRecipe,
+        ingredient: item.ingredient,
+        category: categorizeIngredient(item.ingredient),
+        from_recipe: item.fromRecipe,
         checked: false,
       }));
 
-      if (itemsToInsert.length > 0) {
-        await supabase.from('shopping_list_items').insert(itemsToInsert);
-      }
-    } catch (error) {
-      console.error('Error updating shopping list:', error);
+      await supabase
+        .from('shopping_list_items')
+        .insert(items);
     }
   };
 
   const categorizeIngredient = (ingredient: string): string => {
     const lower = ingredient.toLowerCase();
     if (lower.includes("tomato") || lower.includes("carrot") || lower.includes("broccoli") || 
-        lower.includes("spinach") || lower.includes("kale") || lower.includes("pepper") ||
-        lower.includes("onion") || lower.includes("garlic")) {
+        lower.includes("spinach") || lower.includes("pepper") || lower.includes("onion")) {
       return "Vegetables";
     }
     if (lower.includes("banana") || lower.includes("apple") || lower.includes("pear") || 
-        lower.includes("strawberry") || lower.includes("mango") || lower.includes("avocado")) {
+        lower.includes("mango") || lower.includes("avocado")) {
       return "Fruits";
     }
     if (lower.includes("chicken") || lower.includes("beef") || lower.includes("fish") || 
-        lower.includes("salmon") || lower.includes("turkey") || lower.includes("egg")) {
+        lower.includes("salmon") || lower.includes("egg") || lower.includes("turkey")) {
       return "Proteins";
     }
     if (lower.includes("rice") || lower.includes("pasta") || lower.includes("bread") || 
@@ -280,159 +235,175 @@ const MealPlanner = () => {
     return "Others";
   };
 
-  const getRecipeById = (id: string) => recipes.find((r) => r.id === id);
+  const getRecipe = (recipeId: string) => recipes.find((r) => r.id === recipeId);
 
+  const filteredRecipes = recipes.filter((recipe) =>
+    recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container max-w-6xl">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">{t('planner.title')}</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mb-6">
-            {t('planner.subtitle')}
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8 text-center animate-fade-in">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            Weekly Meal Planner
+          </h1>
+          <p className="text-muted-foreground">Drag recipes to plan your week</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="suggestions">{t('planner.suggestions')}</TabsTrigger>
-            <TabsTrigger value="custom">{t('planner.custom')}</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="suggestions" className="mt-8">
-            <Card className="border-2">
-              <CardContent className="pt-6">
-                <div className="text-center py-12">
-                  <Sparkles className="h-16 w-16 mx-auto mb-4 text-primary" />
-                  <h3 className="text-2xl font-bold mb-4">AI Meal Suggestions Coming Soon</h3>
-                  <p className="text-muted-foreground mb-6">Get personalized 7-day meal plans based on your baby's age and preferences</p>
-                  <Button size="lg" className="rounded-full" disabled>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    {t('planner.generateSuggestions')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="custom" className="mt-8">
-
-            <div className="space-y-6">
-          {daysOfWeek.map((day, dayIndex) => (
-            <Card 
-              key={day} 
-              className="border-2 animate-slide-in-right"
-              style={{ animationDelay: `${dayIndex * 100}ms` }}
-            >
-              <CardHeader className="bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    {day}
-                  </CardTitle>
-                  <div className="flex gap-2">
-                    {savedDays.has(day) ? (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveDay(day)}
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Remove
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleSaveDay(day)}
-                        disabled={!mealPlan[day] || Object.keys(mealPlan[day]).length === 0}
-                        data-save-day={day}
-                        className="transition-all duration-200"
-                      >
-                        <Save className="h-4 w-4 mr-1" />
-                        Save
-                      </Button>
-                    )}
-                  </div>
-                </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="grid lg:grid-cols-4 gap-6">
+            {/* Recipe Sidebar */}
+            <Card className="lg:col-span-1 h-fit sticky top-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ChefHat className="h-5 w-5" />
+                  Recipes
+                </CardTitle>
+                <input
+                  type="text"
+                  placeholder="Search recipes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:ring-2 focus:ring-ring"
+                />
               </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  {["breakfast", "lunch", "dinner", "snack"].map((mealType) => {
-                    const recipeId = mealPlan[day]?.[mealType];
-                    const recipe = recipeId ? getRecipeById(recipeId) : null;
-
-                    return (
-                      <div key={mealType} className="space-y-2">
-                        <div className="text-sm font-medium capitalize text-muted-foreground">
-                          {mealType}
-                        </div>
-                        
-                        {recipe ? (
-                          <Card className="relative group">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                              onClick={() => handleRemoveMeal(day, mealType)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                            <CardContent className="p-3">
-                              <div className="text-sm font-medium line-clamp-2">
-                                {recipe.title}
+              <CardContent className="p-0">
+                <ScrollArea className="h-[600px]">
+                  <Droppable droppableId="recipes" isDropDisabled={true}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className="p-4 space-y-2"
+                      >
+                        {filteredRecipes.map((recipe, index) => (
+                          <Draggable
+                            key={recipe.id}
+                            draggableId={recipe.id}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`p-3 bg-card border rounded-lg cursor-move hover:shadow-md transition-all ${
+                                  snapshot.isDragging ? "shadow-lg rotate-2 scale-105 border-primary" : ""
+                                }`}
+                              >
+                                <p className="text-sm font-medium line-clamp-2">
+                                  {recipe.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {recipe.prepTime}
+                                </p>
                               </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {recipe.prepTime}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ) : (
-                          <Select onValueChange={(value) => handleAddMeal(day, mealType, value)}>
-                            <SelectTrigger className="rounded-xl">
-                              <SelectValue placeholder="Add meal" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {recipes
-                                .filter((r) => 
-                                  r.category.toLowerCase() === mealType.toLowerCase() ||
-                                  mealType === "snack" && r.category === "Snack"
-                                )
-                                .map((recipe) => (
-                                  <SelectItem key={recipe.id} value={recipe.id}>
-                                    {recipe.title}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        )}
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
                       </div>
-                    );
-                  })}
-                </div>
+                    )}
+                  </Droppable>
+                </ScrollArea>
               </CardContent>
             </Card>
-          ))}
+
+            {/* Weekly Grid */}
+            <div className="lg:col-span-3 space-y-4">
+              {daysOfWeek.map((day, dayIndex) => (
+                <Card key={day} className="animate-fade-in" style={{ animationDelay: `${dayIndex * 50}ms` }}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl">{day}</CardTitle>
+                      <Badge variant="outline">
+                        {Object.values(mealPlan[day] || {}).filter(m => m.prepared).length}/
+                        {Object.keys(mealPlan[day] || {}).length} prepared
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {mealTypes.map((mealType) => {
+                        const slot = mealPlan[day]?.[mealType];
+                        const recipe = slot ? getRecipe(slot.recipeId) : null;
+
+                        return (
+                          <Droppable
+                            key={`${day}-${mealType}`}
+                            droppableId={`${day}-${mealType}`}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className={`min-h-[120px] border-2 border-dashed rounded-lg p-3 transition-all ${
+                                  snapshot.isDraggingOver
+                                    ? "border-primary bg-primary/10 scale-105"
+                                    : "border-border"
+                                } ${slot ? "bg-muted/50" : ""}`}
+                              >
+                                <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
+                                  {mealType}
+                                </p>
+
+                                {recipe ? (
+                                  <div className={`space-y-2 ${slot.prepared ? "opacity-60" : ""}`}>
+                                    <p className="text-sm font-medium line-clamp-2">
+                                      {recipe.title}
+                                    </p>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant={slot.prepared ? "default" : "outline"}
+                                        className="h-7 text-xs flex-1"
+                                        onClick={() => togglePrepared(day, mealType)}
+                                      >
+                                        <Check className="h-3 w-3 mr-1" />
+                                        {slot.prepared ? "Done" : "Mark"}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => removeMeal(day, mealType)}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
+                                    Drop recipe here
+                                  </div>
+                                )}
+
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
-        <Card className="mt-12 border-2 border-primary/20 bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Meal Planning Tips
-            </CardTitle>
-            <CardDescription>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li>• Plan meals that share common ingredients to reduce waste</li>
-                <li>• Prepare larger batches and freeze portions for busy days</li>
-                <li>• Rotate proteins and vegetables throughout the week for variety</li>
-                <li>• Keep favorite meals on hand for days when plans change</li>
-              </ul>
-            </CardDescription>
-          </CardHeader>
-        </Card>
+          </div>
+        </DragDropContext>
+
+        {/* Quick Actions */}
+        <div className="fixed bottom-20 right-4 flex flex-col gap-2">
+          <Button
+            size="lg"
+            className="rounded-full shadow-lg"
+            onClick={() => window.location.href = "/shopping-list"}
+          >
+            <ShoppingCart className="h-5 w-5 mr-2" />
+            View Shopping List
+          </Button>
+        </div>
       </div>
     </div>
   );
