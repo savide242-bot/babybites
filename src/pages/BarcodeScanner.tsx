@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Scan, AlertTriangle, CheckCircle2, Camera, X, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Scan, AlertTriangle, CheckCircle2, Camera, X, Loader2, Flashlight, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { BrowserMultiFormatReader, BarcodeFormat } from "@zxing/browser";
+import { Html5Qrcode } from "html5-qrcode";
 
-type CameraState = 'IDLE' | 'REQUESTING_PERMISSION' | 'INITIALIZING' | 'SCANNING' | 'PAUSED' | 'ERROR';
+type CameraState = 'IDLE' | 'REQUESTING_PERMISSION' | 'INITIALIZING' | 'SCANNING' | 'ERROR';
 type ScanningStatus = 'idle' | 'scanning' | 'confirming' | 'verifying' | 'success' | 'error';
+type ScannerMethod = 'zxing' | 'html5qrcode';
 
 interface ScanResult {
   barcode: string;
@@ -27,18 +29,13 @@ interface ScanResult {
 }
 
 const validateBarcode = (code: string): { valid: boolean; type: string } => {
-  console.log('🔍 Validating barcode:', code);
-  
   if (code.length < 8 || code.length > 14) {
-    console.log('❌ Invalid length:', code.length);
     return { valid: false, type: 'invalid_length' };
   }
   if (!/^\d+$/.test(code)) {
-    console.log('❌ Invalid format (not numeric)');
     return { valid: false, type: 'invalid_format' };
   }
   
-  console.log('✅ Barcode accepted:', code);
   if (code.length === 13) return { valid: true, type: 'EAN-13' };
   if (code.length === 12) return { valid: true, type: 'UPC-A' };
   if (code.length === 8) return { valid: true, type: 'EAN-8' };
@@ -53,12 +50,19 @@ const BarcodeScanner = () => {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [scanBuffer, setScanBuffer] = useState<Map<string, number>>(new Map());
   const [scanCooldown, setScanCooldown] = useState(false);
+  const [scannerMethod, setScannerMethod] = useState<ScannerMethod>('zxing');
+  const [torchEnabled, setTorchEnabled] = useState(false);
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
+  
   const { toast } = useToast();
   const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  
   const CONFIRMATION_THRESHOLD = 2;
   const COOLDOWN_DURATION = 3000;
-  const [lastDetection, setLastDetection] = useState<string>('');
 
   useEffect(() => {
     return () => {
@@ -66,135 +70,361 @@ const BarcodeScanner = () => {
     };
   }, []);
 
-  const stopCameraScanner = () => {
+  const stopCameraScanner = async () => {
+    console.log('🛑 Stopping scanner...');
+    
     if (scannerRef.current) {
       scannerRef.current = null;
     }
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+      } catch (e) {
+        console.error('Error stopping HTML5-QRCode:', e);
+      }
+      html5QrCodeRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('🎥 Stopped track:', track.label);
+      });
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+
     setCameraState('IDLE');
     setScanningStatus('idle');
     setStatusMessage('');
     setScanBuffer(new Map());
+    setTorchEnabled(false);
+  };
+
+  const requestCameraPermission = async (): Promise<boolean> => {
+    try {
+      console.log('📷 Requesting camera permission...');
+      setCameraState('REQUESTING_PERMISSION');
+      setStatusMessage('Requesting camera access...');
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: cameraFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+
+      streamRef.current = stream;
+      console.log('✅ Camera permission granted');
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      setHasMultipleCameras(videoDevices.length > 1);
+      console.log(`📹 Found ${videoDevices.length} camera(s)`);
+
+      return true;
+    } catch (error: any) {
+      console.error('❌ Camera permission error:', error);
+      setCameraState('ERROR');
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        setStatusMessage('Camera access denied. Please enable camera in your browser settings.');
+        toast({
+          title: "Camera Access Denied",
+          description: "Please enable camera permissions in your browser settings and try again.",
+          variant: "destructive"
+        });
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        setStatusMessage('No camera found. Please connect a camera device.');
+        toast({
+          title: "No Camera Found",
+          description: "Please connect a camera and try again.",
+          variant: "destructive"
+        });
+      } else {
+        setStatusMessage('Failed to access camera. Please try again.');
+        toast({
+          title: "Camera Error",
+          description: error.message || "Failed to access camera",
+          variant: "destructive"
+        });
+      }
+      
+      return false;
+    }
+  };
+
+  const initializeZXingScanner = async (): Promise<boolean> => {
+    try {
+      console.log('🔧 Initializing ZXing scanner...');
+      setCameraState('INITIALIZING');
+      setStatusMessage('Initializing scanner...');
+
+      if (!videoRef.current) {
+        throw new Error('Video element not found');
+      }
+
+      await new Promise<void>((resolve) => {
+        if (videoRef.current!.readyState >= 2) {
+          resolve();
+        } else {
+          videoRef.current!.addEventListener('loadedmetadata', () => resolve(), { once: true });
+        }
+      });
+
+      const codeReader = new BrowserMultiFormatReader();
+      scannerRef.current = codeReader;
+
+      const videoDevices = await BrowserMultiFormatReader.listVideoInputDevices();
+      const selectedDevice = videoDevices.find(device => 
+        device.label.toLowerCase().includes(cameraFacingMode === 'environment' ? 'back' : 'front')
+      ) || videoDevices[0];
+
+      console.log('📹 Selected camera:', selectedDevice.label);
+
+      await codeReader.decodeFromVideoDevice(
+        selectedDevice.deviceId,
+        videoRef.current,
+        (result, error) => {
+          if (result) {
+            const detectedCode = result.getText();
+            console.log('📸 ZXing detected:', detectedCode);
+            handleBarcodeDetected(detectedCode);
+          }
+        }
+      );
+
+      setCameraState('SCANNING');
+      setScanningStatus('scanning');
+      setStatusMessage('Point camera at barcode...');
+      console.log('✅ ZXing scanner initialized');
+      
+      return true;
+    } catch (error: any) {
+      console.error('❌ ZXing initialization error:', error);
+      return false;
+    }
+  };
+
+  const initializeHtml5QrCodeScanner = async (): Promise<boolean> => {
+    try {
+      console.log('🔧 Initializing HTML5-QRCode scanner (fallback)...');
+      setCameraState('INITIALIZING');
+      setStatusMessage('Initializing fallback scanner...');
+
+      const html5QrCode = new Html5Qrcode("barcode-reader");
+      html5QrCodeRef.current = html5QrCode;
+
+      await html5QrCode.start(
+        { facingMode: cameraFacingMode },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+          console.log('📸 HTML5-QRCode detected:', decodedText);
+          handleBarcodeDetected(decodedText);
+        },
+        (errorMessage) => {
+          // Scanning errors are normal, ignore
+        }
+      );
+
+      setCameraState('SCANNING');
+      setScanningStatus('scanning');
+      setStatusMessage('Point camera at barcode...');
+      console.log('✅ HTML5-QRCode scanner initialized');
+      
+      return true;
+    } catch (error: any) {
+      console.error('❌ HTML5-QRCode initialization error:', error);
+      return false;
+    }
+  };
+
+  const startCameraScanner = async () => {
+    try {
+      console.log('🚀 Starting camera scanner...');
+      
+      const hasPermission = await requestCameraPermission();
+      if (!hasPermission) return;
+
+      if (scannerMethod === 'zxing') {
+        const zxingSuccess = await initializeZXingScanner();
+        if (!zxingSuccess) {
+          console.log('⚠️ ZXing failed, trying HTML5-QRCode fallback...');
+          toast({
+            title: "Switching Scanner",
+            description: "Primary scanner failed, trying alternative method...",
+          });
+          setScannerMethod('html5qrcode');
+          const fallbackSuccess = await initializeHtml5QrCodeScanner();
+          if (!fallbackSuccess) {
+            throw new Error('Both scanner methods failed');
+          }
+        }
+      } else {
+        const html5Success = await initializeHtml5QrCodeScanner();
+        if (!html5Success) {
+          console.log('⚠️ HTML5-QRCode failed, trying ZXing fallback...');
+          toast({
+            title: "Switching Scanner",
+            description: "Primary scanner failed, trying alternative method...",
+          });
+          setScannerMethod('zxing');
+          const fallbackSuccess = await initializeZXingScanner();
+          if (!fallbackSuccess) {
+            throw new Error('Both scanner methods failed');
+          }
+        }
+      }
+
+      toast({
+        title: "Scanner Ready",
+        description: "Point your camera at a product barcode",
+      });
+    } catch (error: any) {
+      console.error('❌ Failed to start scanner:', error);
+      setCameraState('ERROR');
+      setStatusMessage('Failed to start scanner. Please try again.');
+      toast({
+        title: "Scanner Error",
+        description: error.message || "Failed to initialize camera scanner",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleTorch = async () => {
+    if (!streamRef.current) return;
+
+    try {
+      const track = streamRef.current.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+
+      if (capabilities.torch) {
+        await track.applyConstraints({
+          advanced: [{ torch: !torchEnabled } as any]
+        });
+        setTorchEnabled(!torchEnabled);
+        toast({
+          title: torchEnabled ? "Flashlight Off" : "Flashlight On",
+        });
+      } else {
+        toast({
+          title: "Not Supported",
+          description: "Your device doesn't support flashlight",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling torch:', error);
+    }
+  };
+
+  const switchCamera = async () => {
+    await stopCameraScanner();
+    setCameraFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
+    setTimeout(() => {
+      startCameraScanner();
+    }, 500);
   };
 
   const handleBarcodeDetected = (decodedText: string) => {
-    console.log('📸 Barcode detected:', decodedText);
-    setLastDetection(decodedText);
-    
-    if (scanCooldown) {
-      console.log('⏸️ In cooldown, ignoring scan');
-      return;
-    }
+    if (scanCooldown) return;
 
     const validation = validateBarcode(decodedText);
-    if (!validation.valid) {
-      console.log('❌ Invalid barcode format:', validation.type);
-      return;
-    }
+    if (!validation.valid) return;
 
     const newBuffer = new Map(scanBuffer);
     const count = (newBuffer.get(decodedText) || 0) + 1;
     newBuffer.set(decodedText, count);
     setScanBuffer(newBuffer);
     
-    console.log(`📊 Buffer count for ${decodedText}: ${count}/${CONFIRMATION_THRESHOLD}`);
-    setStatusMessage(`Scan ${count}/${CONFIRMATION_THRESHOLD} - Keep scanning...`);
+    setStatusMessage(`Scan ${count}/${CONFIRMATION_THRESHOLD} - Keep steady...`);
 
     if (count >= CONFIRMATION_THRESHOLD) {
-      console.log('✅ Confirmation threshold reached!');
-      setScanCooldown(true);
       processConfirmedScan(decodedText, validation.type);
     }
   };
 
-  const processConfirmedScan = async (barcode: string, barcodeType: string) => {
-    console.log('🔄 Processing confirmed scan:', barcode);
+  const processConfirmedScan = async (confirmedBarcode: string, barcodeType: string) => {
+    console.log('✅ Barcode confirmed:', confirmedBarcode);
+    setScanCooldown(true);
     setScanningStatus('verifying');
     setStatusMessage('Verifying product...');
-    
-    const productData = await verifyProduct(barcode, barcodeType);
-    
-    if (productData) {
-      console.log('💾 Saving to database...');
-      await saveToDatabase(productData);
-      setResult(productData);
-      setScanningStatus('success');
-      setStatusMessage('Product verified successfully!');
-      toast({
-        title: "Product Scanned",
-        description: productData.product_name,
-      });
-    } else {
-      console.log('❌ No product data received');
+    setScanBuffer(new Map());
+
+    toast({
+      title: "Barcode Detected!",
+      description: `Verifying ${confirmedBarcode}...`,
+    });
+
+    try {
+      const productData = await verifyProduct(confirmedBarcode, barcodeType);
+      
+      if (productData) {
+        await saveToDatabase(productData);
+        setResult(productData);
+        setScanningStatus('success');
+        setStatusMessage('Product verified successfully!');
+        
+        toast({
+          title: "Product Scanned",
+          description: productData.product_name || "Product information retrieved",
+        });
+      } else {
+        setScanningStatus('error');
+        setStatusMessage('Product not found in database');
+        toast({
+          title: "Product Not Found",
+          description: "This product is not in our database yet.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Scan processing error:', error);
       setScanningStatus('error');
-      setStatusMessage('Product not found');
+      setStatusMessage('Error processing scan');
+      toast({
+        title: "Scan Error",
+        description: error.message || "Failed to process barcode",
+        variant: "destructive"
+      });
     }
-    
-    console.log('⏱️ Starting cooldown...');
-    setTimeout(() => { 
-      setScanCooldown(false); 
-      setScanBuffer(new Map());
-      setStatusMessage('Scanning... Point camera at barcode');
+
+    setTimeout(() => {
+      setScanCooldown(false);
+      if (scanningStatus !== 'success') {
+        setScanningStatus('scanning');
+        setStatusMessage('Point camera at barcode...');
+      }
     }, COOLDOWN_DURATION);
   };
 
   const verifyProduct = async (barcode: string, barcodeType: string): Promise<ScanResult | null> => {
     try {
-      console.log('📡 Verifying product with API:', barcode);
-      setScanningStatus('verifying');
-      setStatusMessage('Verifying product...');
-      
       const { data, error } = await supabase.functions.invoke('verify-product', {
-        body: { barcode }
+        body: { barcode, barcodeType }
       });
-      
-      if (error) {
-        console.error('❌ Edge function error:', error);
-        toast({ title: "Verification Error", description: "Unable to verify product.", variant: "destructive" });
-        return null;
-      }
-      
-      if (!data.found) {
-        console.log('❌ Product not found in database');
-        toast({ title: "Product Not Found", description: data.message || "Not in database.", variant: "destructive" });
-        return null;
-      }
-      
-      console.log('✅ Product verified successfully:', data.product_name);
-      return {
-        barcode, 
-        barcode_type: barcodeType, 
-        product_name: data.product_name, 
-        brands: data.brands,
-        ingredients: data.ingredients, 
-        allergens: data.allergens, 
-        nutrition_grade: data.nutrition_grade,
-        is_baby_safe: data.is_baby_safe, 
-        safety_notes: data.safety_notes, 
-        image_url: data.image_url,
-        verified: true, 
-        verification_source: data.verification_source || "Open Food Facts"
-      };
-    } catch (error) {
-      console.error('❌ Verification error:', error);
-      toast({ title: "Error", description: "Failed to verify product", variant: "destructive" });
-      return null;
+
+      if (error) throw error;
+      return data as ScanResult;
+    } catch (error: any) {
+      console.error('Product verification error:', error);
+      throw error;
     }
   };
 
   const saveToDatabase = async (productData: ScanResult) => {
     try {
-      console.log('💾 Saving product to database...');
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.error('❌ No authenticated user');
-        return;
-      }
+      if (!user) throw new Error('User not authenticated');
 
       const { error } = await supabase.from('scanned_products').insert({
         user_id: user.id,
@@ -211,229 +441,294 @@ const BarcodeScanner = () => {
         verification_source: productData.verification_source,
       });
 
-      if (error) {
-        console.error('❌ Database error:', error);
-      } else {
-        console.log('✅ Product saved to database');
-      }
-    } catch (error) {
-      console.error('❌ Save error:', error);
-    }
-  };
-
-  const startCameraScanner = async () => {
-    try {
-      setCameraState('REQUESTING_PERMISSION');
-      setStatusMessage('Requesting camera permission...');
-      
-      console.log('🚀 Initializing ZXing scanner...');
-      const codeReader = new BrowserMultiFormatReader();
-      
-      // Set hints for barcode formats
-      const hints = new Map();
-      const formats = [
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-      ];
-      hints.set(2, formats); // DecodeHintType.POSSIBLE_FORMATS = 2
-      
-      setCameraState('INITIALIZING');
-      console.log('📹 Starting camera...');
-      
-      if (!videoRef.current) {
-        throw new Error('Video element not found');
-      }
-
-      // Get video devices
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      
-      // Prefer back camera
-      const backCamera = videoDevices.find(device => 
-        device.label.toLowerCase().includes('back') || 
-        device.label.toLowerCase().includes('rear')
-      );
-      
-      const selectedDeviceId = backCamera?.deviceId || videoDevices[0]?.deviceId;
-      
-      console.log('📱 Using camera:', backCamera?.label || videoDevices[0]?.label);
-      
-      scannerRef.current = codeReader;
-      
-      await codeReader.decodeFromVideoDevice(
-        selectedDeviceId,
-        videoRef.current,
-        (result, error) => {
-          if (result) {
-            console.log('✅ ZXing detected:', result.getText());
-            handleBarcodeDetected(result.getText());
-          }
-        }
-      );
-      
-      console.log('✅ Scanner started successfully');
-      setCameraState('SCANNING');
-      setScanningStatus('scanning');
-      setStatusMessage('Scanning... Point camera at barcode');
-      
-      toast({
-        title: "Camera Ready",
-        description: "Point your camera at a barcode to scan",
-      });
+      if (error) throw error;
+      console.log('✅ Product saved to database');
     } catch (error: any) {
-      console.error('❌ Scanner initialization error:', error);
-      toast({ 
-        title: "Scanner Error", 
-        description: error.message || "Failed to start camera.", 
-        variant: "destructive" 
-      });
-      setCameraState('ERROR');
+      console.error('Database save error:', error);
+      throw error;
     }
   };
 
   const handleManualScan = async () => {
-    const validation = validateBarcode(barcode.trim());
-    if (!validation.valid) {
-      toast({ title: "Invalid Barcode", description: `Invalid format: ${validation.type}`, variant: "destructive" });
+    if (!barcode.trim()) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a barcode number",
+        variant: "destructive"
+      });
       return;
     }
-    
+
+    const validation = validateBarcode(barcode);
+    if (!validation.valid) {
+      toast({
+        title: "Invalid Barcode",
+        description: "Please enter a valid barcode (8-14 digits)",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setScanningStatus('verifying');
-    const productData = await verifyProduct(barcode.trim(), validation.type);
-    
-    if (productData) {
-      await saveToDatabase(productData);
-      setResult(productData);
-      setScanningStatus('success');
-    } else {
+    setStatusMessage('Verifying product...');
+
+    try {
+      const productData = await verifyProduct(barcode, validation.type);
+      
+      if (productData) {
+        await saveToDatabase(productData);
+        setResult(productData);
+        setScanningStatus('success');
+        setStatusMessage('Product verified successfully!');
+        
+        toast({
+          title: "Product Found",
+          description: productData.product_name || "Product information retrieved",
+        });
+      } else {
+        setScanningStatus('error');
+        setStatusMessage('Product not found');
+        toast({
+          title: "Product Not Found",
+          description: "This product is not in our database",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('Manual scan error:', error);
       setScanningStatus('error');
+      setStatusMessage('Error verifying product');
+      toast({
+        title: "Verification Error",
+        description: error.message || "Failed to verify barcode",
+        variant: "destructive"
+      });
     }
   };
 
-  return (
-    <div className="container mx-auto p-4 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-        Barcode Scanner
-      </h1>
+  const resetScanner = () => {
+    setResult(null);
+    setScanningStatus('idle');
+    setStatusMessage('');
+    setBarcode('');
+  };
 
-      {cameraState === 'IDLE' ? (
-        <Card className="p-6 space-y-4">
+  return (
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Barcode Scanner</h1>
+          {cameraState === 'SCANNING' && (
+            <div className="flex gap-2">
+              {hasMultipleCameras && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={switchCamera}
+                  title="Switch Camera"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleTorch}
+                title="Toggle Flashlight"
+              >
+                <Flashlight className={`h-4 w-4 ${torchEnabled ? 'text-yellow-500' : ''}`} />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Manual Entry</h2>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="barcode">Enter Barcode Manually</Label>
-              <Input 
-                id="barcode" 
-                type="text" 
-                placeholder="EAN-13, UPC" 
+              <Label htmlFor="barcode">Enter Barcode Number</Label>
+              <Input
+                id="barcode"
+                type="text"
+                placeholder="e.g., 7891234567890"
                 value={barcode}
-                onChange={(e) => setBarcode(e.target.value)} 
-                onKeyPress={(e) => e.key === 'Enter' && handleManualScan()} 
-                className="mt-2" 
+                onChange={(e) => setBarcode(e.target.value)}
+                disabled={scanningStatus === 'verifying'}
               />
             </div>
-            <Button onClick={handleManualScan} className="w-full">
-              <Scan className="mr-2 h-4 w-4" />Scan Manually
+            <Button
+              onClick={handleManualScan}
+              disabled={scanningStatus === 'verifying'}
+              className="w-full"
+            >
+              {scanningStatus === 'verifying' ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <Scan className="mr-2 h-4 w-4" />
+                  Verify Barcode
+                </>
+              )}
             </Button>
           </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-          <Button onClick={startCameraScanner} variant="outline" className="w-full">
-            <Camera className="mr-2 h-4 w-4" />Use Camera
-          </Button>
         </Card>
-      ) : (
-        <Card className="p-6 space-y-4">
-          <div className="relative">
-            <div className="relative rounded-lg overflow-hidden border-2 border-primary/30 bg-black">
-              {/* Always render video element - hide when not scanning */}
-              <video 
-                ref={videoRef}
-                className={`w-full h-auto ${cameraState === 'SCANNING' ? 'block' : 'hidden'}`}
-                style={{ maxHeight: '500px' }}
-                autoPlay
-                playsInline
-                muted
-              />
-              
-              {cameraState === 'SCANNING' && (
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="relative w-[400px] h-[150px] max-w-[90%]">
-                    <div className="absolute inset-0 border-2 border-primary/60 rounded-lg shadow-lg" />
-                    <div className="scan-line" />
-                  </div>
-                </div>
-              )}
-              
-              {cameraState === 'SCANNING' && (
-                <div className="absolute top-2 left-2 right-2 bg-black/50 text-white text-sm p-2 rounded z-10">
-                  {statusMessage}
-                </div>
-              )}
-            </div>
-            
-            {lastDetection && (
-              <div className="mt-2 p-2 bg-muted rounded text-sm text-center">
-                <span className="text-muted-foreground">Last detection: </span>
-                <span className="font-mono font-bold">{lastDetection}</span>
-              </div>
-            )}
-          </div>
-          <Button onClick={stopCameraScanner} variant="destructive" className="w-full">
-            <X className="mr-2 h-4 w-4" />Stop Camera
-          </Button>
-        </Card>
-      )}
 
-      {result && (
-        <Card className="p-6 mt-6 space-y-4 animate-fade-in">
-          <div className="flex items-start gap-4">
-            {result.image_url && (
-              <img src={result.image_url} alt={result.product_name} className="w-24 h-24 object-cover rounded-lg" />
-            )}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-1">{result.product_name}</h2>
-              {result.brands && <p className="text-sm text-muted-foreground mb-2">{result.brands}</p>}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-mono bg-muted px-2 py-1 rounded">{result.barcode}</span>
-                <span className="text-xs text-muted-foreground">({result.barcode_type})</span>
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Camera Scanner</h2>
+          
+          {cameraState === 'IDLE' && (
+            <Button onClick={startCameraScanner} className="w-full">
+              <Camera className="mr-2 h-4 w-4" />
+              Start Camera
+            </Button>
+          )}
+
+          {cameraState === 'REQUESTING_PERMISSION' && (
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">{statusMessage}</p>
+            </div>
+          )}
+
+          {cameraState === 'INITIALIZING' && (
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">{statusMessage}</p>
+            </div>
+          )}
+
+          {cameraState === 'SCANNING' && (
+            <div className="space-y-4">
+              <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  playsInline
+                  muted
+                />
+                <div id="barcode-reader" className="absolute inset-0" />
+                
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute inset-0 border-2 border-primary/50 animate-pulse" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 border-2 border-primary rounded-lg" />
+                </div>
+
+                {scanningStatus === 'confirming' && (
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
+                    ✓ Detected! Confirming...
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">{statusMessage}</p>
+                <Button variant="destructive" size="sm" onClick={stopCameraScanner}>
+                  <X className="mr-2 h-4 w-4" />
+                  Stop
+                </Button>
               </div>
             </div>
-          </div>
-          <div className={`p-4 rounded-lg border-2 ${result.is_baby_safe ? 'bg-green-50 dark:bg-green-950/20 border-green-500' : 'bg-red-50 dark:bg-red-950/20 border-red-500'}`}>
-            <div className="flex items-start gap-3">
-              {result.is_baby_safe ? 
-                <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" /> : 
-                <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" />
-              }
-              <div className="flex-1">
-                <h3 className="font-bold text-lg mb-2">{result.is_baby_safe ? 'Safe for Babies' : 'Not Recommended'}</h3>
-                <div className="whitespace-pre-line text-sm">{result.safety_notes}</div>
-              </div>
-            </div>
-          </div>
-          {result.ingredients && (
-            <div className="space-y-2">
-              <h4 className="font-semibold">Ingredients:</h4>
-              <p className="text-sm text-muted-foreground">{result.ingredients}</p>
+          )}
+
+          {cameraState === 'ERROR' && (
+            <div className="text-center py-8 space-y-4">
+              <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+              <p className="text-sm text-muted-foreground">{statusMessage}</p>
+              <Button onClick={startCameraScanner} variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
             </div>
           )}
         </Card>
-      )}
 
-      {scanningStatus === 'verifying' && (
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Verifying product...</span>
-        </div>
-      )}
+        {result && scanningStatus === 'success' && (
+          <Card className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <h2 className="text-lg font-semibold">Scan Result</h2>
+              </div>
+              <Button variant="ghost" size="sm" onClick={resetScanner}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {result.image_url && (
+                <img
+                  src={result.image_url}
+                  alt={result.product_name}
+                  className="w-full h-48 object-contain rounded-lg bg-muted"
+                />
+              )}
+
+              <div>
+                <h3 className="font-semibold text-lg">{result.product_name}</h3>
+                {result.brands && (
+                  <p className="text-sm text-muted-foreground">{result.brands}</p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Baby Safe:</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  result.is_baby_safe
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+                }`}>
+                  {result.is_baby_safe ? 'Yes' : 'No'}
+                </span>
+              </div>
+
+              {result.nutrition_grade && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Nutrition Grade:</span>
+                  <span className="px-2 py-1 bg-primary/10 text-primary rounded text-sm font-bold">
+                    {result.nutrition_grade.toUpperCase()}
+                  </span>
+                </div>
+              )}
+
+              {result.allergens && result.allergens.length > 0 && (
+                <div>
+                  <span className="text-sm font-medium block mb-2">Allergens:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {result.allergens.map((allergen, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 rounded text-xs"
+                      >
+                        {allergen}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {result.safety_notes && (
+                <div>
+                  <span className="text-sm font-medium block mb-2">Safety Notes:</span>
+                  <p className="text-sm text-muted-foreground">{result.safety_notes}</p>
+                </div>
+              )}
+
+              <div className="pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
+                  Barcode: {result.barcode} ({result.barcode_type})
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Source: {result.verification_source}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
