@@ -227,7 +227,17 @@ const BarcodeScanner = () => {
       setStatusMessage('Requesting camera permission...');
       
       console.log('🚀 Initializing ZXing scanner...');
-      scannerRef.current = new BrowserMultiFormatReader();
+      const codeReader = new BrowserMultiFormatReader();
+      
+      // Set hints for barcode formats
+      const hints = new Map();
+      const formats = [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+      ];
+      hints.set(2, formats); // DecodeHintType.POSSIBLE_FORMATS = 2
       
       setCameraState('INITIALIZING');
       console.log('📹 Starting camera...');
@@ -236,8 +246,24 @@ const BarcodeScanner = () => {
         throw new Error('Video element not found');
       }
 
-      await scannerRef.current.decodeFromVideoDevice(
-        undefined,
+      // Get video devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      // Prefer back camera
+      const backCamera = videoDevices.find(device => 
+        device.label.toLowerCase().includes('back') || 
+        device.label.toLowerCase().includes('rear')
+      );
+      
+      const selectedDeviceId = backCamera?.deviceId || videoDevices[0]?.deviceId;
+      
+      console.log('📱 Using camera:', backCamera?.label || videoDevices[0]?.label);
+      
+      scannerRef.current = codeReader;
+      
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
         videoRef.current,
         (result, error) => {
           if (result) {
@@ -331,6 +357,9 @@ const BarcodeScanner = () => {
                 ref={videoRef}
                 className="w-full h-auto"
                 style={{ maxHeight: '500px' }}
+                autoPlay
+                playsInline
+                muted
               />
               
               {cameraState === 'SCANNING' && (
