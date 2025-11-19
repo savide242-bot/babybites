@@ -143,6 +143,10 @@ export default {
           "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
           "100%": { transform: "translate(0px, 0px) scale(1)" },
         },
+        scan: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(192px)" }
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -159,6 +163,7 @@ export default {
         "slide-up": "slide-up 0.4s ease-out",
         "pulse": "pulse 2s ease-in-out infinite",
         "checkmark": "checkmark 0.5s ease-out",
+        "scan": "scan 2s ease-in-out infinite"
       },
     },
   },
