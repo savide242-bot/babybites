@@ -703,14 +703,7 @@ const BarcodeScanner = () => {
             </div>
           )}
 
-          {cameraState === 'INITIALIZING' && (
-            <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-              <p className="text-sm text-muted-foreground">{statusMessage}</p>
-            </div>
-          )}
-
-          {cameraState === 'SCANNING' && (
+          {(cameraState === 'INITIALIZING' || cameraState === 'SCANNING') && (
             <div className="space-y-4">
               <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
                 <video
@@ -722,15 +715,28 @@ const BarcodeScanner = () => {
                 />
                 <div id="barcode-reader" className="absolute inset-0" />
                 
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-0 border-2 border-primary/50 animate-pulse" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 border-2 border-primary rounded-lg" />
-                </div>
-
-                {scanningStatus === 'confirming' && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
-                    ✓ Detected! Confirming...
+                {cameraState === 'INITIALIZING' && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="text-center">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
+                      <p className="text-sm text-white">{statusMessage}</p>
+                    </div>
                   </div>
+                )}
+                
+                {cameraState === 'SCANNING' && (
+                  <>
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0 border-2 border-primary/50 animate-pulse" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 border-2 border-primary rounded-lg" />
+                    </div>
+
+                    {scanningStatus === 'confirming' && (
+                      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
+                        ✓ Detected! Confirming...
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
