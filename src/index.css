@@ -160,3 +160,26 @@ div[style*="Edit with Lovable"],
   position: absolute !important;
   z-index: -9999 !important;
 }
+
+/* Barcode scanner animated line */
+.scan-line {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, hsl(var(--primary)), transparent);
+  animation: scan 2s ease-in-out infinite;
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.8);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@keyframes scan {
+  0%, 100% { 
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translateY(150px);
+    opacity: 1;
+  }
+}

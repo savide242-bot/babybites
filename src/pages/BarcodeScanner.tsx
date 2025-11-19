@@ -244,16 +244,26 @@ const BarcodeScanner = () => {
       
       console.log('🚀 Initializing Html5Qrcode scanner...');
       scannerRef.current = new Html5Qrcode(qrCodeRegionId, {
-        verbose: true, // Enable debug mode
+        verbose: true,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.EAN_8,
+        ]
       });
       
       console.log('📹 Starting camera...');
       await scannerRef.current.start(
-        { facingMode: "environment" },
         { 
-          fps: 20, // Increased for better detection
-          qrbox: { width: 300, height: 300 }, // Larger scan area
-          aspectRatio: 1.0 // Better compatibility
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        { 
+          fps: 30,
+          qrbox: { width: 400, height: 150 },
+          aspectRatio: 1.777
         },
         (decodedText) => {
           console.log('✅ SUCCESS CALLBACK:', decodedText);
@@ -335,8 +345,28 @@ const BarcodeScanner = () => {
         ) : (
           <Card className="p-6 space-y-4">
             <div className="relative">
-              <div id={qrCodeRegionId} className="rounded-lg overflow-hidden border-2 border-primary/30" />
-              {cameraState === 'SCANNING' && <div className="absolute top-2 left-2 right-2 bg-black/50 text-white text-sm p-2 rounded">{statusMessage}</div>}
+              <div className="relative">
+                <div id={qrCodeRegionId} className="rounded-lg overflow-hidden border-2 border-primary/30" />
+                
+                {/* Animated scan line overlay */}
+                {cameraState === 'SCANNING' && (
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div className="relative w-[400px] h-[150px]">
+                      <div className="absolute inset-0 border-2 border-primary/60 rounded-lg shadow-lg" />
+                      <div className="scan-line" />
+                    </div>
+                  </div>
+                )}
+                
+                {cameraState === 'SCANNING' && <div className="absolute top-2 left-2 right-2 bg-black/50 text-white text-sm p-2 rounded z-10">{statusMessage}</div>}
+              </div>
+              
+              {lastDetection && (
+                <div className="mt-2 p-2 bg-muted rounded text-sm text-center">
+                  <span className="text-muted-foreground">Last detection: </span>
+                  <span className="font-mono font-bold">{lastDetection}</span>
+                </div>
+              )}
             </div>
             <Button onClick={stopCameraScanner} variant="destructive" className="w-full"><X className="mr-2 h-4 w-4" />Stop Camera</Button>
           </Card>
