@@ -73,6 +73,20 @@ const MealPlanner = () => {
         [mealType]: recipeId,
       },
     }));
+    
+    // Show success checkmark animation
+    const checkmarkToast = document.createElement('div');
+    checkmarkToast.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground rounded-full p-4 shadow-lg animate-checkmark z-50';
+    checkmarkToast.innerHTML = '✓';
+    checkmarkToast.style.fontSize = '48px';
+    document.body.appendChild(checkmarkToast);
+    
+    setTimeout(() => {
+      checkmarkToast.style.opacity = '0';
+      checkmarkToast.style.transition = 'opacity 0.3s';
+      setTimeout(() => checkmarkToast.remove(), 300);
+    }, 1000);
+    
     toast.success("Meal added to planner!");
   };
 
@@ -100,6 +114,13 @@ const MealPlanner = () => {
       return;
     }
 
+    // Button animation state
+    const buttonEl = document.querySelector(`[data-save-day="${day}"]`) as HTMLButtonElement;
+    if (buttonEl) {
+      buttonEl.classList.add('scale-95');
+      buttonEl.disabled = true;
+    }
+
     try {
       // Delete existing meals for this day
       await supabase
@@ -124,10 +145,28 @@ const MealPlanner = () => {
 
       setSavedDays((prev) => new Set([...prev, day]));
       await updateShoppingList();
+      
+      // Success animation
+      if (buttonEl) {
+        buttonEl.classList.remove('scale-95');
+        buttonEl.classList.add('bg-green-500', 'text-white');
+        buttonEl.innerHTML = '✓ Saved';
+        
+        setTimeout(() => {
+          buttonEl.classList.remove('bg-green-500', 'text-white');
+          buttonEl.innerHTML = '<svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save Day';
+          buttonEl.disabled = false;
+        }, 2000);
+      }
+      
       toast.success(`${day} meal plan saved!`);
     } catch (error) {
       console.error('Error saving meal plan:', error);
       toast.error("Failed to save meal plan");
+      if (buttonEl) {
+        buttonEl.classList.remove('scale-95');
+        buttonEl.disabled = false;
+      }
     }
   };
 
@@ -280,8 +319,12 @@ const MealPlanner = () => {
           <TabsContent value="custom" className="mt-8">
 
             <div className="space-y-6">
-          {daysOfWeek.map((day) => (
-            <Card key={day} className="border-2">
+          {daysOfWeek.map((day, dayIndex) => (
+            <Card 
+              key={day} 
+              className="border-2 animate-slide-in-right"
+              style={{ animationDelay: `${dayIndex * 100}ms` }}
+            >
               <CardHeader className="bg-muted/30">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl flex items-center gap-2">
@@ -304,6 +347,8 @@ const MealPlanner = () => {
                         size="sm"
                         onClick={() => handleSaveDay(day)}
                         disabled={!mealPlan[day] || Object.keys(mealPlan[day]).length === 0}
+                        data-save-day={day}
+                        className="transition-all duration-200"
                       >
                         <Save className="h-4 w-4 mr-1" />
                         Save
