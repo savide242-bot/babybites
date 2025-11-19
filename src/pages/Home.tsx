@@ -128,6 +128,7 @@ const Home = () => {
 
   const quickActions = [
     { icon: BookOpen, label: "Recipes", path: "/recipes", color: "from-primary to-primary/80" },
+    { icon: Heart, label: "Favorites", path: "/favorites", color: "from-coral to-coral/80" },
     { icon: Calendar, label: "Planner", path: "/planner", color: "from-secondary to-secondary/80" },
     { icon: Scan, label: "Scanner", path: "/scanner", color: "from-accent to-accent/80" },
     { icon: ShoppingCart, label: "Shopping", path: "/shopping", color: "from-mint to-mint/80" },
@@ -265,7 +266,7 @@ const Home = () => {
       <section className="py-6 px-4">
         <div className="container max-w-4xl">
           <h2 className="text-2xl font-bold text-foreground mb-4">Quick Access</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {quickActions.map((action, index) => (
               <Link key={index} to={action.path} className="group">
                 <Card 

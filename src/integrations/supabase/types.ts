@@ -80,6 +80,27 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_recipes: {
+        Row: {
+          created_at: string | null
+          id: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       forum_posts: {
         Row: {
           comments_count: number | null

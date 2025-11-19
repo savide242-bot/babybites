@@ -24,6 +24,7 @@ import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import ProgressReports from "./pages/ProgressReports";
 import ShoppingList from "./pages/ShoppingList";
+import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
@@ -60,6 +61,7 @@ const AppContent = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/recipes" element={<Recipes />} />
                 <Route path="/recipe/:id" element={<RecipeDetail />} />
+                <Route path="/favorites" element={<Favorites />} />
                 <Route path="/planner" element={<MealPlanner />} />
                 <Route path="/advice" element={<Advice />} />
                 <Route path="/chat" element={<Chat />} />
