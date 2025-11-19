@@ -1,18 +1,65 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2 } from "lucide-react";
+import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useState, useEffect, useRef } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
   const { id } = useParams();
   const recipe = recipes.find((r) => r.id === id);
+  
+  // State management
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [cookMode, setCookMode] = useState(false);
+  const [servings, setServings] = useState(() => {
+    const parsed = parseInt(recipe?.servings || "1");
+    return isNaN(parsed) ? 1 : parsed;
+  });
+  const [timerMinutes, setTimerMinutes] = useState(0);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [totalSeconds, setTotalSeconds] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTimerRunning && totalSeconds > 0) {
+      interval = setInterval(() => {
+        setTotalSeconds((prev) => {
+          if (prev <= 1) {
+            setIsTimerRunning(false);
+            // Play sound notification
+            if (audioRef.current) {
+              audioRef.current.play();
+            }
+            toast.success("Timer Complete!", {
+              description: "Your cooking timer has finished!",
+            });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, totalSeconds]);
+
+  // Update display seconds
+  useEffect(() => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    setTimerMinutes(mins);
+    setTimerSeconds(secs);
+  }, [totalSeconds]);
 
   if (!recipe) {
     return (
@@ -26,6 +73,47 @@ const RecipeDetail = () => {
       </div>
     );
   }
+
+  const toggleStep = (index: number) => {
+    const newCompleted = new Set(completedSteps);
+    if (newCompleted.has(index)) {
+      newCompleted.delete(index);
+    } else {
+      newCompleted.add(index);
+    }
+    setCompletedSteps(newCompleted);
+  };
+
+  const startTimer = () => {
+    const mins = parseInt(prompt("Enter minutes:") || "0");
+    if (mins > 0) {
+      setTotalSeconds(mins * 60);
+      setIsTimerRunning(true);
+    }
+  };
+
+  const toggleTimer = () => {
+    setIsTimerRunning(!isTimerRunning);
+  };
+
+  const resetTimer = () => {
+    setIsTimerRunning(false);
+    setTotalSeconds(0);
+  };
+
+  const scaleIngredient = (ingredient: string): string => {
+    if (!recipe) return ingredient;
+    const originalServings = parseInt(recipe.servings) || 1;
+    const scale = servings / originalServings;
+    if (scale === 1) return ingredient;
+    
+    // Extract numbers and multiply them
+    return ingredient.replace(/(\d+(?:\.\d+)?)/g, (match) => {
+      const num = parseFloat(match);
+      const scaled = (num * scale).toFixed(1);
+      return scaled.endsWith('.0') ? scaled.slice(0, -2) : scaled;
+    });
+  };
 
   const handleAddToPlanner = () => {
     toast.success(t('recipes.addedToPlanner'), {
@@ -200,6 +288,101 @@ const RecipeDetail = () => {
     }
   };
 
+  // Cook Mode View
+  if (cookMode) {
+    return (
+      <div className="fixed inset-0 bg-gray-900 text-white z-50 overflow-y-auto">
+        <audio ref={audioRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE" preload="auto" />
+        
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold">{recipe.title}</h1>
+            <Button 
+              onClick={() => setCookMode(false)} 
+              variant="ghost" 
+              size="icon"
+              className="text-white hover:bg-white/20"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+
+          {/* Timer in Cook Mode */}
+          {totalSeconds > 0 && (
+            <Card className="mb-6 bg-gray-800 border-gray-700">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="text-5xl font-bold text-primary mb-4">
+                    {String(timerMinutes).padStart(2, '0')}:{String(timerSeconds).padStart(2, '0')}
+                  </div>
+                  <div className="flex gap-2 justify-center">
+                    <Button onClick={toggleTimer} variant="secondary" size="lg">
+                      {isTimerRunning ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                    </Button>
+                    <Button onClick={resetTimer} variant="outline" size="lg">
+                      <RotateCcw className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Ingredients in Cook Mode */}
+          <Card className="mb-6 bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-2xl text-white">Ingredients ({servings} servings)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {recipe.ingredients.map((ingredient, index) => (
+                  <li key={index} className="text-xl text-gray-200">
+                    • {scaleIngredient(ingredient)}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Instructions in Cook Mode */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-2xl text-white">Instructions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {recipe.instructions.map((instruction, index) => (
+                  <div
+                    key={index}
+                    className={`flex gap-4 p-4 rounded-lg transition-all ${
+                      completedSteps.has(index) ? 'bg-primary/20 opacity-60' : 'bg-gray-700/50'
+                    }`}
+                  >
+                    <Checkbox
+                      id={`step-cook-${index}`}
+                      checked={completedSteps.has(index)}
+                      onCheckedChange={() => toggleStep(index)}
+                      className="mt-1 h-6 w-6"
+                    />
+                    <label
+                      htmlFor={`step-cook-${index}`}
+                      className={`text-xl cursor-pointer ${
+                        completedSteps.has(index) ? 'line-through' : ''
+                      }`}
+                    >
+                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>
+                      {instruction}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen py-12">
       <div className="container max-w-5xl">
@@ -262,21 +445,118 @@ const RecipeDetail = () => {
                   Share
                 </Button>
               </div>
+
+              <Button 
+                onClick={() => setCookMode(true)} 
+                size="lg" 
+                className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              >
+                <ChefHat className="mr-2 h-5 w-5" />
+                Cook Mode
+              </Button>
             </div>
           </div>
         </div>
 
+        {/* Timer and Servings Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Timer Card */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Timer className="h-5 w-5 text-primary" />
+                Cooking Timer
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {totalSeconds === 0 ? (
+                <Button onClick={startTimer} className="w-full rounded-full">
+                  <Play className="mr-2 h-4 w-4" />
+                  Start Timer
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center text-4xl font-bold text-primary">
+                    {String(timerMinutes).padStart(2, '0')}:{String(timerSeconds).padStart(2, '0')}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={toggleTimer} variant="secondary" className="flex-1 rounded-full">
+                      {isTimerRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </Button>
+                    <Button onClick={resetTimer} variant="outline" className="flex-1 rounded-full">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Servings Scaler Card */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                Adjust Servings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center gap-4">
+                <Button
+                  onClick={() => setServings(Math.max(1, servings - 1))}
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full h-12 w-12"
+                  disabled={servings <= 1}
+                >
+                  <Minus className="h-5 w-5" />
+                </Button>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-primary">{servings}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {servings === 1 ? 'serving' : 'servings'}
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setServings(servings + 1)}
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full h-12 w-12"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+              {servings !== parseInt(recipe.servings) && (
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Ingredients adjusted from original {recipe.servings}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Hidden audio element for timer notification */}
+        <audio ref={audioRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE" preload="auto" />
+
         {/* Ingredients */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-2xl">{t('recipes.ingredients')}</CardTitle>
+            <CardTitle className="text-2xl flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-primary" />
+                {t('recipes.ingredients')}
+              </span>
+              <span className="text-lg text-muted-foreground">
+                {servings} {servings === 1 ? 'serving' : 'servings'}
+              </span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
               {recipe.ingredients.map((ingredient, index) => (
                 <li key={index} className="flex items-start">
                   <span className="inline-block h-2 w-2 rounded-full bg-primary mt-2 mr-3 flex-shrink-0" />
-                  <span className="text-lg">{ingredient}</span>
+                  <span className="text-lg">{scaleIngredient(ingredient)}</span>
                 </li>
               ))}
             </ul>
@@ -289,16 +569,39 @@ const RecipeDetail = () => {
             <CardTitle className="text-2xl">{t('recipes.instructions')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="space-y-4">
+            <div className="space-y-4">
               {recipe.instructions.map((instruction, index) => (
-                <li key={index} className="flex gap-4">
-                  <span className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">
-                    {index + 1}
-                  </span>
-                  <span className="text-lg pt-1">{instruction}</span>
-                </li>
+                <div
+                  key={index}
+                  className={`flex gap-3 p-3 rounded-lg transition-all ${
+                    completedSteps.has(index) ? 'bg-primary/10' : 'hover:bg-accent/50'
+                  }`}
+                >
+                  <Checkbox
+                    id={`step-${index}`}
+                    checked={completedSteps.has(index)}
+                    onCheckedChange={() => toggleStep(index)}
+                    className="mt-1"
+                  />
+                  <label
+                    htmlFor={`step-${index}`}
+                    className={`flex-1 cursor-pointer ${
+                      completedSteps.has(index) ? 'line-through opacity-60' : ''
+                    }`}
+                  >
+                    <span className="font-semibold text-primary mr-2">{index + 1}.</span>
+                    <span className="text-lg">{instruction}</span>
+                  </label>
+                </div>
               ))}
-            </ol>
+            </div>
+            {completedSteps.size > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm text-muted-foreground text-center">
+                  {completedSteps.size} of {recipe.instructions.length} steps completed
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
