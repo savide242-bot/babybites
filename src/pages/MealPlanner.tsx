@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Check, ChefHat, X } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
@@ -274,6 +275,28 @@ const MealPlanner = () => {
         </div>
 
         <WeeklyOverview mealPlan={mealPlan} />
+
+        {/* Empty State */}
+        {Object.keys(mealPlan).length === 0 && (
+          <Card className="mb-8 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-primary/20 border-dashed border-2 animate-fade-in">
+            <CardContent className="py-20 text-center space-y-6">
+              <div className="text-8xl animate-bounce">🍽️</div>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                  Plan Your Week!
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Start adding delicious meals to your weekly planner below. We'll automatically generate your shopping list! ✨
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Badge variant="secondary" className="text-sm px-4 py-2">✅ Select recipes from dropdowns</Badge>
+                <Badge variant="secondary" className="text-sm px-4 py-2">🛒 Auto-generate shopping list</Badge>
+                <Badge variant="secondary" className="text-sm px-4 py-2">✓ Track prepared meals</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6">
           {daysOfWeek.map((day) => (

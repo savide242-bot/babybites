@@ -50,16 +50,20 @@ const Favorites = () => {
 
         {/* Empty State */}
         {favoriteRecipes.length === 0 && (
-          <Card className="text-center py-16">
-            <CardContent>
-              <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">No Favorites Yet</h2>
-              <p className="text-muted-foreground mb-6">
-                Start adding recipes to your favorites by clicking the heart icon on any recipe!
-              </p>
-              <Button asChild className="rounded-full">
+          <Card className="text-center py-20 border-dashed border-2 animate-fade-in">
+            <CardContent className="space-y-6">
+              <div className="text-8xl animate-bounce">💕</div>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  No Favorites Yet!
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                  Start exploring our 200+ delicious recipes and save your favorites by clicking the heart icon ❤️
+                </p>
+              </div>
+              <Button asChild className="rounded-full px-8 py-6 text-lg shadow-elegant hover:shadow-glow transition-all">
                 <Link to="/recipes">
-                  Browse Recipes
+                  🍳 Explore Recipes
                 </Link>
               </Button>
             </CardContent>
