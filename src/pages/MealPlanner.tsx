@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { WeeklyOverview } from "@/components/WeeklyOverview";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
@@ -271,6 +272,8 @@ const MealPlanner = () => {
             View Shopping List
           </Button>
         </div>
+
+        <WeeklyOverview mealPlan={mealPlan} />
 
         <div className="grid gap-6">
           {daysOfWeek.map((day) => (
