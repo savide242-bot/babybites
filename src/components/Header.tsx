@@ -75,7 +75,7 @@ const Header = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
-            <nav className="flex flex-col space-y-1 mt-4">
+            <nav className="flex flex-col justify-between h-full py-6">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
