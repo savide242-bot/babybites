@@ -380,8 +380,8 @@ const RecipeDetail = () => {
                     />
                     <label
                       htmlFor={`step-cook-${index}`}
-                      className={`text-xl cursor-pointer ${
-                        completedSteps.has(index) ? 'line-through' : ''
+                      className={`text-xl cursor-pointer text-white ${
+                        completedSteps.has(index) ? 'line-through opacity-60' : ''
                       }`}
                     >
                       <span className="font-bold text-primary mr-2">Step {index + 1}:</span>

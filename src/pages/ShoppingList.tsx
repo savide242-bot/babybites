@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart, Download, Share2, Plus, Trash2 } from "lucide-react";
@@ -428,16 +428,22 @@ const ShoppingList = () => {
         })}
 
         {items.length === 0 && (
-          <Card className="p-8 text-center">
-            <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">{t('shoppingList.emptyList')}</h3>
-            <p className="text-muted-foreground mb-4">
-              {t('shoppingList.emptyListDesc')}
-            </p>
-            <Button onClick={() => window.location.href = "/planner"}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t('shoppingList.goToPlanner')}
-            </Button>
+          <Card className="bg-card/50 backdrop-blur border-dashed border-2 animate-fade-in">
+            <CardContent className="py-20 text-center space-y-6">
+              <div className="text-8xl animate-bounce">🛒</div>
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Your Shopping List is Empty
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-md mx-auto">
+                  Add meals to your weekly planner and we'll automatically generate your shopping list! 🎯
+                </p>
+              </div>
+              <Button onClick={() => window.location.href = "/planner"} className="rounded-full px-8 py-6 text-lg shadow-elegant hover:shadow-glow transition-all">
+                <Plus className="mr-2 h-5 w-5" />
+                📅 Go to Meal Planner
+              </Button>
+            </CardContent>
           </Card>
         )}
 
