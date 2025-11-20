@@ -150,7 +150,11 @@ export default {
         ripple: {
           "0%": { transform: "scale(0)", opacity: "0.6" },
           "100%": { transform: "scale(4)", opacity: "0" }
-        }
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.85", transform: "scale(1.02)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -168,7 +172,8 @@ export default {
         "pulse": "pulse 2s ease-in-out infinite",
         "checkmark": "checkmark 0.5s ease-out",
         "scan": "scan 2s ease-in-out infinite",
-        "ripple": "ripple 0.6s ease-out"
+        "ripple": "ripple 0.6s ease-out",
+        "pulse-soft": "pulse-soft 2.5s ease-in-out infinite",
       },
     },
   },
