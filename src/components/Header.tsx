@@ -75,18 +75,18 @@ const Header = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
-            <nav className="flex flex-col space-y-3 mt-12">
+            <nav className="flex flex-col space-y-1 mt-4">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
                   <SheetTrigger key={link.to} asChild>
                     <Link
                       to={link.to}
-                      className={`flex items-center space-x-4 text-base font-semibold transition-all duration-300 hover:text-primary p-4 rounded-2xl hover:scale-105 ${
+                      className={`flex items-center space-x-2 text-sm font-semibold transition-all duration-300 hover:text-primary p-2 rounded-lg hover:scale-105 ${
                         isActive(link.to) ? "bg-gradient-to-r from-primary/10 to-secondary/10 text-primary border-2 border-primary/20 shadow-md" : "text-foreground hover:bg-muted"
                       }`}
                     >
-                      <Icon className="h-6 w-6" />
+                      <Icon className="h-5 w-5" />
                       <span>{link.label}</span>
                     </Link>
                   </SheetTrigger>
@@ -97,10 +97,10 @@ const Header = () => {
                 <Button
                   variant="destructive"
                   onClick={handleLogout}
-                  className="flex items-center justify-start space-x-4 w-full p-4 rounded-2xl mt-4"
+                  className="flex items-center justify-start space-x-2 w-full p-2 rounded-lg"
                 >
-                  <LogOut className="h-6 w-6" />
-                  <span>Log Out</span>
+                  <LogOut className="h-5 w-5" />
+                  <span className="text-sm">Log Out</span>
                 </Button>
               </SheetTrigger>
             </nav>
