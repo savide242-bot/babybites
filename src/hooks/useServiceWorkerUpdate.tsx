@@ -16,10 +16,13 @@ export const useServiceWorkerUpdate = () => {
 
     const setupServiceWorker = async () => {
       try {
-        // Register with updateViaCache: 'none' to prevent HTTP caching
-        const reg = await navigator.serviceWorker.register('/sw.js', {
-          updateViaCache: 'none'
-        });
+        // Get the existing VitePWA service worker registration
+        const reg = await navigator.serviceWorker.getRegistration();
+        
+        if (!reg) {
+          console.log('No service worker registered yet, waiting...');
+          return;
+        }
         
         setRegistration(reg);
         console.log('✅ Service Worker registered:', reg);
