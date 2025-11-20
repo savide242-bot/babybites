@@ -15,26 +15,88 @@ interface Message {
 
 const Chat = () => {
   const { t } = useLanguage();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: t('chat.welcome')
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [conversationId, setConversationId] = useState<string>("");
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const suggestionQuestions = [
+    "What foods should I introduce at 6 months?",
+    "How can I tell if my baby is ready for solid food?",
+    "What are the best first foods for babies?",
+    "How do I know if my baby has a food allergy?",
+    "How much should my 9-month-old eat per day?"
+  ];
+
   useEffect(() => {
-    checkUser();
+    checkUserAndLoadHistory();
   }, []);
 
-  const checkUser = async () => {
+  const checkUserAndLoadHistory = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setUser(user);
+    
+    if (user) {
+      await loadChatHistory(user.id);
+    }
+  };
+
+  const loadChatHistory = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
+        .limit(50);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const loadedMessages = data.map(msg => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content
+        }));
+        setMessages(loadedMessages);
+        setConversationId(data[0].conversation_id);
+        setShowSuggestions(false);
+      } else {
+        // No history, show welcome message
+        setMessages([{
+          role: "assistant",
+          content: t('chat.welcome')
+        }]);
+        // Generate new conversation ID
+        setConversationId(crypto.randomUUID());
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      setMessages([{
+        role: "assistant",
+        content: t('chat.welcome')
+      }]);
+      setConversationId(crypto.randomUUID());
+    }
+  };
+
+  const saveChatMessage = async (role: "user" | "assistant", content: string) => {
+    if (!user || !conversationId) return;
+
+    try {
+      await supabase.from('chat_messages').insert({
+        user_id: user.id,
+        conversation_id: conversationId,
+        role,
+        content
+      });
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
   };
 
   useEffect(() => {
@@ -113,10 +175,16 @@ const Chat = () => {
         }
       }
     }
+
+    // Save complete assistant message
+    if (assistantContent) {
+      await saveChatMessage("assistant", assistantContent);
+    }
   };
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (messageText?: string) => {
+    const textToSend = messageText || input.trim();
+    if (!textToSend || isLoading) return;
 
     if (!user) {
       toast({
@@ -128,10 +196,14 @@ const Chat = () => {
       return;
     }
 
-    const userMessage: Message = { role: "user", content: input };
+    const userMessage: Message = { role: "user", content: textToSend };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setShowSuggestions(false);
+
+    // Save user message
+    await saveChatMessage("user", textToSend);
 
     try {
       await streamChat(userMessage);
@@ -141,20 +213,44 @@ const Chat = () => {
         ? t('chat.notAuthenticated')
         : t('chat.error');
       
-      setMessages(prev => [
-        ...prev,
-        {
-          role: "assistant",
-          content: errorMessage
-        }
-      ]);
+      const assistantError: Message = {
+        role: "assistant",
+        content: errorMessage
+      };
+      
+      setMessages(prev => [...prev, assistantError]);
       
       if (error instanceof Error && error.message === "Not authenticated") {
         navigate("/auth");
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(true);
     }
+  };
+
+  const handleRegenerateResponse = async () => {
+    if (messages.length < 2) return;
+    
+    // Remove last assistant message
+    const updatedMessages = messages.slice(0, -1);
+    setMessages(updatedMessages);
+    
+    // Get last user message
+    const lastUserMessage = updatedMessages[updatedMessages.length - 1];
+    if (lastUserMessage && lastUserMessage.role === "user") {
+      setIsLoading(true);
+      try {
+        await streamChat(lastUserMessage);
+      } catch (error) {
+        console.error("Error regenerating:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSend(suggestion);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -180,6 +276,23 @@ const Chat = () => {
         <div className="bg-card rounded-3xl shadow-lg border border-border/50 overflow-hidden">
           <ScrollArea className="h-[500px] p-6" ref={scrollRef}>
             <div className="space-y-4">
+              {showSuggestions && messages.length <= 1 && (
+                <div className="mb-6">
+                  <p className="text-sm text-muted-foreground mb-3 text-center">Try asking:</p>
+                  <div className="grid gap-2">
+                    {suggestionQuestions.map((question, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSuggestionClick(question)}
+                        className="text-left p-3 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm"
+                      >
+                        💡 {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -196,11 +309,26 @@ const Chat = () => {
                   </div>
                 </div>
               ))}
+              
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-secondary rounded-2xl px-4 py-3">
+                  <div className="bg-secondary rounded-2xl px-4 py-3 flex items-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin text-secondary-foreground" />
+                    <span className="text-sm text-secondary-foreground">Bibi is typing...</span>
                   </div>
+                </div>
+              )}
+              
+              {messages.length > 1 && messages[messages.length - 1]?.role === "assistant" && !isLoading && (
+                <div className="flex justify-start">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRegenerateResponse}
+                    className="text-xs"
+                  >
+                    🔄 Regenerate response
+                  </Button>
                 </div>
               )}
             </div>
@@ -217,7 +345,7 @@ const Chat = () => {
                 disabled={isLoading}
               />
               <Button
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={!input.trim() || isLoading}
                 size="lg"
                 className="px-6"
