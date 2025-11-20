@@ -1,15 +1,51 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check } from 'lucide-react';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 const Settings = () => {
   const { t } = useLanguage();
-  const { forceUpdate } = useServiceWorkerUpdate();
+  const { forceUpdate, needRefresh } = useServiceWorkerUpdate();
   const { preferences, togglePreference, hasPreference, loading } = useDietaryPreferences();
+  const { isSupported, subscription, subscribeToPushNotifications, unsubscribeFromPushNotifications } = usePushNotifications();
+  const [updateNotifications, setUpdateNotifications] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    setUpdateNotifications(!!subscription);
+  }, [subscription]);
+
+  const handleToggleNotifications = async (enabled: boolean) => {
+    if (enabled) {
+      const success = await subscribeToPushNotifications();
+      setUpdateNotifications(success);
+    } else {
+      await unsubscribeFromPushNotifications();
+      setUpdateNotifications(false);
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    setChecking(true);
+    try {
+      await forceUpdate();
+      if (!needRefresh) {
+        toast({
+          title: "✅ You're up to date!",
+          description: "BabyBites is running the latest version.",
+        });
+      }
+    } finally {
+      setTimeout(() => setChecking(false), 1000);
+    }
+  };
 
   return (
     <div className="min-h-screen py-12">
@@ -132,18 +168,67 @@ const Settings = () => {
 
           <Card className="border-2 shadow-elegant">
             <CardHeader>
-              <CardTitle>App Updates</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                App Updates
+              </CardTitle>
               <CardDescription>
-                Check for the latest version of BabyBites
+                Manage app updates and notifications
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button onClick={forceUpdate} className="w-full sm:w-auto">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Check for Updates
+            <CardContent className="space-y-6">
+              {isSupported && (
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    {updateNotifications ? (
+                      <Bell className="h-5 w-5 text-primary" />
+                    ) : (
+                      <BellOff className="h-5 w-5 text-muted-foreground" />
+                    )}
+                    <div>
+                      <p className="font-medium">Update Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Get notified when new versions are available
+                      </p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={updateNotifications} 
+                    onCheckedChange={handleToggleNotifications}
+                  />
+                </div>
+              )}
+              
+              <Button 
+                onClick={handleCheckForUpdates} 
+                variant="outline" 
+                className="w-full"
+                disabled={checking}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${checking ? 'animate-spin' : ''}`} />
+                {checking ? 'Checking...' : 'Check for Updates'}
               </Button>
-              <p className="text-sm text-muted-foreground mt-3">
-                Updates are applied automatically when available. Use this button to manually check for new versions.
+              
+              {needRefresh && (
+                <div className="p-4 bg-primary/10 border-2 border-primary/20 rounded-xl">
+                  <p className="text-sm font-medium text-primary mb-2">
+                    🎉 Update Available!
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    A new version is ready to install
+                  </p>
+                  <Button 
+                    onClick={forceUpdate} 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    Update Now
+                  </Button>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground">
+                Updates are applied automatically. You'll receive a notification when a new version is available.
               </p>
             </CardContent>
           </Card>
