@@ -186,7 +186,7 @@ const Home = () => {
 
   const quickActions = [
     { icon: BookOpen, label: "Recipes", path: "/recipes", color: "from-primary to-primary/80" },
-    { icon: Heart, label: "Favorites", path: "/favorites", color: "from-coral to-coral/80" },
+    { icon: Heart, label: "Favorites", path: "/favorites", color: "from-[#FF6B9D] to-[#FF8BB5]" },
     { icon: Calendar, label: "Planner", path: "/planner", color: "from-secondary to-secondary/80" },
     { icon: Scan, label: "Scanner", path: "/scanner", color: "from-accent to-accent/80" },
     { icon: ShoppingCart, label: "Shopping", path: "/shopping", color: "from-mint to-mint/80" },
