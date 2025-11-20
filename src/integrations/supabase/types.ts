@@ -315,6 +315,33 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          keys: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          keys: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          keys?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       recipe_views: {
         Row: {
           id: string
