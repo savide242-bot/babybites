@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, Check, ChefHat, Trash2 } from "lucide-react";
+import { ShoppingCart, Check, ChefHat, X } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
@@ -27,7 +32,7 @@ interface MealPlan {
 const MealPlanner = () => {
   const [mealPlan, setMealPlan] = useState<MealPlan>({});
   const [userId, setUserId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkUser();
@@ -68,19 +73,19 @@ const MealPlanner = () => {
     }
   };
 
-  const onDragEnd = async (result: DropResult) => {
-    if (!result.destination || !userId) return;
+  const addMeal = async (day: string, mealType: string, recipeId: string) => {
+    if (!userId) return;
 
-    const recipeId = result.draggableId;
-    const [day, mealType] = result.destination.droppableId.split('-');
-
-    // Check if slot already has a meal
-    if (mealPlan[day]?.[mealType]) {
-      toast.error("This slot already has a meal. Remove it first!");
-      return;
+    // Remove existing meal if any
+    const existingSlot = mealPlan[day]?.[mealType];
+    if (existingSlot?.dbId) {
+      await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('id', existingSlot.dbId);
     }
 
-    // Add to meal plan
+    // Add new meal
     const { data, error } = await supabase
       .from('meal_plans')
       .insert({
@@ -111,7 +116,7 @@ const MealPlanner = () => {
       },
     }));
 
-    toast.success("Meal added! Shopping list updated automatically.");
+    toast.success("Meal added! Shopping list updated.");
     updateShoppingList();
   };
 
@@ -131,7 +136,9 @@ const MealPlanner = () => {
 
     setMealPlan((prev) => {
       const newPlan = { ...prev };
-      delete newPlan[day][mealType];
+      if (newPlan[day]) {
+        delete newPlan[day][mealType];
+      }
       return newPlan;
     });
 
@@ -172,16 +179,17 @@ const MealPlanner = () => {
   const updateShoppingList = async () => {
     if (!userId) return;
 
-    // Get all ingredients from meal plan
-    const allIngredients: { ingredient: string; fromRecipe: string }[] = [];
-    
-    Object.entries(mealPlan).forEach(([_, dayMeals]) => {
-      Object.values(dayMeals).forEach((slot) => {
+    // Gather all ingredients from meal plan
+    const ingredients: { ingredient: string; category: string; fromRecipe: string }[] = [];
+
+    Object.entries(mealPlan).forEach(([day, meals]) => {
+      Object.entries(meals).forEach(([mealType, slot]) => {
         const recipe = recipes.find((r) => r.id === slot.recipeId);
         if (recipe) {
           recipe.ingredients.forEach((ing) => {
-            allIngredients.push({
+            ingredients.push({
               ingredient: ing,
+              category: categorizeIngredient(ing),
               fromRecipe: recipe.title,
             });
           });
@@ -195,214 +203,140 @@ const MealPlanner = () => {
       .delete()
       .eq('user_id', userId);
 
-    // Add new items
-    if (allIngredients.length > 0) {
-      const items = allIngredients.map((item) => ({
-        user_id: userId,
-        ingredient: item.ingredient,
-        category: categorizeIngredient(item.ingredient),
-        from_recipe: item.fromRecipe,
-        checked: false,
-      }));
-
-      await supabase
+    // Insert new shopping list items
+    if (ingredients.length > 0) {
+      const { error } = await supabase
         .from('shopping_list_items')
-        .insert(items);
+        .insert(
+          ingredients.map((item) => ({
+            user_id: userId,
+            ingredient: item.ingredient,
+            category: item.category,
+            from_recipe: item.fromRecipe,
+            checked: false,
+          }))
+        );
+
+      if (error) {
+        console.error('Error updating shopping list:', error);
+      }
     }
   };
 
   const categorizeIngredient = (ingredient: string): string => {
     const lower = ingredient.toLowerCase();
-    if (lower.includes("tomato") || lower.includes("carrot") || lower.includes("broccoli") || 
-        lower.includes("spinach") || lower.includes("pepper") || lower.includes("onion")) {
-      return "Vegetables";
+    if (lower.includes('apple') || lower.includes('banana') || lower.includes('berry') || 
+        lower.includes('mango') || lower.includes('avocado') || lower.includes('fruit')) {
+      return 'Fruits';
     }
-    if (lower.includes("banana") || lower.includes("apple") || lower.includes("pear") || 
-        lower.includes("mango") || lower.includes("avocado")) {
-      return "Fruits";
+    if (lower.includes('carrot') || lower.includes('broccoli') || lower.includes('spinach') || 
+        lower.includes('pea') || lower.includes('vegetable') || lower.includes('potato')) {
+      return 'Vegetables';
     }
-    if (lower.includes("chicken") || lower.includes("beef") || lower.includes("fish") || 
-        lower.includes("salmon") || lower.includes("egg") || lower.includes("turkey")) {
-      return "Proteins";
+    if (lower.includes('chicken') || lower.includes('beef') || lower.includes('turkey') || 
+        lower.includes('salmon') || lower.includes('fish') || lower.includes('meat')) {
+      return 'Proteins';
     }
-    if (lower.includes("rice") || lower.includes("pasta") || lower.includes("bread") || 
-        lower.includes("oat") || lower.includes("quinoa")) {
-      return "Cereals";
+    if (lower.includes('rice') || lower.includes('oat') || lower.includes('quinoa') || 
+        lower.includes('pasta') || lower.includes('bread') || lower.includes('cereal')) {
+      return 'Cereals & Grains';
     }
-    if (lower.includes("milk") || lower.includes("cheese") || lower.includes("yogurt")) {
-      return "Dairy";
+    if (lower.includes('milk') || lower.includes('cheese') || lower.includes('yogurt') || 
+        lower.includes('dairy')) {
+      return 'Dairy';
     }
-    return "Others";
+    return 'Other';
   };
 
-  const getRecipe = (recipeId: string) => recipes.find((r) => r.id === recipeId);
-
-  const filteredRecipes = recipes.filter((recipe) =>
-    recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getRecipe = (recipeId: string) => {
+    return recipes.find((r) => r.id === recipeId);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8 text-center animate-fade-in">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Weekly Meal Planner
-          </h1>
-          <p className="text-muted-foreground">Drag recipes to plan your week</p>
-        </div>
-
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid lg:grid-cols-4 gap-6">
-            {/* Recipe Sidebar */}
-            <Card className="lg:col-span-1 h-fit sticky top-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ChefHat className="h-5 w-5" />
-                  Recipes
-                </CardTitle>
-                <input
-                  type="text"
-                  placeholder="Search recipes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-input rounded-md text-sm bg-background focus:ring-2 focus:ring-ring"
-                />
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-[600px]">
-                  <Droppable droppableId="recipes" isDropDisabled={true}>
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className="p-4 space-y-2"
-                      >
-                        {filteredRecipes.map((recipe, index) => (
-                          <Draggable
-                            key={recipe.id}
-                            draggableId={recipe.id}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`p-3 bg-card border rounded-lg cursor-move hover:shadow-md transition-all ${
-                                  snapshot.isDragging ? "shadow-lg rotate-2 scale-105 border-primary" : ""
-                                }`}
-                              >
-                                <p className="text-sm font-medium line-clamp-2">
-                                  {recipe.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {recipe.prepTime}
-                                </p>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            {/* Weekly Grid */}
-            <div className="lg:col-span-3 space-y-4">
-              {daysOfWeek.map((day, dayIndex) => (
-                <Card key={day} className="animate-fade-in" style={{ animationDelay: `${dayIndex * 50}ms` }}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl">{day}</CardTitle>
-                      <Badge variant="outline">
-                        {Object.values(mealPlan[day] || {}).filter(m => m.prepared).length}/
-                        {Object.keys(mealPlan[day] || {}).length} prepared
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {mealTypes.map((mealType) => {
-                        const slot = mealPlan[day]?.[mealType];
-                        const recipe = slot ? getRecipe(slot.recipeId) : null;
-
-                        return (
-                          <Droppable
-                            key={`${day}-${mealType}`}
-                            droppableId={`${day}-${mealType}`}
-                          >
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className={`min-h-[120px] border-2 border-dashed rounded-lg p-3 transition-all ${
-                                  snapshot.isDraggingOver
-                                    ? "border-primary bg-primary/10 scale-105"
-                                    : "border-border"
-                                } ${slot ? "bg-muted/50" : ""}`}
-                              >
-                                <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                                  {mealType}
-                                </p>
-
-                                {recipe ? (
-                                  <div className={`space-y-2 ${slot.prepared ? "opacity-60" : ""}`}>
-                                    <p className="text-sm font-medium line-clamp-2">
-                                      {recipe.title}
-                                    </p>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        size="sm"
-                                        variant={slot.prepared ? "default" : "outline"}
-                                        className="h-7 text-xs flex-1"
-                                        onClick={() => togglePrepared(day, mealType)}
-                                      >
-                                        <Check className="h-3 w-3 mr-1" />
-                                        {slot.prepared ? "Done" : "Mark"}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-7 w-7 p-0"
-                                        onClick={() => removeMeal(day, mealType)}
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center justify-center h-full text-xs text-muted-foreground">
-                                    Drop recipe here
-                                  </div>
-                                )}
-
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-2">
+              <ChefHat className="h-8 w-8 text-primary" />
+              Weekly Meal Planner
+            </h1>
+            <p className="text-muted-foreground">Plan your baby's meals for the week</p>
           </div>
-        </DragDropContext>
-
-        {/* Quick Actions */}
-        <div className="fixed bottom-20 right-4 flex flex-col gap-2">
           <Button
-            size="lg"
-            className="rounded-full shadow-lg"
-            onClick={() => window.location.href = "/shopping-list"}
+            onClick={() => navigate("/shopping")}
+            className="bg-primary hover:bg-primary/90"
           >
-            <ShoppingCart className="h-5 w-5 mr-2" />
+            <ShoppingCart className="mr-2 h-4 w-4" />
             View Shopping List
           </Button>
+        </div>
+
+        <div className="grid gap-6">
+          {daysOfWeek.map((day) => (
+            <Card key={day} className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
+              <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
+                <CardTitle className="text-xl font-semibold text-foreground">
+                  {day}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {mealTypes.map((mealType) => {
+                    const slot = mealPlan[day]?.[mealType];
+                    const recipe = slot ? getRecipe(slot.recipeId) : null;
+
+                    return (
+                      <div key={mealType} className="space-y-2">
+                        <h3 className="font-medium text-sm text-muted-foreground capitalize">
+                          {mealType}
+                        </h3>
+                        {recipe ? (
+                          <div className="p-3 rounded-lg border bg-card space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-medium line-clamp-2">{recipe.title}</p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 shrink-0"
+                                onClick={() => removeMeal(day, mealType)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <Button
+                              variant={slot.prepared ? "default" : "outline"}
+                              size="sm"
+                              className="w-full"
+                              onClick={() => togglePrepared(day, mealType)}
+                            >
+                              <Check className="mr-2 h-4 w-4" />
+                              {slot.prepared ? "Prepared" : "Mark Prepared"}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Select
+                            onValueChange={(value) => addMeal(day, mealType, value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select recipe" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {recipes.map((recipe) => (
+                                <SelectItem key={recipe.id} value={recipe.id}>
+                                  {recipe.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>
