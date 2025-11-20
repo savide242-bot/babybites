@@ -30,28 +30,31 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 shadow-md">
+      <div className="container flex h-20 items-center justify-between">
+        <Link to="/" className="flex items-center space-x-2 group">
+          <div className="text-3xl font-extrabold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-tight group-hover:scale-105 transition-transform duration-300">
             BabyBites
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-8">
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary ${
+                className={`flex items-center space-x-2 text-sm font-semibold transition-all duration-300 hover:text-primary hover:scale-110 relative group ${
                   isActive(link.to) ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-5 w-5" />
                 <span>{link.label}</span>
+                {isActive(link.to) && (
+                  <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary to-secondary rounded-full shadow-glow" />
+                )}
               </Link>
             );
           })}
@@ -60,23 +63,23 @@ const Header = () => {
         {/* Mobile Navigation */}
         <Sheet>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="outline" size="icon" className="rounded-full">
-              <Menu className="h-5 w-5" />
+            <Button variant="outline" size="icon" className="rounded-full shadow-md hover:shadow-glow transition-all duration-300">
+              <Menu className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-64">
-            <nav className="flex flex-col space-y-2 mt-8">
+          <SheetContent side="right" className="w-72">
+            <nav className="flex flex-col space-y-3 mt-12">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
                   <SheetTrigger key={link.to} asChild>
                     <Link
                       to={link.to}
-                      className={`flex items-center space-x-3 text-base font-medium transition-colors hover:text-primary p-3 rounded-xl ${
-                        isActive(link.to) ? "bg-muted text-primary" : "text-foreground"
+                      className={`flex items-center space-x-4 text-base font-semibold transition-all duration-300 hover:text-primary p-4 rounded-2xl hover:scale-105 ${
+                        isActive(link.to) ? "bg-gradient-to-r from-primary/10 to-secondary/10 text-primary border-2 border-primary/20 shadow-md" : "text-foreground hover:bg-muted"
                       }`}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-6 w-6" />
                       <span>{link.label}</span>
                     </Link>
                   </SheetTrigger>
