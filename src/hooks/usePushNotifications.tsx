@@ -2,10 +2,21 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
-// Get VAPID public key from environment
-const getVapidPublicKey = () => {
-  // This will be set when user configures VAPID keys in Lovable Cloud secrets
-  return import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+// Fetch VAPID public key from edge function
+const fetchVapidPublicKey = async (): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('get-vapid-key');
+    
+    if (error) {
+      console.error('Error fetching VAPID key:', error);
+      return null;
+    }
+    
+    return data?.vapidPublicKey || null;
+  } catch (error) {
+    console.error('Error in fetchVapidPublicKey:', error);
+    return null;
+  }
 };
 
 export const usePushNotifications = () => {
@@ -61,10 +72,10 @@ export const usePushNotifications = () => {
       // Get service worker registration
       const registration = await navigator.serviceWorker.ready;
 
-      // Subscribe to push notifications
-      const vapidKey = getVapidPublicKey();
+      // Fetch VAPID key from edge function
+      const vapidKey = await fetchVapidPublicKey();
       if (!vapidKey) {
-        console.warn('VAPID_PUBLIC_KEY not configured');
+        console.warn('VAPID_PUBLIC_KEY not available from edge function');
         toast({
           title: "Configuration Required",
           description: "Push notifications require VAPID keys to be configured.",
