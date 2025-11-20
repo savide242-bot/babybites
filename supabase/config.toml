@@ -12,3 +12,6 @@ enabled = true
 
 [functions.bibi-chat]
 verify_jwt = true
+
+[functions.get-vapid-key]
+verify_jwt = false
