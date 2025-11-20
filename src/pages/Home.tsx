@@ -135,7 +135,7 @@ const Home = () => {
   ];
 
   const features = [
-    { icon: TrendingUp, label: "Growth Tracker", path: "/tracker", description: "Monitor baby's development" },
+    { icon: TrendingUp, label: "Growth Tracker", path: "/growth", description: "Monitor baby's development" },
     { icon: BarChart3, label: "Progress Reports", path: "/reports", description: "View detailed insights" },
     { icon: Users, label: "Community", path: "/community", description: "Connect with parents" },
     { icon: MessageCircle, label: "Tips & Advice", path: "/advice", description: "Expert guidance" },

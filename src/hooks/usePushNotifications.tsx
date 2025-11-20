@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
-// Public VAPID key - will be generated when user sets up push notifications
-const VAPID_PUBLIC_KEY = 'BPxQl0dVhOpGx9aK-generated-vapid-key-placeholder';
+// Get VAPID public key from environment
+const getVapidPublicKey = () => {
+  // This will be set when user configures VAPID keys in Lovable Cloud secrets
+  return import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+};
 
 export const usePushNotifications = () => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
@@ -59,9 +62,20 @@ export const usePushNotifications = () => {
       const registration = await navigator.serviceWorker.ready;
 
       // Subscribe to push notifications
+      const vapidKey = getVapidPublicKey();
+      if (!vapidKey) {
+        console.warn('VAPID_PUBLIC_KEY not configured');
+        toast({
+          title: "Configuration Required",
+          description: "Push notifications require VAPID keys to be configured.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as any
+        applicationServerKey: urlBase64ToUint8Array(vapidKey) as any
       });
 
       setSubscription(sub);
@@ -89,7 +103,10 @@ export const usePushNotifications = () => {
   const saveSubscription = async (sub: PushSubscription) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.warn('No user found, cannot save subscription');
+        return;
+      }
 
       const p256dh = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
@@ -97,18 +114,29 @@ export const usePushNotifications = () => {
       const subscriptionData = {
         user_id: user.id,
         endpoint: sub.endpoint,
-        keys: JSON.stringify({
+        keys: {
           p256dh: p256dh ? arrayBufferToBase64(p256dh) : '',
           auth: auth ? arrayBufferToBase64(auth) : ''
-        })
+        }
       };
 
-      // Note: You need to create the push_subscriptions table first
-      // See DEPLOYMENT_INSTRUCTIONS.md for the SQL migration
-      console.log('Would save subscription:', subscriptionData);
+      // Save to push_subscriptions table
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .upsert(subscriptionData, { 
+          onConflict: 'endpoint',
+          ignoreDuplicates: false 
+        });
+
+      if (error) {
+        console.error('Error saving subscription to database:', error);
+        throw error;
+      }
       
+      console.log('✅ Push subscription saved successfully');
     } catch (error) {
       console.error('Error in saveSubscription:', error);
+      throw error;
     }
   };
 
