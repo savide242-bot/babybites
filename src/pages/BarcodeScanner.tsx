@@ -580,10 +580,16 @@ const BarcodeScanner = () => {
     } catch (error: any) {
       console.error('❌ Scan processing error:', error);
       setScanningStatus('error');
-      setStatusMessage('Error processing scan');
+      
+      const errorMessage = error.message === 'Product not found in database'
+        ? 'Product not found. This item may not be in our database yet.'
+        : error.message || 'Failed to process barcode';
+      
+      setStatusMessage(errorMessage);
+      
       toast({
-        title: "Scan Error",
-        description: error.message || "Failed to process barcode",
+        title: error.message === 'Product not found in database' ? "Product Not Found" : "Scan Error",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -599,14 +605,34 @@ const BarcodeScanner = () => {
 
   const verifyProduct = async (barcode: string, barcodeType: string): Promise<ScanResult | null> => {
     try {
+      console.log('🔍 Verifying product:', { barcode, barcodeType });
+      console.log('📡 Calling verify-product edge function...');
+      
       const { data, error } = await supabase.functions.invoke('verify-product', {
         body: { barcode, barcodeType }
       });
 
-      if (error) throw error;
+      console.log('📦 Edge function response:', { data, error });
+
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw new Error(error.message || 'Edge function returned an error');
+      }
+
+      if (!data || !data.product) {
+        console.warn('⚠️ Product not found in Open Food Facts database');
+        throw new Error('Product not found in database');
+      }
+
+      console.log('✅ Product verified successfully:', data);
       return data as ScanResult;
     } catch (error: any) {
-      console.error('Product verification error:', error);
+      console.error('❌ Product verification error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       throw error;
     }
   };
