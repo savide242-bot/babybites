@@ -1,16 +1,26 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan, Settings, FileText, ShoppingCart } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan, Settings, FileText, ShoppingCart, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import LogoutConfirmDialog from "./LogoutConfirmDialog";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useLanguage();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
   
   const navLinks = [
     { to: "/", label: t('nav.home'), icon: Home },
@@ -85,10 +95,27 @@ const Header = () => {
                   </SheetTrigger>
                 );
               })}
+              
+              <SheetTrigger asChild>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowLogoutDialog(true)}
+                  className="flex items-center justify-start space-x-4 w-full p-4 rounded-2xl mt-4"
+                >
+                  <LogOut className="h-6 w-6" />
+                  <span>Log Out</span>
+                </Button>
+              </SheetTrigger>
             </nav>
           </SheetContent>
         </Sheet>
       </div>
+      
+      <LogoutConfirmDialog 
+        open={showLogoutDialog}
+        onOpenChange={setShowLogoutDialog}
+        onConfirm={handleLogout}
+      />
     </header>
   );
 };

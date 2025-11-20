@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_tasks: {
         Row: {
           completed: boolean | null
@@ -77,6 +104,27 @@ export type Database = {
           task_date?: string | null
           task_type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      daily_tips: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          tip_text: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          tip_text: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          tip_text?: string
         }
         Relationships: []
       }

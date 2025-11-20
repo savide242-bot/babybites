@@ -6,12 +6,14 @@ import {
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
   ShoppingCart, Users, MessageCircle, BarChart3, 
   Sparkles, ChevronRight, Apple, Droplets, Clock,
-  Settings, Bell
+  Settings, Bell, HelpCircle, RefreshCw, Lightbulb
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import { useNotifications } from "@/hooks/useNotifications";
+import ProgressExplanationDialog from "@/components/ProgressExplanationDialog";
+import { toast } from "sonner";
 
 const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
@@ -21,6 +23,9 @@ const Home = () => {
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [showProgressDialog, setShowProgressDialog] = useState(false);
+  const [nextMeal, setNextMeal] = useState<{ type: string; recipe: any } | null>(null);
+  const [dailyTip, setDailyTip] = useState<string>("");
   const { permission, requestPermission } = useNotifications();
 
   const getRecipeOfTheDay = () => {
@@ -62,8 +67,11 @@ const Home = () => {
           // Animate progress bar from 0
           setTimeout(() => setAnimatedProgress(realProgress), 100);
           
-          // Animate progress bar from 0
-          setTimeout(() => setAnimatedProgress(realProgress), 100);
+          // Load next scheduled meal
+          await loadNextMeal(session.user.id);
+          
+          // Load daily tip
+          await loadDailyTip();
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -75,6 +83,56 @@ const Home = () => {
     const todaysRecipe = getRecipeOfTheDay();
     setMealOfTheDay(todaysRecipe);
   }, []);
+
+  const loadNextMeal = async (userId: string) => {
+    try {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const today = days[new Date().getDay()];
+      
+      const { data } = await supabase
+        .from('meal_plans')
+        .select('meal_type, recipe_id')
+        .eq('user_id', userId)
+        .eq('day_of_week', today)
+        .eq('prepared', false)
+        .order('meal_type', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (data) {
+        const recipe = recipes.find(r => r.id === data.recipe_id);
+        if (recipe) {
+          setNextMeal({ type: data.meal_type, recipe });
+        }
+      }
+    } catch (error) {
+      // No next meal scheduled
+    }
+  };
+
+  const loadDailyTip = async () => {
+    try {
+      const { data } = await supabase
+        .from('daily_tips')
+        .select('tip_text')
+        .order('created_at', { ascending: false });
+
+      if (data && data.length > 0) {
+        // Pick a tip based on day of year for consistency
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+        const tipIndex = dayOfYear % data.length;
+        setDailyTip(data[tipIndex].tip_text);
+      }
+    } catch (error) {
+      console.error('Error loading daily tip:', error);
+    }
+  };
+
+  const handleRefreshRecipe = () => {
+    const randomRecipe = recipes[Math.floor(Math.random() * recipes.length)];
+    setMealOfTheDay(randomRecipe);
+    toast.success("Recipe refreshed! Here's a new suggestion.");
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -216,6 +274,12 @@ const Home = () => {
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold text-foreground">Growth Progress</h3>
+                    <button
+                      onClick={() => setShowProgressDialog(true)}
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                    </button>
                   </div>
                   <span className="text-sm text-muted-foreground">{growthProgress}%</span>
                 </div>
@@ -308,28 +372,106 @@ const Home = () => {
       </section>
 
       <section className="py-6 px-4">
-        <div className="container max-w-4xl">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Recipe of the Day</h2>
-          <Link to={`/recipe/${mealOfTheDay.id}`} className="block group">
-            <Card className="overflow-hidden border-border/50 hover:border-primary/40 transition-all duration-300 hover:shadow-card group-hover:scale-[1.02] animate-slide-in-bottom relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000">
-              <div className="aspect-video relative overflow-hidden">
-                <img 
-                  src={mealOfTheDay.image} 
-                  alt={mealOfTheDay.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-4 py-2 rounded-full font-semibold flex items-center gap-2 shadow-lg">
-                  <Sparkles className="h-4 w-4" />
-                  Recipe of the Day
+        <div className="container max-w-4xl space-y-6">
+          <Card className="overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg animate-slide-in-bottom" style={{ animationDelay: '400ms' }}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl">
+                    <Sparkles className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Recipe of the Day</h3>
+                    <p className="text-xs text-muted-foreground">Perfect for {babyName || "your baby"}</p>
+                  </div>
                 </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h3 className="text-xl font-bold text-white mb-1">{mealOfTheDay.title}</h3>
-                  <p className="text-sm text-white/90">{mealOfTheDay.ageGroup}</p>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleRefreshRecipe}
+                  className="hover:bg-primary/10"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
               </div>
+              
+              <Link to={`/recipe/${mealOfTheDay.id}`} className="block group">
+                <div className="relative overflow-hidden rounded-xl mb-3">
+                  <img 
+                    src={mealOfTheDay.image}
+                    alt={mealOfTheDay.title}
+                    className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h4 className="text-white font-semibold text-lg mb-1">{mealOfTheDay.title}</h4>
+                    <p className="text-xs text-white/90">{mealOfTheDay.ageGroup}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {mealOfTheDay.prepTime}
+                  </span>
+                  <span className="text-primary group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    View Recipe
+                    <ChevronRight className="w-4 h-4" />
+                  </span>
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {nextMeal && (
+            <Card className="overflow-hidden border-2 border-secondary/20 hover:border-secondary/40 transition-all duration-300 animate-slide-in-bottom" style={{ animationDelay: '500ms' }}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-3 bg-gradient-to-br from-secondary/20 to-primary/20 rounded-xl">
+                    <Calendar className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Next Planned Meal</h3>
+                    <p className="text-xs text-muted-foreground">{nextMeal.type}</p>
+                  </div>
+                </div>
+                <Link to={`/recipe/${nextMeal.recipe.id}`} className="block group">
+                  <div className="flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-muted/70 transition-colors">
+                    <img 
+                      src={nextMeal.recipe.image}
+                      alt={nextMeal.recipe.title}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{nextMeal.recipe.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {nextMeal.recipe.prepTime} • Tap to view
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              </CardContent>
             </Card>
-          </Link>
+          )}
+
+          {dailyTip && (
+            <Card className="overflow-hidden border-2 border-accent/20 bg-gradient-to-br from-accent/5 to-transparent animate-slide-in-bottom" style={{ animationDelay: '600ms' }}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <div className="p-3 bg-accent/20 rounded-xl">
+                    <Lightbulb className="w-6 h-6 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Daily Tip</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {dailyTip}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </section>
 
@@ -356,6 +498,11 @@ const Home = () => {
           </div>
         </div>
       </section>
+      
+      <ProgressExplanationDialog 
+        open={showProgressDialog}
+        onOpenChange={setShowProgressDialog}
+      />
     </div>
   );
 };
