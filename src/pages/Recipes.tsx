@@ -49,25 +49,25 @@ const Recipes = () => {
   };
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-16">
       <div className="container">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">{t('recipes.title')}</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
+        <div className="mb-16">
+          <h1 className="text-5xl font-extrabold mb-6 tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">{t('recipes.title')}</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl font-medium leading-relaxed">
             {t('recipes.subtitle')}
           </p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-12 space-y-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               placeholder={t('recipes.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-full"
+              className="pl-12 rounded-full h-14 text-base shadow-md focus:shadow-glow transition-all duration-300"
             />
           </div>
           
