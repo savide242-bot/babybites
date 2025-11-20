@@ -495,9 +495,9 @@ const RecipeDetail = () => {
               <Button 
                 onClick={() => setCookMode(true)} 
                 size="lg" 
-                className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 py-6 text-lg font-semibold animate-pulse-soft shadow-lg hover:shadow-xl transition-all"
               >
-                <ChefHat className="mr-2 h-5 w-5" />
+                <ChefHat className="mr-3 h-6 w-6" />
                 Cook Mode
               </Button>
             </div>
