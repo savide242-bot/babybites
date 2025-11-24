@@ -6,10 +6,12 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send } from 'lucide-react';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { NotificationPreferences } from '@/components/NotificationPreferences';
+import { Separator } from '@/components/ui/separator';
 
 const Settings = () => {
   const { t } = useLanguage();
@@ -216,6 +218,21 @@ const Settings = () => {
                   )}
                 </>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Meal Reminders
+              </CardTitle>
+              <CardDescription>
+                Customize your notification schedule
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NotificationPreferences />
             </CardContent>
           </Card>
 
