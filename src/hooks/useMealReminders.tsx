@@ -10,13 +10,13 @@ interface MealReminder {
   emoji: string;
 }
 
-const MEAL_REMINDERS: MealReminder[] = [
+const DEFAULT_MEAL_REMINDERS: MealReminder[] = [
   {
     id: 'breakfast',
     hour: 7,
     minute: 30,
     title: 'Good Morning! Breakfast Time',
-    body: "Start baby's day with a nutritious breakfast! 🍳",
+    body: "Start baby's day with a nutritious breakfast!",
     emoji: '🍳'
   },
   {
@@ -24,7 +24,7 @@ const MEAL_REMINDERS: MealReminder[] = [
     hour: 10,
     minute: 0,
     title: 'Morning Snack Time',
-    body: 'A healthy snack keeps baby energized! 🍎',
+    body: 'A healthy snack keeps baby energized!',
     emoji: '🍎'
   },
   {
@@ -32,7 +32,7 @@ const MEAL_REMINDERS: MealReminder[] = [
     hour: 12,
     minute: 30,
     title: 'Lunch Time!',
-    body: 'Time for a delicious and balanced lunch! 🥗',
+    body: 'Time for a delicious and balanced lunch!',
     emoji: '🥗'
   },
   {
@@ -40,7 +40,7 @@ const MEAL_REMINDERS: MealReminder[] = [
     hour: 15,
     minute: 30,
     title: 'Afternoon Snack',
-    body: 'Keep baby happy with a tasty snack! 🍌',
+    body: 'Keep baby happy with a tasty snack!',
     emoji: '🍌'
   },
   {
@@ -48,7 +48,7 @@ const MEAL_REMINDERS: MealReminder[] = [
     hour: 18,
     minute: 0,
     title: 'Dinner Time!',
-    body: 'End the day with a wholesome dinner! 🍽️',
+    body: 'End the day with a wholesome dinner!',
     emoji: '🍽️'
   }
 ];
@@ -57,12 +57,58 @@ export const useMealReminders = () => {
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'granted') {
       // Start reminder system
-      scheduleMealReminders();
+      loadAndScheduleMealReminders();
     }
   }, []);
 
-  const scheduleMealReminders = () => {
-    MEAL_REMINDERS.forEach(reminder => {
+  const loadAndScheduleMealReminders = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        scheduleMealReminders(DEFAULT_MEAL_REMINDERS);
+        return;
+      }
+
+      // Load user preferences
+      const { data: prefs, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error loading notification preferences:', error);
+        scheduleMealReminders(DEFAULT_MEAL_REMINDERS);
+        return;
+      }
+
+      if (prefs && prefs.length > 0) {
+        // Use user preferences
+        const userReminders = prefs
+          .filter(p => p.enabled)
+          .map(p => {
+            const defaultReminder = DEFAULT_MEAL_REMINDERS.find(r => r.id === p.meal_type);
+            return {
+              id: p.meal_type,
+              hour: p.hour,
+              minute: p.minute,
+              title: defaultReminder?.title || 'Meal Reminder',
+              body: defaultReminder?.body || 'Time for a meal!',
+              emoji: defaultReminder?.emoji || '🍽️',
+            };
+          });
+        scheduleMealReminders(userReminders);
+      } else {
+        // Use defaults
+        scheduleMealReminders(DEFAULT_MEAL_REMINDERS);
+      }
+    } catch (error) {
+      console.error('Error loading reminders:', error);
+      scheduleMealReminders(DEFAULT_MEAL_REMINDERS);
+    }
+  };
+
+  const scheduleMealReminders = (reminders: MealReminder[]) => {
+    reminders.forEach(reminder => {
       scheduleNextReminder(reminder);
     });
   };
