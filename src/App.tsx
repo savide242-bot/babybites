@@ -28,6 +28,7 @@ import ShoppingList from "./pages/ShoppingList";
 import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import Admin from "./pages/Admin";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -91,6 +92,7 @@ const AppContent = () => {
                 <Route path="/install" element={<Install />} />
                 <Route path="/reports" element={<ProgressReports />} />
                 <Route path="/shopping" element={<ShoppingList />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </>
