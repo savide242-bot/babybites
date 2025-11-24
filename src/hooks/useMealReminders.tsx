@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MealReminder {
   id: string;
@@ -94,16 +95,30 @@ export const useMealReminders = () => {
       try {
         const registration = await navigator.serviceWorker.ready;
         
+        // Get user's name for personalization
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: profile } = user ? await supabase
+          .from('profiles')
+          .select('mother_name')
+          .eq('id', user.id)
+          .single() : { data: null };
+
+        const motherName = profile?.mother_name || '';
+        const personalizedBody = motherName 
+          ? `Hi ${motherName}! ${reminder.body}` 
+          : reminder.body;
+        
         await registration.showNotification(`${reminder.emoji} ${reminder.title}`, {
-          body: reminder.body,
+          body: personalizedBody,
           icon: '/icon-192x192.png',
           badge: '/icon-192x192.png',
           tag: `meal-reminder-${reminder.id}`,
           requireInteraction: false,
-          data: {
-            url: '/planner'
+          data: { 
+            url: '/planner',
+            actions: ['view', 'dismiss']
           }
-        });
+        } as any);
         
         console.log('✅ Meal reminder notification sent:', reminder.id);
       } catch (error) {

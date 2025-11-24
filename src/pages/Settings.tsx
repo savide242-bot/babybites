@@ -6,7 +6,8 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff } from 'lucide-react';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -74,6 +75,26 @@ const Settings = () => {
       toast({
         title: "⚠️ Permission Required",
         description: "Please enable notifications first",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNotifyUpdate = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('notify-update');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "✅ Notifications Sent!",
+        description: `All users have been notified about the update`,
+      });
+    } catch (error) {
+      console.error('Error notifying update:', error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to send update notifications",
         variant: "destructive"
       });
     }
@@ -243,14 +264,25 @@ const Settings = () => {
                 </Button>
                 
                 {updateNotifications && (
-                  <Button 
-                    onClick={handleTestNotification} 
-                    variant="secondary" 
-                    className="w-full"
-                  >
-                    <Bell className="w-4 h-4 mr-2" />
-                    Test Notification
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={handleTestNotification} 
+                      variant="secondary" 
+                      className="w-full"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Test Notification
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleNotifyUpdate} 
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Notify All Users About Update
+                    </Button>
+                  </>
                 )}
               </div>
               

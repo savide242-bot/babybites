@@ -50,12 +50,55 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
 
+  // Handle update notification actions
+  if (event.action === 'update' || event.notification.data?.action === 'update') {
+    console.log('🔄 User clicked Update Now');
+    event.waitUntil(
+      self.skipWaiting().then(() => {
+        return clients.matchAll({ type: 'window' }).then((clientList) => {
+          // Reload all open clients
+          clientList.forEach(client => {
+            client.postMessage({ type: 'RELOAD' });
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // If user clicked "Later" on update notification
+  if (event.action === 'later') {
+    console.log('⏰ User postponed update');
+    return;
+  }
+
+  // If user clicked "View Recipes" on meal reminder
+  if (event.action === 'view') {
+    const urlToOpen = '/recipes';
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUninitialized: true })
+        .then((clientList) => {
+          for (const client of clientList) {
+            if ('focus' in client) {
+              client.navigate(urlToOpen);
+              return client.focus();
+            }
+          }
+          if (clients.openWindow) {
+            return clients.openWindow(urlToOpen);
+          }
+        })
+    );
+    return;
+  }
+
+  // Default behavior - open URL from notification data
   const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUninitialized: true })
       .then((clientList) => {
-        // If there's already a window open, focus it
+        // If a window is already open, focus it
         for (const client of clientList) {
           if (client.url.includes(urlToOpen) && 'focus' in client) {
             return client.focus();
