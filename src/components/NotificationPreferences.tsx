@@ -110,9 +110,36 @@ export function NotificationPreferences() {
 
       if (error) throw error;
 
+      // Send confirmation notification with SOUND
+      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('mother_name')
+            .eq('id', user.id)
+            .single();
+
+          const motherName = profile?.mother_name || '';
+          
+          await registration.showNotification('✅ Notification System Activated!', {
+            body: `Hi ${motherName}! Your meal reminders are now scheduled. You'll receive notifications at your chosen times.`,
+            icon: '/icon-192x192.png',
+            badge: '/icon-192x192.png',
+            tag: 'notification-activated',
+            requireInteraction: false,
+            silent: false,
+            data: { url: '/settings' }
+          });
+        } catch (notifError) {
+          console.error('Failed to send confirmation notification:', notifError);
+        }
+      }
+
       toast({
         title: "✅ Preferences Saved",
-        description: "Your notification times have been updated. Reload the app to apply changes.",
+        description: "Your notification times have been updated. Check your notification bar!",
       });
 
       // Trigger reload to reinitialize reminders
