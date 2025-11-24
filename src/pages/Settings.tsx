@@ -6,18 +6,22 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send, Clock } from 'lucide-react';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send, Clock, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
 import { Separator } from '@/components/ui/separator';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { forceUpdate, needRefresh } = useServiceWorkerUpdate();
   const { preferences, togglePreference, hasPreference, loading } = useDietaryPreferences();
   const { isSupported, subscription, subscribeToPushNotifications, unsubscribeFromPushNotifications } = usePushNotifications();
+  const { isAdmin } = useAdminRole();
   const [updateNotifications, setUpdateNotifications] = useState(false);
   const [checking, setChecking] = useState(false);
 
@@ -220,6 +224,32 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+
+          {isAdmin && (
+            <Card className="border-2 shadow-elegant border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Admin Panel
+                </CardTitle>
+                <CardDescription>
+                  Access administrative tools and system management
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => navigate('/admin')}
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                >
+                  <Shield className="mr-2 h-4 w-4" />
+                  Open Admin Panel
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-3">
+                  Manage users, send notifications, and view activity logs
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="border-2 shadow-elegant">
             <CardHeader>
