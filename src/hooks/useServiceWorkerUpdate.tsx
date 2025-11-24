@@ -110,19 +110,21 @@ export const useServiceWorkerUpdate = () => {
 
       const motherName = profile?.mother_name || 'there';
 
-      const notification = new Notification("🎉 BabyBites Update Available!", {
+      // Use Service Worker for persistent notifications
+      const registration = await navigator.serviceWorker.ready;
+      
+      await registration.showNotification("🎉 BabyBites Update Available!", {
         body: `Hi ${motherName}! A new version is ready. Click to update now.`,
         icon: '/icon-192x192.png',
         badge: '/icon-192x192.png',
         tag: 'app-update',
-        requireInteraction: true
-      });
-
-      notification.onclick = () => {
-        activateUpdate(newWorker);
-        notification.close();
-        window.focus();
-      };
+        requireInteraction: true,
+        data: { 
+          url: '/',
+          action: 'update',
+          worker: 'pending'
+        }
+      } as any);
     } catch (error) {
       console.error('Error showing native notification:', error);
       // Fallback to toast

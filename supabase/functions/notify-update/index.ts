@@ -51,68 +51,68 @@ serve(async (req) => {
     // Notification payload
     const notification: NotificationPayload = {
       title: "🎉 BabyBites Updated!",
-      body: "New features and improvements are now available. The app will update automatically.",
+      body: "New features and improvements are now available. Click to update now.",
       icon: "/icon-192x192.png",
       badge: "/icon-192x192.png",
       tag: "app-update"
     };
 
-    // VAPID keys (you need to generate these with web-push library)
-    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
-    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
-
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      throw new Error("VAPID keys not configured");
-    }
+    console.log(`📤 Sending update notifications to ${subscriptions.length} users...`);
 
     // Send push notification to all subscriptions
     const results = await Promise.allSettled(
       subscriptions.map(async (sub: PushSubscription) => {
         try {
-          const keys = JSON.parse(sub.keys);
+          console.log(`📨 Sending to user: ${sub.user_id}`);
           
-          // Create JWT for Web Push
-          const jwt = await createJWT(
-            vapidPublicKey,
-            vapidPrivateKey,
-            sub.endpoint
-          );
-
-          // Send push notification
+          // Send notification directly to the push service endpoint
           const response = await fetch(sub.endpoint, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `WebPush ${jwt}`,
               "TTL": "86400"
             },
             body: JSON.stringify({
-              notification: notification
+              title: notification.title,
+              body: notification.body,
+              icon: notification.icon,
+              badge: notification.badge,
+              tag: notification.tag,
+              data: { action: 'update' },
+              actions: [
+                { action: 'update', title: 'Update Now' },
+                { action: 'later', title: 'Later' }
+              ]
             })
           });
 
           if (!response.ok) {
-            console.error(`Failed to send notification to ${sub.user_id}:`, response.statusText);
+            console.error(`❌ Failed to send to ${sub.user_id}: ${response.status} ${response.statusText}`);
             
             // If subscription is invalid (410 Gone), delete it
             if (response.status === 410) {
+              console.log(`🗑️ Deleting expired subscription for ${sub.user_id}`);
               await supabaseClient
                 .from("push_subscriptions")
                 .delete()
                 .eq("user_id", sub.user_id);
             }
+            return { success: false, user_id: sub.user_id };
           }
 
-          return { success: response.ok, user_id: sub.user_id };
+          console.log(`✅ Sent successfully to ${sub.user_id}`);
+          return { success: true, user_id: sub.user_id };
         } catch (error) {
-          console.error(`Error sending to ${sub.user_id}:`, error);
-          return { success: false, user_id: sub.user_id, error };
+          console.error(`❌ Error sending to ${sub.user_id}:`, String(error));
+          return { success: false, user_id: sub.user_id };
         }
       })
     );
 
     const successful = results.filter(r => r.status === "fulfilled" && r.value.success).length;
     const failed = results.length - successful;
+
+    console.log(`📊 Results: ${successful} sent successfully, ${failed} failed`);
 
     return new Response(
       JSON.stringify({
@@ -127,9 +127,9 @@ serve(async (req) => {
       }
     );
   } catch (error: any) {
-    console.error("Error in notify-update:", error);
+    console.error("❌ Error in notify-update:", String(error));
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: String(error) }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500
@@ -137,23 +137,3 @@ serve(async (req) => {
     );
   }
 });
-
-// Simple JWT creation for Web Push (simplified version)
-async function createJWT(publicKey: string, privateKey: string, audience: string): Promise<string> {
-  // In production, use a proper JWT library
-  // This is a placeholder - you'll need to implement proper JWT signing
-  const header = {
-    typ: "JWT",
-    alg: "ES256"
-  };
-
-  const payload = {
-    aud: new URL(audience).origin,
-    exp: Math.floor(Date.now() / 1000) + 43200, // 12 hours
-    sub: "mailto:support@babybites.app"
-  };
-
-  // For production, implement proper ES256 signing with the private key
-  // This is a simplified placeholder
-  return "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.placeholder.signature";
-}
