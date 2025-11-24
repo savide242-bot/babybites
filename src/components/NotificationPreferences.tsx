@@ -31,8 +31,11 @@ const MEAL_LABELS: Record<string, string> = {
 
 export function NotificationPreferences() {
   const [prefs, setPrefs] = useState<NotificationPref[]>(DEFAULT_PREFS);
+  const [initialPrefs, setInitialPrefs] = useState<NotificationPref[]>(DEFAULT_PREFS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,12 +55,17 @@ export function NotificationPreferences() {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setPrefs(data.map(d => ({
+        const loadedPrefs = data.map(d => ({
           meal_type: d.meal_type,
           hour: d.hour,
           minute: d.minute,
           enabled: d.enabled,
-        })));
+        }));
+        setPrefs(loadedPrefs);
+        setInitialPrefs(loadedPrefs);
+        setIsSaved(true);
+      } else {
+        setIsEditing(true);
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
@@ -81,6 +89,21 @@ export function NotificationPreferences() {
         ? { ...p, enabled: !p.enabled }
         : p
     ));
+    setIsSaved(false);
+  };
+
+  const hasChanges = () => {
+    return JSON.stringify(prefs) !== JSON.stringify(initialPrefs);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setPrefs(initialPrefs);
+    setIsEditing(false);
+    setIsSaved(true);
   };
 
   const handleSave = async () => {
@@ -137,13 +160,14 @@ export function NotificationPreferences() {
         }
       }
 
+      setInitialPrefs(prefs);
+      setIsSaved(true);
+      setIsEditing(false);
+
       toast({
         title: "✅ Preferences Saved",
-        description: "Your notification times have been updated. Check your notification bar!",
+        description: "Your notification times have been updated successfully!",
       });
-
-      // Trigger reload to reinitialize reminders
-      setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast({
@@ -162,18 +186,31 @@ export function NotificationPreferences() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 text-lg font-semibold">
-        <Clock className="h-5 w-5" />
-        <span>Meal Reminder Times</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-lg font-semibold">
+          <Clock className="h-5 w-5" />
+          <span>Meal Reminder Times</span>
+          {isSaved && !isEditing && (
+            <span className="text-sm font-normal px-2 py-1 rounded-full bg-green-500/20 text-green-600">
+              ✅ Saved
+            </span>
+          )}
+          {isEditing && (
+            <span className="text-sm font-normal px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-600">
+              ✏️ Editing
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
         {prefs.map((pref) => (
-          <div key={pref.meal_type} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+          <div key={pref.meal_type} className={`flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-all ${!isEditing && isSaved ? 'opacity-75' : ''}`}>
             <div className="flex items-center gap-4 flex-1">
               <Switch
                 checked={pref.enabled}
                 onCheckedChange={() => handleToggle(pref.meal_type)}
+                disabled={!isEditing}
               />
               <Label className="font-medium">{MEAL_LABELS[pref.meal_type]}</Label>
             </div>
@@ -185,7 +222,7 @@ export function NotificationPreferences() {
                 max="23"
                 value={pref.hour}
                 onChange={(e) => handleTimeChange(pref.meal_type, 'hour', e.target.value)}
-                disabled={!pref.enabled}
+                disabled={!pref.enabled || !isEditing}
                 className="w-16 px-2 py-1 text-center border rounded bg-background disabled:opacity-50"
               />
               <span>:</span>
@@ -195,7 +232,7 @@ export function NotificationPreferences() {
                 max="59"
                 value={pref.minute.toString().padStart(2, '0')}
                 onChange={(e) => handleTimeChange(pref.meal_type, 'minute', e.target.value)}
-                disabled={!pref.enabled}
+                disabled={!pref.enabled || !isEditing}
                 className="w-16 px-2 py-1 text-center border rounded bg-background disabled:opacity-50"
               />
             </div>
@@ -203,13 +240,33 @@ export function NotificationPreferences() {
         ))}
       </div>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full">
-        <Save className="h-4 w-4 mr-2" />
-        {saving ? 'Saving...' : 'Save Preferences'}
-      </Button>
+      {isEditing ? (
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleSave} 
+            disabled={saving || !hasChanges()} 
+            className="flex-1"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Saving...' : 'Save Preferences'}
+          </Button>
+          <Button 
+            onClick={handleCancel} 
+            disabled={saving}
+            variant="outline"
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button onClick={handleEdit} className="w-full">
+          Edit Preferences
+        </Button>
+      )}
 
       <p className="text-sm text-muted-foreground">
-        Note: After saving, the app will reload to apply your new notification times.
+        Your notification times are automatically scheduled. Edit anytime to adjust your reminders.
       </p>
     </div>
   );
