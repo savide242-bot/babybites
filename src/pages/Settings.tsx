@@ -47,6 +47,38 @@ const Settings = () => {
     }
   };
 
+  const handleTestNotification = async () => {
+    if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('🎉 Test Notification', {
+          body: 'Push notifications are working correctly!',
+          icon: '/icon-192x192.png',
+          badge: '/icon-192x192.png',
+          tag: 'test-notification'
+        });
+        
+        toast({
+          title: "✅ Test Sent!",
+          description: "Check your device notification bar",
+        });
+      } catch (error) {
+        console.error('Error sending test notification:', error);
+        toast({
+          title: "❌ Error",
+          description: "Could not send test notification",
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "⚠️ Permission Required",
+        description: "Please enable notifications first",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen py-12">
       <div className="container max-w-4xl">
@@ -199,15 +231,28 @@ const Settings = () => {
                 </div>
               )}
               
-              <Button 
-                onClick={handleCheckForUpdates} 
-                variant="outline" 
-                className="w-full"
-                disabled={checking}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${checking ? 'animate-spin' : ''}`} />
-                {checking ? 'Checking...' : 'Check for Updates'}
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleCheckForUpdates} 
+                  variant="outline" 
+                  className="w-full"
+                  disabled={checking}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${checking ? 'animate-spin' : ''}`} />
+                  {checking ? 'Checking...' : 'Check for Updates'}
+                </Button>
+                
+                {updateNotifications && (
+                  <Button 
+                    onClick={handleTestNotification} 
+                    variant="secondary" 
+                    className="w-full"
+                  >
+                    <Bell className="w-4 h-4 mr-2" />
+                    Test Notification
+                  </Button>
+                )}
+              </div>
               
               {needRefresh && (
                 <div className="p-4 bg-primary/10 border-2 border-primary/20 rounded-xl">

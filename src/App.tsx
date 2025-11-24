@@ -9,6 +9,7 @@ import { updateLastVisit } from "@/hooks/useNotifications";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useMealReminders } from "@/hooks/useMealReminders";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
@@ -42,10 +43,28 @@ const AppContent = () => {
   // Activate service worker auto-update
   useServiceWorkerUpdate();
   
+  // Push notifications setup
+  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
+  
   useEffect(() => {
     // Update last visit timestamp on app load
     updateLastVisit().catch(console.error);
   }, []);
+
+  useEffect(() => {
+    // Request notification permission on first visit if supported
+    const hasAskedPermission = localStorage.getItem('notification-permission-asked');
+    
+    if (!hasAskedPermission && isSupported && Notification.permission === 'default') {
+      // Wait 3 seconds after app loads to ask (better UX)
+      const timer = setTimeout(() => {
+        subscribeToPushNotifications();
+        localStorage.setItem('notification-permission-asked', 'true');
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isSupported, subscribeToPushNotifications]);
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">

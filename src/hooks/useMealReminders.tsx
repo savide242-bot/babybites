@@ -89,18 +89,26 @@ export const useMealReminders = () => {
     saveMealReminderToStorage(reminder, scheduledTime);
   };
 
-  const sendMealNotification = (reminder: MealReminder) => {
-    if (Notification.permission === 'granted') {
-      const notification = new Notification(`${reminder.emoji} ${reminder.title}`, {
-        body: reminder.body,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
-        tag: `meal-reminder-${reminder.id}`,
-        requireInteraction: false
-      });
-
-      // Auto-close after 10 seconds
-      setTimeout(() => notification.close(), 10000);
+  const sendMealNotification = async (reminder: MealReminder) => {
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        
+        await registration.showNotification(`${reminder.emoji} ${reminder.title}`, {
+          body: reminder.body,
+          icon: '/icon-192x192.png',
+          badge: '/icon-192x192.png',
+          tag: `meal-reminder-${reminder.id}`,
+          requireInteraction: false,
+          data: {
+            url: '/planner'
+          }
+        });
+        
+        console.log('✅ Meal reminder notification sent:', reminder.id);
+      } catch (error) {
+        console.error('❌ Error showing notification:', error);
+      }
     }
   };
 
