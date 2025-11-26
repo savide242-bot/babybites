@@ -49,7 +49,22 @@ const UserManagement = () => {
           };
         }) || [];
 
-        setUsers(usersWithSessions);
+        // Filter ONLY real users (not generic backfilled profiles)
+        const realUsers = usersWithSessions.filter(user => 
+          user.full_name !== 'User' || sessions?.some(s => s.user_id === user.id)
+        );
+
+        // Sort by last_active (most recent first), then by created_at
+        realUsers.sort((a, b) => {
+          if (a.last_active && b.last_active) {
+            return new Date(b.last_active).getTime() - new Date(a.last_active).getTime();
+          }
+          if (a.last_active) return -1;
+          if (b.last_active) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+
+        setUsers(realUsers);
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {
@@ -67,7 +82,12 @@ const UserManagement = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Management</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <span>User Management</span>
+          <Badge variant="outline" className="text-sm">
+            {users.length} Real Users
+          </Badge>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
@@ -75,6 +95,7 @@ const UserManagement = () => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Mother/Baby</TableHead>
+              <TableHead>Signup Method</TableHead>
               <TableHead>Last Active</TableHead>
               <TableHead>Sessions</TableHead>
               <TableHead>Status</TableHead>
@@ -90,6 +111,7 @@ const UserManagement = () => {
                 : null;
               
               const isActive = hoursSinceActive !== null && hoursSinceActive < 24;
+              const signupMethod = user.full_name?.includes('@') ? 'Email' : 'Google';
               
               return (
                 <TableRow key={user.id}>
@@ -109,6 +131,11 @@ const UserManagement = () => {
                         </div>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={signupMethod === 'Google' ? 'default' : 'secondary'}>
+                      {signupMethod}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {lastActive ? (
