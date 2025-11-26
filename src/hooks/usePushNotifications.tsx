@@ -87,9 +87,10 @@ export const usePushNotifications = () => {
       console.log('✅ VAPID key received, length:', vapidKey.length);
       console.log('🔑 VAPID key preview:', vapidKey.substring(0, 20) + '...');
 
+      let sub: PushSubscription;
       try {
         console.log('📱 Attempting to subscribe to push notifications...');
-        const sub = await registration.pushManager.subscribe({
+        sub = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidKey) as any
         });
@@ -103,12 +104,6 @@ export const usePushNotifications = () => {
         });
         return false;
       }
-
-      const sub = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey) as any
-      });
-      console.log('✅ Successfully subscribed to push notifications');
 
       setSubscription(sub);
 
