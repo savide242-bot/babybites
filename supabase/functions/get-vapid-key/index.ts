@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+    let vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
     
     if (!vapidPublicKey) {
       console.error('VAPID_PUBLIC_KEY not configured in secrets');
@@ -24,6 +24,11 @@ serve(async (req) => {
         }
       );
     }
+
+    // Remove extra quotes if present (fix for stored values with quotes)
+    vapidPublicKey = vapidPublicKey.replace(/^["']|["']$/g, '');
+    
+    console.log('VAPID key length:', vapidPublicKey.length);
 
     return new Response(
       JSON.stringify({ vapidPublicKey }),
