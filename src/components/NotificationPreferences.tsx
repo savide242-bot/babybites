@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Clock, Save } from 'lucide-react';
 
 interface NotificationPref {
@@ -37,6 +38,7 @@ export function NotificationPreferences() {
   const [isSaved, setIsSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
 
   useEffect(() => {
     loadPreferences();
@@ -132,6 +134,17 @@ export function NotificationPreferences() {
         );
 
       if (error) throw error;
+
+      // Auto-subscribe to push notifications if supported
+      if (isSupported && Notification.permission === 'granted') {
+        await subscribeToPushNotifications();
+      } else if (isSupported && Notification.permission === 'default') {
+        // Request permission if not granted
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          await subscribeToPushNotifications();
+        }
+      }
 
       // Send confirmation notification with SOUND
       if ('serviceWorker' in navigator && Notification.permission === 'granted') {

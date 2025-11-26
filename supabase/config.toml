@@ -15,3 +15,18 @@ verify_jwt = true
 
 [functions.get-vapid-key]
 verify_jwt = false
+
+[functions.check-meal-reminders]
+verify_jwt = false
+
+[functions.send-meal-reminder]
+verify_jwt = false
+
+[functions.notify-all-users]
+verify_jwt = true
+
+[functions.notify-update]
+verify_jwt = false
+
+[functions.verify-product]
+verify_jwt = true
