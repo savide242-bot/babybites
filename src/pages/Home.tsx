@@ -167,7 +167,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="bg-gradient-to-br from-purple-300 via-pink-200 to-cyan-100 pt-8 pb-12 px-4 relative overflow-hidden">
+      <header className="bg-gradient-to-br from-purple-300 via-pink-200 to-cyan-100 pt-8 pb-6 px-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-400/20 rounded-full blur-3xl" />
@@ -183,20 +183,20 @@ const Home = () => {
         </div>
       </header>
 
-      <div className="container max-w-4xl px-4 -mt-6 space-y-6">
+      <div className="container max-w-4xl px-4 mt-4 space-y-6">
         {/* Top Row: Growth Progress + Today's Tasks */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="shadow-lg">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Growth Progress</h3>
-              <CircularProgress value={growthProgress} size={100} strokeWidth={8} />
+            <CardContent className="p-4 flex flex-col items-center justify-center">
+              <h3 className="text-sm font-semibold text-foreground mb-3">Growth Progress</h3>
+              <CircularProgress value={growthProgress} size={80} strokeWidth={8} />
             </CardContent>
           </Card>
 
           <Card className="shadow-lg">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-sm mb-3">Today's Tasks</h3>
-              <div className="space-y-2">
+              <h3 className="font-semibold text-sm mb-2">Today's Tasks</h3>
+              <div className="space-y-1">
                 {dailyTasks.map((task) => (
                   <div key={task.id} className="flex items-center gap-2">
                     <Checkbox
@@ -221,20 +221,20 @@ const Home = () => {
         </div>
 
         {/* Two Column Layout: Left (Quick Access + Explore More) + Right (Recipe of the Day) */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           {/* Left Column */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Quick Access Section */}
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-3">Quick Access</h2>
-              <div className="grid grid-cols-2 gap-3">
+              <h2 className="text-base font-bold text-foreground mb-2">Quick Access</h2>
+              <div className="grid grid-cols-2 gap-2">
                 {quickActions.map((action, index) => (
                   <Link key={index} to={action.path}>
                     <button 
-                      className={`${action.bgColor} w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-md`}
+                      className={`${action.bgColor} w-full h-20 rounded-2xl flex flex-col items-center justify-center gap-1 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-md`}
                     >
-                      <action.icon className="w-8 h-8" />
-                      <span className="text-sm font-medium">{action.label}</span>
+                      <action.icon className="w-6 h-6" />
+                      <span className="text-xs font-medium">{action.label}</span>
                     </button>
                   </Link>
                 ))}
@@ -243,15 +243,15 @@ const Home = () => {
 
             {/* Explore More Section */}
             <section>
-              <h2 className="text-lg font-bold text-foreground mb-3">Explore More</h2>
-              <div className="space-y-2">
+              <h2 className="text-base font-bold text-foreground mb-2">Explore More</h2>
+              <div className="space-y-1">
                 {exploreItems.map((item, index) => (
                   <Link key={index} to={item.path}>
-                    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                        <item.icon className="w-5 h-5 text-cyan-400" />
+                    <div className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/50 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                        <item.icon className="w-4 h-4 text-cyan-400" />
                       </div>
-                      <span className="font-medium text-foreground text-sm">{item.label}</span>
+                      <span className="font-medium text-foreground text-xs">{item.label}</span>
                     </div>
                   </Link>
                 ))}
@@ -261,10 +261,10 @@ const Home = () => {
 
           {/* Right Column - Recipe of the Day */}
           <section>
-            <h2 className="text-lg font-bold text-foreground mb-3">Recipe of the Day</h2>
+            <h2 className="text-base font-bold text-foreground mb-2">Recipe of the Day</h2>
             <Link to={`/recipe/${mealOfTheDay.id}`}>
               <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="relative h-48">
+                <div className="relative h-32">
                   <img 
                     src={mealOfTheDay.image}
                     alt={mealOfTheDay.title}
@@ -275,13 +275,9 @@ const Home = () => {
                     {mealOfTheDay.prepTime}
                   </div>
                 </div>
-                <CardContent className="p-4 space-y-3">
-                  <h3 className="font-semibold text-foreground">{mealOfTheDay.title}</h3>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    Prep time: {mealOfTheDay.prepTime}
-                  </p>
-                  <Button className="w-full bg-purple-300 hover:bg-purple-400 text-white">
+                <CardContent className="p-3 space-y-2">
+                  <h3 className="font-semibold text-sm text-foreground">{mealOfTheDay.title}</h3>
+                  <Button className="w-full bg-purple-300 hover:bg-purple-400 text-white text-sm py-2">
                     View Recipe
                   </Button>
                 </CardContent>
