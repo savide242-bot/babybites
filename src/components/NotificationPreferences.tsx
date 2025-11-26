@@ -136,14 +136,30 @@ export function NotificationPreferences() {
       if (error) throw error;
 
       // Auto-subscribe to push notifications if supported
-      if (isSupported && Notification.permission === 'granted') {
-        await subscribeToPushNotifications();
-      } else if (isSupported && Notification.permission === 'default') {
-        // Request permission if not granted
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          await subscribeToPushNotifications();
+      console.log('🔔 Notification permission:', Notification.permission, 'Supported:', isSupported);
+      
+      if (isSupported) {
+        if (Notification.permission === 'granted') {
+          console.log('✅ Permission already granted, subscribing...');
+          const subscribed = await subscribeToPushNotifications();
+          console.log('📱 Subscription result:', subscribed);
+        } else if (Notification.permission === 'default') {
+          console.log('❓ Requesting notification permission...');
+          const permission = await Notification.requestPermission();
+          console.log('🔐 Permission response:', permission);
+          
+          if (permission === 'granted') {
+            console.log('✅ Permission granted, subscribing...');
+            const subscribed = await subscribeToPushNotifications();
+            console.log('📱 Subscription result:', subscribed);
+          } else {
+            console.warn('⚠️ Permission denied');
+          }
+        } else {
+          console.warn('🚫 Notification permission was denied previously');
         }
+      } else {
+        console.warn('❌ Push notifications not supported in this browser');
       }
 
       // Send confirmation notification with SOUND
