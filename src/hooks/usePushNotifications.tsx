@@ -75,10 +75,30 @@ export const usePushNotifications = () => {
       // Fetch VAPID key from edge function
       const vapidKey = await fetchVapidPublicKey();
       if (!vapidKey) {
-        console.warn('VAPID_PUBLIC_KEY not available from edge function');
+        console.warn('❌ VAPID_PUBLIC_KEY not available from edge function');
         toast({
           title: "Configuration Required",
           description: "Push notifications require VAPID keys to be configured.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      console.log('✅ VAPID key received, length:', vapidKey.length);
+      console.log('🔑 VAPID key preview:', vapidKey.substring(0, 20) + '...');
+
+      try {
+        console.log('📱 Attempting to subscribe to push notifications...');
+        const sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey) as any
+        });
+        console.log('✅ Successfully subscribed to push notifications');
+      } catch (subscribeError) {
+        console.error('❌ Push subscription failed:', subscribeError);
+        toast({
+          title: "Subscription Failed",
+          description: subscribeError instanceof Error ? subscribeError.message : "Could not enable push notifications.",
           variant: "destructive"
         });
         return false;
@@ -88,10 +108,12 @@ export const usePushNotifications = () => {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey) as any
       });
+      console.log('✅ Successfully subscribed to push notifications');
 
       setSubscription(sub);
 
       // Save subscription to database
+      console.log('💾 Saving subscription to database...');
       await saveSubscription(sub);
 
       toast({
