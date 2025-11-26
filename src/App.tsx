@@ -10,6 +10,7 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useMealReminders } from "@/hooks/useMealReminders";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useSessionTracking } from "@/hooks/useSessionTracking";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
@@ -43,6 +44,9 @@ const AppContent = () => {
   
   // Activate service worker auto-update
   useServiceWorkerUpdate();
+  
+  // Track user sessions
+  useSessionTracking();
   
   // Push notifications setup
   const { subscribeToPushNotifications, isSupported } = usePushNotifications();
