@@ -218,7 +218,7 @@ const Home = () => {
         
         <div className="container max-w-4xl relative z-10">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {getGreeting()}, {motherName}! 👋
+            {getGreeting()}, {motherName}!
           </h1>
           <p className="text-gray-700 text-lg">
             {babyName}'s plan for today:
