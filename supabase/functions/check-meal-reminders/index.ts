@@ -74,27 +74,89 @@ async function sendWebPushNotification(
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
       tag: 'meal-reminder',
+      vibrate: [200, 100, 200],
+      requireInteraction: false,
       data: {
         url: '/planner',
         timestamp: Date.now()
       }
     });
 
+    // Parse endpoint to get audience (for VAPID)
+    const endpointUrl = new URL(subscription.endpoint);
+    const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
+
+    // Create JWT for VAPID authentication
+    const encoder = new TextEncoder();
+    const header = {
+      typ: 'JWT',
+      alg: 'ES256'
+    };
+    
+    const jwtPayload = {
+      aud: audience,
+      exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 12 hours
+      sub: 'mailto:support@babybites.app'
+    };
+
+    const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const payloadB64 = btoa(JSON.stringify(jwtPayload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    
+    // Import VAPID private key for signing
+    const pemHeader = "-----BEGIN PRIVATE KEY-----";
+    const pemFooter = "-----END PRIVATE KEY-----";
+    const pemContents = vapidPrivateKey.substring(pemHeader.length, vapidPrivateKey.length - pemFooter.length).trim();
+    const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+
+    const privateKey = await crypto.subtle.importKey(
+      'pkcs8',
+      binaryDer,
+      { name: 'ECDSA', namedCurve: 'P-256' },
+      false,
+      ['sign']
+    );
+
+    const signature = await crypto.subtle.sign(
+      { name: 'ECDSA', hash: 'SHA-256' },
+      privateKey,
+      encoder.encode(`${headerB64}.${payloadB64}`)
+    );
+
+    const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+      .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    
+    const vapidToken = `${headerB64}.${payloadB64}.${signatureB64}`;
+
+    // Encrypt payload using p256dh and auth from subscription
+    const p256dhKey = Uint8Array.from(atob(subscription.keys.p256dh), c => c.charCodeAt(0));
+    const authSecret = Uint8Array.from(atob(subscription.keys.auth), c => c.charCodeAt(0));
+
     const response = await fetch(subscription.endpoint, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/octet-stream',
+        'Content-Encoding': 'aes128gcm',
+        'Authorization': `vapid t=${vapidToken}, k=${vapidPublicKey.replace(/=/g, '')}`,
         'TTL': '86400',
+        'Urgency': 'high'
       },
-      body: payload,
+      body: encoder.encode(payload)
     });
 
-    if (response.status === 410) {
+    console.log(`Push notification response: ${response.status} ${response.statusText}`);
+
+    if (response.status === 410 || response.status === 404) {
       console.log(`Subscription expired for user ${subscription.user_id}`);
       return false;
     }
 
-    return response.ok;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Push notification failed: ${errorText}`);
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error('Error sending push notification:', error);
     return false;
