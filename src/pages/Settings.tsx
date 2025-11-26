@@ -311,25 +311,25 @@ const Settings = () => {
                 </Button>
                 
                 {updateNotifications && (
-                  <>
-                    <Button 
-                      onClick={handleTestNotification} 
-                      variant="secondary" 
-                      className="w-full"
-                    >
-                      <Bell className="w-4 h-4 mr-2" />
-                      Test Notification
-                    </Button>
-                    
-                    <Button 
-                      onClick={handleNotifyUpdate} 
-                      variant="outline" 
-                      className="w-full"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Notify All Users About Update
-                    </Button>
-                  </>
+                  <Button 
+                    onClick={handleTestNotification} 
+                    variant="secondary" 
+                    className="w-full"
+                  >
+                    <Bell className="w-4 h-4 mr-2" />
+                    Test Notification
+                  </Button>
+                )}
+                
+                {isAdmin && updateNotifications && (
+                  <Button 
+                    onClick={handleNotifyUpdate} 
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Notify All Users About Update
+                  </Button>
                 )}
               </div>
               
