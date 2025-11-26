@@ -10,12 +10,31 @@ interface PrivateRouteProps {
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setIsAuthenticated(!!session);
+
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('mother_name, baby_name')
+            .eq('id', session.user.id)
+            .single();
+
+          const hasIncompleteProfile = 
+            !profile?.mother_name || 
+            !profile?.baby_name || 
+            profile.mother_name === 'User' ||
+            profile.baby_name === null;
+
+          const isOnOnboardingPage = window.location.pathname === '/onboarding';
+          
+          setNeedsOnboarding(hasIncompleteProfile && !isOnOnboardingPage);
+        }
       } catch (error) {
         console.error("Error checking auth:", error);
         setIsAuthenticated(false);
@@ -48,6 +67,10 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (needsOnboarding) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
