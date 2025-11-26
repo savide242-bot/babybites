@@ -94,6 +94,7 @@ const Home = () => {
   const calculateRealProgress = async (userId: string, profile: any) => {
     let totalProgress = 0;
     
+    // 1. Growth Records (25%)
     const { data: growthData } = await supabase
       .from('baby_growth')
       .select('*')
@@ -101,6 +102,7 @@ const Home = () => {
     
     if (growthData && growthData.length > 0) totalProgress += 25;
     
+    // 2. Meal Logs (25%)
     const { data: mealData } = await supabase
       .from('meal_logs')
       .select('*')
@@ -108,8 +110,15 @@ const Home = () => {
     
     if (mealData && mealData.length > 0) totalProgress += 25;
     
-    if (profile?.mother_name && profile?.baby_name) totalProgress += 25;
+    // 3. Recipes Viewed (25%)
+    const { data: recipeViews } = await supabase
+      .from('recipe_views')
+      .select('*')
+      .eq('user_id', userId);
     
+    if (recipeViews && recipeViews.length > 0) totalProgress += 25;
+    
+    // 4. Tasks Completed Today (25%)
     const today = new Date().toISOString().split('T')[0];
     const { data: tasksData } = await supabase
       .from('daily_tasks')
@@ -288,7 +297,7 @@ const Home = () => {
       </div>
 
       {/* Floating Ask BibiAI Button */}
-      <Link to="/chat" className="fixed bottom-6 right-6 z-50">
+      <Link to="/chat" className="fixed bottom-6 left-6 z-50">
         <Button 
           className="bg-cyan-400 hover:bg-cyan-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
         >
