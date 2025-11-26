@@ -113,11 +113,14 @@ export const usePushNotifications = () => {
 
   const saveSubscription = async (sub: PushSubscription) => {
     try {
+      console.log('💾 Starting saveSubscription...');
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.warn('No user found, cannot save subscription');
+        console.warn('⚠️ No user found, cannot save subscription');
         return;
       }
+      console.log('👤 User ID:', user.id);
 
       const p256dh = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
@@ -131,22 +134,30 @@ export const usePushNotifications = () => {
         }
       };
 
+      console.log('📦 Subscription data prepared:', {
+        user_id: subscriptionData.user_id,
+        endpoint: subscriptionData.endpoint.substring(0, 50) + '...',
+        has_p256dh: !!subscriptionData.keys.p256dh,
+        has_auth: !!subscriptionData.keys.auth
+      });
+
       // Save to push_subscriptions table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('push_subscriptions')
         .upsert(subscriptionData, { 
           onConflict: 'endpoint',
           ignoreDuplicates: false 
-        });
+        })
+        .select();
 
       if (error) {
-        console.error('Error saving subscription to database:', error);
+        console.error('❌ Error saving subscription to database:', error);
         throw error;
       }
       
-      console.log('✅ Push subscription saved successfully');
+      console.log('✅ Push subscription saved successfully:', data);
     } catch (error) {
-      console.error('Error in saveSubscription:', error);
+      console.error('💥 Error in saveSubscription:', error);
       throw error;
     }
   };
