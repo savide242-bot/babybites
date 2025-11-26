@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import CircularProgress from "@/components/CircularProgress";
+import { toast } from "sonner";
 
 interface DailyTask {
   id: string;
@@ -23,6 +24,7 @@ const Home = () => {
   const [mealOfTheDay, setMealOfTheDay] = useState(recipes[0]);
   const [growthProgress, setGrowthProgress] = useState(0);
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
+  const [dailyTip, setDailyTip] = useState<string>("");
 
   const getRecipeOfTheDay = () => {
     const dayOfWeek = new Date().getDay();
@@ -46,6 +48,17 @@ const Home = () => {
           if (profile) {
             setMotherName(profile.mother_name || "");
             setBabyName(profile.baby_name || "");
+          }
+
+          // Fetch daily tip
+          const { data: tips } = await supabase
+            .from('daily_tips')
+            .select('tip_text')
+            .limit(10);
+          
+          if (tips && tips.length > 0) {
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            setDailyTip(randomTip.tip_text);
           }
 
           const realProgress = await calculateRealProgress(session.user.id, profile);
@@ -94,31 +107,34 @@ const Home = () => {
   const calculateRealProgress = async (userId: string, profile: any) => {
     let totalProgress = 0;
     
-    // 1. Growth Records (25%)
+    // 1. Growth Records (20% total)
     const { data: growthData } = await supabase
       .from('baby_growth')
       .select('*')
       .eq('user_id', userId);
     
-    if (growthData && growthData.length > 0) totalProgress += 25;
+    if (growthData && growthData.length >= 1) totalProgress += 10; // First record
+    if (growthData && growthData.length >= 3) totalProgress += 10; // 3+ records
     
-    // 2. Meal Logs (25%)
+    // 2. Meal Logs (20% total)
     const { data: mealData } = await supabase
       .from('meal_logs')
       .select('*')
       .eq('user_id', userId);
     
-    if (mealData && mealData.length > 0) totalProgress += 25;
+    if (mealData && mealData.length >= 1) totalProgress += 10; // First meal
+    if (mealData && mealData.length >= 5) totalProgress += 10; // 5+ meals
     
-    // 3. Recipes Viewed (25%)
+    // 3. Recipes Viewed (20% total)
     const { data: recipeViews } = await supabase
       .from('recipe_views')
       .select('*')
       .eq('user_id', userId);
     
-    if (recipeViews && recipeViews.length > 0) totalProgress += 25;
+    if (recipeViews && recipeViews.length >= 1) totalProgress += 10; // First view
+    if (recipeViews && recipeViews.length >= 10) totalProgress += 10; // 10+ views
     
-    // 4. Tasks Completed Today (25%)
+    // 4. Tasks Completed Today (40% total - highest weight for daily engagement)
     const today = new Date().toISOString().split('T')[0];
     const { data: tasksData } = await supabase
       .from('daily_tasks')
@@ -127,9 +143,20 @@ const Home = () => {
       .eq('task_date', today)
       .eq('completed', true);
     
-    if (tasksData && tasksData.length > 0) totalProgress += 25;
+    const completedCount = tasksData?.length || 0;
+    if (completedCount >= 1) totalProgress += 10; // 1 task
+    if (completedCount >= 2) totalProgress += 10; // 2 tasks
+    if (completedCount >= 3) totalProgress += 10; // 3 tasks
+    if (completedCount >= 4) totalProgress += 10; // All 4 tasks
     
     return totalProgress;
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   };
 
   const toggleTask = async (taskId: string, currentState: boolean) => {
@@ -142,11 +169,18 @@ const Home = () => {
       .eq('id', taskId);
 
     if (!error) {
-      setDailyTasks(prev => 
-        prev.map(task => 
-          task.id === taskId ? { ...task, completed: !currentState } : task
-        )
+      const updatedTasks = dailyTasks.map(task => 
+        task.id === taskId ? { ...task, completed: !currentState } : task
       );
+      setDailyTasks(updatedTasks);
+
+      // Check if all 4 tasks are now completed
+      const allCompleted = updatedTasks.every(t => t.completed);
+      if (allCompleted && !currentState) {
+        toast.success("🎉 Amazing! All tasks completed today!", {
+          duration: 5000,
+        });
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -184,11 +218,14 @@ const Home = () => {
         
         <div className="container max-w-4xl relative z-10">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Hello, {motherName}! 👋
+            {getGreeting()}, {motherName}! 👋
           </h1>
           <p className="text-gray-700 text-lg">
             {babyName}'s plan for today:
           </p>
+          {dailyTip && (
+            <p className="text-gray-700 text-sm mt-2 italic opacity-90">💡 {dailyTip}</p>
+          )}
         </div>
       </header>
 
