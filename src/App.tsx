@@ -32,6 +32,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { NotificationPromptModal } from "@/components/NotificationPromptModal";
 
 const queryClient = new QueryClient();
 
@@ -48,28 +49,10 @@ const AppContent = () => {
   // Track user sessions
   useSessionTracking();
   
-  // Push notifications setup
-  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
-  
   useEffect(() => {
     // Update last visit timestamp on app load
     updateLastVisit().catch(console.error);
   }, []);
-
-  useEffect(() => {
-    // Request notification permission on first visit if supported
-    const hasAskedPermission = localStorage.getItem('notification-permission-asked');
-    
-    if (!hasAskedPermission && isSupported && Notification.permission === 'default') {
-      // Wait 3 seconds after app loads to ask (better UX)
-      const timer = setTimeout(() => {
-        subscribeToPushNotifications();
-        localStorage.setItem('notification-permission-asked', 'true');
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isSupported, subscribeToPushNotifications]);
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
@@ -81,6 +64,7 @@ const AppContent = () => {
             <>
               <Header />
               <WhatsAppButton />
+              <NotificationPromptModal />
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/recipes" element={<Recipes />} />
