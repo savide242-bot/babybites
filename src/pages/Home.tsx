@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
-  Users, MessageCircle, BarChart3, Apple, Droplets, Clock
+  BarChart3, Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -153,23 +153,16 @@ const Home = () => {
     }
   };
 
-  const getTaskIcon = (taskType: string) => {
-    if (taskType === 'Hydration') return <Droplets className="w-4 h-4" />;
-    return <Apple className="w-4 h-4" />;
-  };
-
   const quickActions = [
-    { icon: BookOpen, label: "Recipes", path: "/recipes", color: "from-accent to-accent/80" },
-    { icon: Heart, label: "Favorites", path: "/favorites", color: "from-primary to-primary/80" },
-    { icon: Calendar, label: "Planner", path: "/planner", color: "from-secondary to-secondary/80" },
-    { icon: Scan, label: "Scanner", path: "/scanner", color: "from-mint to-mint/80" },
+    { icon: BookOpen, label: "Recipes", path: "/recipes", bgColor: "bg-purple-500" },
+    { icon: Heart, label: "Favorites", path: "/favorites", bgColor: "bg-pink-400" },
+    { icon: Calendar, label: "Planner", path: "/planner", bgColor: "bg-cyan-400" },
+    { icon: Scan, label: "Scanner", path: "/scanner", bgColor: "bg-teal-400" },
   ];
 
   const exploreItems = [
     { icon: TrendingUp, label: "Growth Tracker", path: "/growth" },
     { icon: BarChart3, label: "Progress Reports", path: "/reports" },
-    { icon: Users, label: "Community", path: "/community" },
-    { icon: MessageCircle, label: "Tips & Advice", path: "/advice" },
   ];
 
   return (
@@ -191,19 +184,18 @@ const Home = () => {
       </header>
 
       <div className="container max-w-4xl px-4 -mt-6 space-y-6">
+        {/* Top Row: Growth Progress + Today's Tasks */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="shadow-lg">
-            <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
+            <CardContent className="p-6 flex flex-col items-center justify-center">
+              <h3 className="text-sm font-semibold text-foreground mb-4">Growth Progress</h3>
               <CircularProgress value={growthProgress} size={100} strokeWidth={8} />
             </CardContent>
           </Card>
 
           <Card className="shadow-lg">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Clock className="w-4 h-4 text-secondary" />
-                <h3 className="font-semibold text-sm">Today's Tasks</h3>
-              </div>
+              <h3 className="font-semibold text-sm mb-3">Today's Tasks</h3>
               <div className="space-y-2">
                 {dailyTasks.map((task) => (
                   <div key={task.id} className="flex items-center gap-2">
@@ -211,15 +203,14 @@ const Home = () => {
                       id={task.id}
                       checked={task.completed}
                       onCheckedChange={() => toggleTask(task.id, task.completed)}
-                      className="data-[state=checked]:bg-secondary"
+                      className="data-[state=checked]:bg-cyan-400"
                     />
                     <label
                       htmlFor={task.id}
-                      className={`text-sm flex items-center gap-2 cursor-pointer ${
+                      className={`text-sm cursor-pointer ${
                         task.completed ? 'line-through text-muted-foreground' : ''
                       }`}
                     >
-                      {getTaskIcon(task.task_type)}
                       {task.task_type}
                     </label>
                   </div>
@@ -229,75 +220,84 @@ const Home = () => {
           </Card>
         </div>
 
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Quick Access</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((action, index) => (
-              <Link key={index} to={action.path} className="group">
-                <Card className="hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-                  <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center`}>
-                      <action.icon className="w-7 h-7 text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-foreground">{action.label}</span>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* Two Column Layout: Left (Quick Access + Explore More) + Right (Recipe of the Day) */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Quick Access Section */}
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-3">Quick Access</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {quickActions.map((action, index) => (
+                  <Link key={index} to={action.path}>
+                    <button 
+                      className={`${action.bgColor} w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-md`}
+                    >
+                      <action.icon className="w-8 h-8" />
+                      <span className="text-sm font-medium">{action.label}</span>
+                    </button>
+                  </Link>
+                ))}
+              </div>
+            </section>
 
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Recipe of the Day</h2>
-          <Link to={`/recipe/${mealOfTheDay.id}`}>
-            <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-0">
-                <div className="relative h-40">
+            {/* Explore More Section */}
+            <section>
+              <h2 className="text-lg font-bold text-foreground mb-3">Explore More</h2>
+              <div className="space-y-2">
+                {exploreItems.map((item, index) => (
+                  <Link key={index} to={item.path}>
+                    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                        <item.icon className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <span className="font-medium text-foreground text-sm">{item.label}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* Right Column - Recipe of the Day */}
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-3">Recipe of the Day</h2>
+            <Link to={`/recipe/${mealOfTheDay.id}`}>
+              <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
+                <div className="relative h-48">
                   <img 
                     src={mealOfTheDay.image}
                     alt={mealOfTheDay.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h4 className="text-white font-semibold text-lg">{mealOfTheDay.title}</h4>
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {mealOfTheDay.prepTime}
                   </div>
                 </div>
-                <div className="p-4">
-                  <Button className="w-full bg-gradient-to-r from-accent to-accent/80 text-white">
+                <CardContent className="p-4 space-y-3">
+                  <h3 className="font-semibold text-foreground">{mealOfTheDay.title}</h3>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    Prep time: {mealOfTheDay.prepTime}
+                  </p>
+                  <Button className="w-full bg-purple-300 hover:bg-purple-400 text-white">
                     View Recipe
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-bold text-foreground mb-4">Explore More</h2>
-          <div className="space-y-2">
-            {exploreItems.map((item, index) => (
-              <Link key={index} to={item.path}>
-                <Card className="hover:shadow-md transition-all duration-300">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      <item.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="font-medium text-foreground">{item.label}</span>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+                </CardContent>
+              </Card>
+            </Link>
+          </section>
+        </div>
       </div>
 
-      <Link to="/chat" className="fixed bottom-6 right-6 z-50 group">
+      {/* Floating Ask BibiAI Button */}
+      <Link to="/chat" className="fixed bottom-6 right-6 z-50">
         <Button 
-          size="lg"
-          className="rounded-full w-16 h-16 bg-gradient-to-br from-secondary to-mint shadow-glow hover:shadow-2xl transition-all duration-300 hover:scale-110"
+          className="bg-cyan-400 hover:bg-cyan-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
         >
-          <Bot className="w-8 h-8 text-white" />
+          <Bot className="w-5 h-5" />
+          <span className="font-medium">Ask BibiAI</span>
         </Button>
       </Link>
     </div>
