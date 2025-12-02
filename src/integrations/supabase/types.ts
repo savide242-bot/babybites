@@ -215,6 +215,72 @@ export type Database = {
         }
         Relationships: []
       }
+      food_analyses: {
+        Row: {
+          allergens: string[] | null
+          baby_age_months: number
+          choking_risk: string | null
+          confidence_score: number | null
+          created_at: string
+          estimated_calories: number | null
+          estimated_carbs_g: number | null
+          estimated_fats_g: number | null
+          estimated_protein_g: number | null
+          id: string
+          identified_food: string
+          image_url: string | null
+          is_recommended: boolean
+          minerals: string[] | null
+          preparation_tips: string | null
+          recommendation_reason: string | null
+          suggested_recipes: string[] | null
+          user_id: string
+          vitamins: string[] | null
+        }
+        Insert: {
+          allergens?: string[] | null
+          baby_age_months: number
+          choking_risk?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          estimated_calories?: number | null
+          estimated_carbs_g?: number | null
+          estimated_fats_g?: number | null
+          estimated_protein_g?: number | null
+          id?: string
+          identified_food: string
+          image_url?: string | null
+          is_recommended?: boolean
+          minerals?: string[] | null
+          preparation_tips?: string | null
+          recommendation_reason?: string | null
+          suggested_recipes?: string[] | null
+          user_id: string
+          vitamins?: string[] | null
+        }
+        Update: {
+          allergens?: string[] | null
+          baby_age_months?: number
+          choking_risk?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          estimated_calories?: number | null
+          estimated_carbs_g?: number | null
+          estimated_fats_g?: number | null
+          estimated_protein_g?: number | null
+          id?: string
+          identified_food?: string
+          image_url?: string | null
+          is_recommended?: boolean
+          minerals?: string[] | null
+          preparation_tips?: string | null
+          recommendation_reason?: string | null
+          suggested_recipes?: string[] | null
+          user_id?: string
+          vitamins?: string[] | null
+        }
+        Relationships: []
+      }
       forum_posts: {
         Row: {
           comments_count: number | null
@@ -426,6 +492,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          baby_birth_date: string | null
           baby_name: string | null
           bio: string | null
           created_at: string | null
@@ -438,6 +505,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          baby_birth_date?: string | null
           baby_name?: string | null
           bio?: string | null
           created_at?: string | null
@@ -450,6 +518,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          baby_birth_date?: string | null
           baby_name?: string | null
           bio?: string | null
           created_at?: string | null

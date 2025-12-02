@@ -21,7 +21,7 @@ import Advice from "./pages/Advice";
 import Chat from "./pages/Chat";
 import Community from "./pages/Community";
 import GrowthTracker from "./pages/GrowthTracker";
-import BarcodeScanner from "./pages/BarcodeScanner";
+import FoodAnalyzer from "./pages/FoodAnalyzer";
 import Settings from "./pages/Settings";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
@@ -77,7 +77,7 @@ const AppContent = () => {
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/growth" element={<GrowthTracker />} />
-                <Route path="/scanner" element={<BarcodeScanner />} />
+                <Route path="/scanner" element={<FoodAnalyzer />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/reports" element={<ProgressReports />} />
