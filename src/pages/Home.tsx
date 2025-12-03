@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
   BarChart3, Clock
@@ -21,145 +22,127 @@ interface DailyTask {
 const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
   const [babyName, setBabyName] = useState<string>("");
-  const [mealOfTheDay, setMealOfTheDay] = useState(recipes[0]);
   const [growthProgress, setGrowthProgress] = useState(0);
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
   const [dailyTip, setDailyTip] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getRecipeOfTheDay = () => {
-    const dayOfWeek = new Date().getDay();
-    const weeklyRecipes = ["1", "2", "3", "4", "5", "6", "7"];
-    const todayRecipeId = weeklyRecipes[dayOfWeek];
-    return recipes.find(r => r.id === todayRecipeId) || recipes[0];
-  };
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('mother_name, baby_name')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profile) {
-            setMotherName(profile.mother_name || "");
-            setBabyName(profile.baby_name || "");
-          }
-
-          // Fetch daily tip
-          const { data: tips } = await supabase
-            .from('daily_tips')
-            .select('tip_text')
-            .limit(10);
-          
-          if (tips && tips.length > 0) {
-            const randomTip = tips[Math.floor(Math.random() * tips.length)];
-            setDailyTip(randomTip.tip_text);
-          }
-
-          const realProgress = await calculateRealProgress(session.user.id, profile);
-          setGrowthProgress(realProgress);
-          
-          await loadDailyTasks(session.user.id);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchUserData();
-    setMealOfTheDay(getRecipeOfTheDay());
-  }, []);
-
-  const loadDailyTasks = async (userId: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    const { data: existingTasks } = await supabase
-      .from('daily_tasks')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('task_date', today);
-
-    if (!existingTasks || existingTasks.length === 0) {
-      const taskTypes = ['Breakfast', 'Lunch', 'Dinner', 'Hydration'];
-      const newTasks = taskTypes.map(type => ({
-        user_id: userId,
-        task_type: type,
-        task_date: today,
-        completed: false,
-      }));
-
-      const { data: inserted } = await supabase
-        .from('daily_tasks')
-        .insert(newTasks)
-        .select();
-
-      if (inserted) setDailyTasks(inserted);
-    } else {
-      setDailyTasks(existingTasks);
-    }
-  };
-
-  const calculateRealProgress = async (userId: string, profile: any) => {
-    let totalProgress = 0;
-    
-    // 1. Growth Records (20% total)
-    const { data: growthData } = await supabase
-      .from('baby_growth')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (growthData && growthData.length >= 1) totalProgress += 10; // First record
-    if (growthData && growthData.length >= 3) totalProgress += 10; // 3+ records
-    
-    // 2. Meal Logs (20% total)
-    const { data: mealData } = await supabase
-      .from('meal_logs')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (mealData && mealData.length >= 1) totalProgress += 10; // First meal
-    if (mealData && mealData.length >= 5) totalProgress += 10; // 5+ meals
-    
-    // 3. Recipes Viewed (20% total)
-    const { data: recipeViews } = await supabase
-      .from('recipe_views')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (recipeViews && recipeViews.length >= 1) totalProgress += 10; // First view
-    if (recipeViews && recipeViews.length >= 10) totalProgress += 10; // 10+ views
-    
-    // 4. Tasks Completed Today (40% total - highest weight for daily engagement)
-    const today = new Date().toISOString().split('T')[0];
-    const { data: tasksData } = await supabase
-      .from('daily_tasks')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('task_date', today)
-      .eq('completed', true);
-    
-    const completedCount = tasksData?.length || 0;
-    if (completedCount >= 1) totalProgress += 10; // 1 task
-    if (completedCount >= 2) totalProgress += 10; // 2 tasks
-    if (completedCount >= 3) totalProgress += 10; // 3 tasks
-    if (completedCount >= 4) totalProgress += 10; // All 4 tasks
-    
-    return totalProgress;
-  };
-
-  const getGreeting = () => {
+  // Instant greeting calculation (no DB needed)
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
-  };
+  }, []);
+
+  // Instant recipe of the day (no DB needed)
+  const mealOfTheDay = useMemo(() => {
+    const dayOfWeek = new Date().getDay();
+    const weeklyRecipes = ["1", "2", "3", "4", "5", "6", "7"];
+    const todayRecipeId = weeklyRecipes[dayOfWeek];
+    return recipes.find(r => r.id === todayRecipeId) || recipes[0];
+  }, []);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user) {
+          setIsLoading(false);
+          return;
+        }
+
+        const userId = session.user.id;
+        const today = new Date().toISOString().split('T')[0];
+
+        // Fetch ALL data in parallel for instant loading
+        const [profileResult, tipsResult, existingTasksResult, growthResult, mealsResult, viewsResult, todayTasksResult] = await Promise.all([
+          supabase.from('profiles').select('mother_name, baby_name').eq('id', userId).single(),
+          supabase.from('daily_tips').select('tip_text').limit(10),
+          supabase.from('daily_tasks').select('*').eq('user_id', userId).eq('task_date', today),
+          supabase.from('baby_growth').select('id').eq('user_id', userId),
+          supabase.from('meal_logs').select('id').eq('user_id', userId),
+          supabase.from('recipe_views').select('id').eq('user_id', userId),
+          supabase.from('daily_tasks').select('id').eq('user_id', userId).eq('task_date', today).eq('completed', true)
+        ]);
+
+        // Set profile data immediately
+        if (profileResult.data) {
+          setMotherName(profileResult.data.mother_name || "");
+          setBabyName(profileResult.data.baby_name || "");
+        }
+
+        // Set random daily tip
+        if (tipsResult.data && tipsResult.data.length > 0) {
+          const randomTip = tipsResult.data[Math.floor(Math.random() * tipsResult.data.length)];
+          setDailyTip(randomTip.tip_text);
+        }
+
+        // Handle tasks - create if needed
+        if (!existingTasksResult.data || existingTasksResult.data.length === 0) {
+          const taskTypes = ['Breakfast', 'Lunch', 'Dinner', 'Hydration'];
+          const newTasks = taskTypes.map(type => ({
+            user_id: userId,
+            task_type: type,
+            task_date: today,
+            completed: false,
+          }));
+
+          const { data: inserted } = await supabase
+            .from('daily_tasks')
+            .insert(newTasks)
+            .select();
+
+          if (inserted) setDailyTasks(inserted);
+        } else {
+          setDailyTasks(existingTasksResult.data);
+        }
+
+        // Calculate progress from parallel results
+        let totalProgress = 0;
+        
+        // Growth Records (20% total)
+        const growthCount = growthResult.data?.length || 0;
+        if (growthCount >= 1) totalProgress += 10;
+        if (growthCount >= 3) totalProgress += 10;
+        
+        // Meal Logs (20% total)
+        const mealCount = mealsResult.data?.length || 0;
+        if (mealCount >= 1) totalProgress += 10;
+        if (mealCount >= 5) totalProgress += 10;
+        
+        // Recipe Views (20% total)
+        const viewsCount = viewsResult.data?.length || 0;
+        if (viewsCount >= 1) totalProgress += 10;
+        if (viewsCount >= 10) totalProgress += 10;
+        
+        // Tasks Completed Today (40% total)
+        const completedCount = todayTasksResult.data?.length || 0;
+        if (completedCount >= 1) totalProgress += 10;
+        if (completedCount >= 2) totalProgress += 10;
+        if (completedCount >= 3) totalProgress += 10;
+        if (completedCount >= 4) totalProgress += 10;
+        
+        setGrowthProgress(totalProgress);
+        setIsLoading(false);
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
 
   const toggleTask = async (taskId: string, currentState: boolean) => {
+    // Optimistic update
+    const updatedTasks = dailyTasks.map(task => 
+      task.id === taskId ? { ...task, completed: !currentState } : task
+    );
+    setDailyTasks(updatedTasks);
+
     const { error } = await supabase
       .from('daily_tasks')
       .update({ 
@@ -168,32 +151,29 @@ const Home = () => {
       })
       .eq('id', taskId);
 
-    if (!error) {
-      const updatedTasks = dailyTasks.map(task => 
-        task.id === taskId ? { ...task, completed: !currentState } : task
-      );
-      setDailyTasks(updatedTasks);
-
-      // Check if all 4 tasks are now completed
-      const allCompleted = updatedTasks.every(t => t.completed);
-      if (allCompleted && !currentState) {
-        toast.success("🎉 Amazing! All tasks completed today!", {
-          duration: 5000,
-        });
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('mother_name, baby_name')
-          .eq('id', session.user.id)
-          .single();
-        
-        const newProgress = await calculateRealProgress(session.user.id, profile);
-        setGrowthProgress(newProgress);
-      }
+    if (error) {
+      // Revert on error
+      setDailyTasks(dailyTasks);
+      return;
     }
+
+    // Check if all 4 tasks are now completed
+    const allCompleted = updatedTasks.every(t => t.completed);
+    if (allCompleted && !currentState) {
+      toast.success("🎉 Amazing! All tasks completed today!", {
+        duration: 5000,
+      });
+    }
+
+    // Update progress
+    const completedCount = updatedTasks.filter(t => t.completed).length;
+    setGrowthProgress(prev => {
+      let newProgress = prev;
+      // Recalculate task portion (40% of progress)
+      const taskProgress = Math.min(completedCount, 4) * 10;
+      // Keep other progress and update task portion
+      return Math.min(100, 60 + taskProgress); // Max 60% from other sources + up to 40% from tasks
+    });
   };
 
   const quickActions = [
@@ -217,12 +197,21 @@ const Home = () => {
         </div>
         
         <div className="container max-w-4xl relative z-10">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {getGreeting()}, {motherName}!
-          </h1>
-          <p className="text-gray-700 text-lg">
-            {babyName}'s plan for today:
-          </p>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-9 w-64 mb-2" />
+              <Skeleton className="h-6 w-48" />
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                {greeting}, {motherName || "Mom"}! 👋
+              </h1>
+              <p className="text-gray-700 text-lg">
+                {babyName ? `${babyName}'s` : "Baby's"} plan for today:
+              </p>
+            </>
+          )}
           {dailyTip && (
             <p className="text-gray-700 text-sm mt-2 italic opacity-90">💡 {dailyTip}</p>
           )}
@@ -235,33 +224,45 @@ const Home = () => {
           <Card className="shadow-lg">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <h3 className="text-sm font-semibold text-foreground mb-3">Growth Progress</h3>
-              <CircularProgress value={growthProgress} size={80} strokeWidth={8} />
+              {isLoading ? (
+                <Skeleton className="h-20 w-20 rounded-full" />
+              ) : (
+                <CircularProgress value={growthProgress} size={80} strokeWidth={8} />
+              )}
             </CardContent>
           </Card>
 
           <Card className="shadow-lg">
             <CardContent className="p-4">
               <h3 className="font-semibold text-sm mb-2">Today's Tasks</h3>
-              <div className="space-y-1">
-                {dailyTasks.map((task) => (
-                  <div key={task.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={task.id}
-                      checked={task.completed}
-                      onCheckedChange={() => toggleTask(task.id, task.completed)}
-                      className="data-[state=checked]:bg-cyan-400"
-                    />
-                    <label
-                      htmlFor={task.id}
-                      className={`text-sm cursor-pointer ${
-                        task.completed ? 'line-through text-muted-foreground' : ''
-                      }`}
-                    >
-                      {task.task_type}
-                    </label>
-                  </div>
-                ))}
-              </div>
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-5 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {dailyTasks.map((task) => (
+                    <div key={task.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={task.id}
+                        checked={task.completed}
+                        onCheckedChange={() => toggleTask(task.id, task.completed)}
+                        className="data-[state=checked]:bg-cyan-400"
+                      />
+                      <label
+                        htmlFor={task.id}
+                        className={`text-sm cursor-pointer ${
+                          task.completed ? 'line-through text-muted-foreground' : ''
+                        }`}
+                      >
+                        {task.task_type}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

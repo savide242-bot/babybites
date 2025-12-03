@@ -72,13 +72,14 @@ const CHART_COLORS = {
   secondary: "hsl(var(--secondary))",
   accent: "hsl(var(--accent))",
   coral: "#FF6B6B",
-  cyan: "#4ECDC4",
-  purple: "#9B59B6",
-  orange: "#F39C12",
-  green: "#27AE60",
+  cyan: "#00CED1",
+  purple: "#8B5CF6",
+  orange: "#F59E0B",
+  green: "#10B981",
+  pink: "#EC4899",
 };
 
-const PIE_COLORS = ["#FF6B6B", "#4ECDC4", "#9B59B6", "#F39C12"];
+const PIE_COLORS = ["#FF6B6B", "#00CED1", "#8B5CF6", "#F59E0B", "#10B981"];
 
 const GrowthTracker = () => {
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
