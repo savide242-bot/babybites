@@ -24,6 +24,7 @@ import {
   Trash2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useGamification } from "@/hooks/useGamification";
 
 interface AnalysisResult {
   identified_food: string;
@@ -60,6 +61,7 @@ const FoodAnalyzer = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { logActivity } = useGamification();
 
   useEffect(() => {
     checkUser();
@@ -173,6 +175,9 @@ const FoodAnalyzer = () => {
       // Refresh history
       fetchHistory(user.id);
 
+      // Log activity for gamification
+      logActivity('food_analysis');
+
       toast({
         title: "Analysis Complete!",
         description: `Identified: ${data.identified_food}`,
@@ -193,8 +198,11 @@ const FoodAnalyzer = () => {
   const clearImage = () => {
     setImage(null);
     setResult(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = '';
     }
   };
 
@@ -225,10 +233,7 @@ const FoodAnalyzer = () => {
               </h2>
 
               {!image ? (
-                <div 
-                  className="border-2 border-dashed border-primary/30 rounded-xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer bg-gradient-to-br from-primary/5 to-transparent"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <div className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center bg-gradient-to-br from-primary/5 to-transparent">
                   <div className="flex flex-col items-center gap-4">
                     <div className="p-4 rounded-full bg-primary/10">
                       <Camera className="w-12 h-12 text-primary" />
@@ -240,13 +245,21 @@ const FoodAnalyzer = () => {
                       </p>
                     </div>
                     <div className="flex gap-3 mt-2">
-                      <Button variant="outline" className="gap-2">
+                      <Button 
+                        variant="outline" 
+                        className="gap-2"
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
                         <Camera className="w-4 h-4" />
-                        Camera
+                        Take Photo
                       </Button>
-                      <Button variant="outline" className="gap-2">
+                      <Button 
+                        variant="default" 
+                        className="gap-2"
+                        onClick={() => galleryInputRef.current?.click()}
+                      >
                         <Upload className="w-4 h-4" />
-                        Gallery
+                        Upload Image
                       </Button>
                     </div>
                   </div>
@@ -269,11 +282,21 @@ const FoodAnalyzer = () => {
                 </div>
               )}
 
+              {/* Camera input - opens camera on mobile */}
               <input
-                ref={fileInputRef}
+                ref={cameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
+                className="hidden"
+                onChange={handleImageCapture}
+              />
+              
+              {/* Gallery input - opens file picker/gallery */}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
                 className="hidden"
                 onChange={handleImageCapture}
               />

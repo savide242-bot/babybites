@@ -11,7 +11,9 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import CircularProgress from "@/components/CircularProgress";
+import StreakWidget from "@/components/StreakWidget";
 import { toast } from "sonner";
+import { useGamification } from "@/hooks/useGamification";
 
 interface DailyTask {
   id: string;
@@ -26,6 +28,7 @@ const Home = () => {
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
   const [dailyTip, setDailyTip] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
+  const { logActivity, updateStreak } = useGamification();
 
   // Instant greeting calculation (no DB needed)
   const greeting = useMemo(() => {
@@ -165,6 +168,11 @@ const Home = () => {
       });
     }
 
+    // Log activity for gamification when completing a task
+    if (!currentState) {
+      logActivity('daily_task');
+    }
+
     // Update progress
     const completedCount = updatedTasks.filter(t => t.completed).length;
     setGrowthProgress(prev => {
@@ -218,7 +226,10 @@ const Home = () => {
         </div>
       </header>
 
-      <div className="container max-w-4xl px-4 mt-4 space-y-6">
+      <div className="container max-w-4xl px-4 mt-4 space-y-4">
+        {/* Streak Widget */}
+        <StreakWidget />
+
         {/* Top Row: Growth Progress + Today's Tasks */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="shadow-lg">
