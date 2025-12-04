@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { 
   Camera, 
@@ -21,10 +19,26 @@ import {
   AlertCircle,
   ChefHat,
   History,
-  Trash2
+  Trash2,
+  Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGamification } from "@/hooks/useGamification";
+import AnalysisDetailDialog, { FullAnalysis } from "@/components/AnalysisDetailDialog";
+
+interface VitaminMineral {
+  name: string;
+  amount?: string;
+  benefit?: string;
+  daily_pct?: number;
+}
+
+interface SuggestedRecipe {
+  name: string;
+  description?: string;
+  prep_time?: string;
+  difficulty?: string;
+}
 
 interface AnalysisResult {
   identified_food: string;
@@ -34,12 +48,14 @@ interface AnalysisResult {
   estimated_protein_g: number;
   estimated_carbs_g: number;
   estimated_fats_g: number;
-  vitamins: string[];
-  minerals: string[];
+  vitamins: (string | VitaminMineral)[];
+  minerals: (string | VitaminMineral)[];
   allergens: string[];
   choking_risk: string;
+  choking_risk_level?: string;
+  choking_risk_detail?: string;
   preparation_tips: string;
-  suggested_recipes: string[];
+  suggested_recipes: (string | SuggestedRecipe)[];
   confidence_score: number;
 }
 
@@ -51,6 +67,12 @@ interface AnalysisHistory {
   created_at: string;
 }
 
+// Helper to get display name from vitamin/mineral/recipe
+const getDisplayName = (item: string | VitaminMineral | SuggestedRecipe): string => {
+  if (typeof item === 'string') return item;
+  return item.name || 'Unknown';
+};
+
 const FoodAnalyzer = () => {
   const [image, setImage] = useState<string | null>(null);
   const [babyAge, setBabyAge] = useState<number>(6);
@@ -58,6 +80,9 @@ const FoodAnalyzer = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [history, setHistory] = useState<AnalysisHistory[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<FullAnalysis | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState<string | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -78,7 +103,7 @@ const FoodAnalyzer = () => {
         .from("profiles")
         .select("baby_birth_date")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
       
       if (profile?.baby_birth_date) {
         const birthDate = new Date(profile.baby_birth_date);
@@ -100,6 +125,33 @@ const FoodAnalyzer = () => {
       .limit(10);
     
     if (data) setHistory(data);
+  };
+
+  const fetchFullAnalysis = async (analysisId: string) => {
+    setLoadingDetail(analysisId);
+    try {
+      const { data, error } = await supabase
+        .from("food_analyses")
+        .select("*")
+        .eq("id", analysisId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setSelectedAnalysis(data as FullAnalysis);
+        setDetailDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching analysis details:", error);
+      toast({
+        title: "Error",
+        description: "Could not load analysis details.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingDetail(null);
+    }
   };
 
   const handleImageCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,12 +201,22 @@ const FoodAnalyzer = () => {
         throw new Error(data.error);
       }
 
-      setResult(data);
+      // Normalize the choking risk field
+      const normalizedResult: AnalysisResult = {
+        ...data,
+        choking_risk: data.choking_risk || data.choking_risk_detail || null,
+        vitamins: data.vitamins || [],
+        minerals: data.minerals || [],
+        allergens: data.allergens || [],
+        suggested_recipes: data.suggested_recipes || [],
+      };
+
+      setResult(normalizedResult);
 
       // Save to database
       await supabase.from("food_analyses").insert({
         user_id: user.id,
-        image_url: image.substring(0, 500), // Store truncated for reference
+        image_url: image.substring(0, 500),
         baby_age_months: babyAge,
         identified_food: data.identified_food,
         is_recommended: data.is_recommended,
@@ -166,7 +228,7 @@ const FoodAnalyzer = () => {
         vitamins: data.vitamins,
         minerals: data.minerals,
         allergens: data.allergens,
-        choking_risk: data.choking_risk,
+        choking_risk: data.choking_risk || data.choking_risk_detail,
         preparation_tips: data.preparation_tips,
         suggested_recipes: data.suggested_recipes,
         confidence_score: data.confidence_score,
@@ -371,7 +433,9 @@ const FoodAnalyzer = () => {
                       </p>
                     </div>
                   </div>
-                  <p className="mt-3 text-sm">{result.recommendation_reason}</p>
+                  {result.recommendation_reason && (
+                    <p className="mt-3 text-sm">{result.recommendation_reason}</p>
+                  )}
                   {result.confidence_score && (
                     <p className="mt-2 text-xs text-muted-foreground">
                       AI Confidence: {(result.confidence_score * 100).toFixed(0)}%
@@ -387,22 +451,22 @@ const FoodAnalyzer = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                   <div className="p-3 rounded-lg bg-orange-500/10 text-center">
                     <Flame className="w-5 h-5 mx-auto text-orange-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_calories}</p>
+                    <p className="text-lg font-bold">{result.estimated_calories || 0}</p>
                     <p className="text-xs text-muted-foreground">Calories</p>
                   </div>
                   <div className="p-3 rounded-lg bg-red-500/10 text-center">
                     <Beef className="w-5 h-5 mx-auto text-red-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_protein_g}g</p>
+                    <p className="text-lg font-bold">{result.estimated_protein_g || 0}g</p>
                     <p className="text-xs text-muted-foreground">Protein</p>
                   </div>
                   <div className="p-3 rounded-lg bg-cyan-500/10 text-center">
                     <Cookie className="w-5 h-5 mx-auto text-cyan-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_carbs_g}g</p>
+                    <p className="text-lg font-bold">{result.estimated_carbs_g || 0}g</p>
                     <p className="text-xs text-muted-foreground">Carbs</p>
                   </div>
                   <div className="p-3 rounded-lg bg-purple-500/10 text-center">
                     <Droplets className="w-5 h-5 mx-auto text-purple-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_fats_g}g</p>
+                    <p className="text-lg font-bold">{result.estimated_fats_g || 0}g</p>
                     <p className="text-xs text-muted-foreground">Fats</p>
                   </div>
                 </div>
@@ -413,13 +477,13 @@ const FoodAnalyzer = () => {
                     <h4 className="font-bold mb-2">Vitamins & Minerals</h4>
                     <div className="flex flex-wrap gap-2">
                       {result.vitamins?.map((v, i) => (
-                        <span key={i} className="px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-600">
-                          {v}
+                        <span key={`v-${i}`} className="px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-600">
+                          {getDisplayName(v)}
                         </span>
                       ))}
                       {result.minerals?.map((m, i) => (
-                        <span key={i} className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-600">
-                          {m}
+                        <span key={`m-${i}`} className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-600">
+                          {getDisplayName(m)}
                         </span>
                       ))}
                     </div>
@@ -427,7 +491,7 @@ const FoodAnalyzer = () => {
                 )}
 
                 {/* Allergens Warning */}
-                {result.allergens?.length > 0 && (
+                {result.allergens?.length > 0 && result.allergens[0] !== "None identified" && (
                   <div className="p-4 rounded-lg bg-yellow-500/10 mb-6">
                     <h4 className="font-bold mb-2 flex items-center gap-2 text-yellow-700">
                       <AlertTriangle className="w-4 h-4" />
@@ -461,7 +525,7 @@ const FoodAnalyzer = () => {
                       <ChefHat className="w-4 h-4 text-primary" />
                       Preparation Tips
                     </h4>
-                    <p className="text-sm">{result.preparation_tips}</p>
+                    <p className="text-sm whitespace-pre-line">{result.preparation_tips}</p>
                   </div>
                 )}
 
@@ -471,8 +535,11 @@ const FoodAnalyzer = () => {
                     <h4 className="font-bold mb-2">Suggested Recipes</h4>
                     <div className="space-y-2">
                       {result.suggested_recipes.map((recipe, i) => (
-                        <div key={i} className="p-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors cursor-pointer">
-                          <p className="font-medium">{recipe}</p>
+                        <div key={i} className="p-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors">
+                          <p className="font-medium">{getDisplayName(recipe)}</p>
+                          {typeof recipe === 'object' && recipe.description && (
+                            <p className="text-xs text-muted-foreground mt-1">{recipe.description}</p>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -498,7 +565,12 @@ const FoodAnalyzer = () => {
                   {history.map((item) => (
                     <div 
                       key={item.id} 
-                      className={`p-3 rounded-lg border ${item.is_recommended ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                        item.is_recommended 
+                          ? 'border-green-500/30 bg-green-500/5 hover:bg-green-500/10' 
+                          : 'border-red-500/30 bg-red-500/5 hover:bg-red-500/10'
+                      }`}
+                      onClick={() => fetchFullAnalysis(item.id)}
                     >
                       <div className="flex items-center gap-2">
                         {item.is_recommended ? (
@@ -506,7 +578,12 @@ const FoodAnalyzer = () => {
                         ) : (
                           <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                         )}
-                        <span className="font-medium text-sm truncate">{item.identified_food}</span>
+                        <span className="font-medium text-sm truncate flex-1">{item.identified_food}</span>
+                        {loadingDetail === item.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                        ) : (
+                          <Eye className="w-4 h-4 text-muted-foreground" />
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         {item.baby_age_months} months • {new Date(item.created_at).toLocaleDateString()}
@@ -519,6 +596,13 @@ const FoodAnalyzer = () => {
           </div>
         </div>
       </div>
+
+      {/* Analysis Detail Dialog */}
+      <AnalysisDetailDialog 
+        analysis={selectedAnalysis}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
     </main>
   );
 };
