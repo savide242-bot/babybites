@@ -67,10 +67,32 @@ interface AnalysisHistory {
   created_at: string;
 }
 
+// Parse item if it's a JSON string
+const parseItem = (item: any): VitaminMineral | SuggestedRecipe | string => {
+  if (typeof item === 'string') {
+    if (item.startsWith('{') && item.endsWith('}')) {
+      try {
+        return JSON.parse(item);
+      } catch {
+        return item;
+      }
+    }
+    return item;
+  }
+  return item;
+};
+
 // Helper to get display name from vitamin/mineral/recipe
 const getDisplayName = (item: string | VitaminMineral | SuggestedRecipe): string => {
-  if (typeof item === 'string') return item;
-  return item.name || 'Unknown';
+  const parsed = parseItem(item);
+  if (typeof parsed === 'string') return parsed;
+  return (parsed as VitaminMineral | SuggestedRecipe).name || 'Unknown';
+};
+
+const getItemDetails = (item: any): { name: string; amount?: string; benefit?: string; daily_pct?: number; description?: string; prep_time?: string; difficulty?: string } | null => {
+  const parsed = parseItem(item);
+  if (typeof parsed === 'string') return { name: parsed };
+  return parsed as any;
 };
 
 const FoodAnalyzer = () => {
@@ -475,17 +497,43 @@ const FoodAnalyzer = () => {
                 {(result.vitamins?.length > 0 || result.minerals?.length > 0) && (
                   <div className="mb-6">
                     <h4 className="font-bold mb-2">Vitamins & Minerals</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.vitamins?.map((v, i) => (
-                        <span key={`v-${i}`} className="px-2 py-1 rounded-full text-xs bg-green-500/10 text-green-600">
-                          {getDisplayName(v)}
-                        </span>
-                      ))}
-                      {result.minerals?.map((m, i) => (
-                        <span key={`m-${i}`} className="px-2 py-1 rounded-full text-xs bg-blue-500/10 text-blue-600">
-                          {getDisplayName(m)}
-                        </span>
-                      ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {result.vitamins?.map((v, i) => {
+                        const details = getItemDetails(v);
+                        if (!details) return null;
+                        return (
+                          <div key={`v-${i}`} className="p-2 rounded-lg bg-green-500/10">
+                            <p className="font-medium text-green-700 text-sm">{details.name}</p>
+                            {details.amount && (
+                              <p className="text-xs text-muted-foreground">{details.amount}</p>
+                            )}
+                            {details.benefit && (
+                              <p className="text-xs text-muted-foreground mt-1">{details.benefit}</p>
+                            )}
+                            {details.daily_pct && (
+                              <p className="text-xs text-green-600 mt-1">{details.daily_pct}% Daily Value</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {result.minerals?.map((m, i) => {
+                        const details = getItemDetails(m);
+                        if (!details) return null;
+                        return (
+                          <div key={`m-${i}`} className="p-2 rounded-lg bg-blue-500/10">
+                            <p className="font-medium text-blue-700 text-sm">{details.name}</p>
+                            {details.amount && (
+                              <p className="text-xs text-muted-foreground">{details.amount}</p>
+                            )}
+                            {details.benefit && (
+                              <p className="text-xs text-muted-foreground mt-1">{details.benefit}</p>
+                            )}
+                            {details.daily_pct && (
+                              <p className="text-xs text-blue-600 mt-1">{details.daily_pct}% Daily Value</p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -534,14 +582,26 @@ const FoodAnalyzer = () => {
                   <div>
                     <h4 className="font-bold mb-2">Suggested Recipes</h4>
                     <div className="space-y-2">
-                      {result.suggested_recipes.map((recipe, i) => (
-                        <div key={i} className="p-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors">
-                          <p className="font-medium">{getDisplayName(recipe)}</p>
-                          {typeof recipe === 'object' && recipe.description && (
-                            <p className="text-xs text-muted-foreground mt-1">{recipe.description}</p>
-                          )}
-                        </div>
-                      ))}
+                      {result.suggested_recipes.map((recipe, i) => {
+                        const details = getItemDetails(recipe);
+                        if (!details) return null;
+                        return (
+                          <div key={i} className="p-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors">
+                            <p className="font-medium">{details.name}</p>
+                            {details.description && (
+                              <p className="text-xs text-muted-foreground mt-1">{details.description}</p>
+                            )}
+                            <div className="flex gap-2 mt-1">
+                              {details.prep_time && (
+                                <span className="text-xs text-primary">⏱ {details.prep_time}</span>
+                              )}
+                              {details.difficulty && (
+                                <span className="text-xs text-secondary">📊 {details.difficulty}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
