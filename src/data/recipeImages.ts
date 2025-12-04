@@ -20,6 +20,13 @@ import spinachQuesadilla from "@/assets/recipes/spinach-quesadilla-new.jpg";
 import butternutSquash from "@/assets/recipes/butternut-squash-new.jpg";
 import turkeyMeatballs from "@/assets/recipes/turkey-meatballs-new.jpg";
 
+// New recipes for 12-18 months
+import vegetableRisotto from "@/assets/recipes/vegetable-risotto.jpg";
+import miniFishFingers from "@/assets/recipes/mini-fish-fingers.jpg";
+import chickpeaCarrotPatties from "@/assets/recipes/chickpea-carrot-patties.jpg";
+import creamySpinachPasta from "@/assets/recipes/creamy-spinach-pasta.jpg";
+import bananaOatCookies from "@/assets/recipes/banana-oat-cookies.jpg";
+
 export const recipeImages = {
   avocadoPuree,
   sweetPotatoCarrot,
@@ -41,11 +48,23 @@ export const recipeImages = {
   spinachQuesadilla,
   butternutSquash,
   turkeyMeatballs,
+  vegetableRisotto,
+  miniFishFingers,
+  chickpeaCarrotPatties,
+  creamySpinachPasta,
+  bananaOatCookies,
 };
 
 // Helper function to get appropriate image based on recipe type
 export const getRecipeImage = (keywords: string[]): string => {
   const keywordString = keywords.join(" ").toLowerCase();
+  
+  // New recipes matching
+  if (keywordString.includes("vegetable") && keywordString.includes("risotto")) return vegetableRisotto;
+  if (keywordString.includes("fish") && keywordString.includes("fingers")) return miniFishFingers;
+  if (keywordString.includes("chickpea") && keywordString.includes("carrot")) return chickpeaCarrotPatties;
+  if (keywordString.includes("spinach") && keywordString.includes("pasta")) return creamySpinachPasta;
+  if (keywordString.includes("oat") && keywordString.includes("cookies")) return bananaOatCookies;
   
   // More specific matching first
   if (keywordString.includes("avocado") && keywordString.includes("puree")) return avocadoPuree;
@@ -70,10 +89,12 @@ export const getRecipeImage = (keywords: string[]): string => {
   if (keywordString.includes("turkey") && keywordString.includes("meatball")) return turkeyMeatballs;
   
   // Single keyword matches
+  if (keywordString.includes("risotto")) return vegetableRisotto;
   if (keywordString.includes("avocado")) return avocadoPuree;
   if (keywordString.includes("sweet potato")) return sweetPotatoCarrot;
   if (keywordString.includes("blueberry")) return blueberryOatmeal;
   if (keywordString.includes("egg")) return eggMuffins;
+  if (keywordString.includes("banana") && keywordString.includes("cookie")) return bananaOatCookies;
   if (keywordString.includes("banana")) return bananaPancakes;
   if (keywordString.includes("chicken")) return chickenPatties;
   if (keywordString.includes("pea") || keywordString.includes("green")) return peaPuree;
@@ -90,6 +111,8 @@ export const getRecipeImage = (keywords: string[]): string => {
   if (keywordString.includes("quesadilla") || keywordString.includes("spinach")) return spinachQuesadilla;
   if (keywordString.includes("squash") || keywordString.includes("butternut")) return butternutSquash;
   if (keywordString.includes("turkey") || keywordString.includes("meatball")) return turkeyMeatballs;
+  if (keywordString.includes("chickpea") || keywordString.includes("patties")) return chickpeaCarrotPatties;
+  if (keywordString.includes("cookie")) return bananaOatCookies;
   
   // Category-based fallbacks
   if (keywordString.includes("puree")) return avocadoPuree;
