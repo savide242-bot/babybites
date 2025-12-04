@@ -1,17 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
-  BarChart3, Clock
+  Flame, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { recipes } from "@/data/recipes";
 import CircularProgress from "@/components/CircularProgress";
-import StreakWidget from "@/components/StreakWidget";
 import { toast } from "sonner";
 import { useGamification } from "@/hooks/useGamification";
 
@@ -26,24 +22,24 @@ const Home = () => {
   const [babyName, setBabyName] = useState<string>("");
   const [growthProgress, setGrowthProgress] = useState(0);
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
-  const [dailyTip, setDailyTip] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
-  const { logActivity, updateStreak } = useGamification();
+  const { streak, logActivity } = useGamification();
 
-  // Instant greeting calculation (no DB needed)
-  const greeting = useMemo(() => {
+  // Emotional greeting based on time
+  const { greeting, emotionalMessage } = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  }, []);
-
-  // Instant recipe of the day (no DB needed)
-  const mealOfTheDay = useMemo(() => {
-    const dayOfWeek = new Date().getDay();
-    const weeklyRecipes = ["1", "2", "3", "4", "5", "6", "7"];
-    const todayRecipeId = weeklyRecipes[dayOfWeek];
-    return recipes.find(r => r.id === todayRecipeId) || recipes[0];
+    if (hour < 12) return { 
+      greeting: "Good morning", 
+      emotionalMessage: "You're doing amazing! 💕" 
+    };
+    if (hour < 18) return { 
+      greeting: "Good afternoon", 
+      emotionalMessage: "Keep up the great work! 🌟" 
+    };
+    return { 
+      greeting: "Good evening", 
+      emotionalMessage: "Rest well tonight! 🌙" 
+    };
   }, []);
 
   useEffect(() => {
@@ -59,10 +55,8 @@ const Home = () => {
         const userId = session.user.id;
         const today = new Date().toISOString().split('T')[0];
 
-        // Fetch ALL data in parallel for instant loading
-        const [profileResult, tipsResult, existingTasksResult, growthResult, mealsResult, viewsResult, todayTasksResult] = await Promise.all([
+        const [profileResult, existingTasksResult, growthResult, mealsResult, viewsResult, todayTasksResult] = await Promise.all([
           supabase.from('profiles').select('mother_name, baby_name').eq('id', userId).single(),
-          supabase.from('daily_tips').select('tip_text').limit(10),
           supabase.from('daily_tasks').select('*').eq('user_id', userId).eq('task_date', today),
           supabase.from('baby_growth').select('id').eq('user_id', userId),
           supabase.from('meal_logs').select('id').eq('user_id', userId),
@@ -70,19 +64,11 @@ const Home = () => {
           supabase.from('daily_tasks').select('id').eq('user_id', userId).eq('task_date', today).eq('completed', true)
         ]);
 
-        // Set profile data immediately
         if (profileResult.data) {
           setMotherName(profileResult.data.mother_name || "");
           setBabyName(profileResult.data.baby_name || "");
         }
 
-        // Set random daily tip
-        if (tipsResult.data && tipsResult.data.length > 0) {
-          const randomTip = tipsResult.data[Math.floor(Math.random() * tipsResult.data.length)];
-          setDailyTip(randomTip.tip_text);
-        }
-
-        // Handle tasks - create if needed
         if (!existingTasksResult.data || existingTasksResult.data.length === 0) {
           const taskTypes = ['Breakfast', 'Lunch', 'Dinner', 'Hydration'];
           const newTasks = taskTypes.map(type => ({
@@ -102,25 +88,19 @@ const Home = () => {
           setDailyTasks(existingTasksResult.data);
         }
 
-        // Calculate progress from parallel results
         let totalProgress = 0;
-        
-        // Growth Records (20% total)
         const growthCount = growthResult.data?.length || 0;
         if (growthCount >= 1) totalProgress += 10;
         if (growthCount >= 3) totalProgress += 10;
         
-        // Meal Logs (20% total)
         const mealCount = mealsResult.data?.length || 0;
         if (mealCount >= 1) totalProgress += 10;
         if (mealCount >= 5) totalProgress += 10;
         
-        // Recipe Views (20% total)
         const viewsCount = viewsResult.data?.length || 0;
         if (viewsCount >= 1) totalProgress += 10;
         if (viewsCount >= 10) totalProgress += 10;
         
-        // Tasks Completed Today (40% total)
         const completedCount = todayTasksResult.data?.length || 0;
         if (completedCount >= 1) totalProgress += 10;
         if (completedCount >= 2) totalProgress += 10;
@@ -140,7 +120,6 @@ const Home = () => {
   }, []);
 
   const toggleTask = async (taskId: string, currentState: boolean) => {
-    // Optimistic update
     const updatedTasks = dailyTasks.map(task => 
       task.id === taskId ? { ...task, completed: !currentState } : task
     );
@@ -155,205 +134,169 @@ const Home = () => {
       .eq('id', taskId);
 
     if (error) {
-      // Revert on error
       setDailyTasks(dailyTasks);
       return;
     }
 
-    // Check if all 4 tasks are now completed
     const allCompleted = updatedTasks.every(t => t.completed);
     if (allCompleted && !currentState) {
-      toast.success("🎉 Amazing! All tasks completed today!", {
-        duration: 5000,
-      });
+      toast.success("🎉 Amazing! All tasks completed today!", { duration: 5000 });
     }
 
-    // Log activity for gamification when completing a task
     if (!currentState) {
       logActivity('daily_task');
     }
 
-    // Update progress
     const completedCount = updatedTasks.filter(t => t.completed).length;
     setGrowthProgress(prev => {
-      let newProgress = prev;
-      // Recalculate task portion (40% of progress)
       const taskProgress = Math.min(completedCount, 4) * 10;
-      // Keep other progress and update task portion
-      return Math.min(100, 60 + taskProgress); // Max 60% from other sources + up to 40% from tasks
+      return Math.min(100, 60 + taskProgress);
     });
   };
 
-  const quickActions = [
-    { icon: BookOpen, label: "Recipes", path: "/recipes", bgColor: "bg-purple-500" },
-    { icon: Heart, label: "Favorites", path: "/favorites", bgColor: "bg-pink-400" },
-    { icon: Calendar, label: "Planner", path: "/planner", bgColor: "bg-cyan-400" },
-    { icon: Scan, label: "Scanner", path: "/scanner", bgColor: "bg-teal-400" },
+  // Emotional circular navigation
+  const navCircles = [
+    { icon: BookOpen, label: "Recipes", path: "/recipes", gradient: "from-pink-400 to-rose-500", emoji: "🍳" },
+    { icon: Heart, label: "Favorites", path: "/favorites", gradient: "from-red-400 to-pink-500", emoji: "❤️" },
+    { icon: Calendar, label: "Planner", path: "/planner", gradient: "from-purple-400 to-indigo-500", emoji: "📅" },
+    { icon: Scan, label: "Food AI", path: "/scanner", gradient: "from-cyan-400 to-teal-500", emoji: "🤖" },
+    { icon: Bot, label: "Ask Bibi", path: "/chat", gradient: "from-amber-400 to-orange-500", emoji: "💬" },
+    { icon: TrendingUp, label: "Growth", path: "/growth", gradient: "from-green-400 to-emerald-500", emoji: "📈" },
   ];
 
-  const exploreItems = [
-    { icon: TrendingUp, label: "Growth Tracker", path: "/growth" },
-    { icon: BarChart3, label: "Progress Reports", path: "/reports" },
-  ];
+  const taskEmojis: { [key: string]: string } = {
+    'Breakfast': '🍳',
+    'Lunch': '🥗',
+    'Dinner': '🍽️',
+    'Hydration': '💧'
+  };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="bg-gradient-to-br from-purple-300 via-pink-200 to-cyan-100 pt-8 pb-6 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-cyan-50 dark:from-background dark:via-background dark:to-background overflow-hidden">
+      {/* Emotional Header */}
+      <header className="bg-gradient-to-br from-pink-400 via-purple-400 to-cyan-400 pt-6 pb-5 px-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-400/20 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-pink-300/30 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-purple-300/20 rounded-full blur-2xl" />
         </div>
         
-        <div className="container max-w-4xl relative z-10">
+        <div className="container max-w-4xl relative z-10 text-center">
           {isLoading ? (
-            <>
-              <Skeleton className="h-9 w-64 mb-2" />
-              <Skeleton className="h-6 w-48" />
-            </>
+            <div className="flex flex-col items-center gap-2">
+              <Skeleton className="h-8 w-48 bg-white/30" />
+              <Skeleton className="h-5 w-36 bg-white/30" />
+            </div>
           ) : (
             <>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              <h1 className="text-2xl font-bold text-white mb-1 drop-shadow-md">
                 {greeting}, {motherName || "Mom"}! 👋
               </h1>
-              <p className="text-gray-700 text-lg">
-                {babyName ? `${babyName}'s` : "Baby's"} plan for today:
+              <p className="text-white/90 text-sm font-medium">
+                {babyName ? `${babyName} is growing beautifully!` : "Your baby is growing beautifully!"} {emotionalMessage}
               </p>
             </>
-          )}
-          {dailyTip && (
-            <p className="text-gray-700 text-sm mt-2 italic opacity-90">💡 {dailyTip}</p>
           )}
         </div>
       </header>
 
-      <div className="container max-w-4xl px-4 mt-4 space-y-4">
-        {/* Streak Widget */}
-        <StreakWidget />
-
-        {/* Top Row: Growth Progress + Today's Tasks */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="shadow-lg">
-            <CardContent className="p-4 flex flex-col items-center justify-center">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Growth Progress</h3>
-              {isLoading ? (
-                <Skeleton className="h-20 w-20 rounded-full" />
-              ) : (
-                <CircularProgress value={growthProgress} size={80} strokeWidth={8} />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg">
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-sm mb-2">Today's Tasks</h3>
-              {isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-5 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {dailyTasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={task.id}
-                        checked={task.completed}
-                        onCheckedChange={() => toggleTask(task.id, task.completed)}
-                        className="data-[state=checked]:bg-cyan-400"
-                      />
-                      <label
-                        htmlFor={task.id}
-                        className={`text-sm cursor-pointer ${
-                          task.completed ? 'line-through text-muted-foreground' : ''
-                        }`}
-                      >
-                        {task.task_type}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      <div className="container max-w-4xl px-4 py-4 space-y-4">
+        {/* Streak & Points Mini Bar */}
+        <div className="flex justify-center gap-6 py-2">
+          <div className="flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 px-4 py-2 rounded-full shadow-sm">
+            <Flame className="w-5 h-5 text-orange-500" />
+            <span className="font-bold text-orange-600 dark:text-orange-400">{streak?.current_streak || 0}</span>
+            <span className="text-xs text-orange-500/80">days</span>
+          </div>
+          <div className="flex items-center gap-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 px-4 py-2 rounded-full shadow-sm">
+            <Star className="w-5 h-5 text-purple-500" />
+            <span className="font-bold text-purple-600 dark:text-purple-400">{streak?.total_points || 0}</span>
+            <span className="text-xs text-purple-500/80">pts</span>
+          </div>
         </div>
 
-        {/* Two Column Layout: Left (Quick Access + Explore More) + Right (Recipe of the Day) */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Left Column */}
-          <div className="space-y-4">
-            {/* Quick Access Section */}
-            <section>
-              <h2 className="text-base font-bold text-foreground mb-2">Quick Access</h2>
-              <div className="grid grid-cols-2 gap-2">
-                {quickActions.map((action, index) => (
-                  <Link key={index} to={action.path}>
-                    <button 
-                      className={`${action.bgColor} w-full h-20 rounded-2xl flex flex-col items-center justify-center gap-1 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-md`}
-                    >
-                      <action.icon className="w-6 h-6" />
-                      <span className="text-xs font-medium">{action.label}</span>
-                    </button>
-                  </Link>
-                ))}
-              </div>
-            </section>
-
-            {/* Explore More Section */}
-            <section>
-              <h2 className="text-base font-bold text-foreground mb-2">Explore More</h2>
-              <div className="space-y-1">
-                {exploreItems.map((item, index) => (
-                  <Link key={index} to={item.path}>
-                    <div className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/50 transition-colors">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                        <item.icon className="w-4 h-4 text-cyan-400" />
-                      </div>
-                      <span className="font-medium text-foreground text-xs">{item.label}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
+        {/* Progress + Tasks Row */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Progress Circle */}
+          <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg flex flex-col items-center justify-center border border-pink-100 dark:border-border">
+            <span className="text-xs font-semibold text-muted-foreground mb-2">Baby Progress</span>
+            {isLoading ? (
+              <Skeleton className="h-16 w-16 rounded-full" />
+            ) : (
+              <CircularProgress value={growthProgress} size={70} strokeWidth={7} />
+            )}
           </div>
 
-          {/* Right Column - Recipe of the Day */}
-          <section>
-            <h2 className="text-base font-bold text-foreground mb-2">Recipe of the Day</h2>
-            <Link to={`/recipe/${mealOfTheDay.id}`}>
-              <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="relative h-32">
-                  <img 
-                    src={mealOfTheDay.image}
-                    alt={mealOfTheDay.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {mealOfTheDay.prepTime}
+          {/* Mini Tasks */}
+          <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-cyan-100 dark:border-border">
+            <span className="text-xs font-semibold text-muted-foreground mb-2 block">Today's Tasks</span>
+            {isLoading ? (
+              <div className="space-y-1">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-4 w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {dailyTasks.map((task) => (
+                  <div key={task.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={task.id}
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                      className="h-4 w-4 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-pink-400 data-[state=checked]:to-cyan-400"
+                    />
+                    <label
+                      htmlFor={task.id}
+                      className={`text-xs cursor-pointer flex items-center gap-1 ${
+                        task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                      }`}
+                    >
+                      <span>{taskEmojis[task.task_type]}</span>
+                      {task.task_type}
+                    </label>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Emotional Navigation Circles */}
+        <div className="py-2">
+          <div className="grid grid-cols-3 gap-4">
+            {navCircles.map((item, index) => (
+              <Link 
+                key={index} 
+                to={item.path}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div 
+                  className={`w-16 h-16 rounded-full bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-active:scale-95`}
+                  style={{
+                    animation: `pulse 3s ease-in-out ${index * 0.2}s infinite`
+                  }}
+                >
+                  <item.icon className="w-7 h-7 text-white drop-shadow-sm" />
                 </div>
-                <CardContent className="p-3 space-y-2">
-                  <h3 className="font-semibold text-sm text-foreground">{mealOfTheDay.title}</h3>
-                  <Button className="w-full bg-purple-300 hover:bg-purple-400 text-white text-sm py-2">
-                    View Recipe
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-          </section>
+                <span className="text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Emotional Message Card */}
+        <div className="bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-cyan-900/20 rounded-2xl p-4 text-center shadow-md border border-white/50 dark:border-border">
+          <p className="text-sm font-medium text-foreground/80">
+            💝 Every meal is a moment of love for {babyName || "your baby"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            You're building healthy habits that last a lifetime!
+          </p>
         </div>
       </div>
-
-      {/* Floating Ask BibiAI Button */}
-      <Link to="/chat" className="fixed bottom-6 left-6 z-50">
-        <Button 
-          className="bg-cyan-400 hover:bg-cyan-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
-        >
-          <Bot className="w-5 h-5" />
-          <span className="font-medium">Ask BibiAI</span>
-        </Button>
-      </Link>
     </div>
   );
 };
