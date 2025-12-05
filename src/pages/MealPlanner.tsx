@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Check, ChefHat, X } from "lucide-react";
+import { 
+  ShoppingCart, ChefHat, Sparkles, Download, Share2, 
+  Calendar, TrendingUp, Utensils 
+} from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { WeeklyOverview } from "@/components/WeeklyOverview";
+import { DayCard } from "@/components/meal-planner/DayCard";
+import { RecipePickerModal } from "@/components/meal-planner/RecipePickerModal";
+import { NutritionBalanceWidget } from "@/components/meal-planner/NutritionBalanceWidget";
+import { WeekTemplatesModal, WeekTemplate } from "@/components/meal-planner/WeekTemplatesModal";
+import { MealPlanSkeleton } from "@/components/skeletons/MealPlanSkeleton";
+import confetti from "canvas-confetti";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
@@ -34,6 +35,11 @@ interface MealPlan {
 const MealPlanner = () => {
   const [mealPlan, setMealPlan] = useState<MealPlan>({});
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerContext, setPickerContext] = useState<{ day: string; mealType: string } | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [copySource, setCopySource] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,8 +50,9 @@ const MealPlanner = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
-      loadMealPlan(user.id);
+      await loadMealPlan(user.id);
     }
+    setIsLoading(false);
   };
 
   const loadMealPlan = async (uid: string) => {
@@ -75,19 +82,47 @@ const MealPlanner = () => {
     }
   };
 
+  const usedRecipeIds = useMemo(() => {
+    const ids: string[] = [];
+    Object.values(mealPlan).forEach(dayMeals => {
+      Object.values(dayMeals).forEach(slot => {
+        if (slot.recipeId) ids.push(slot.recipeId);
+      });
+    });
+    return ids;
+  }, [mealPlan]);
+
+  // Stats
+  const stats = useMemo(() => {
+    let totalMeals = 0;
+    let preparedMeals = 0;
+    let totalCalories = 0;
+    let totalPrepTime = 0;
+
+    Object.values(mealPlan).forEach(dayMeals => {
+      Object.values(dayMeals).forEach(slot => {
+        totalMeals++;
+        if (slot.prepared) preparedMeals++;
+        const recipe = recipes.find(r => r.id === slot.recipeId);
+        if (recipe) {
+          totalCalories += parseInt(recipe.nutrition?.calories) || 0;
+          totalPrepTime += parseInt(recipe.prepTime) || 0;
+        }
+      });
+    });
+
+    return { totalMeals, preparedMeals, totalCalories, totalPrepTime };
+  }, [mealPlan]);
+
   const addMeal = async (day: string, mealType: string, recipeId: string) => {
     if (!userId) return;
 
     // Remove existing meal if any
     const existingSlot = mealPlan[day]?.[mealType];
     if (existingSlot?.dbId) {
-      await supabase
-        .from('meal_plans')
-        .delete()
-        .eq('id', existingSlot.dbId);
+      await supabase.from('meal_plans').delete().eq('id', existingSlot.dbId);
     }
 
-    // Add new meal
     const { data, error } = await supabase
       .from('meal_plans')
       .insert({
@@ -102,7 +137,6 @@ const MealPlanner = () => {
 
     if (error) {
       toast.error("Failed to add meal");
-      console.error(error);
       return;
     }
 
@@ -110,15 +144,12 @@ const MealPlanner = () => {
       ...prev,
       [day]: {
         ...prev[day],
-        [mealType]: {
-          recipeId,
-          prepared: false,
-          dbId: data.id,
-        },
+        [mealType]: { recipeId, prepared: false, dbId: data.id },
       },
     }));
 
-    toast.success("Meal added! Shopping list updated.");
+    const recipe = recipes.find(r => r.id === recipeId);
+    toast.success(`Added ${recipe?.title || 'recipe'} to ${day}!`);
     updateShoppingList();
   };
 
@@ -126,20 +157,15 @@ const MealPlanner = () => {
     const slot = mealPlan[day]?.[mealType];
     if (!slot?.dbId) return;
 
-    const { error } = await supabase
-      .from('meal_plans')
-      .delete()
-      .eq('id', slot.dbId);
-
-    if (error) {
-      toast.error("Failed to remove meal");
-      return;
-    }
+    await supabase.from('meal_plans').delete().eq('id', slot.dbId);
 
     setMealPlan((prev) => {
       const newPlan = { ...prev };
       if (newPlan[day]) {
         delete newPlan[day][mealType];
+        if (Object.keys(newPlan[day]).length === 0) {
+          delete newPlan[day];
+        }
       }
       return newPlan;
     });
@@ -153,35 +179,125 @@ const MealPlanner = () => {
     if (!slot?.dbId) return;
 
     const newPrepared = !slot.prepared;
-
-    const { error } = await supabase
-      .from('meal_plans')
-      .update({ prepared: newPrepared })
-      .eq('id', slot.dbId);
-
-    if (error) {
-      toast.error("Failed to update meal status");
-      return;
-    }
+    await supabase.from('meal_plans').update({ prepared: newPrepared }).eq('id', slot.dbId);
 
     setMealPlan((prev) => ({
       ...prev,
       [day]: {
         ...prev[day],
-        [mealType]: {
-          ...slot,
-          prepared: newPrepared,
-        },
+        [mealType]: { ...slot, prepared: newPrepared },
       },
     }));
+  };
 
-    toast.success(newPrepared ? "Meal marked as prepared!" : "Meal marked as not prepared");
+  const clearDay = async (day: string) => {
+    const dayMeals = mealPlan[day];
+    if (!dayMeals) return;
+
+    const dbIds = Object.values(dayMeals).map(s => s.dbId).filter(Boolean);
+    if (dbIds.length > 0) {
+      await supabase.from('meal_plans').delete().in('id', dbIds);
+    }
+
+    setMealPlan(prev => {
+      const newPlan = { ...prev };
+      delete newPlan[day];
+      return newPlan;
+    });
+
+    toast.info(`Cleared all meals for ${day}`);
+    updateShoppingList();
+  };
+
+  const copyDay = (day: string) => {
+    setCopySource(day);
+    toast.info(`Now click another day to paste ${day}'s meals`);
+  };
+
+  const pasteDay = async (targetDay: string) => {
+    if (!copySource || !mealPlan[copySource]) {
+      setCopySource(null);
+      return;
+    }
+
+    const sourceMeals = mealPlan[copySource];
+    
+    // Clear target day first
+    await clearDay(targetDay);
+
+    // Copy each meal
+    for (const [mealType, slot] of Object.entries(sourceMeals)) {
+      await addMeal(targetDay, mealType, slot.recipeId);
+    }
+
+    setCopySource(null);
+    toast.success(`Copied ${copySource}'s meals to ${targetDay}!`);
+  };
+
+  const applyTemplate = async (template: WeekTemplate) => {
+    if (!userId) return;
+
+    // Clear all existing meals
+    const allDbIds: string[] = [];
+    Object.values(mealPlan).forEach(dayMeals => {
+      Object.values(dayMeals).forEach(slot => {
+        if (slot.dbId) allDbIds.push(slot.dbId);
+      });
+    });
+
+    if (allDbIds.length > 0) {
+      await supabase.from('meal_plans').delete().in('id', allDbIds);
+    }
+
+    // Insert template meals
+    const inserts: any[] = [];
+    Object.entries(template.meals).forEach(([day, meals]) => {
+      Object.entries(meals).forEach(([mealType, recipeId]) => {
+        if (recipeId) {
+          inserts.push({
+            user_id: userId,
+            day_of_week: day,
+            meal_type: mealType,
+            recipe_id: recipeId,
+            prepared: false,
+          });
+        }
+      });
+    });
+
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .insert(inserts)
+      .select();
+
+    if (error) {
+      toast.error("Failed to apply template");
+      return;
+    }
+
+    // Rebuild local state
+    const newPlan: MealPlan = {};
+    data?.forEach(item => {
+      if (!newPlan[item.day_of_week]) {
+        newPlan[item.day_of_week] = {};
+      }
+      newPlan[item.day_of_week][item.meal_type] = {
+        recipeId: item.recipe_id,
+        prepared: false,
+        dbId: item.id,
+      };
+    });
+
+    setMealPlan(newPlan);
+    
+    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+    toast.success(`🎉 Applied "${template.name}" template!`);
+    updateShoppingList();
   };
 
   const updateShoppingList = async () => {
     if (!userId) return;
 
-    // Gather all ingredients from meal plan
     const ingredients: { ingredient: string; category: string; fromRecipe: string }[] = [];
 
     Object.entries(mealPlan).forEach(([day, meals]) => {
@@ -199,172 +315,213 @@ const MealPlanner = () => {
       });
     });
 
-    // Clear existing shopping list
-    await supabase
-      .from('shopping_list_items')
-      .delete()
-      .eq('user_id', userId);
+    await supabase.from('shopping_list_items').delete().eq('user_id', userId);
 
-    // Insert new shopping list items
     if (ingredients.length > 0) {
-      const { error } = await supabase
-        .from('shopping_list_items')
-        .insert(
-          ingredients.map((item) => ({
-            user_id: userId,
-            ingredient: item.ingredient,
-            category: item.category,
-            from_recipe: item.fromRecipe,
-            checked: false,
-          }))
-        );
-
-      if (error) {
-        console.error('Error updating shopping list:', error);
-      }
+      await supabase.from('shopping_list_items').insert(
+        ingredients.map((item) => ({
+          user_id: userId,
+          ingredient: item.ingredient,
+          category: item.category,
+          from_recipe: item.fromRecipe,
+          checked: false,
+        }))
+      );
     }
   };
 
   const categorizeIngredient = (ingredient: string): string => {
     const lower = ingredient.toLowerCase();
     if (lower.includes('apple') || lower.includes('banana') || lower.includes('berry') || 
-        lower.includes('mango') || lower.includes('avocado') || lower.includes('fruit')) {
-      return 'Fruits';
-    }
+        lower.includes('mango') || lower.includes('avocado')) return 'Fruits';
     if (lower.includes('carrot') || lower.includes('broccoli') || lower.includes('spinach') || 
-        lower.includes('pea') || lower.includes('vegetable') || lower.includes('potato')) {
-      return 'Vegetables';
-    }
+        lower.includes('pea') || lower.includes('potato')) return 'Vegetables';
     if (lower.includes('chicken') || lower.includes('beef') || lower.includes('turkey') || 
-        lower.includes('salmon') || lower.includes('fish') || lower.includes('meat')) {
-      return 'Proteins';
-    }
+        lower.includes('salmon') || lower.includes('fish')) return 'Proteins';
     if (lower.includes('rice') || lower.includes('oat') || lower.includes('quinoa') || 
-        lower.includes('pasta') || lower.includes('bread') || lower.includes('cereal')) {
-      return 'Cereals & Grains';
-    }
-    if (lower.includes('milk') || lower.includes('cheese') || lower.includes('yogurt') || 
-        lower.includes('dairy')) {
-      return 'Dairy';
-    }
+        lower.includes('pasta')) return 'Cereals & Grains';
+    if (lower.includes('milk') || lower.includes('cheese') || lower.includes('yogurt')) return 'Dairy';
     return 'Other';
   };
 
-  const getRecipe = (recipeId: string) => {
-    return recipes.find((r) => r.id === recipeId);
+  const openPicker = (day: string, mealType: string) => {
+    setPickerContext({ day, mealType });
+    setPickerOpen(true);
   };
 
+  const handleDayCopy = (day: string) => {
+    if (copySource) {
+      pasteDay(day);
+    } else {
+      copyDay(day);
+    }
+  };
+
+  if (isLoading) {
+    return <MealPlanSkeleton />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-2">
-              <ChefHat className="h-8 w-8 text-primary" />
-              Weekly Meal Planner
-            </h1>
-            <p className="text-muted-foreground">Plan your baby's meals for the week</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-24">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary via-secondary to-accent p-6 text-white">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <ChefHat className="h-8 w-8" />
+                Meal Planner
+              </h1>
+              <p className="text-white/80 mt-1">Plan delicious meals for your little one</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setTemplatesOpen(true)}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                <Sparkles className="h-4 w-4 mr-1" />
+                Templates
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate("/shopping")}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              >
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                Shopping
+              </Button>
+            </div>
           </div>
-          <Button
-            onClick={() => navigate("/shopping")}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            View Shopping List
-          </Button>
+
+          {/* Stats Bar */}
+          {stats.totalMeals > 0 && (
+            <div className="flex flex-wrap gap-4 mt-4 text-sm">
+              <Badge className="bg-white/20 text-white border-0">
+                <Utensils className="h-3 w-3 mr-1" />
+                {stats.totalMeals} meals planned
+              </Badge>
+              <Badge className="bg-white/20 text-white border-0">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                {stats.preparedMeals} prepared
+              </Badge>
+              <Badge className="bg-white/20 text-white border-0">
+                {stats.totalCalories} total cal
+              </Badge>
+              <Badge className="bg-white/20 text-white border-0">
+                ~{Math.round(stats.totalPrepTime / 60)}h prep time
+              </Badge>
+            </div>
+          )}
         </div>
+      </div>
 
-        <WeeklyOverview mealPlan={mealPlan} />
-
-        {/* Empty State */}
-        {Object.keys(mealPlan).length === 0 && (
-          <Card className="mb-8 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-primary/20 border-dashed border-2 animate-fade-in">
-            <CardContent className="py-20 text-center space-y-6">
-              <div className="text-8xl animate-bounce">🍽️</div>
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                  Plan Your Week!
-                </h2>
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Start adding delicious meals to your weekly planner below. We'll automatically generate your shopping list! ✨
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <Badge variant="secondary" className="text-sm px-4 py-2">✅ Select recipes from dropdowns</Badge>
-                <Badge variant="secondary" className="text-sm px-4 py-2">🛒 Auto-generate shopping list</Badge>
-                <Badge variant="secondary" className="text-sm px-4 py-2">✓ Track prepared meals</Badge>
-              </div>
+      <div className="container mx-auto px-4 py-6">
+        {/* Copy Mode Banner */}
+        {copySource && (
+          <Card className="mb-4 border-primary bg-primary/10 animate-pulse">
+            <CardContent className="p-3 flex items-center justify-between">
+              <span className="text-sm font-medium">
+                📋 Click a day to paste {copySource}'s meals
+              </span>
+              <Button size="sm" variant="outline" onClick={() => setCopySource(null)}>
+                Cancel
+              </Button>
             </CardContent>
           </Card>
         )}
 
-        <div className="grid gap-6">
-          {daysOfWeek.map((day) => (
-            <Card key={day} className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
-                <CardTitle className="text-xl font-semibold text-foreground">
-                  {day}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {mealTypes.map((mealType) => {
-                    const slot = mealPlan[day]?.[mealType];
-                    const recipe = slot ? getRecipe(slot.recipeId) : null;
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Main Content - Days */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Empty State */}
+            {Object.keys(mealPlan).length === 0 && (
+              <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-secondary/5">
+                <CardContent className="py-12 text-center space-y-4">
+                  <div className="text-6xl animate-bounce">🍽️</div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Start Planning Your Week!
+                  </h2>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Add meals to each day or use a template to get started quickly. 
+                    We'll generate your shopping list automatically!
+                  </p>
+                  <Button onClick={() => setTemplatesOpen(true)} className="mt-4">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Use a Template
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
-                    return (
-                      <div key={mealType} className="space-y-2">
-                        <h3 className="font-medium text-sm text-muted-foreground capitalize">
-                          {mealType}
-                        </h3>
-                        {recipe ? (
-                          <div className="p-3 rounded-lg border bg-card space-y-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-medium line-clamp-2">{recipe.title}</p>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 shrink-0"
-                                onClick={() => removeMeal(day, mealType)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <Button
-                              variant={slot.prepared ? "default" : "outline"}
-                              size="sm"
-                              className="w-full"
-                              onClick={() => togglePrepared(day, mealType)}
-                            >
-                              <Check className="mr-2 h-4 w-4" />
-                              {slot.prepared ? "Prepared" : "Mark Prepared"}
-                            </Button>
-                          </div>
-                        ) : (
-                          <Select
-                            onValueChange={(value) => addMeal(day, mealType, value)}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select recipe" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {recipes.map((recipe) => (
-                                <SelectItem key={recipe.id} value={recipe.id}>
-                                  {recipe.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Day Cards */}
+            {daysOfWeek.map((day, index) => (
+              <DayCard
+                key={day}
+                day={day}
+                dayIndex={index}
+                meals={mealPlan[day] || {}}
+                onAddMeal={(mealType) => openPicker(day, mealType)}
+                onRemoveMeal={(mealType) => removeMeal(day, mealType)}
+                onTogglePrepared={(mealType) => togglePrepared(day, mealType)}
+                onEditMeal={(mealType) => openPicker(day, mealType)}
+                onCopyDay={() => handleDayCopy(day)}
+                onClearDay={() => clearDay(day)}
+              />
+            ))}
+          </div>
+
+          {/* Sidebar - Nutrition Widget */}
+          <div className="space-y-4">
+            <NutritionBalanceWidget mealPlan={mealPlan} />
+            
+            {/* Quick Actions */}
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => setTemplatesOpen(true)}
+                >
+                  <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                  Apply Template
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => navigate("/shopping")}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2 text-green-500" />
+                  View Shopping List
+                </Button>
               </CardContent>
             </Card>
-          ))}
+          </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <RecipePickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(recipeId) => {
+          if (pickerContext) {
+            addMeal(pickerContext.day, pickerContext.mealType, recipeId);
+          }
+        }}
+        mealType={pickerContext?.mealType || "breakfast"}
+        day={pickerContext?.day || "Monday"}
+        usedRecipeIds={usedRecipeIds}
+      />
+
+      <WeekTemplatesModal
+        open={templatesOpen}
+        onClose={() => setTemplatesOpen(false)}
+        onApplyTemplate={applyTemplate}
+      />
     </div>
   );
 };
