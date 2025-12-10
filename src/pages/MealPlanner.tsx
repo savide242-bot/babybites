@@ -659,6 +659,24 @@ const MealPlanner = () => {
 
           {/* Auto-Generated Tab */}
           <TabsContent value="auto" className="mt-6">
+            {/* Explanatory Note */}
+            <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-full bg-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">
+                    Personalized Plan for Your {babyAgeMonths}-Month-Old
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Based on your baby's age, we've generated a nutritious meal plan rich in proteins, vitamins, and essential nutrients for healthy growth and development. 
+                    You can customize at any moment by clicking "Apply & Customize" to adjust recipes according to your preferences!
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

@@ -54,6 +54,8 @@ const Settings = () => {
     }
   };
 
+  const [testingServerPush, setTestingServerPush] = useState(false);
+
   const handleTestNotification = async () => {
     if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
       try {
@@ -83,6 +85,46 @@ const Settings = () => {
         description: "Please enable notifications first",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleTestServerPush = async () => {
+    setTestingServerPush(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-push-notification');
+      
+      if (error) {
+        console.error('Server push test error:', error);
+        toast({
+          title: "❌ Server Push Failed",
+          description: error.message || "Could not send server push notification",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (data?.error) {
+        toast({
+          title: "⚠️ " + (data.needsResubscribe ? "Re-subscribe Required" : "Push Issue"),
+          description: data.message || data.error,
+          variant: data.needsResubscribe ? "default" : "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "✅ Server Push Sent!",
+        description: data?.message || "Check your device notification bar (even with app closed)",
+      });
+    } catch (error) {
+      console.error('Server push test error:', error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to test server push",
+        variant: "destructive"
+      });
+    } finally {
+      setTestingServerPush(false);
     }
   };
 
@@ -311,14 +353,28 @@ const Settings = () => {
                 </Button>
                 
                 {updateNotifications && (
-                  <Button 
-                    onClick={handleTestNotification} 
-                    variant="secondary" 
-                    className="w-full"
-                  >
-                    <Bell className="w-4 h-4 mr-2" />
-                    Test Notification
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={handleTestNotification} 
+                      variant="secondary" 
+                      className="w-full"
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Test Local Notification
+                    </Button>
+                    <Button 
+                      onClick={handleTestServerPush} 
+                      variant="outline" 
+                      className="w-full border-primary/50 hover:bg-primary/10"
+                      disabled={testingServerPush}
+                    >
+                      <Send className={`w-4 h-4 mr-2 ${testingServerPush ? 'animate-pulse' : ''}`} />
+                      {testingServerPush ? 'Testing...' : 'Test Server Push (Works Outside App)'}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Server push works even when the app is closed - this is what meal reminders use
+                    </p>
+                  </>
                 )}
                 
                 {isAdmin && updateNotifications && (
