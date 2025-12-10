@@ -97,8 +97,14 @@ const generateAutoPlan = (ageMonths: number, dietaryPrefs: string[] = []): MealP
   const filterByDiet = (recipeList: typeof recipes) => {
     if (dietaryPrefs.length === 0) return recipeList;
     return recipeList.filter(r => {
-      const tags = r.tags || [];
-      return dietaryPrefs.every(pref => tags.includes(pref));
+      const allergenFree = dietaryPrefs.every(pref => {
+        if (pref === 'dairy-free') return !r.allergens?.includes('Dairy');
+        if (pref === 'gluten-free') return !r.allergens?.includes('Gluten');
+        if (pref === 'nut-free') return !r.allergens?.includes('Nuts') && !r.allergens?.includes('Tree nuts');
+        if (pref === 'egg-free') return !r.allergens?.includes('Eggs');
+        return true;
+      });
+      return allergenFree;
     });
   };
   
@@ -693,7 +699,7 @@ const MealPlanner = () => {
                     onEditMeal={() => {}}
                     onCopyDay={() => {}}
                     onClearDay={() => {}}
-                    readOnly
+                    
                   />
                 ))}
               </div>
@@ -820,7 +826,7 @@ const MealPlanner = () => {
       <WeekTemplatesModal
         open={templatesOpen}
         onClose={() => setTemplatesOpen(false)}
-        onApply={applyTemplate}
+        onApplyTemplate={applyTemplate}
       />
     </div>
   );
