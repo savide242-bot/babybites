@@ -86,7 +86,7 @@ export const MealCard = ({
     );
   }
 
-  const recipeImage = getRecipeImage([recipe.id]);
+  const recipeImage = getRecipeImage([recipe.id, recipe.title]);
 
   return (
     <div
