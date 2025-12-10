@@ -27,6 +27,11 @@ import chickpeaCarrotPatties from "@/assets/recipes/chickpea-carrot-patties.jpg"
 import creamySpinachPasta from "@/assets/recipes/creamy-spinach-pasta.jpg";
 import bananaOatCookies from "@/assets/recipes/banana-oat-cookies.jpg";
 
+// New user-provided recipe images
+import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.png";
+import pearPruneBlend from "@/assets/recipes/pear-prune-blend.png";
+import greenPeaPuree from "@/assets/recipes/green-pea-puree.png";
+
 export const recipeImages = {
   avocadoPuree,
   sweetPotatoCarrot,
@@ -53,11 +58,19 @@ export const recipeImages = {
   chickpeaCarrotPatties,
   creamySpinachPasta,
   bananaOatCookies,
+  spinachAppleSurprise,
+  pearPruneBlend,
+  greenPeaPuree,
 };
 
 // Helper function to get appropriate image based on recipe type
 export const getRecipeImage = (keywords: string[]): string => {
   const keywordString = keywords.join(" ").toLowerCase();
+  
+  // New user-provided recipe images - EXACT MATCHES FIRST
+  if (keywordString.includes("spinach") && keywordString.includes("apple") && keywordString.includes("surprise")) return spinachAppleSurprise;
+  if (keywordString.includes("pear") && keywordString.includes("prune") && keywordString.includes("blend")) return pearPruneBlend;
+  if (keywordString.includes("green") && keywordString.includes("pea") && keywordString.includes("puree")) return greenPeaPuree;
   
   // New recipes matching
   if (keywordString.includes("vegetable") && keywordString.includes("risotto")) return vegetableRisotto;
