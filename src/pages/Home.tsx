@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
-  Flame, Star
+  Flame, Star, Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,20 +25,22 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { streak, logActivity } = useGamification();
 
-  // Emotional greeting based on time
-  const { greeting, emotionalMessage } = useMemo(() => {
+  const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return { 
       greeting: "Good morning", 
-      emotionalMessage: "You're doing amazing! 💕" 
+      emotionalMessage: "Start the day with love",
+      emoji: "🌅"
     };
     if (hour < 18) return { 
       greeting: "Good afternoon", 
-      emotionalMessage: "Keep up the great work! 🌟" 
+      emotionalMessage: "You're doing amazing",
+      emoji: "☀️"
     };
     return { 
       greeting: "Good evening", 
-      emotionalMessage: "Rest well tonight! 🌙" 
+      emotionalMessage: "Rest well tonight",
+      emoji: "🌙"
     };
   }, []);
 
@@ -46,7 +48,6 @@ const Home = () => {
     const fetchAllData = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
         if (!session?.user) {
           setIsLoading(false);
           return;
@@ -109,7 +110,6 @@ const Home = () => {
         
         setGrowthProgress(totalProgress);
         setIsLoading(false);
-
       } catch (error) {
         console.error('Error fetching user data:', error);
         setIsLoading(false);
@@ -140,7 +140,7 @@ const Home = () => {
 
     const allCompleted = updatedTasks.every(t => t.completed);
     if (allCompleted && !currentState) {
-      toast.success("🎉 Amazing! All tasks completed today!", { duration: 5000 });
+      toast.success("🎉 Amazing! All tasks completed!", { duration: 5000 });
     }
 
     if (!currentState) {
@@ -154,84 +154,91 @@ const Home = () => {
     });
   };
 
-  // Emotional circular navigation
   const navCircles = [
-    { icon: BookOpen, label: "Recipes", path: "/recipes", gradient: "from-pink-400 to-rose-500", emoji: "🍳" },
-    { icon: Heart, label: "Favorites", path: "/favorites", gradient: "from-red-400 to-pink-500", emoji: "❤️" },
-    { icon: Calendar, label: "Planner", path: "/planner", gradient: "from-purple-400 to-indigo-500", emoji: "📅" },
-    { icon: Scan, label: "Food AI", path: "/scanner", gradient: "from-cyan-400 to-teal-500", emoji: "🤖" },
-    { icon: Bot, label: "Ask Bibi", path: "/chat", gradient: "from-amber-400 to-orange-500", emoji: "💬" },
-    { icon: TrendingUp, label: "Growth", path: "/growth", gradient: "from-green-400 to-emerald-500", emoji: "📈" },
+    { icon: BookOpen, label: "Recipes", path: "/recipes", bg: "from-rose-400 to-pink-500", emoji: "🍳" },
+    { icon: Heart, label: "Favorites", path: "/favorites", bg: "from-red-400 to-rose-500", emoji: "❤️" },
+    { icon: Calendar, label: "Planner", path: "/planner", bg: "from-violet-400 to-purple-500", emoji: "📅" },
+    { icon: Scan, label: "Food AI", path: "/scanner", bg: "from-cyan-400 to-teal-500", emoji: "🔍" },
+    { icon: Bot, label: "Ask Bibi", path: "/chat", bg: "from-amber-400 to-orange-500", emoji: "💬" },
+    { icon: TrendingUp, label: "Growth", path: "/growth", bg: "from-emerald-400 to-green-500", emoji: "📈" },
   ];
 
   const taskEmojis: { [key: string]: string } = {
-    'Breakfast': '🍳',
-    'Lunch': '🥗',
-    'Dinner': '🍽️',
+    'Breakfast': '🌅',
+    'Lunch': '☀️',
+    'Dinner': '🌙',
     'Hydration': '💧'
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-cyan-50 dark:from-background dark:via-background dark:to-background overflow-hidden">
-      {/* Emotional Header */}
-      <header className="bg-gradient-to-br from-pink-400 via-purple-400 to-cyan-400 pt-6 pb-5 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-pink-300/30 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-purple-300/20 rounded-full blur-2xl" />
+    <div className="min-h-screen bg-background">
+      {/* Compact Header */}
+      <div className="bg-gradient-to-br from-primary via-accent to-secondary p-4 pb-6 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
         </div>
         
-        <div className="container max-w-4xl relative z-10 text-center">
+        <div className="relative z-10 max-w-lg mx-auto">
           {isLoading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Skeleton className="h-8 w-48 bg-white/30" />
-              <Skeleton className="h-5 w-36 bg-white/30" />
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full bg-white/20" />
+              <div>
+                <Skeleton className="h-5 w-32 bg-white/20 mb-1" />
+                <Skeleton className="h-3 w-24 bg-white/20" />
+              </div>
             </div>
           ) : (
-            <>
-              <h1 className="text-2xl font-bold text-white mb-1 drop-shadow-md">
-                {greeting}, {motherName || "Mom"}! 👋
-              </h1>
-              <p className="text-white/90 text-sm font-medium">
-                {babyName ? `${babyName} is growing beautifully!` : "Your baby is growing beautifully!"} {emotionalMessage}
-              </p>
-            </>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-xl">
+                {emoji}
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">
+                  {greeting}, {motherName || "Mom"}!
+                </h1>
+                <p className="text-white/80 text-xs flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  {emotionalMessage}
+                </p>
+              </div>
+            </div>
           )}
         </div>
-      </header>
+      </div>
 
-      <div className="container max-w-4xl px-4 py-4 space-y-4">
-        {/* Streak & Points Mini Bar */}
-        <div className="flex justify-center gap-6 py-2">
-          <div className="flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 px-4 py-2 rounded-full shadow-sm">
-            <Flame className="w-5 h-5 text-orange-500" />
-            <span className="font-bold text-orange-600 dark:text-orange-400">{streak?.current_streak || 0}</span>
-            <span className="text-xs text-orange-500/80">days</span>
+      <div className="max-w-lg mx-auto px-4 -mt-3 space-y-4 pb-6">
+        {/* Stats Bar */}
+        <div className="flex justify-center gap-3">
+          <div className="flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-full shadow-md border">
+            <Flame className="w-4 h-4 text-orange-500" />
+            <span className="font-bold text-sm text-orange-600">{streak?.current_streak || 0}</span>
+            <span className="text-[10px] text-muted-foreground">days</span>
           </div>
-          <div className="flex items-center gap-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 px-4 py-2 rounded-full shadow-sm">
-            <Star className="w-5 h-5 text-purple-500" />
-            <span className="font-bold text-purple-600 dark:text-purple-400">{streak?.total_points || 0}</span>
-            <span className="text-xs text-purple-500/80">pts</span>
+          <div className="flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-full shadow-md border">
+            <Star className="w-4 h-4 text-amber-500" />
+            <span className="font-bold text-sm text-amber-600">{streak?.total_points || 0}</span>
+            <span className="text-[10px] text-muted-foreground">pts</span>
           </div>
         </div>
 
-        {/* Progress + Tasks Row */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Progress Circle */}
-          <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg flex flex-col items-center justify-center border border-pink-100 dark:border-border">
-            <span className="text-xs font-semibold text-muted-foreground mb-2">Baby Progress</span>
+        {/* Progress & Tasks */}
+        <div className="grid grid-cols-5 gap-3">
+          {/* Progress */}
+          <div className="col-span-2 bg-card rounded-2xl p-3 shadow-md border flex flex-col items-center justify-center">
+            <span className="text-[10px] font-medium text-muted-foreground mb-1">Progress</span>
             {isLoading ? (
-              <Skeleton className="h-16 w-16 rounded-full" />
+              <Skeleton className="h-14 w-14 rounded-full" />
             ) : (
-              <CircularProgress value={growthProgress} size={70} strokeWidth={7} />
+              <CircularProgress value={growthProgress} size={56} strokeWidth={5} />
             )}
           </div>
 
-          {/* Mini Tasks */}
-          <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-2xl p-3 shadow-lg border border-cyan-100 dark:border-border">
-            <span className="text-xs font-semibold text-muted-foreground mb-2 block">Today's Tasks</span>
+          {/* Tasks */}
+          <div className="col-span-3 bg-card rounded-2xl p-3 shadow-md border">
+            <span className="text-[10px] font-medium text-muted-foreground mb-2 block">Today</span>
             {isLoading ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-4 w-full" />
                 ))}
@@ -244,7 +251,7 @@ const Home = () => {
                       id={task.id}
                       checked={task.completed}
                       onCheckedChange={() => toggleTask(task.id, task.completed)}
-                      className="h-4 w-4 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-pink-400 data-[state=checked]:to-cyan-400"
+                      className="h-3.5 w-3.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                     <label
                       htmlFor={task.id}
@@ -252,7 +259,7 @@ const Home = () => {
                         task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}
                     >
-                      <span>{taskEmojis[task.task_type]}</span>
+                      <span className="text-[10px]">{taskEmojis[task.task_type]}</span>
                       {task.task_type}
                     </label>
                   </div>
@@ -262,38 +269,33 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Emotional Navigation Circles */}
-        <div className="py-2">
-          <div className="grid grid-cols-3 gap-4">
-            {navCircles.map((item, index) => (
-              <Link 
-                key={index} 
-                to={item.path}
-                className="flex flex-col items-center gap-2 group"
-              >
+        {/* Navigation Grid */}
+        <div className="grid grid-cols-3 gap-3">
+          {navCircles.map((item, index) => (
+            <Link 
+              key={index} 
+              to={item.path}
+              className="group"
+            >
+              <div className="bg-card rounded-2xl p-3 shadow-md border hover:shadow-lg transition-all hover:-translate-y-0.5 active:scale-95">
                 <div 
-                  className={`w-16 h-16 rounded-full bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl group-active:scale-95`}
-                  style={{
-                    animation: `pulse 3s ease-in-out ${index * 0.2}s infinite`
-                  }}
+                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.bg} flex items-center justify-center mb-2 mx-auto shadow-sm group-hover:scale-105 transition-transform`}
                 >
-                  <item.icon className="w-7 h-7 text-white drop-shadow-sm" />
+                  <item.icon className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors">
-                  {item.label}
-                </span>
-              </Link>
-            ))}
-          </div>
+                <p className="text-xs font-medium text-center text-foreground">{item.label}</p>
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* Emotional Message Card */}
-        <div className="bg-gradient-to-r from-pink-100 via-purple-100 to-cyan-100 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-cyan-900/20 rounded-2xl p-4 text-center shadow-md border border-white/50 dark:border-border">
-          <p className="text-sm font-medium text-foreground/80">
-            💝 Every meal is a moment of love for {babyName || "your baby"}
+        {/* Motivational Card */}
+        <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-2xl p-4 border border-primary/20">
+          <p className="text-sm font-medium text-center text-foreground/80">
+            💕 Every meal is a moment of love for {babyName || "your baby"}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            You're building healthy habits that last a lifetime!
+          <p className="text-[10px] text-center text-muted-foreground mt-1">
+            Building healthy habits that last a lifetime
           </p>
         </div>
       </div>
