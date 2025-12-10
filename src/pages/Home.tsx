@@ -155,12 +155,12 @@ const Home = () => {
   };
 
   const navCircles = [
-    { icon: BookOpen, label: "Recipes", path: "/recipes", bg: "from-rose-400 to-pink-500", emoji: "🍳" },
-    { icon: Heart, label: "Favorites", path: "/favorites", bg: "from-red-400 to-rose-500", emoji: "❤️" },
-    { icon: Calendar, label: "Planner", path: "/planner", bg: "from-violet-400 to-purple-500", emoji: "📅" },
-    { icon: Scan, label: "Food AI", path: "/scanner", bg: "from-cyan-400 to-teal-500", emoji: "🔍" },
-    { icon: Bot, label: "Ask Bibi", path: "/chat", bg: "from-amber-400 to-orange-500", emoji: "💬" },
-    { icon: TrendingUp, label: "Growth", path: "/growth", bg: "from-emerald-400 to-green-500", emoji: "📈" },
+    { icon: BookOpen, label: "Recipes", path: "/recipes", color: "bg-primary/15 text-primary", iconBg: "bg-primary" },
+    { icon: Heart, label: "Favorites", path: "/favorites", color: "bg-peach text-peach-foreground", iconBg: "bg-primary" },
+    { icon: Calendar, label: "Planner", path: "/planner", color: "bg-secondary/15 text-secondary", iconBg: "bg-secondary" },
+    { icon: Scan, label: "Food AI", path: "/scanner", color: "bg-mint/15 text-mint", iconBg: "bg-mint" },
+    { icon: Bot, label: "Ask Bibi", path: "/chat", color: "bg-accent/20 text-accent-foreground", iconBg: "bg-accent" },
+    { icon: TrendingUp, label: "Growth", path: "/growth", color: "bg-soft-blue text-soft-blue-foreground", iconBg: "bg-secondary" },
   ];
 
   const taskEmojis: { [key: string]: string } = {
@@ -172,33 +172,28 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Compact Header */}
-      <div className="bg-gradient-to-br from-primary via-accent to-secondary p-4 pb-6 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-        </div>
-        
-        <div className="relative z-10 max-w-lg mx-auto">
+      {/* Elegant Header */}
+      <div className="bg-card border-b border-border/50 px-4 py-5">
+        <div className="max-w-lg mx-auto">
           {isLoading ? (
             <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-10 rounded-full bg-white/20" />
+              <Skeleton className="h-12 w-12 rounded-full" />
               <div>
-                <Skeleton className="h-5 w-32 bg-white/20 mb-1" />
-                <Skeleton className="h-3 w-24 bg-white/20" />
+                <Skeleton className="h-5 w-36 mb-2" />
+                <Skeleton className="h-3 w-28" />
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm text-xl">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-peach text-2xl shadow-soft">
                 {emoji}
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">
-                  {greeting}, {motherName || "Mom"}!
+                <h1 className="text-lg font-semibold text-foreground">
+                  {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
                 </h1>
-                <p className="text-white/80 text-xs flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
+                <p className="text-muted-foreground text-sm flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-accent" />
                   {emotionalMessage}
                 </p>
               </div>
@@ -207,59 +202,72 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 -mt-3 space-y-4 pb-6">
+      <div className="max-w-lg mx-auto px-4 py-5 space-y-5">
         {/* Stats Bar */}
-        <div className="flex justify-center gap-3">
-          <div className="flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-full shadow-md border">
-            <Flame className="w-4 h-4 text-orange-500" />
-            <span className="font-bold text-sm text-orange-600">{streak?.current_streak || 0}</span>
-            <span className="text-[10px] text-muted-foreground">days</span>
+        <div className="flex justify-center gap-4">
+          <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-full shadow-card border border-border/50">
+            <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center">
+              <Flame className="w-4 h-4 text-accent" />
+            </div>
+            <div className="text-center">
+              <span className="font-bold text-sm text-foreground">{streak?.current_streak || 0}</span>
+              <span className="text-xs text-muted-foreground ml-1">days</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-full shadow-md border">
-            <Star className="w-4 h-4 text-amber-500" />
-            <span className="font-bold text-sm text-amber-600">{streak?.total_points || 0}</span>
-            <span className="text-[10px] text-muted-foreground">pts</span>
+          <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-full shadow-card border border-border/50">
+            <div className="w-7 h-7 rounded-full bg-sunshine/30 flex items-center justify-center">
+              <Star className="w-4 h-4 text-sunshine-foreground" />
+            </div>
+            <div className="text-center">
+              <span className="font-bold text-sm text-foreground">{streak?.total_points || 0}</span>
+              <span className="text-xs text-muted-foreground ml-1">pts</span>
+            </div>
           </div>
         </div>
 
         {/* Progress & Tasks */}
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-5 gap-4">
           {/* Progress */}
-          <div className="col-span-2 bg-card rounded-2xl p-3 shadow-md border flex flex-col items-center justify-center">
-            <span className="text-[10px] font-medium text-muted-foreground mb-1">Progress</span>
+          <div className="col-span-2 bg-card rounded-2xl p-4 shadow-card border border-border/50 flex flex-col items-center justify-center">
+            <span className="text-xs font-medium text-muted-foreground mb-2">Progress</span>
             {isLoading ? (
-              <Skeleton className="h-14 w-14 rounded-full" />
+              <Skeleton className="h-16 w-16 rounded-full" />
             ) : (
-              <CircularProgress value={growthProgress} size={56} strokeWidth={5} />
+              <CircularProgress value={growthProgress} size={64} strokeWidth={5} />
             )}
           </div>
 
           {/* Tasks */}
-          <div className="col-span-3 bg-card rounded-2xl p-3 shadow-md border">
-            <span className="text-[10px] font-medium text-muted-foreground mb-2 block">Today</span>
+          <div className="col-span-3 bg-card rounded-2xl p-4 shadow-card border border-border/50">
+            <span className="text-xs font-medium text-muted-foreground mb-3 block">Today's Goals</span>
             {isLoading ? (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-4 w-full" />
+                  <Skeleton key={i} className="h-5 w-full" />
                 ))}
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {dailyTasks.map((task) => (
-                  <div key={task.id} className="flex items-center gap-2">
+                  <div 
+                    key={task.id} 
+                    className={`flex items-center gap-2.5 p-1.5 rounded-lg transition-colors ${
+                      task.completed ? 'bg-mint/10' : 'hover:bg-muted/50'
+                    }`}
+                  >
                     <Checkbox
                       id={task.id}
                       checked={task.completed}
                       onCheckedChange={() => toggleTask(task.id, task.completed)}
-                      className="h-3.5 w-3.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      className="h-4 w-4 rounded-full border-2 data-[state=checked]:bg-mint data-[state=checked]:border-mint"
                     />
                     <label
                       htmlFor={task.id}
-                      className={`text-xs cursor-pointer flex items-center gap-1 ${
+                      className={`text-sm cursor-pointer flex items-center gap-1.5 flex-1 ${
                         task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}
                     >
-                      <span className="text-[10px]">{taskEmojis[task.task_type]}</span>
+                      <span>{taskEmojis[task.task_type]}</span>
                       {task.task_type}
                     </label>
                   </div>
@@ -277,24 +285,24 @@ const Home = () => {
               to={item.path}
               className="group"
             >
-              <div className="bg-card rounded-2xl p-3 shadow-md border hover:shadow-lg transition-all hover:-translate-y-0.5 active:scale-95">
+              <div className={`${item.color} rounded-2xl p-4 shadow-card border border-border/30 hover:shadow-hover transition-all hover:-translate-y-0.5 active:scale-[0.98]`}>
                 <div 
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.bg} flex items-center justify-center mb-2 mx-auto shadow-sm group-hover:scale-105 transition-transform`}
+                  className={`w-11 h-11 rounded-xl ${item.iconBg} flex items-center justify-center mb-2.5 mx-auto shadow-soft group-hover:scale-105 transition-transform`}
                 >
                   <item.icon className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-xs font-medium text-center text-foreground">{item.label}</p>
+                <p className="text-xs font-medium text-center">{item.label}</p>
               </div>
             </Link>
           ))}
         </div>
 
         {/* Motivational Card */}
-        <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-2xl p-4 border border-primary/20">
-          <p className="text-sm font-medium text-center text-foreground/80">
+        <div className="bg-peach/50 rounded-2xl p-5 border border-peach">
+          <p className="text-sm font-medium text-center text-foreground">
             💕 Every meal is a moment of love for {babyName || "your baby"}
           </p>
-          <p className="text-[10px] text-center text-muted-foreground mt-1">
+          <p className="text-xs text-center text-muted-foreground mt-1.5">
             Building healthy habits that last a lifetime
           </p>
         </div>

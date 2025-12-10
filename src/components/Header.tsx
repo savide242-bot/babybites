@@ -37,14 +37,14 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-card/95 backdrop-blur-xl">
       <div className="container flex h-14 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary shadow-md group-hover:shadow-lg transition-shadow">
-            <Baby className="w-4 h-4 text-white" />
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary shadow-soft group-hover:shadow-glow transition-shadow">
+            <Baby className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            BabyBites
+          <span className="text-lg font-bold text-foreground">
+            Baby<span className="text-primary">Bites</span>
           </span>
         </Link>
 
@@ -58,7 +58,7 @@ const Header = () => {
                 to={link.to}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   isActive(link.to) 
-                    ? "bg-primary/10 text-primary" 
+                    ? "bg-primary/15 text-primary" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
@@ -72,17 +72,17 @@ const Header = () => {
         {/* Mobile Navigation */}
         <Sheet>
           <SheetTrigger asChild className="lg:hidden">
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-muted">
+              <Menu className="h-5 w-5 text-foreground" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 p-0">
+          <SheetContent side="right" className="w-72 p-0 bg-card border-border/50">
             <div className="flex flex-col h-full">
               {/* Sheet Header */}
-              <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-secondary/10">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary shadow-md">
-                    <Baby className="w-5 h-5 text-white" />
+              <div className="p-5 border-b border-border/50 bg-peach/30">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary shadow-soft">
+                    <Baby className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div>
                     <h2 className="font-bold text-foreground">BabyBites</h2>
@@ -99,13 +99,13 @@ const Header = () => {
                     <SheetTrigger key={link.to} asChild>
                       <Link
                         to={link.to}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                           isActive(link.to) 
-                            ? "bg-gradient-to-r from-primary/15 to-secondary/15 text-primary shadow-sm" 
-                            : "text-foreground hover:bg-muted"
+                            ? "bg-primary/15 text-primary" 
+                            : "text-foreground hover:bg-muted/70"
                         }`}
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-4.5 w-4.5" />
                         <span>{link.label}</span>
                       </Link>
                     </SheetTrigger>
@@ -114,12 +114,12 @@ const Header = () => {
               </nav>
 
               {/* Logout Button */}
-              <div className="p-3 border-t">
+              <div className="p-4 border-t border-border/50">
                 <SheetTrigger asChild>
                   <Button
-                    variant="destructive"
+                    variant="outline"
                     onClick={handleLogout}
-                    className="w-full justify-start gap-3 h-11 rounded-xl"
+                    className="w-full justify-start gap-3 h-11 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Log Out</span>
