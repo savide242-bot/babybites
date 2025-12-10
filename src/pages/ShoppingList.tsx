@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShoppingCart, Download, Share2, Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { 
+  ShoppingCart, Download, Share2, Trash2, 
+  Apple, Carrot, Beef, Wheat, Milk, Package,
+  ChefHat, Sparkles, Check
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { useLanguage } from "@/hooks/useLanguage";
-import { recipes } from "@/data/recipes";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -18,11 +22,19 @@ interface ShoppingItem {
   fromRecipe?: string;
 }
 
+const categoryConfig: { [key: string]: { icon: any; gradient: string; bgColor: string } } = {
+  'Fruits': { icon: Apple, gradient: 'from-pink-500 to-rose-500', bgColor: 'bg-pink-50 dark:bg-pink-950/30' },
+  'Vegetables': { icon: Carrot, gradient: 'from-green-500 to-emerald-500', bgColor: 'bg-green-50 dark:bg-green-950/30' },
+  'Proteins': { icon: Beef, gradient: 'from-red-500 to-orange-500', bgColor: 'bg-red-50 dark:bg-red-950/30' },
+  'Cereals & Grains': { icon: Wheat, gradient: 'from-amber-500 to-yellow-500', bgColor: 'bg-amber-50 dark:bg-amber-950/30' },
+  'Dairy': { icon: Milk, gradient: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-50 dark:bg-blue-950/30' },
+  'Pantry Essentials': { icon: Package, gradient: 'from-purple-500 to-violet-500', bgColor: 'bg-purple-50 dark:bg-purple-950/30' },
+  'Other': { icon: Package, gradient: 'from-gray-500 to-slate-500', bgColor: 'bg-gray-50 dark:bg-gray-950/30' },
+};
+
 const ShoppingList = () => {
-  const { t } = useLanguage();
   const { toast } = useToast();
   const [items, setItems] = useState<ShoppingItem[]>([]);
-  const [selectedRecipes, setSelectedRecipes] = useState<string[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,41 +66,12 @@ const ShoppingList = () => {
         id: item.id,
         ingredient: item.ingredient,
         category: item.category,
-        checked: item.checked,
+        checked: item.checked || false,
         fromRecipe: item.from_recipe || undefined,
       }));
       setItems(mappedItems);
     }
   };
-
-  const categorizeIngredient = (ingredient: string): string => {
-    const lower = ingredient.toLowerCase();
-    if (lower.includes("tomato") || lower.includes("carrot") || lower.includes("broccoli") || 
-        lower.includes("spinach") || lower.includes("kale") || lower.includes("pepper") ||
-        lower.includes("onion") || lower.includes("garlic")) {
-      return t('shoppingList.categories.vegetables');
-    }
-    if (lower.includes("banana") || lower.includes("apple") || lower.includes("pear") || 
-        lower.includes("strawberry") || lower.includes("mango") || lower.includes("avocado") ||
-        lower.includes("watermelon") || lower.includes("orange")) {
-      return t('shoppingList.categories.fruits');
-    }
-    if (lower.includes("chicken") || lower.includes("beef") || lower.includes("fish") || 
-        lower.includes("salmon") || lower.includes("tuna") || lower.includes("turkey") ||
-        lower.includes("egg")) {
-      return t('shoppingList.categories.proteins');
-    }
-    if (lower.includes("rice") || lower.includes("pasta") || lower.includes("bread") || 
-        lower.includes("oat") || lower.includes("quinoa") || lower.includes("cereal")) {
-      return t('shoppingList.categories.cereals');
-    }
-    if (lower.includes("milk") || lower.includes("cheese") || lower.includes("yogurt") || 
-        lower.includes("butter")) {
-      return t('shoppingList.categories.dairy');
-    }
-    return t('shoppingList.categories.others');
-  };
-
 
   const toggleItem = async (id: string) => {
     const item = items.find((i) => i.id === id);
@@ -96,17 +79,7 @@ const ShoppingList = () => {
 
     const newChecked = !item.checked;
     
-    // Optimistic update with animation
-    setItems((prev) => {
-      const updated = prev.map((i) => (i.id === id ? { ...i, checked: newChecked } : i));
-      // Move checked items to end
-      if (newChecked) {
-        const checkedItem = updated.find(i => i.id === id);
-        const others = updated.filter(i => i.id !== id);
-        return [...others, checkedItem!];
-      }
-      return updated;
-    });
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, checked: newChecked } : i)));
 
     await supabase
       .from('shopping_list_items')
@@ -115,27 +88,28 @@ const ShoppingList = () => {
   };
 
   const removeItem = async (id: string) => {
-    // Add slide-out animation
-    const itemEl = document.querySelector(`[data-item-id="${id}"]`);
-    if (itemEl) {
-      itemEl.classList.add('animate-slide-out-right');
-      await new Promise(resolve => setTimeout(resolve, 300));
-    }
-    
     setItems((prev) => prev.filter((item) => item.id !== id));
     await supabase.from('shopping_list_items').delete().eq('id', id);
+    toast({ title: "Item removed" });
+  };
+
+  const clearCheckedItems = async () => {
+    const checkedIds = items.filter(i => i.checked).map(i => i.id);
+    if (checkedIds.length === 0) return;
+    
+    setItems(prev => prev.filter(i => !i.checked));
+    await supabase.from('shopping_list_items').delete().in('id', checkedIds);
+    toast({ title: "Checked items cleared!" });
   };
 
   const handleExportPDF = () => {
     try {
       const doc = new jsPDF();
       
-      // Add title with vibrant colors
       doc.setFontSize(24);
-      doc.setTextColor(255, 105, 180); // Pink
+      doc.setTextColor(236, 72, 153);
       doc.text('🛒 BabyBites Shopping List', 20, 25);
       
-      // Add date
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { 
@@ -145,12 +119,10 @@ const ShoppingList = () => {
         day: 'numeric' 
       })}`, 20, 35);
       
-      // Add line separator
-      doc.setDrawColor(255, 182, 193);
+      doc.setDrawColor(236, 72, 153);
       doc.setLineWidth(0.5);
       doc.line(20, 40, 190, 40);
       
-      // Prepare data by category
       const uncheckedItems = items.filter(i => !i.checked);
       
       if (uncheckedItems.length === 0) {
@@ -164,13 +136,11 @@ const ShoppingList = () => {
         categories.forEach((category, index) => {
           const categoryItems = uncheckedItems.filter(i => i.category === category);
           if (categoryItems.length > 0) {
-            // Category header
             doc.setFontSize(14);
-            doc.setTextColor(64, 224, 208); // Turquoise
-            doc.text(`${category} (${categoryItems.length} items)`, 20, yPosition);
+            doc.setTextColor(79, 70, 229);
+            doc.text(`${category} (${categoryItems.length})`, 20, yPosition);
             yPosition += 8;
             
-            // Items as table
             const tableData = categoryItems.map(item => [
               '☐',
               item.ingredient,
@@ -179,32 +149,27 @@ const ShoppingList = () => {
             
             autoTable(doc, {
               startY: yPosition,
-              head: [['✓', 'Ingredient', 'From Recipe']],
+              head: [['✓', 'Item', 'For Recipe']],
               body: tableData,
               theme: 'striped',
               headStyles: { 
-                fillColor: [255, 182, 193], // Light pink
-                textColor: [0, 0, 0],
+                fillColor: [236, 72, 153],
+                textColor: [255, 255, 255],
                 fontStyle: 'bold',
-                fontSize: 11
-              },
-              bodyStyles: {
                 fontSize: 10
               },
-              alternateRowStyles: {
-                fillColor: [255, 245, 250] // Very light pink
-              },
+              bodyStyles: { fontSize: 9 },
+              alternateRowStyles: { fillColor: [252, 231, 243] },
               margin: { left: 25, right: 20 },
               columnStyles: {
                 0: { cellWidth: 10 },
-                1: { cellWidth: 80 },
-                2: { cellWidth: 65, fontStyle: 'italic', textColor: [100, 100, 100] }
+                1: { cellWidth: 70 },
+                2: { cellWidth: 75, fontStyle: 'italic', textColor: [100, 100, 100] }
               }
             });
             
             yPosition = (doc as any).lastAutoTable.finalY + 10;
             
-            // Add page break if needed
             if (yPosition > 250 && index < categories.length - 1) {
               doc.addPage();
               yPosition = 20;
@@ -213,7 +178,6 @@ const ShoppingList = () => {
         });
       }
       
-      // Add footer
       const pageCount = (doc as any).internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -227,237 +191,248 @@ const ShoppingList = () => {
         );
       }
       
-      // Save PDF
-      const fileName = `babybites-shopping-list-${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `babybites-shopping-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
       
-      // Show success popup
-      toast({
-        title: "✅ PDF Downloaded!",
-        description: `Your shopping list has been saved as ${fileName}`,
-      });
+      toast({ title: "✅ PDF Downloaded!", description: fileName });
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast({
-        title: "❌ Export Failed",
-        description: "Could not generate PDF. Please try again.",
-        variant: "destructive"
-      });
+      toast({ title: "Export failed", variant: "destructive" });
     }
   };
 
   const handleShareWhatsApp = () => {
-    try {
-      const uncheckedItems = items.filter(i => !i.checked);
-      
-      if (uncheckedItems.length === 0) {
-        toast({
-          title: "Nothing to Share",
-          description: "All items are already checked off! ✓",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      const categories = [...new Set(uncheckedItems.map(i => i.category))];
-      
-      let message = "🛒 *Shopping List - BabyBites*\n\n";
-      categories.forEach(cat => {
-        const categoryItems = uncheckedItems.filter(i => i.category === cat);
-        if (categoryItems.length > 0) {
-          message += `*${cat}* (${categoryItems.length} items):\n`;
-          categoryItems.forEach(item => {
-            message += `  ☐ ${item.ingredient}`;
-            if (item.fromRecipe) {
-              message += ` _(from ${item.fromRecipe})_`;
-            }
-            message += `\n`;
-          });
-          message += "\n";
-        }
-      });
-      
-      message += `📱 Generated by BabyBites\n${new Date().toLocaleDateString('en-US', { 
-        weekday: 'short',
-        month: 'short', 
-        day: 'numeric' 
-      })}`;
-      
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-      
-      // Open WhatsApp
-      window.open(whatsappUrl, '_blank');
-      
-      toast({
-        title: "✅ Opening WhatsApp",
-        description: "Your shopping list is ready to share!",
-      });
-    } catch (error) {
-      console.error('WhatsApp sharing error:', error);
-      toast({
-        title: "❌ Sharing Failed",
-        description: "Could not open WhatsApp. Please try again.",
-        variant: "destructive"
-      });
+    const uncheckedItems = items.filter(i => !i.checked);
+    
+    if (uncheckedItems.length === 0) {
+      toast({ title: "Nothing to share", description: "All items are checked!", variant: "destructive" });
+      return;
     }
-  };
-
-  const handleSuggestSubstitutions = (ingredient: string) => {
-    const substitutions: { [key: string]: string[] } = {
-      "milk": ["almond milk", "coconut milk", "oat milk"],
-      "butter": ["olive oil", "coconut oil"],
-      "sugar": ["honey (12+ months)", "applesauce", "mashed banana"],
-      "wheat flour": ["oat flour", "rice flour"],
-      "egg": ["ground flaxseed + water", "mashed banana"],
-    };
-
-    const lower = ingredient.toLowerCase();
-    for (const [key, subs] of Object.entries(substitutions)) {
-      if (lower.includes(key)) {
-        toast({
-          title: t('shoppingList.substitutions'),
-          description: t('shoppingList.substitutionsFor').replace('{ingredient}', ingredient).replace('{subs}', subs.join(", ")),
-          duration: 5000,
+    
+    const categories = [...new Set(uncheckedItems.map(i => i.category))];
+    
+    let message = "🛒 *BabyBites Shopping List*\n\n";
+    categories.forEach(cat => {
+      const categoryItems = uncheckedItems.filter(i => i.category === cat);
+      if (categoryItems.length > 0) {
+        message += `*${cat}*\n`;
+        categoryItems.forEach(item => {
+          message += `☐ ${item.ingredient}\n`;
         });
-        return;
+        message += "\n";
       }
-    }
-
-    toast({
-      title: t('shoppingList.noSubstitutions'),
-      description: t('shoppingList.noSubstitutionsDesc'),
     });
+    
+    message += `📱 BabyBites | ${new Date().toLocaleDateString()}`;
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    toast({ title: "Opening WhatsApp" });
   };
 
-  const categories = [...new Set(items.map(i => i.category))];
+  // Group items by recipe
+  const itemsByRecipe = useMemo(() => {
+    const grouped: { [recipe: string]: ShoppingItem[] } = {};
+    items.forEach(item => {
+      const recipe = item.fromRecipe || 'Other Items';
+      if (!grouped[recipe]) grouped[recipe] = [];
+      grouped[recipe].push(item);
+    });
+    return grouped;
+  }, [items]);
+
+  // Group items by category
+  const itemsByCategory = useMemo(() => {
+    const grouped: { [category: string]: ShoppingItem[] } = {};
+    items.forEach(item => {
+      if (!grouped[item.category]) grouped[item.category] = [];
+      grouped[item.category].push(item);
+    });
+    return grouped;
+  }, [items]);
+
   const completedCount = items.filter(i => i.checked).length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pt-20 pb-8">
+    <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
       <div className="container max-w-4xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">{t('shoppingList.title')}</h1>
-            <p className="text-lg text-muted-foreground">
-              {t('shoppingList.subtitle')}
-            </p>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-secondary">
+              <ShoppingCart className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Shopping List
+              </h1>
+              <p className="text-muted-foreground">
+                Everything you need for your baby's meals
+              </p>
+            </div>
           </div>
-          <ShoppingCart className="w-12 h-12 text-primary" />
         </div>
 
-        {/* Progress */}
+        {/* Progress Card */}
         {items.length > 0 && (
-          <Card className="p-4 mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">{t('shoppingList.progress')}</span>
-              <span className="text-sm text-muted-foreground">{completedCount} of {totalCount}</span>
-            </div>
-            <div className="w-full bg-secondary/20 rounded-full h-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+          <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span className="font-semibold">Shopping Progress</span>
+                </div>
+                <Badge variant={progress === 100 ? "default" : "secondary"} className="text-sm">
+                  {completedCount} / {totalCount} items
+                </Badge>
+              </div>
+              <Progress value={progress} className="h-3" />
+              {progress === 100 && (
+                <p className="text-sm text-primary mt-2 font-medium">
+                  🎉 All done! Great job!
+                </p>
+              )}
+            </CardContent>
           </Card>
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mb-6">
-          <Button onClick={handleExportPDF} variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            {t('shoppingList.exportPDF')}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button onClick={handleExportPDF} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Export PDF
           </Button>
-          <Button onClick={handleShareWhatsApp}>
-            <Share2 className="w-4 h-4 mr-2" />
-            {t('shoppingList.shareWhatsApp')}
+          <Button onClick={handleShareWhatsApp} className="gap-2">
+            <Share2 className="w-4 h-4" />
+            Share WhatsApp
           </Button>
+          {completedCount > 0 && (
+            <Button onClick={clearCheckedItems} variant="ghost" className="gap-2 text-destructive">
+              <Trash2 className="w-4 h-4" />
+              Clear Checked
+            </Button>
+          )}
         </div>
 
-        {/* Shopping List by Category */}
-        {categories.map(category => {
-          const categoryItems = items.filter(i => i.category === category);
+        {/* Items by Category */}
+        {Object.entries(itemsByCategory).map(([category, categoryItems]) => {
+          const config = categoryConfig[category] || categoryConfig['Other'];
+          const Icon = config.icon;
           const checkedInCategory = categoryItems.filter(i => i.checked).length;
           
           return (
-            <Card key={category} className="p-6 mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">{category}</h2>
-                <span className="text-sm text-muted-foreground">
-                  {checkedInCategory}/{categoryItems.length}
-                </span>
-              </div>
-              <div className="space-y-3">
-                {categoryItems.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 transition-colors">
-                    <Checkbox 
-                      checked={item.checked}
-                      onCheckedChange={() => toggleItem(item.id)}
-                    />
-                    <div className="flex-1">
-                      <p className={`font-medium ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
-                        {item.ingredient}
-                      </p>
-                      {item.fromRecipe && (
-                        <p className="text-xs text-muted-foreground">
-                          {t('shoppingList.from')} {item.fromRecipe}
-                        </p>
-                      )}
+            <Card key={category} className={`mb-4 border-0 shadow-md ${config.bgColor}`}>
+              <CardContent className="p-5">
+                {/* Category Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${config.gradient}`}>
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleSuggestSubstitutions(item.ingredient)}
-                    >
-                      {t('shoppingList.substitute')}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                    <div>
+                      <h2 className="text-lg font-bold">{category}</h2>
+                      <p className="text-xs text-muted-foreground">
+                        {checkedInCategory}/{categoryItems.length} items
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  {checkedInCategory === categoryItems.length && categoryItems.length > 0 && (
+                    <Badge className="bg-green-500">
+                      <Check className="w-3 h-3 mr-1" />
+                      Complete
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Items Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {categoryItems.map(item => (
+                    <div 
+                      key={item.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer
+                        ${item.checked 
+                          ? 'bg-muted/50 opacity-60' 
+                          : 'bg-background hover:bg-background/80 shadow-sm'
+                        }`}
+                      onClick={() => toggleItem(item.id)}
+                    >
+                      <Checkbox 
+                        checked={item.checked}
+                        onCheckedChange={() => toggleItem(item.id)}
+                        className="h-5 w-5"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium truncate ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
+                          {item.ingredient}
+                        </p>
+                        {item.fromRecipe && (
+                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                            <ChefHat className="w-3 h-3" />
+                            {item.fromRecipe}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeItem(item.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
             </Card>
           );
         })}
 
+        {/* Empty State */}
         {items.length === 0 && (
-          <Card className="bg-card/50 backdrop-blur border-dashed border-2 animate-fade-in">
-            <CardContent className="py-20 text-center space-y-6">
-              <div className="text-8xl animate-bounce">🛒</div>
+          <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-secondary/5">
+            <CardContent className="py-16 text-center space-y-6">
+              <div className="text-7xl animate-bounce">🛒</div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Your Shopping List is Empty
                 </h2>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                  Add meals to your weekly planner and we'll automatically generate your shopping list! 🎯
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Add meals to your weekly planner and we'll automatically generate your shopping list!
                 </p>
               </div>
-              <Button onClick={() => window.location.href = "/planner"} className="rounded-full px-8 py-6 text-lg shadow-elegant hover:shadow-glow transition-all">
-                <Plus className="mr-2 h-5 w-5" />
-                📅 Go to Meal Planner
+              <Button 
+                onClick={() => window.location.href = "/planner"} 
+                className="rounded-full px-8 py-6 text-lg"
+              >
+                <ChefHat className="mr-2 h-5 w-5" />
+                Go to Meal Planner
               </Button>
             </CardContent>
           </Card>
         )}
 
         {/* Tips */}
-        <Card className="p-6 mt-6 bg-primary/5">
-          <h3 className="font-semibold mb-3">💡 {t('shoppingList.tipsTitle')}</h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• {t('shoppingList.tip1')}</li>
-            <li>• {t('shoppingList.tip2')}</li>
-            <li>• {t('shoppingList.tip3')}</li>
-            <li>• {t('shoppingList.tip4')}</li>
-            <li>• {t('shoppingList.tip5')}</li>
-          </ul>
-        </Card>
+        {items.length > 0 && (
+          <Card className="mt-6 bg-gradient-to-r from-mint/10 to-secondary/10 border-mint/20">
+            <CardContent className="p-5">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-mint" />
+                Shopping Tips
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Buy organic produce when possible for baby food</li>
+                <li>• Check expiration dates on dairy and proteins</li>
+                <li>• Prep and freeze portions for busy days</li>
+                <li>• Store opened items properly to maintain freshness</li>
+              </ul>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </main>
   );

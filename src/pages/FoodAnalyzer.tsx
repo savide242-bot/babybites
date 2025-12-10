@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   Camera, 
   Upload, 
   Loader2, 
   CheckCircle2, 
-  AlertTriangle, 
   XCircle,
   Baby,
   Sparkles,
@@ -20,11 +21,16 @@ import {
   ChefHat,
   History,
   Trash2,
-  Eye
+  Eye,
+  Zap,
+  Shield,
+  Apple,
+  Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGamification } from "@/hooks/useGamification";
 import AnalysisDetailDialog, { FullAnalysis } from "@/components/AnalysisDetailDialog";
+import confetti from "canvas-confetti";
 
 interface VitaminMineral {
   name: string;
@@ -67,37 +73,25 @@ interface AnalysisHistory {
   created_at: string;
 }
 
-// Parse item if it's a JSON string
 const parseItem = (item: any): VitaminMineral | SuggestedRecipe | string => {
   if (typeof item === 'string') {
     if (item.startsWith('{') && item.endsWith('}')) {
-      try {
-        return JSON.parse(item);
-      } catch {
-        return item;
-      }
+      try { return JSON.parse(item); } catch { return item; }
     }
     return item;
   }
   return item;
 };
 
-// Helper to get display name from vitamin/mineral/recipe
 const getDisplayName = (item: string | VitaminMineral | SuggestedRecipe): string => {
   const parsed = parseItem(item);
   if (typeof parsed === 'string') return parsed;
   return (parsed as VitaminMineral | SuggestedRecipe).name || 'Unknown';
 };
 
-const getItemDetails = (item: any): { name: string; amount?: string; benefit?: string; daily_pct?: number; description?: string; prep_time?: string; difficulty?: string } | null => {
-  const parsed = parseItem(item);
-  if (typeof parsed === 'string') return { name: parsed };
-  return parsed as any;
-};
-
 const FoodAnalyzer = () => {
   const [image, setImage] = useState<string | null>(null);
-  const [babyAge, setBabyAge] = useState<number>(6);
+  const [babyAge, setBabyAge] = useState<number>(9);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [history, setHistory] = useState<AnalysisHistory[]>([]);
@@ -120,7 +114,6 @@ const FoodAnalyzer = () => {
       setUser(session.user);
       fetchHistory(session.user.id);
       
-      // Try to get baby's birth date for auto-calculation
       const { data: profile } = await supabase
         .from("profiles")
         .select("baby_birth_date")
@@ -165,12 +158,7 @@ const FoodAnalyzer = () => {
         setDetailDialogOpen(true);
       }
     } catch (error) {
-      console.error("Error fetching analysis details:", error);
-      toast({
-        title: "Error",
-        description: "Could not load analysis details.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Could not load analysis details.", variant: "destructive" });
     } finally {
       setLoadingDetail(null);
     }
@@ -180,13 +168,11 @@ const FoodAnalyzer = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({ title: "Invalid File", description: "Please select an image file.", variant: "destructive" });
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast({ title: "File Too Large", description: "Please select an image under 10MB.", variant: "destructive" });
       return;
@@ -211,19 +197,12 @@ const FoodAnalyzer = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-food', {
-        body: { 
-          image: image,
-          babyAgeMonths: babyAge
-        }
+        body: { image, babyAgeMonths: babyAge }
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      // Normalize the choking risk field
       const normalizedResult: AnalysisResult = {
         ...data,
         choking_risk: data.choking_risk || data.choking_risk_detail || null,
@@ -235,7 +214,10 @@ const FoodAnalyzer = () => {
 
       setResult(normalizedResult);
 
-      // Save to database
+      if (normalizedResult.is_recommended) {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }
+
       await supabase.from("food_analyses").insert({
         user_id: user.id,
         image_url: image.substring(0, 500),
@@ -256,24 +238,14 @@ const FoodAnalyzer = () => {
         confidence_score: data.confidence_score,
       });
 
-      // Refresh history
       fetchHistory(user.id);
-
-      // Log activity for gamification
       logActivity('food_analysis');
 
-      toast({
-        title: "Analysis Complete!",
-        description: `Identified: ${data.identified_food}`,
-      });
+      toast({ title: "Analysis Complete!", description: `Identified: ${data.identified_food}` });
 
     } catch (error: any) {
       console.error("Analysis error:", error);
-      toast({
-        title: "Analysis Failed",
-        description: error.message || "Could not analyze the food. Please try again.",
-        variant: "destructive"
-      });
+      toast({ title: "Analysis Failed", description: error.message || "Could not analyze the food.", variant: "destructive" });
     } finally {
       setIsAnalyzing(false);
     }
@@ -282,27 +254,23 @@ const FoodAnalyzer = () => {
   const clearImage = () => {
     setImage(null);
     setResult(null);
-    if (cameraInputRef.current) {
-      cameraInputRef.current.value = '';
-    }
-    if (galleryInputRef.current) {
-      galleryInputRef.current.value = '';
-    }
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
-      <div className="container max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-3 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 mb-4">
-            <Sparkles className="w-8 h-8 text-primary" />
+    <main className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5 pt-20 pb-8">
+      <div className="container max-w-5xl mx-auto px-4">
+        {/* Hero Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 mb-4 animate-pulse">
+            <Sparkles className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-3">
             AI Food Analyzer
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Take a photo of any food and get instant nutritional analysis for your baby
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            Your baby's personal nutritionist. Take a photo of any food and get expert-level analysis instantly.
           </p>
         </div>
 
@@ -310,358 +278,328 @@ const FoodAnalyzer = () => {
           {/* Main Analysis Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Image Capture Card */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Camera className="w-5 h-5 text-primary" />
-                Capture Food Image
-              </h2>
-
-              {!image ? (
-                <div className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center bg-gradient-to-br from-primary/5 to-transparent">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="p-4 rounded-full bg-primary/10">
-                      <Camera className="w-12 h-12 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-lg">Take Photo or Upload Image</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Capture or select a photo of the food/ingredient
-                      </p>
-                    </div>
-                    <div className="flex gap-3 mt-2">
-                      <Button 
-                        variant="outline" 
-                        className="gap-2"
-                        onClick={() => cameraInputRef.current?.click()}
-                      >
-                        <Camera className="w-4 h-4" />
-                        Take Photo
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        className="gap-2"
-                        onClick={() => galleryInputRef.current?.click()}
-                      >
-                        <Upload className="w-4 h-4" />
-                        Upload Image
-                      </Button>
+            <Card className="border-2 border-primary/20 overflow-hidden">
+              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 p-4 border-b">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-primary" />
+                  Capture Food Image
+                </h2>
+              </div>
+              <CardContent className="p-6">
+                {!image ? (
+                  <div className="border-2 border-dashed border-primary/30 rounded-2xl p-10 text-center bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 hover:border-primary/50 transition-colors">
+                    <div className="flex flex-col items-center gap-5">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-full blur-xl opacity-30 animate-pulse" />
+                        <div className="relative p-5 rounded-full bg-gradient-to-br from-primary to-secondary">
+                          <Camera className="w-10 h-10 text-primary-foreground" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-bold text-xl">Take Photo or Upload</p>
+                        <p className="text-muted-foreground mt-1">
+                          Capture or select a food image for analysis
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button 
+                          size="lg"
+                          variant="outline" 
+                          className="gap-2 rounded-full"
+                          onClick={() => cameraInputRef.current?.click()}
+                        >
+                          <Camera className="w-5 h-5" />
+                          Take Photo
+                        </Button>
+                        <Button 
+                          size="lg"
+                          className="gap-2 rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                          onClick={() => galleryInputRef.current?.click()}
+                        >
+                          <Upload className="w-5 h-5" />
+                          Upload Image
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <img 
-                    src={image} 
-                    alt="Food to analyze" 
-                    className="w-full h-64 object-cover rounded-xl"
-                  />
-                  <Button 
-                    variant="destructive" 
-                    size="icon" 
-                    className="absolute top-2 right-2"
-                    onClick={clearImage}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl blur-xl" />
+                    <img 
+                      src={image} 
+                      alt="Food to analyze" 
+                      className="relative w-full h-72 object-cover rounded-2xl shadow-lg"
+                    />
+                    {isAnalyzing && (
+                      <div className="absolute inset-0 bg-background/80 rounded-2xl flex items-center justify-center">
+                        <div className="text-center space-y-3">
+                          <div className="relative">
+                            <div className="w-16 h-16 border-4 border-primary/30 rounded-full animate-spin border-t-primary" />
+                            <Sparkles className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                          </div>
+                          <p className="font-semibold text-primary">Analyzing with AI...</p>
+                        </div>
+                      </div>
+                    )}
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="absolute top-3 right-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={clearImage}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
 
-              {/* Camera input - opens camera on mobile */}
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleImageCapture}
-              />
-              
-              {/* Gallery input - opens file picker/gallery */}
-              <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageCapture}
-              />
+                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageCapture} />
+                <input ref={galleryInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageCapture} />
+              </CardContent>
             </Card>
 
             {/* Baby Age Selector */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Baby className="w-5 h-5 text-secondary" />
-                Baby's Age
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Age in months:</span>
-                  <span className="text-2xl font-bold text-primary">{babyAge} months</span>
+            <Card className="border-2 border-secondary/20">
+              <CardContent className="p-6">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Baby className="w-5 h-5 text-secondary" />
+                  Baby's Age
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Age in months:</span>
+                    <Badge variant="secondary" className="text-lg px-4 py-1">
+                      {babyAge} months
+                    </Badge>
+                  </div>
+                  <Slider
+                    value={[babyAge]}
+                    onValueChange={(value) => setBabyAge(value[0])}
+                    min={4}
+                    max={36}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>4 mo</span>
+                    <span>12 mo</span>
+                    <span>24 mo</span>
+                    <span>36 mo</span>
+                  </div>
                 </div>
-                <Slider
-                  value={[babyAge]}
-                  onValueChange={(value) => setBabyAge(value[0])}
-                  min={4}
-                  max={36}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>4 months</span>
-                  <span>12 months</span>
-                  <span>24 months</span>
-                  <span>36 months</span>
-                </div>
-              </div>
+              </CardContent>
             </Card>
 
             {/* Analyze Button */}
             <Button 
               onClick={analyzeFood}
               disabled={!image || isAnalyzing}
-              className="w-full py-6 text-lg gap-2"
+              className="w-full py-7 text-lg gap-3 rounded-2xl bg-gradient-to-r from-primary via-accent to-secondary hover:opacity-90 shadow-lg"
               size="lg"
             >
               {isAnalyzing ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-6 h-6 animate-spin" />
                   Analyzing with AI...
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5" />
+                  <Zap className="w-6 h-6" />
                   Analyze Food
                 </>
               )}
             </Button>
 
-            {/* Results Card */}
+            {/* Results */}
             {result && (
-              <Card className="p-6 animate-in slide-in-from-bottom-4">
-                {/* Header with Recommendation Status */}
-                <div className={`p-4 rounded-xl mb-6 ${result.is_recommended ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                  <div className="flex items-center gap-3">
-                    {result.is_recommended ? (
-                      <CheckCircle2 className="w-10 h-10 text-green-500" />
-                    ) : (
-                      <XCircle className="w-10 h-10 text-red-500" />
-                    )}
-                    <div>
+              <Card className="border-2 overflow-hidden animate-in slide-in-from-bottom-4">
+                {/* Status Header */}
+                <div className={`p-6 ${result.is_recommended 
+                  ? 'bg-gradient-to-r from-green-500/20 via-emerald-500/20 to-teal-500/20' 
+                  : 'bg-gradient-to-r from-red-500/20 via-rose-500/20 to-pink-500/20'
+                }`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`p-4 rounded-2xl ${result.is_recommended ? 'bg-green-500' : 'bg-red-500'}`}>
+                      {result.is_recommended ? (
+                        <CheckCircle2 className="w-10 h-10 text-white" />
+                      ) : (
+                        <XCircle className="w-10 h-10 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
                       <h3 className="text-2xl font-bold">{result.identified_food}</h3>
-                      <p className={`font-medium ${result.is_recommended ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className={`font-semibold ${result.is_recommended ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {result.is_recommended 
                           ? `✓ Recommended for ${babyAge} month old` 
                           : `✗ Not recommended for ${babyAge} month old`
                         }
                       </p>
                     </div>
+                    {result.confidence_score && (
+                      <Badge variant="outline" className="text-sm">
+                        <Star className="w-3 h-3 mr-1" />
+                        {(result.confidence_score * 100).toFixed(0)}% confident
+                      </Badge>
+                    )}
                   </div>
                   {result.recommendation_reason && (
-                    <p className="mt-3 text-sm">{result.recommendation_reason}</p>
-                  )}
-                  {result.confidence_score && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      AI Confidence: {(result.confidence_score * 100).toFixed(0)}%
-                    </p>
+                    <p className="mt-4 text-sm bg-background/50 rounded-xl p-3">{result.recommendation_reason}</p>
                   )}
                 </div>
 
-                {/* Nutritional Information */}
-                <h4 className="font-bold mb-3 flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  Estimated Nutrition (per serving)
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                  <div className="p-3 rounded-lg bg-orange-500/10 text-center">
-                    <Flame className="w-5 h-5 mx-auto text-orange-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_calories || 0}</p>
-                    <p className="text-xs text-muted-foreground">Calories</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-red-500/10 text-center">
-                    <Beef className="w-5 h-5 mx-auto text-red-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_protein_g || 0}g</p>
-                    <p className="text-xs text-muted-foreground">Protein</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-cyan-500/10 text-center">
-                    <Cookie className="w-5 h-5 mx-auto text-cyan-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_carbs_g || 0}g</p>
-                    <p className="text-xs text-muted-foreground">Carbs</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-purple-500/10 text-center">
-                    <Droplets className="w-5 h-5 mx-auto text-purple-500 mb-1" />
-                    <p className="text-lg font-bold">{result.estimated_fats_g || 0}g</p>
-                    <p className="text-xs text-muted-foreground">Fats</p>
-                  </div>
-                </div>
-
-                {/* Vitamins & Minerals */}
-                {(result.vitamins?.length > 0 || result.minerals?.length > 0) && (
-                  <div className="mb-6">
-                    <h4 className="font-bold mb-2">Vitamins & Minerals</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {result.vitamins?.map((v, i) => {
-                        const details = getItemDetails(v);
-                        if (!details) return null;
-                        return (
-                          <div key={`v-${i}`} className="p-2 rounded-lg bg-green-500/10">
-                            <p className="font-medium text-green-700 text-sm">{details.name}</p>
-                            {details.amount && (
-                              <p className="text-xs text-muted-foreground">{details.amount}</p>
-                            )}
-                            {details.benefit && (
-                              <p className="text-xs text-muted-foreground mt-1">{details.benefit}</p>
-                            )}
-                            {details.daily_pct && (
-                              <p className="text-xs text-green-600 mt-1">{details.daily_pct}% Daily Value</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {result.minerals?.map((m, i) => {
-                        const details = getItemDetails(m);
-                        if (!details) return null;
-                        return (
-                          <div key={`m-${i}`} className="p-2 rounded-lg bg-blue-500/10">
-                            <p className="font-medium text-blue-700 text-sm">{details.name}</p>
-                            {details.amount && (
-                              <p className="text-xs text-muted-foreground">{details.amount}</p>
-                            )}
-                            {details.benefit && (
-                              <p className="text-xs text-muted-foreground mt-1">{details.benefit}</p>
-                            )}
-                            {details.daily_pct && (
-                              <p className="text-xs text-blue-600 mt-1">{details.daily_pct}% Daily Value</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Allergens Warning */}
-                {result.allergens?.length > 0 && result.allergens[0] !== "None identified" && (
-                  <div className="p-4 rounded-lg bg-yellow-500/10 mb-6">
-                    <h4 className="font-bold mb-2 flex items-center gap-2 text-yellow-700">
-                      <AlertTriangle className="w-4 h-4" />
-                      Potential Allergens
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {result.allergens.map((a, i) => (
-                        <span key={i} className="px-2 py-1 rounded-full text-xs bg-yellow-500/20 text-yellow-700">
-                          {a}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Choking Risk */}
-                {result.choking_risk && (
-                  <div className="p-4 rounded-lg bg-red-500/10 mb-6">
-                    <h4 className="font-bold mb-2 flex items-center gap-2 text-red-700">
-                      <AlertCircle className="w-4 h-4" />
-                      Choking Risk
-                    </h4>
-                    <p className="text-sm">{result.choking_risk}</p>
-                  </div>
-                )}
-
-                {/* Preparation Tips */}
-                {result.preparation_tips && (
-                  <div className="p-4 rounded-lg bg-primary/5 mb-6">
-                    <h4 className="font-bold mb-2 flex items-center gap-2">
-                      <ChefHat className="w-4 h-4 text-primary" />
-                      Preparation Tips
-                    </h4>
-                    <p className="text-sm whitespace-pre-line">{result.preparation_tips}</p>
-                  </div>
-                )}
-
-                {/* Suggested Recipes */}
-                {result.suggested_recipes?.length > 0 && (
+                <CardContent className="p-6 space-y-6">
+                  {/* Nutrition Grid */}
                   <div>
-                    <h4 className="font-bold mb-2">Suggested Recipes</h4>
-                    <div className="space-y-2">
-                      {result.suggested_recipes.map((recipe, i) => {
-                        const details = getItemDetails(recipe);
-                        if (!details) return null;
-                        return (
-                          <div key={i} className="p-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors">
-                            <p className="font-medium">{details.name}</p>
-                            {details.description && (
-                              <p className="text-xs text-muted-foreground mt-1">{details.description}</p>
-                            )}
-                            <div className="flex gap-2 mt-1">
-                              {details.prep_time && (
-                                <span className="text-xs text-primary">⏱ {details.prep_time}</span>
-                              )}
-                              {details.difficulty && (
-                                <span className="text-xs text-secondary">📊 {details.difficulty}</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <h4 className="font-bold mb-3 flex items-center gap-2">
+                      <Apple className="w-4 h-4 text-primary" />
+                      Nutritional Information (per serving)
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 text-center">
+                        <Flame className="w-6 h-6 mx-auto text-orange-500 mb-2" />
+                        <p className="text-2xl font-bold">{result.estimated_calories || 0}</p>
+                        <p className="text-xs text-muted-foreground">Calories</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-rose-500/10 text-center">
+                        <Beef className="w-6 h-6 mx-auto text-red-500 mb-2" />
+                        <p className="text-2xl font-bold">{result.estimated_protein_g || 0}g</p>
+                        <p className="text-xs text-muted-foreground">Protein</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 text-center">
+                        <Cookie className="w-6 h-6 mx-auto text-cyan-500 mb-2" />
+                        <p className="text-2xl font-bold">{result.estimated_carbs_g || 0}g</p>
+                        <p className="text-xs text-muted-foreground">Carbs</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 text-center">
+                        <Droplets className="w-6 h-6 mx-auto text-purple-500 mb-2" />
+                        <p className="text-2xl font-bold">{result.estimated_fats_g || 0}g</p>
+                        <p className="text-xs text-muted-foreground">Fats</p>
+                      </div>
                     </div>
                   </div>
-                )}
+
+                  {/* Allergens */}
+                  {result.allergens && result.allergens.length > 0 && (
+                    <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                      <h4 className="font-bold mb-2 flex items-center gap-2 text-destructive">
+                        <AlertCircle className="w-4 h-4" />
+                        Allergen Alert
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {result.allergens.map((allergen, idx) => (
+                          <Badge key={idx} variant="destructive">{getDisplayName(allergen)}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Choking Risk */}
+                  {result.choking_risk && (
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                      <h4 className="font-bold mb-2 flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                        <Shield className="w-4 h-4" />
+                        Choking Risk Assessment
+                      </h4>
+                      <p className="text-sm">{result.choking_risk}</p>
+                    </div>
+                  )}
+
+                  {/* Preparation Tips */}
+                  {result.preparation_tips && (
+                    <div className="p-4 rounded-xl bg-mint/10 border border-mint/20">
+                      <h4 className="font-bold mb-2 flex items-center gap-2 text-mint">
+                        <ChefHat className="w-4 h-4" />
+                        Expert Preparation Tips
+                      </h4>
+                      <p className="text-sm">{result.preparation_tips}</p>
+                    </div>
+                  )}
+                </CardContent>
               </Card>
             )}
           </div>
 
-          {/* History Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="p-4 sticky top-24">
-              <h3 className="font-bold mb-4 flex items-center gap-2">
-                <History className="w-4 h-4" />
-                Recent Analyses
-              </h3>
-              {history.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No analyses yet. Take your first food photo!
-                </p>
-              ) : (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto">
-                  {history.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                        item.is_recommended 
-                          ? 'border-green-500/30 bg-green-500/5 hover:bg-green-500/10' 
-                          : 'border-red-500/30 bg-red-500/5 hover:bg-red-500/10'
-                      }`}
-                      onClick={() => fetchFullAnalysis(item.id)}
-                    >
-                      <div className="flex items-center gap-2">
-                        {item.is_recommended ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        )}
-                        <span className="font-medium text-sm truncate flex-1">{item.identified_food}</span>
+          {/* Sidebar - History */}
+          <div className="space-y-6">
+            <Card className="border-2 border-accent/20">
+              <div className="bg-gradient-to-r from-accent/10 to-primary/10 p-4 border-b">
+                <h3 className="font-bold flex items-center gap-2">
+                  <History className="w-5 h-5 text-accent" />
+                  Recent Analyses
+                </h3>
+              </div>
+              <CardContent className="p-4">
+                {history.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">
+                    No analyses yet. Start by analyzing a food!
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {history.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                        onClick={() => fetchFullAnalysis(item.id)}
+                      >
+                        <div className={`p-2 rounded-lg ${item.is_recommended ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                          {item.is_recommended ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{item.identified_food}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.baby_age_months}mo • {new Date(item.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                         {loadingDetail === item.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <Eye className="w-4 h-4 text-muted-foreground" />
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {item.baby_age_months} months • {new Date(item.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Tips Card */}
+            <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-0">
+              <CardContent className="p-5">
+                <h3 className="font-bold mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Tips for Best Results
+                </h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    Use good lighting for clearer analysis
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    Focus on single foods for accuracy
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    Include the whole food in frame
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    Always verify with your pediatrician
+                  </li>
+                </ul>
+              </CardContent>
             </Card>
           </div>
         </div>
       </div>
 
-      {/* Analysis Detail Dialog */}
-      <AnalysisDetailDialog 
-        analysis={selectedAnalysis}
+      <AnalysisDetailDialog
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
+        analysis={selectedAnalysis}
       />
     </main>
   );
