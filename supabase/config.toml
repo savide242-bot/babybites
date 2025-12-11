@@ -39,3 +39,6 @@ verify_jwt = true
 
 [functions.generate-recipe-image]
 verify_jwt = true
+
+[functions.debug-notifications]
+verify_jwt = false

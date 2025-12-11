@@ -31,6 +31,10 @@ import bananaOatCookies from "@/assets/recipes/banana-oat-cookies.jpg";
 import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.png";
 import pearPruneBlend from "@/assets/recipes/pear-prune-blend.png";
 import greenPeaPuree from "@/assets/recipes/green-pea-puree.png";
+import pumpkinAppleMash from "@/assets/recipes/pumpkin-apple-mash.png";
+import cottageCheesePoachBowl from "@/assets/recipes/cottage-cheese-peach-bowl.png";
+import appleCinnamonSauce from "@/assets/recipes/apple-cinnamon-sauce.png";
+import appleCinnamonOatmeal from "@/assets/recipes/apple-cinnamon-oatmeal.png";
 
 export const recipeImages = {
   avocadoPuree,
@@ -61,6 +65,10 @@ export const recipeImages = {
   spinachAppleSurprise,
   pearPruneBlend,
   greenPeaPuree,
+  pumpkinAppleMash,
+  cottageCheesePoachBowl,
+  appleCinnamonSauce,
+  appleCinnamonOatmeal,
 };
 
 // Helper function to get appropriate image based on recipe type
@@ -71,6 +79,10 @@ export const getRecipeImage = (keywords: string[]): string => {
   if (keywordString.includes("spinach") && keywordString.includes("apple") && keywordString.includes("surprise")) return spinachAppleSurprise;
   if (keywordString.includes("pear") && keywordString.includes("prune") && keywordString.includes("blend")) return pearPruneBlend;
   if (keywordString.includes("green") && keywordString.includes("pea") && keywordString.includes("puree")) return greenPeaPuree;
+  if (keywordString.includes("pumpkin") && keywordString.includes("apple") && keywordString.includes("mash")) return pumpkinAppleMash;
+  if (keywordString.includes("cottage") && keywordString.includes("cheese") && keywordString.includes("peach")) return cottageCheesePoachBowl;
+  if (keywordString.includes("apple") && keywordString.includes("cinnamon") && keywordString.includes("sauce")) return appleCinnamonSauce;
+  if (keywordString.includes("apple") && keywordString.includes("cinnamon") && keywordString.includes("oatmeal")) return appleCinnamonOatmeal;
   
   // New recipes matching
   if (keywordString.includes("vegetable") && keywordString.includes("risotto")) return vegetableRisotto;
