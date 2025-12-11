@@ -5,6 +5,7 @@ import { recipes101to150 } from "./recipes101-150";
 import { recipes151to200 } from "./recipes151-200";
 import { recipes201to205 } from "./recipes201-205";
 import { recipes206to238 } from "./recipes206-238";
+import { recipes239to271 } from "./recipes239-271";
 
 export interface Recipe {
   id: string;
@@ -1126,4 +1127,5 @@ export const recipes: Recipe[] = [
   ...recipes151to200,
   ...recipes201to205,
   ...recipes206to238,
+  ...recipes239to271,
 ].map(addDefaultFields);
