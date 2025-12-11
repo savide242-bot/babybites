@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, TrendingUp, Utensils, Scale, Ruler, Activity, Flame, Beef, Cookie, Droplets, Trophy, Sparkles } from "lucide-react";
+import { Plus, TrendingUp, Utensils, Scale, Ruler, Activity, Sparkles, Calendar, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   AreaChart,
@@ -16,16 +16,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
 } from "recharts";
 import { z } from "zod";
 import { useCountUp } from "@/hooks/useCountUp";
+import { format } from "date-fns";
 
 const growthSchema = z.object({
   babyName: z.string().trim().min(1, "Baby name is required").max(100, "Name too long"),
@@ -67,20 +62,6 @@ interface MealLog {
   eaten_at: string;
 }
 
-const CHART_COLORS = {
-  primary: "hsl(var(--primary))",
-  secondary: "hsl(var(--secondary))",
-  accent: "hsl(var(--accent))",
-  coral: "#FF6B6B",
-  cyan: "#00CED1",
-  purple: "#8B5CF6",
-  orange: "#F59E0B",
-  green: "#10B981",
-  pink: "#EC4899",
-};
-
-const PIE_COLORS = ["#FF6B6B", "#00CED1", "#8B5CF6", "#F59E0B", "#10B981"];
-
 const GrowthTracker = () => {
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
@@ -107,15 +88,20 @@ const GrowthTracker = () => {
   // Stats for animated counters
   const latestWeight = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].weight_kg : 0;
   const latestHeight = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].height_cm : 0;
-  const totalCalories = mealLogs.reduce((sum, log) => sum + (log.calories || 0), 0);
-  const totalProtein = mealLogs.reduce((sum, log) => sum + (log.protein_g || 0), 0);
-  const totalCarbs = mealLogs.reduce((sum, log) => sum + (log.carbs_g || 0), 0);
-  const totalFats = mealLogs.reduce((sum, log) => sum + (log.fats_g || 0), 0);
+  const totalMeals = mealLogs.length;
 
   const animatedWeight = useCountUp(latestWeight, 1500);
   const animatedHeight = useCountUp(latestHeight, 1500);
-  const animatedCalories = useCountUp(totalCalories, 1500);
-  const animatedProtein = useCountUp(totalProtein, 1500);
+
+  // BMI calculation
+  const bmi = latestWeight > 0 && latestHeight > 0 
+    ? (latestWeight / Math.pow(latestHeight / 100, 2)).toFixed(1)
+    : "N/A";
+
+  // Weight gain calculation
+  const weightGain = growthRecords.length >= 2 
+    ? (growthRecords[growthRecords.length - 1].weight_kg - growthRecords[0].weight_kg).toFixed(2)
+    : "0";
 
   useEffect(() => {
     checkUser();
@@ -263,118 +249,91 @@ const GrowthTracker = () => {
     fetchMealLogs();
   };
 
-  // Chart data transformations
+  // Chart data - smooth mint/cyan gradient like reference
   const growthChartData = growthRecords.map((record) => ({
     date: new Date(record.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     weight: record.weight_kg,
     height: record.height_cm,
   }));
 
-  const macroDistribution = [
-    { name: "Protein", value: totalProtein, color: PIE_COLORS[0] },
-    { name: "Carbs", value: totalCarbs, color: PIE_COLORS[1] },
-    { name: "Fats", value: totalFats, color: PIE_COLORS[2] },
-  ].filter(m => m.value > 0);
-
-  const mealTypeDistribution = mealLogs.reduce((acc, log) => {
-    acc[log.meal_type] = (acc[log.meal_type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const mealTypeData = Object.entries(mealTypeDistribution).map(([type, count]) => ({
-    type,
-    count,
-  }));
-
-  // Calculate BMI for babies (simplified)
-  const bmi = latestWeight > 0 && latestHeight > 0 
-    ? (latestWeight / Math.pow(latestHeight / 100, 2)).toFixed(1)
-    : "N/A";
-
-  // Weight gain calculation
-  const weightGain = growthRecords.length >= 2 
-    ? (growthRecords[growthRecords.length - 1].weight_kg - growthRecords[0].weight_kg).toFixed(2)
-    : "0";
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
-      <div className="container max-w-6xl mx-auto px-4">
-        {/* Header */}
+    <main className="min-h-screen bg-background pt-20 pb-8">
+      <div className="container max-w-4xl mx-auto px-4">
+        {/* Clean Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
-            Growth & Nutrition Tracker
+          <h1 className="text-3xl font-bold text-foreground mb-1">
+            Growth Tracker
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Beautiful insights into {babyProfile?.baby_name || "your baby"}'s development
+          <p className="text-muted-foreground">
+            Record {babyProfile?.baby_name || "your baby"}'s growth milestones
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 bg-gradient-to-br from-coral/20 to-coral/5 border-coral/30 hover:shadow-lg transition-all">
+        {/* Quick Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Card className="p-4 bg-card border border-border/50 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-coral/20">
-                <Scale className="w-6 h-6 text-coral" style={{ color: CHART_COLORS.coral }} />
+              <div className="p-2.5 rounded-xl bg-mint/20">
+                <Scale className="w-5 h-5 text-mint" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Current Weight</p>
-                <p className="text-2xl font-bold" style={{ color: CHART_COLORS.coral }}>
-                  {animatedWeight.toFixed(1)} <span className="text-sm">kg</span>
+                <p className="text-xs text-muted-foreground">Weight</p>
+                <p className="text-xl font-bold text-foreground">
+                  {animatedWeight.toFixed(1)}<span className="text-sm font-normal ml-0.5">kg</span>
                 </p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border-cyan-500/30 hover:shadow-lg transition-all">
+          <Card className="p-4 bg-card border border-border/50 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-cyan-500/20">
-                <Ruler className="w-6 h-6" style={{ color: CHART_COLORS.cyan }} />
+              <div className="p-2.5 rounded-xl bg-secondary/20">
+                <Ruler className="w-5 h-5 text-secondary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Current Height</p>
-                <p className="text-2xl font-bold" style={{ color: CHART_COLORS.cyan }}>
-                  {animatedHeight.toFixed(1)} <span className="text-sm">cm</span>
+                <p className="text-xs text-muted-foreground">Height</p>
+                <p className="text-xl font-bold text-foreground">
+                  {animatedHeight.toFixed(1)}<span className="text-sm font-normal ml-0.5">cm</span>
                 </p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-purple-500/20 to-purple-500/5 border-purple-500/30 hover:shadow-lg transition-all">
+          <Card className="p-4 bg-card border border-border/50 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-purple-500/20">
-                <Flame className="w-6 h-6" style={{ color: CHART_COLORS.purple }} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Total Calories</p>
-                <p className="text-2xl font-bold" style={{ color: CHART_COLORS.purple }}>
-                  {animatedCalories.toFixed(0)} <span className="text-sm">kcal</span>
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/30 hover:shadow-lg transition-all">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-green-500/20">
-                <Activity className="w-6 h-6" style={{ color: CHART_COLORS.green }} />
+              <div className="p-2.5 rounded-xl bg-accent/20">
+                <Activity className="w-5 h-5 text-accent" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">BMI</p>
-                <p className="text-2xl font-bold" style={{ color: CHART_COLORS.green }}>
-                  {bmi}
+                <p className="text-xl font-bold text-foreground">{bmi}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-card border border-border/50 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/20">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Gained</p>
+                <p className="text-xl font-bold text-foreground">
+                  +{weightGain}<span className="text-sm font-normal ml-0.5">kg</span>
                 </p>
               </div>
             </div>
           </Card>
         </div>
 
+        {/* Tabs */}
         <Tabs defaultValue="growth" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="growth" className="gap-2">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="growth" className="rounded-lg gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <TrendingUp className="w-4 h-4" />
-              Growth Charts
+              Growth
             </TabsTrigger>
-            <TabsTrigger value="meals" className="gap-2">
+            <TabsTrigger value="meals" className="rounded-lg gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
               <Utensils className="w-4 h-4" />
               Nutrition
             </TabsTrigger>
@@ -382,359 +341,250 @@ const GrowthTracker = () => {
 
           {/* Growth Tab */}
           <TabsContent value="growth" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  Total weight gain: <span className="font-bold text-primary">+{weightGain}kg</span>
-                </span>
-              </div>
-              <Button onClick={() => setShowNewGrowth(!showNewGrowth)} className="gap-2">
+            {/* Add Button */}
+            <div className="flex justify-end">
+              <Button onClick={() => setShowNewGrowth(!showNewGrowth)} className="gap-2 rounded-xl">
                 <Plus className="w-4 h-4" />
-                Add Growth Record
+                Add Record
               </Button>
             </div>
 
+            {/* New Growth Form */}
             {showNewGrowth && (
-              <Card className="p-6 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent animate-in slide-in-from-top-4">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
+              <Card className="p-6 border-mint/30 bg-gradient-to-br from-mint/5 to-transparent animate-in slide-in-from-top-4">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-mint" />
                   New Growth Record
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="babyName">Baby Name *</Label>
-                    <Input id="babyName" value={babyName} onChange={(e) => setBabyName(e.target.value)} />
+                    <Input id="babyName" value={babyName} onChange={(e) => setBabyName(e.target.value)} className="mt-1.5" />
                   </div>
                   <div>
                     <Label htmlFor="weight">Weight (kg) *</Label>
-                    <Input id="weight" type="number" step="0.01" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g., 8.5" />
+                    <Input id="weight" type="number" step="0.01" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g., 8.5" className="mt-1.5" />
                   </div>
                   <div>
                     <Label htmlFor="height">Height (cm) *</Label>
-                    <Input id="height" type="number" step="0.1" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 68" />
+                    <Input id="height" type="number" step="0.1" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 68" className="mt-1.5" />
                   </div>
                   <div>
                     <Label htmlFor="milestone">Milestone</Label>
-                    <Input id="milestone" value={milestone} onChange={(e) => setMilestone(e.target.value)} placeholder="e.g., First tooth, crawling" />
+                    <Input id="milestone" value={milestone} onChange={(e) => setMilestone(e.target.value)} placeholder="e.g., First tooth" className="mt-1.5" />
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="notes">Notes</Label>
-                    <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                    <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1.5" />
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddGrowth}>Save Record</Button>
-                  <Button variant="outline" onClick={() => setShowNewGrowth(false)}>Cancel</Button>
+                  <Button onClick={handleAddGrowth} className="rounded-xl">Save Record</Button>
+                  <Button variant="outline" onClick={() => setShowNewGrowth(false)} className="rounded-xl">Cancel</Button>
                 </div>
               </Card>
             )}
 
-            {/* Beautiful Growth Chart */}
-            {growthRecords.length > 0 && (
-              <Card className="p-6 overflow-hidden">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Growth Evolution
-                </h2>
-                <ResponsiveContainer width="100%" height={350}>
+            {/* Beautiful Growth Chart - Mint theme like reference */}
+            {growthRecords.length > 0 ? (
+              <Card className="p-6 overflow-hidden border-border/50">
+                <h2 className="text-lg font-semibold mb-4">Growth Evolution</h2>
+                <ResponsiveContainer width="100%" height={280}>
                   <AreaChart data={growthChartData}>
                     <defs>
-                      <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={CHART_COLORS.coral} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={CHART_COLORS.coral} stopOpacity={0.1}/>
-                      </linearGradient>
-                      <linearGradient id="heightGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={CHART_COLORS.cyan} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={CHART_COLORS.cyan} stopOpacity={0.1}/>
+                      <linearGradient id="mintGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--mint))" stopOpacity={0.4}/>
+                        <stop offset="100%" stopColor="hsl(var(--mint))" stopOpacity={0.05}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis yAxisId="left" tick={{ fontSize: 12 }} stroke={CHART_COLORS.coral} />
-                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} stroke={CHART_COLORS.cyan} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
+                      axisLine={{ stroke: 'hsl(var(--border))' }}
+                      tickLine={false}
+                    />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                       }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
                     />
-                    <Legend />
                     <Area
-                      yAxisId="left"
                       type="monotone"
                       dataKey="weight"
-                      stroke={CHART_COLORS.coral}
-                      fill="url(#weightGradient)"
+                      stroke="hsl(var(--mint))"
+                      fill="url(#mintGradient)"
                       strokeWidth={3}
                       name="Weight (kg)"
-                      dot={{ fill: CHART_COLORS.coral, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: CHART_COLORS.coral, strokeWidth: 2 }}
-                    />
-                    <Area
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="height"
-                      stroke={CHART_COLORS.cyan}
-                      fill="url(#heightGradient)"
-                      strokeWidth={3}
-                      name="Height (cm)"
-                      dot={{ fill: CHART_COLORS.cyan, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: CHART_COLORS.cyan, strokeWidth: 2 }}
+                      dot={{ fill: 'hsl(var(--mint))', strokeWidth: 0, r: 4 }}
+                      activeDot={{ r: 6, stroke: 'hsl(var(--card))', strokeWidth: 2 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </Card>
+            ) : (
+              <Card className="p-8 text-center border-dashed border-2 border-border/50">
+                <Scale className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground mb-1">No growth records yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">Start tracking to see beautiful growth charts</p>
+                <Button onClick={() => setShowNewGrowth(true)} className="rounded-xl">
+                  Add First Record
+                </Button>
+              </Card>
             )}
 
-            {/* Growth Records Timeline */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Growth Timeline</h3>
-              {growthRecords.slice().reverse().map((record, idx) => (
-                <Card key={record.id} className="p-4 hover:shadow-md transition-all animate-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 50}ms` }}>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
-                        {record.baby_name.charAt(0)}
+            {/* Recent Records Timeline */}
+            {growthRecords.length > 0 && (
+              <Card className="p-6 border-border/50">
+                <h2 className="text-lg font-semibold mb-4">Recent Records</h2>
+                <div className="space-y-3">
+                  {growthRecords.slice(-5).reverse().map((record, idx) => (
+                    <div key={record.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="p-2 rounded-lg bg-mint/20">
+                        <Calendar className="w-4 h-4 text-mint" />
                       </div>
-                      <div>
-                        <h3 className="font-bold">{record.baby_name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(record.recorded_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{format(new Date(record.recorded_at), 'MMM d, yyyy')}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {record.weight_kg}kg • {record.height_cm}cm
+                          {record.milestone && ` • ${record.milestone}`}
                         </p>
                       </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </div>
-                    <div className="text-right flex gap-4">
-                      <div className="px-3 py-1 rounded-full bg-coral/10" style={{ color: CHART_COLORS.coral }}>
-                        <span className="font-bold">{record.weight_kg}</span> kg
-                      </div>
-                      <div className="px-3 py-1 rounded-full bg-cyan-500/10" style={{ color: CHART_COLORS.cyan }}>
-                        <span className="font-bold">{record.height_cm}</span> cm
-                      </div>
-                    </div>
-                  </div>
-                  {record.milestone && (
-                    <div className="mt-3 flex items-center gap-2 text-sm">
-                      <Trophy className="w-4 h-4 text-yellow-500" />
-                      <span className="font-medium">Milestone:</span> {record.milestone}
-                    </div>
-                  )}
-                  {record.notes && <p className="mt-2 text-sm text-muted-foreground">{record.notes}</p>}
-                </Card>
-              ))}
-            </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </TabsContent>
 
-          {/* Meals/Nutrition Tab */}
+          {/* Nutrition Tab */}
           <TabsContent value="meals" className="space-y-6">
+            {/* Add Button */}
             <div className="flex justify-end">
-              <Button onClick={() => setShowNewMeal(!showNewMeal)} className="gap-2">
+              <Button onClick={() => setShowNewMeal(!showNewMeal)} className="gap-2 rounded-xl">
                 <Plus className="w-4 h-4" />
                 Log Meal
               </Button>
             </div>
 
+            {/* New Meal Form */}
             {showNewMeal && (
-              <Card className="p-6 border-secondary/20 bg-gradient-to-br from-secondary/5 to-transparent animate-in slide-in-from-top-4">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Card className="p-6 border-secondary/30 bg-gradient-to-br from-secondary/5 to-transparent animate-in slide-in-from-top-4">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Utensils className="w-5 h-5 text-secondary" />
                   Log New Meal
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="mealBabyName">Baby Name *</Label>
-                    <Input id="mealBabyName" value={babyName} onChange={(e) => setBabyName(e.target.value)} />
+                    <Input id="mealBabyName" value={babyName} onChange={(e) => setBabyName(e.target.value)} className="mt-1.5" />
                   </div>
                   <div>
                     <Label htmlFor="mealType">Meal Type *</Label>
-                    <Input id="mealType" value={mealType} onChange={(e) => setMealType(e.target.value)} placeholder="Breakfast, Lunch, Snack..." />
+                    <select
+                      id="mealType"
+                      value={mealType}
+                      onChange={(e) => setMealType(e.target.value)}
+                      className="w-full h-10 px-3 mt-1.5 rounded-md border border-input bg-background text-sm"
+                    >
+                      <option value="">Select type</option>
+                      <option value="Breakfast">Breakfast</option>
+                      <option value="Lunch">Lunch</option>
+                      <option value="Dinner">Dinner</option>
+                      <option value="Snack">Snack</option>
+                    </select>
                   </div>
-                  <div>
-                    <Label htmlFor="recipeTitle">Recipe/Food *</Label>
-                    <Input id="recipeTitle" value={recipeTitle} onChange={(e) => setRecipeTitle(e.target.value)} />
+                  <div className="md:col-span-2">
+                    <Label htmlFor="recipeTitle">Food/Recipe *</Label>
+                    <Input id="recipeTitle" value={recipeTitle} onChange={(e) => setRecipeTitle(e.target.value)} placeholder="What did baby eat?" className="mt-1.5" />
                   </div>
-                  <div>
-                    <Label htmlFor="calories" className="flex items-center gap-1">
-                      <Flame className="w-3 h-3" /> Calories
-                    </Label>
-                    <Input id="calories" type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder="e.g., 150" />
-                  </div>
-                  <div>
-                    <Label htmlFor="protein" className="flex items-center gap-1">
-                      <Beef className="w-3 h-3" /> Protein (g)
-                    </Label>
-                    <Input id="protein" type="number" step="0.1" value={protein} onChange={(e) => setProtein(e.target.value)} placeholder="e.g., 8" />
-                  </div>
-                  <div>
-                    <Label htmlFor="carbs" className="flex items-center gap-1">
-                      <Cookie className="w-3 h-3" /> Carbs (g)
-                    </Label>
-                    <Input id="carbs" type="number" step="0.1" value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder="e.g., 20" />
-                  </div>
-                  <div>
-                    <Label htmlFor="fats" className="flex items-center gap-1">
-                      <Droplets className="w-3 h-3" /> Fats (g)
-                    </Label>
-                    <Input id="fats" type="number" step="0.1" value={fats} onChange={(e) => setFats(e.target.value)} placeholder="e.g., 5" />
+                  
+                  {/* Prominent Nutrition Fields */}
+                  <div className="md:col-span-2 p-4 rounded-xl bg-muted/30 border border-border/50">
+                    <p className="text-sm font-medium mb-3 text-foreground">Nutrition Information</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <Label htmlFor="calories" className="text-xs">Calories</Label>
+                        <Input id="calories" type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder="kcal" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label htmlFor="protein" className="text-xs">Protein (g)</Label>
+                        <Input id="protein" type="number" step="0.1" value={protein} onChange={(e) => setProtein(e.target.value)} placeholder="g" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label htmlFor="carbs" className="text-xs">Carbs (g)</Label>
+                        <Input id="carbs" type="number" step="0.1" value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder="g" className="mt-1" />
+                      </div>
+                      <div>
+                        <Label htmlFor="fats" className="text-xs">Fats (g)</Label>
+                        <Input id="fats" type="number" step="0.1" value={fats} onChange={(e) => setFats(e.target.value)} placeholder="g" className="mt-1" />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddMeal}>Save Meal</Button>
-                  <Button variant="outline" onClick={() => setShowNewMeal(false)}>Cancel</Button>
+                  <Button onClick={handleAddMeal} className="rounded-xl">Log Meal</Button>
+                  <Button variant="outline" onClick={() => setShowNewMeal(false)} className="rounded-xl">Cancel</Button>
                 </div>
               </Card>
             )}
 
-            {/* Macros Distribution Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Pie Chart - Macro Distribution */}
-              {macroDistribution.length > 0 && (
-                <Card className="p-6">
-                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-primary" />
-                    Macro Distribution
-                  </h2>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={macroDistribution}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {macroDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="flex justify-center gap-4 mt-4">
-                    {macroDistribution.map((entry, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                        <span className="text-sm">{entry.name}: {entry.value.toFixed(1)}g</span>
+            {/* Recent Meals */}
+            {mealLogs.length > 0 ? (
+              <Card className="p-6 border-border/50">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Recent Meals</h2>
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/progress')} className="text-primary">
+                    View Reports <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {mealLogs.slice(0, 8).map((log) => (
+                    <div key={log.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className={`p-2 rounded-lg ${
+                        log.meal_type === 'Breakfast' ? 'bg-peach/20' :
+                        log.meal_type === 'Lunch' ? 'bg-mint/20' :
+                        log.meal_type === 'Dinner' ? 'bg-secondary/20' : 'bg-accent/20'
+                      }`}>
+                        <Utensils className={`w-4 h-4 ${
+                          log.meal_type === 'Breakfast' ? 'text-peach' :
+                          log.meal_type === 'Lunch' ? 'text-mint' :
+                          log.meal_type === 'Dinner' ? 'text-secondary' : 'text-accent'
+                        }`} />
                       </div>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* Bar Chart - Meal Types */}
-              {mealTypeData.length > 0 && (
-                <Card className="p-6">
-                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                    <Utensils className="w-5 h-5 text-secondary" />
-                    Meals by Type
-                  </h2>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={mealTypeData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="type" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Bar dataKey="count" fill={CHART_COLORS.purple} radius={[8, 8, 0, 0]} name="Meals" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Card>
-              )}
-            </div>
-
-            {/* Macro Progress Bars */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">Nutritional Summary (Last 50 meals)</h2>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-2"><Beef className="w-4 h-4" style={{ color: PIE_COLORS[0] }} /> Protein</span>
-                    <span className="font-bold">{totalProtein.toFixed(1)}g</span>
-                  </div>
-                  <div className="h-3 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (totalProtein / 100) * 100)}%`, backgroundColor: PIE_COLORS[0] }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-2"><Cookie className="w-4 h-4" style={{ color: PIE_COLORS[1] }} /> Carbohydrates</span>
-                    <span className="font-bold">{totalCarbs.toFixed(1)}g</span>
-                  </div>
-                  <div className="h-3 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (totalCarbs / 200) * 100)}%`, backgroundColor: PIE_COLORS[1] }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="flex items-center gap-2"><Droplets className="w-4 h-4" style={{ color: PIE_COLORS[2] }} /> Fats</span>
-                    <span className="font-bold">{totalFats.toFixed(1)}g</span>
-                  </div>
-                  <div className="h-3 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (totalFats / 50) * 100)}%`, backgroundColor: PIE_COLORS[2] }} />
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Meal Logs List */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Recent Meals</h3>
-              {mealLogs.map((log, idx) => (
-                <Card key={log.id} className="p-4 hover:shadow-md transition-all animate-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 30}ms` }}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold">{log.recipe_title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {log.meal_type} • {new Date(log.eaten_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{log.recipe_title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {log.meal_type} • {format(new Date(log.eaten_at), 'MMM d')}
+                          {log.calories && ` • ${log.calories} kcal`}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap justify-end">
-                      {log.calories && (
-                        <span className="px-2 py-1 rounded-full text-xs bg-purple-500/10" style={{ color: CHART_COLORS.purple }}>
-                          {log.calories} kcal
-                        </span>
-                      )}
-                      {log.protein_g && (
-                        <span className="px-2 py-1 rounded-full text-xs" style={{ backgroundColor: `${PIE_COLORS[0]}20`, color: PIE_COLORS[0] }}>
-                          {log.protein_g}g protein
-                        </span>
-                      )}
-                      {log.carbs_g && (
-                        <span className="px-2 py-1 rounded-full text-xs" style={{ backgroundColor: `${PIE_COLORS[1]}20`, color: PIE_COLORS[1] }}>
-                          {log.carbs_g}g carbs
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  ))}
+                </div>
+              </Card>
+            ) : (
+              <Card className="p-8 text-center border-dashed border-2 border-border/50">
+                <Utensils className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                <h3 className="font-semibold text-foreground mb-1">No meals logged yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">Start logging meals to track nutrition</p>
+                <Button onClick={() => setShowNewMeal(true)} className="rounded-xl">
+                  Log First Meal
+                </Button>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
-
-        {growthRecords.length === 0 && mealLogs.length === 0 && (
-          <Card className="p-8 text-center mt-6 bg-gradient-to-br from-primary/5 to-secondary/5">
-            <Sparkles className="w-16 h-16 text-primary mx-auto mb-4 animate-pulse" />
-            <h3 className="text-xl font-semibold mb-2">Start Tracking Today!</h3>
-            <p className="text-muted-foreground mb-4">
-              Add your first growth record or meal to see beautiful charts and insights.
-            </p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={() => setShowNewGrowth(true)}>Add Growth Record</Button>
-              <Button variant="outline" onClick={() => setShowNewMeal(true)}>Log First Meal</Button>
-            </div>
-          </Card>
-        )}
       </div>
     </main>
   );
