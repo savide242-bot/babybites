@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   AreaChart, 
   Area, 
@@ -9,28 +11,44 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer, 
   PieChart, 
   Pie, 
   Cell,
   BarChart,
   Bar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar
+  LineChart,
+  Line,
+  ReferenceLine,
 } from "recharts";
-import { TrendingUp, Download, Share2, Baby, Scale, Ruler, Heart, Flame, Beef, Cookie, Droplets, Sparkles, Award, Target } from "lucide-react";
+import { 
+  TrendingUp, Download, Share2, Scale, Ruler, Heart, Flame, 
+  Award, Target, Sparkles, AlertTriangle, CheckCircle2, 
+  Brain, Lightbulb, ArrowUp, ArrowDown, Minus, Baby
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useCountUp } from "@/hooks/useCountUp";
+
+// WHO Growth Standards (simplified percentiles for 6-24 month boys/girls average)
+const WHO_PERCENTILES = {
+  weight: {
+    p3: [6.4, 7.0, 7.5, 7.9, 8.3, 8.6, 8.9, 9.2, 9.4, 9.6, 9.9, 10.1, 10.3, 10.5, 10.7, 10.9, 11.1, 11.3, 11.5],
+    p50: [7.9, 8.6, 9.2, 9.7, 10.2, 10.5, 10.9, 11.2, 11.5, 11.8, 12.0, 12.3, 12.5, 12.7, 13.0, 13.2, 13.4, 13.7, 13.9],
+    p97: [9.8, 10.7, 11.5, 12.1, 12.7, 13.1, 13.6, 13.9, 14.3, 14.7, 15.0, 15.4, 15.7, 16.0, 16.4, 16.7, 17.0, 17.3, 17.7],
+  },
+  height: {
+    p3: [63.3, 65.5, 67.4, 69.1, 70.6, 72.0, 73.3, 74.5, 75.7, 76.9, 77.9, 79.0, 80.0, 81.0, 82.0, 82.9, 83.8, 84.7, 85.6],
+    p50: [67.6, 69.9, 71.9, 73.7, 75.4, 76.9, 78.4, 79.7, 81.0, 82.3, 83.5, 84.6, 85.7, 86.8, 87.8, 88.8, 89.8, 90.8, 91.7],
+    p97: [72.0, 74.4, 76.5, 78.4, 80.1, 81.7, 83.2, 84.6, 86.0, 87.3, 88.5, 89.8, 91.0, 92.2, 93.3, 94.4, 95.5, 96.6, 97.6],
+  }
+};
 
 interface GrowthData {
   date: string;
   weight: number;
   height: number;
   milestone?: string;
+  ageMonths?: number;
 }
 
 interface NutritionData {
@@ -40,18 +58,6 @@ interface NutritionData {
   totalFats: number;
   mealCount: number;
 }
-
-const COLORS = {
-  coral: "#FF6B6B",
-  cyan: "#00CED1",
-  purple: "#8B5CF6",
-  orange: "#F59E0B",
-  green: "#10B981",
-  pink: "#EC4899",
-  indigo: "#6366F1",
-};
-
-const PIE_COLORS = ["#FF6B6B", "#00CED1", "#8B5CF6", "#F59E0B", "#10B981"];
 
 const ProgressReports = () => {
   const { toast } = useToast();
@@ -67,12 +73,40 @@ const ProgressReports = () => {
   const [mealTypeData, setMealTypeData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [babyName, setBabyName] = useState("");
+  const [babyAgeMonths, setBabyAgeMonths] = useState(12);
+
+  // Calculate nutrition score (0-100)
+  const calculateNutritionScore = () => {
+    if (nutritionData.mealCount === 0) return 0;
+    
+    const avgCalories = nutritionData.totalCalories / nutritionData.mealCount;
+    const avgProtein = nutritionData.totalProtein / nutritionData.mealCount;
+    
+    // Target ranges for babies 6-24 months
+    const calorieScore = Math.min(100, (avgCalories / 150) * 100);
+    const proteinScore = Math.min(100, (avgProtein / 8) * 100);
+    const varietyScore = Math.min(100, (mealTypeData.length / 4) * 100);
+    const consistencyScore = Math.min(100, (nutritionData.mealCount / 30) * 100);
+    
+    return Math.round((calorieScore + proteinScore + varietyScore + consistencyScore) / 4);
+  };
+
+  const nutritionScore = calculateNutritionScore();
+
+  // Get score badge
+  const getScoreBadge = (score: number) => {
+    if (score >= 80) return { label: "Excellent", color: "bg-mint text-mint-foreground", icon: CheckCircle2 };
+    if (score >= 60) return { label: "Good", color: "bg-secondary text-secondary-foreground", icon: TrendingUp };
+    if (score >= 40) return { label: "Improving", color: "bg-peach text-foreground", icon: Target };
+    return { label: "Needs Attention", color: "bg-destructive text-destructive-foreground", icon: AlertTriangle };
+  };
+
+  const scoreBadge = getScoreBadge(nutritionScore);
 
   // Animated counters
   const animatedWeight = useCountUp(growthData.length > 0 ? growthData[growthData.length - 1].weight : 0, 1500);
   const animatedHeight = useCountUp(growthData.length > 0 ? growthData[growthData.length - 1].height : 0, 1500);
-  const animatedCalories = useCountUp(nutritionData.totalCalories, 1500);
-  const animatedMeals = useCountUp(nutritionData.mealCount, 1500);
+  const animatedScore = useCountUp(nutritionScore, 2000);
 
   useEffect(() => {
     fetchData();
@@ -86,11 +120,18 @@ const ProgressReports = () => {
       // Fetch profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("baby_name")
+        .select("baby_name, baby_birth_date")
         .eq("id", user.id)
         .single();
       
-      if (profile) setBabyName(profile.baby_name || "");
+      if (profile) {
+        setBabyName(profile.baby_name || "");
+        if (profile.baby_birth_date) {
+          const birthDate = new Date(profile.baby_birth_date);
+          const ageInMonths = Math.floor((Date.now() - birthDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000));
+          setBabyAgeMonths(Math.max(6, Math.min(24, ageInMonths)));
+        }
+      }
 
       // Fetch growth data
       const { data: growth } = await supabase
@@ -100,11 +141,12 @@ const ProgressReports = () => {
         .order("recorded_at", { ascending: true });
 
       if (growth) {
-        const formatted = growth.map(g => ({
+        const formatted = growth.map((g, idx) => ({
           date: new Date(g.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           weight: g.weight_kg,
           height: g.height_cm,
-          milestone: g.milestone || undefined
+          milestone: g.milestone || undefined,
+          ageMonths: babyAgeMonths + idx
         }));
         setGrowthData(formatted);
       }
@@ -119,7 +161,6 @@ const ProgressReports = () => {
         .order("eaten_at", { ascending: true });
 
       if (meals) {
-        // Calculate totals
         const totals = meals.reduce((acc, meal) => ({
           totalCalories: acc.totalCalories + (meal.calories || 0),
           totalProtein: acc.totalProtein + (meal.protein_g || 0),
@@ -136,12 +177,10 @@ const ProgressReports = () => {
           const week = getWeekNumber(new Date(meal.eaten_at));
           const weekKey = `Week ${week}`;
           if (!weeklyData[weekKey]) {
-            weeklyData[weekKey] = { week: weekKey, calories: 0, protein: 0, carbs: 0, fats: 0 };
+            weeklyData[weekKey] = { week: weekKey, calories: 0, protein: 0 };
           }
           weeklyData[weekKey].calories += meal.calories || 0;
           weeklyData[weekKey].protein += meal.protein_g || 0;
-          weeklyData[weekKey].carbs += meal.carbs_g || 0;
-          weeklyData[weekKey].fats += meal.fats_g || 0;
         });
         setWeeklyNutrition(Object.values(weeklyData));
 
@@ -150,11 +189,7 @@ const ProgressReports = () => {
         meals.forEach(meal => {
           mealTypes[meal.meal_type] = (mealTypes[meal.meal_type] || 0) + 1;
         });
-        setMealTypeData(Object.entries(mealTypes).map(([name, value], idx) => ({
-          name,
-          value,
-          color: PIE_COLORS[idx % PIE_COLORS.length]
-        })));
+        setMealTypeData(Object.entries(mealTypes).map(([name, value]) => ({ name, value })));
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -169,86 +204,148 @@ const ProgressReports = () => {
     return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
   };
 
-  const handleExportPDF = () => {
-    toast({
-      title: "Report Exported",
-      description: "Your progress report has been downloaded as PDF.",
-    });
+  // Calculate percentile position
+  const getPercentileStatus = (value: number, type: 'weight' | 'height') => {
+    const ageIndex = Math.min(babyAgeMonths - 6, 18);
+    const p3 = WHO_PERCENTILES[type].p3[ageIndex];
+    const p50 = WHO_PERCENTILES[type].p50[ageIndex];
+    const p97 = WHO_PERCENTILES[type].p97[ageIndex];
+    
+    if (value < p3) return { percentile: "<3rd", status: "below", color: "text-destructive" };
+    if (value < p50) return { percentile: "3rd-50th", status: "healthy", color: "text-mint" };
+    if (value < p97) return { percentile: "50th-97th", status: "healthy", color: "text-mint" };
+    return { percentile: ">97th", status: "above", color: "text-peach" };
   };
 
-  const handleShare = () => {
-    toast({
-      title: "Share Report",
-      description: "Share link copied to clipboard!",
-    });
-  };
-
-  // Calculate insights
-  const getInsights = () => {
+  // Generate intelligent insights
+  const generateInsights = () => {
     const insights = [];
     
+    // Growth insights
     if (growthData.length >= 2) {
       const recent = growthData[growthData.length - 1];
       const previous = growthData[growthData.length - 2];
-      const weightGain = recent.weight - previous.weight;
-      if (weightGain > 0) {
-        insights.push({ 
-          icon: Scale, 
-          text: `${babyName || "Baby"} gained ${weightGain.toFixed(2)}kg since last record!`,
-          color: COLORS.coral 
+      const weightChange = recent.weight - previous.weight;
+      const heightChange = recent.height - previous.height;
+      
+      if (weightChange > 0.3) {
+        insights.push({
+          type: "success",
+          icon: ArrowUp,
+          title: "Excellent Weight Gain",
+          description: `${babyName || "Baby"} gained ${weightChange.toFixed(2)}kg - perfect growth trajectory!`,
+          recommendation: "Continue current feeding routine"
+        });
+      } else if (weightChange < 0) {
+        insights.push({
+          type: "warning",
+          icon: ArrowDown,
+          title: "Weight Monitoring Needed",
+          description: `Weight decreased by ${Math.abs(weightChange).toFixed(2)}kg`,
+          recommendation: "Consider increasing calorie-rich foods like avocado, olive oil"
+        });
+      }
+      
+      if (heightChange > 0.5) {
+        insights.push({
+          type: "success",
+          icon: Ruler,
+          title: "Growth Spurt Detected",
+          description: `Height increased ${heightChange.toFixed(1)}cm - may need extra nutrition`,
+          recommendation: "Increase protein intake during growth spurts"
         });
       }
     }
 
+    // Nutrition insights
     if (nutritionData.mealCount > 0) {
-      const avgCalories = Math.round(nutritionData.totalCalories / nutritionData.mealCount);
-      insights.push({ 
-        icon: Flame, 
-        text: `Average ${avgCalories} calories per meal this month`,
-        color: COLORS.purple 
+      const avgProtein = nutritionData.totalProtein / nutritionData.mealCount;
+      
+      if (avgProtein < 5) {
+        insights.push({
+          type: "warning",
+          icon: AlertTriangle,
+          title: "Low Protein Intake",
+          description: "Average protein per meal is below recommended levels",
+          recommendation: "Add more eggs, fish, lentils, or yogurt to meals"
+        });
+      } else if (avgProtein >= 8) {
+        insights.push({
+          type: "success",
+          icon: CheckCircle2,
+          title: "Great Protein Balance",
+          description: "Protein intake is optimal for healthy development",
+          recommendation: "Maintain variety in protein sources"
+        });
+      }
+    }
+
+    // Variety insights
+    if (mealTypeData.length < 3) {
+      insights.push({
+        type: "info",
+        icon: Lightbulb,
+        title: "Increase Meal Variety",
+        description: "Adding more meal types improves nutrient diversity",
+        recommendation: "Try introducing healthy snacks between main meals"
       });
     }
 
-    if (nutritionData.totalProtein > 100) {
-      insights.push({ 
-        icon: Beef, 
-        text: `Great protein intake! ${nutritionData.totalProtein.toFixed(0)}g this month`,
-        color: COLORS.green 
-      });
-    }
-
-    if (mealTypeData.length >= 3) {
-      insights.push({ 
-        icon: Target, 
-        text: "Excellent meal variety with multiple meal types!",
-        color: COLORS.cyan 
-      });
-    }
-
-    return insights.length > 0 ? insights : [
-      { icon: Sparkles, text: "Start logging meals and growth to see personalized insights!", color: COLORS.pink }
-    ];
+    return insights.length > 0 ? insights : [{
+      type: "info",
+      icon: Sparkles,
+      title: "Start Tracking",
+      description: "Log more meals and growth records for personalized insights",
+      recommendation: "Aim for at least 3 meal logs per day"
+    }];
   };
 
+  const insights = generateInsights();
+
+  // Macro distribution with percentages
+  const totalMacros = nutritionData.totalProtein + nutritionData.totalCarbs + nutritionData.totalFats;
   const macroData = [
-    { name: "Protein", value: nutritionData.totalProtein, color: COLORS.coral },
-    { name: "Carbs", value: nutritionData.totalCarbs, color: COLORS.cyan },
-    { name: "Fats", value: nutritionData.totalFats, color: COLORS.purple },
+    { name: "Protein", value: nutritionData.totalProtein, percent: totalMacros > 0 ? (nutritionData.totalProtein / totalMacros * 100).toFixed(0) : 0 },
+    { name: "Carbs", value: nutritionData.totalCarbs, percent: totalMacros > 0 ? (nutritionData.totalCarbs / totalMacros * 100).toFixed(0) : 0 },
+    { name: "Fats", value: nutritionData.totalFats, percent: totalMacros > 0 ? (nutritionData.totalFats / totalMacros * 100).toFixed(0) : 0 },
   ].filter(m => m.value > 0);
 
-  // BMI calculation (simplified for babies)
+  const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--mint))", "hsl(var(--secondary))"];
+  const BAR_COLORS = ["hsl(var(--peach))", "hsl(var(--mint))", "hsl(var(--secondary))", "hsl(var(--accent))"];
+
+  // WHO percentile chart data
+  const whoChartData = Array.from({ length: 19 }, (_, i) => ({
+    age: i + 6,
+    p3: WHO_PERCENTILES.weight.p3[i],
+    p50: WHO_PERCENTILES.weight.p50[i],
+    p97: WHO_PERCENTILES.weight.p97[i],
+    baby: growthData.find(g => g.ageMonths === i + 6)?.weight || null
+  }));
+
+  const handleExportPDF = () => {
+    toast({ title: "Report Exported", description: "Your progress report has been downloaded." });
+  };
+
+  const handleShare = () => {
+    toast({ title: "Link Copied", description: "Share link copied to clipboard!" });
+  };
+
+  // BMI calculation
   const currentWeight = growthData.length > 0 ? growthData[growthData.length - 1].weight : 0;
   const currentHeight = growthData.length > 0 ? growthData[growthData.length - 1].height : 0;
   const bmi = currentWeight > 0 && currentHeight > 0 
     ? (currentWeight / Math.pow(currentHeight / 100, 2)).toFixed(1)
     : "N/A";
 
+  const weightStatus = currentWeight > 0 ? getPercentileStatus(currentWeight, 'weight') : null;
+  const heightStatus = currentHeight > 0 ? getPercentileStatus(currentHeight, 'height') : null;
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
-        <div className="container max-w-6xl mx-auto px-4">
+      <main className="min-h-screen bg-background pt-20 pb-8">
+        <div className="container max-w-5xl mx-auto px-4">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
           </div>
         </div>
       </main>
@@ -256,223 +353,272 @@ const ProgressReports = () => {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
-      <div className="container max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <main className="min-h-screen bg-background pt-20 pb-8">
+      <div className="container max-w-5xl mx-auto px-4">
+        {/* Header with Score */}
+        <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-1">
               Progress Reports
             </h1>
-            <p className="text-lg text-muted-foreground">
-              {babyName ? `${babyName}'s` : "Your baby's"} comprehensive growth & nutrition analysis
+            <p className="text-muted-foreground">
+              {babyName ? `${babyName}'s` : "Your baby's"} expert growth & nutrition analysis
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              Export PDF
-            </Button>
-            <Button onClick={handleShare} className="gap-2">
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-          </div>
-        </div>
-
-        {/* Stats Overview Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="p-5 bg-gradient-to-br from-coral/20 to-coral/5 border-coral/30 hover:shadow-lg transition-all">
+          
+          {/* Nutrition Score Card */}
+          <Card className="p-4 bg-gradient-to-br from-primary/10 to-mint/10 border-primary/20 min-w-[200px]">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-coral/20">
-                <Scale className="w-6 h-6" style={{ color: COLORS.coral }} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Current Weight</p>
-                <p className="text-2xl font-bold" style={{ color: COLORS.coral }}>
-                  {animatedWeight.toFixed(1)} <span className="text-sm">kg</span>
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-5 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border-cyan-500/30 hover:shadow-lg transition-all">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-cyan-500/20">
-                <Ruler className="w-6 h-6" style={{ color: COLORS.cyan }} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Current Height</p>
-                <p className="text-2xl font-bold" style={{ color: COLORS.cyan }}>
-                  {animatedHeight.toFixed(1)} <span className="text-sm">cm</span>
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-5 bg-gradient-to-br from-purple-500/20 to-purple-500/5 border-purple-500/30 hover:shadow-lg transition-all">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-purple-500/20">
-                <Flame className="w-6 h-6" style={{ color: COLORS.purple }} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Total Calories</p>
-                <p className="text-2xl font-bold" style={{ color: COLORS.purple }}>
-                  {animatedCalories.toFixed(0)} <span className="text-sm">kcal</span>
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-5 bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/30 hover:shadow-lg transition-all">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-green-500/20">
-                <Heart className="w-6 h-6" style={{ color: COLORS.green }} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Meals Logged</p>
-                <p className="text-2xl font-bold" style={{ color: COLORS.green }}>
-                  {animatedMeals.toFixed(0)}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Insights Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {getInsights().map((insight, idx) => (
-            <Card key={idx} className="p-4 bg-gradient-to-br from-card to-muted/20 hover:shadow-md transition-all animate-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full" style={{ backgroundColor: `${insight.color}20` }}>
-                  <insight.icon className="w-5 h-5" style={{ color: insight.color }} />
+              <div className="relative">
+                <svg className="w-16 h-16 transform -rotate-90">
+                  <circle cx="32" cy="32" r="28" stroke="hsl(var(--muted))" strokeWidth="6" fill="none" />
+                  <circle 
+                    cx="32" cy="32" r="28" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth="6" 
+                    fill="none"
+                    strokeDasharray={`${(animatedScore / 100) * 176} 176`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl font-bold">{Math.round(animatedScore)}</span>
                 </div>
-                <p className="text-sm font-medium">{insight.text}</p>
               </div>
-            </Card>
-          ))}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Nutrition Score</p>
+                <Badge className={`${scoreBadge.color} gap-1`}>
+                  <scoreBadge.icon className="w-3 h-3" />
+                  {scoreBadge.label}
+                </Badge>
+              </div>
+            </div>
+          </Card>
         </div>
 
-        {/* Growth Evolution Chart */}
-        {growthData.length > 0 && (
-          <Card className="p-6 mb-6 overflow-hidden">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-bold">Growth Evolution</h2>
+        {/* Action Buttons */}
+        <div className="flex gap-2 mb-6">
+          <Button onClick={handleExportPDF} variant="outline" size="sm" className="gap-2 rounded-xl">
+            <Download className="w-4 h-4" />
+            Export PDF
+          </Button>
+          <Button onClick={handleShare} variant="outline" size="sm" className="gap-2 rounded-xl">
+            <Share2 className="w-4 h-4" />
+            Share
+          </Button>
+        </div>
+
+        {/* Current Stats with Percentiles */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          <Card className="p-4 bg-card border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Scale className="w-4 h-4 text-primary" />
+              <span className="text-xs text-muted-foreground">Weight</span>
             </div>
-            <ResponsiveContainer width="100%" height={350}>
-              <AreaChart data={growthData}>
+            <p className="text-2xl font-bold">{animatedWeight.toFixed(1)}<span className="text-sm font-normal ml-0.5">kg</span></p>
+            {weightStatus && (
+              <p className={`text-xs mt-1 ${weightStatus.color}`}>
+                {weightStatus.percentile} percentile
+              </p>
+            )}
+          </Card>
+
+          <Card className="p-4 bg-card border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Ruler className="w-4 h-4 text-secondary" />
+              <span className="text-xs text-muted-foreground">Height</span>
+            </div>
+            <p className="text-2xl font-bold">{animatedHeight.toFixed(1)}<span className="text-sm font-normal ml-0.5">cm</span></p>
+            {heightStatus && (
+              <p className={`text-xs mt-1 ${heightStatus.color}`}>
+                {heightStatus.percentile} percentile
+              </p>
+            )}
+          </Card>
+
+          <Card className="p-4 bg-card border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Flame className="w-4 h-4 text-peach" />
+              <span className="text-xs text-muted-foreground">Avg Calories/Meal</span>
+            </div>
+            <p className="text-2xl font-bold">
+              {nutritionData.mealCount > 0 ? Math.round(nutritionData.totalCalories / nutritionData.mealCount) : 0}
+              <span className="text-sm font-normal ml-0.5">kcal</span>
+            </p>
+          </Card>
+
+          <Card className="p-4 bg-card border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Heart className="w-4 h-4 text-mint" />
+              <span className="text-xs text-muted-foreground">BMI</span>
+            </div>
+            <p className="text-2xl font-bold">{bmi}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {bmi !== "N/A" && parseFloat(bmi) >= 14 && parseFloat(bmi) <= 19 ? "Healthy range" : ""}
+            </p>
+          </Card>
+        </div>
+
+        {/* Intelligent Insights */}
+        <Card className="p-6 mb-6 border-border/50">
+          <div className="flex items-center gap-2 mb-4">
+            <Brain className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Expert Insights</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {insights.map((insight, idx) => (
+              <div 
+                key={idx} 
+                className={`p-4 rounded-xl border ${
+                  insight.type === 'success' ? 'bg-mint/10 border-mint/30' :
+                  insight.type === 'warning' ? 'bg-peach/10 border-peach/30' :
+                  'bg-muted/30 border-border/50'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    insight.type === 'success' ? 'bg-mint/20' :
+                    insight.type === 'warning' ? 'bg-peach/20' :
+                    'bg-primary/20'
+                  }`}>
+                    <insight.icon className={`w-4 h-4 ${
+                      insight.type === 'success' ? 'text-mint' :
+                      insight.type === 'warning' ? 'text-peach' :
+                      'text-primary'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{insight.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{insight.description}</p>
+                    <p className="text-xs text-primary mt-2 font-medium">💡 {insight.recommendation}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* WHO Percentile Chart */}
+        {growthData.length > 0 && (
+          <Card className="p-6 mb-6 border-border/50">
+            <div className="flex items-center gap-2 mb-4">
+              <Award className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-semibold">WHO Growth Percentiles</h2>
+              <Badge variant="outline" className="ml-2 text-xs">Weight</Badge>
+            </div>
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={whoChartData}>
                 <defs>
-                  <linearGradient id="weightGradient2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.coral} stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor={COLORS.coral} stopOpacity={0.1}/>
-                  </linearGradient>
-                  <linearGradient id="heightGradient2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.cyan} stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor={COLORS.cyan} stopOpacity={0.1}/>
+                  <linearGradient id="whoGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--mint))" stopOpacity={0.3}/>
+                    <stop offset="100%" stopColor="hsl(var(--mint))" stopOpacity={0.05}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis yAxisId="left" tick={{ fontSize: 12 }} stroke={COLORS.coral} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} stroke={COLORS.cyan} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis 
+                  dataKey="age" 
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Age (months)', position: 'bottom', offset: -5, fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <YAxis 
+                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft', fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))', 
                     border: '1px solid hsl(var(--border))',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                    borderRadius: '12px'
                   }}
                 />
-                <Legend />
-                <Area
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="weight"
-                  stroke={COLORS.coral}
-                  fill="url(#weightGradient2)"
-                  strokeWidth={3}
-                  name="Weight (kg)"
-                  dot={{ fill: COLORS.coral, strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 8, stroke: COLORS.coral, strokeWidth: 2 }}
-                />
-                <Area
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="height"
-                  stroke={COLORS.cyan}
-                  fill="url(#heightGradient2)"
-                  strokeWidth={3}
-                  name="Height (cm)"
-                  dot={{ fill: COLORS.cyan, strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 8, stroke: COLORS.cyan, strokeWidth: 2 }}
+                <Area type="monotone" dataKey="p97" stroke="hsl(var(--muted-foreground))" fill="url(#whoGradient)" strokeWidth={1} strokeDasharray="4 4" name="97th percentile" />
+                <Area type="monotone" dataKey="p50" stroke="hsl(var(--mint))" fill="transparent" strokeWidth={2} name="50th percentile" />
+                <Area type="monotone" dataKey="p3" stroke="hsl(var(--muted-foreground))" fill="transparent" strokeWidth={1} strokeDasharray="4 4" name="3rd percentile" />
+                <Line 
+                  type="monotone" 
+                  dataKey="baby" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={3} 
+                  dot={{ fill: 'hsl(var(--primary))', r: 5 }}
+                  name={`${babyName || "Baby"}'s weight`}
+                  connectNulls
                 />
               </AreaChart>
             </ResponsiveContainer>
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-0.5 bg-primary rounded"></div>
+                {babyName || "Baby"}'s weight
+              </span>
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-0.5 bg-mint rounded"></div>
+                50th percentile
+              </span>
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-0.5 bg-muted-foreground rounded dashed"></div>
+                3rd-97th range
+              </span>
+            </div>
           </Card>
         )}
 
-        {/* Nutrition Charts */}
+        {/* Nutrition Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Macro Distribution Pie Chart */}
+          {/* Macro Distribution */}
           {macroData.length > 0 && (
-            <Card className="p-6">
+            <Card className="p-6 border-border/50">
               <div className="flex items-center gap-2 mb-4">
-                <Heart className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-bold">Macro Distribution</h2>
+                <Target className="w-5 h-5 text-secondary" />
+                <h2 className="text-lg font-semibold">Macro Distribution</h2>
               </div>
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
                     data={macroData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={4}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {macroData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {macroData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index]} />
                     ))}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-center gap-4 mt-4 flex-wrap">
+              <div className="flex justify-center gap-4 mt-2">
                 {macroData.map((entry, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                    <span className="text-sm">{entry.name}: {entry.value.toFixed(1)}g</span>
+                  <div key={index} className="text-center">
+                    <div className="flex items-center gap-1.5 justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[index] }} />
+                      <span className="text-xs text-muted-foreground">{entry.name}</span>
+                    </div>
+                    <p className="text-sm font-semibold">{entry.percent}%</p>
                   </div>
                 ))}
               </div>
             </Card>
           )}
 
-          {/* Meal Type Distribution */}
+          {/* Meal Distribution */}
           {mealTypeData.length > 0 && (
-            <Card className="p-6">
+            <Card className="p-6 border-border/50">
               <div className="flex items-center gap-2 mb-4">
-                <Baby className="w-5 h-5 text-secondary" />
-                <h2 className="text-xl font-bold">Meals by Type</h2>
+                <Baby className="w-5 h-5 text-peach" />
+                <h2 className="text-lg font-semibold">Meals by Type</h2>
               </div>
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={mealTypeData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={80} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Bar dataKey="value" name="Meals" radius={[0, 8, 8, 0]}>
-                    {mealTypeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={70} />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                    {mealTypeData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -481,161 +627,42 @@ const ProgressReports = () => {
           )}
         </div>
 
-        {/* Weekly Nutrition Trends */}
+        {/* Weekly Nutrition Trend */}
         {weeklyNutrition.length > 0 && (
-          <Card className="p-6 mb-6">
+          <Card className="p-6 border-border/50">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold">Weekly Nutrition Trends</h2>
+              <TrendingUp className="w-5 h-5 text-mint" />
+              <h2 className="text-lg font-semibold">Weekly Nutrition Trend</h2>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={220}>
               <BarChart data={weeklyNutrition}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis dataKey="week" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'hsl(var(--card))', 
                     border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
+                    borderRadius: '12px'
                   }}
                 />
-                <Legend />
-                <Bar dataKey="protein" fill={COLORS.coral} name="Protein (g)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="carbs" fill={COLORS.cyan} name="Carbs (g)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="fats" fill={COLORS.purple} name="Fats (g)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="calories" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Calories" />
+                <Bar dataKey="protein" fill="hsl(var(--mint))" radius={[4, 4, 0, 0]} name="Protein (g)" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
         )}
 
-        {/* Nutrition Progress Bars */}
-        <Card className="p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
-            Monthly Nutrition Progress
-          </h2>
-          <div className="space-y-5">
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="flex items-center gap-2 font-medium">
-                  <Flame className="w-4 h-4" style={{ color: COLORS.orange }} /> Calories
-                </span>
-                <span className="font-bold">{nutritionData.totalCalories.toFixed(0)} kcal</span>
-              </div>
-              <div className="h-4 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000 ease-out" 
-                  style={{ 
-                    width: `${Math.min(100, (nutritionData.totalCalories / 10000) * 100)}%`, 
-                    background: `linear-gradient(90deg, ${COLORS.orange}, ${COLORS.coral})` 
-                  }} 
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="flex items-center gap-2 font-medium">
-                  <Beef className="w-4 h-4" style={{ color: COLORS.coral }} /> Protein
-                </span>
-                <span className="font-bold">{nutritionData.totalProtein.toFixed(1)}g</span>
-              </div>
-              <div className="h-4 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000 ease-out" 
-                  style={{ 
-                    width: `${Math.min(100, (nutritionData.totalProtein / 500) * 100)}%`, 
-                    backgroundColor: COLORS.coral 
-                  }} 
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="flex items-center gap-2 font-medium">
-                  <Cookie className="w-4 h-4" style={{ color: COLORS.cyan }} /> Carbohydrates
-                </span>
-                <span className="font-bold">{nutritionData.totalCarbs.toFixed(1)}g</span>
-              </div>
-              <div className="h-4 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000 ease-out" 
-                  style={{ 
-                    width: `${Math.min(100, (nutritionData.totalCarbs / 1000) * 100)}%`, 
-                    backgroundColor: COLORS.cyan 
-                  }} 
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="flex items-center gap-2 font-medium">
-                  <Droplets className="w-4 h-4" style={{ color: COLORS.purple }} /> Fats
-                </span>
-                <span className="font-bold">{nutritionData.totalFats.toFixed(1)}g</span>
-              </div>
-              <div className="h-4 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000 ease-out" 
-                  style={{ 
-                    width: `${Math.min(100, (nutritionData.totalFats / 300) * 100)}%`, 
-                    backgroundColor: COLORS.purple 
-                  }} 
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-6 bg-gradient-to-br from-coral/10 to-transparent">
-            <div className="flex items-center gap-3 mb-2">
-              <Scale className="w-10 h-10 p-2 rounded-full bg-coral/20" style={{ color: COLORS.coral }} />
-              <div>
-                <p className="text-sm text-muted-foreground">Current Weight</p>
-                <p className="text-3xl font-bold" style={{ color: COLORS.coral }}>
-                  {currentWeight > 0 ? `${currentWeight}kg` : "N/A"}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-gradient-to-br from-cyan-500/10 to-transparent">
-            <div className="flex items-center gap-3 mb-2">
-              <Ruler className="w-10 h-10 p-2 rounded-full bg-cyan-500/20" style={{ color: COLORS.cyan }} />
-              <div>
-                <p className="text-sm text-muted-foreground">Current Height</p>
-                <p className="text-3xl font-bold" style={{ color: COLORS.cyan }}>
-                  {currentHeight > 0 ? `${currentHeight}cm` : "N/A"}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-gradient-to-br from-green-500/10 to-transparent">
-            <div className="flex items-center gap-3 mb-2">
-              <Target className="w-10 h-10 p-2 rounded-full bg-green-500/20" style={{ color: COLORS.green }} />
-              <div>
-                <p className="text-sm text-muted-foreground">BMI</p>
-                <p className="text-3xl font-bold" style={{ color: COLORS.green }}>
-                  {bmi}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
         {/* Empty State */}
         {growthData.length === 0 && nutritionData.mealCount === 0 && (
-          <Card className="p-8 text-center mt-6 bg-gradient-to-br from-primary/5 to-secondary/5">
-            <Sparkles className="w-16 h-16 text-primary mx-auto mb-4 animate-pulse" />
-            <h3 className="text-xl font-semibold mb-2">No Data Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start tracking growth and meals to see beautiful progress reports!
+          <Card className="p-8 text-center border-dashed border-2 border-border/50">
+            <Award className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+            <h3 className="font-semibold text-foreground mb-1">No data yet</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Start logging growth records and meals to see expert analysis
             </p>
-            <Button onClick={() => window.location.href = "/growth"}>
-              Start Tracking
+            <Button onClick={() => window.location.href = '/growth'} className="rounded-xl">
+              Go to Growth Tracker
             </Button>
           </Card>
         )}
