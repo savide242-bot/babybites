@@ -71,6 +71,41 @@ import kiwiBananaBlend from "@/assets/recipes/kiwi-banana-blend.jpg";
 import asparagusPotatoMash from "@/assets/recipes/asparagus-potato-mash.jpg";
 import tofuFruitPuree from "@/assets/recipes/tofu-fruit-puree.jpg";
 
+// NEW RECIPE IMAGES FOR IDs 239-271 (9-12 months)
+import veggieStickHummus from "@/assets/recipes/veggie-sticks-hummus.jpg";
+import miniCheeseQuesadillas from "@/assets/recipes/mini-cheese-quesadillas.jpg";
+import bananaPancakeBites from "@/assets/recipes/banana-pancake-bites.jpg";
+import steamedBroccoliTrees from "@/assets/recipes/steamed-broccoli-trees.jpg";
+import sweetPotatoWedges from "@/assets/recipes/sweet-potato-wedges.jpg";
+import avocadoToastFingers from "@/assets/recipes/avocado-toast-fingers.jpg";
+import softCarrotSticks from "@/assets/recipes/soft-carrot-sticks.jpg";
+import miniOatBananaMuffins from "@/assets/recipes/mini-oat-banana-muffins.jpg";
+import cucumberCreamCheese from "@/assets/recipes/cucumber-cream-cheese.jpg";
+import appleAlmondButter from "@/assets/recipes/apple-almond-butter.jpg";
+import chickenVeggieRisotto from "@/assets/recipes/chicken-veggie-risotto.jpg";
+import miniShepherdsPie from "@/assets/recipes/mini-shepherds-pie.jpg";
+import salmonPastaBake from "@/assets/recipes/salmon-pasta-bake.jpg";
+import beefSweetPotatoStew from "@/assets/recipes/beef-sweet-potato-stew.jpg";
+import lentilVeggieCurry from "@/assets/recipes/lentil-veggie-curry.jpg";
+import turkeyRiceCasserole from "@/assets/recipes/turkey-rice-casserole.jpg";
+import fishPieCheesyMash from "@/assets/recipes/fish-pie-cheesy-mash.jpg";
+import chickenNoodleSoup from "@/assets/recipes/chicken-noodle-soup.jpg";
+import veggieLasagnaBites from "@/assets/recipes/veggie-lasagna-bites.jpg";
+import lambCouscousBowl from "@/assets/recipes/lamb-couscous-bowl.jpg";
+import scrambledEggsVeggies from "@/assets/recipes/scrambled-eggs-veggies.jpg";
+import frenchToastFingers from "@/assets/recipes/french-toast-fingers.jpg";
+import berrySmoothieBowl from "@/assets/recipes/berry-smoothie-bowl.jpg";
+import avocadoEggMash from "@/assets/recipes/avocado-egg-mash.jpg";
+import oatmealPancakesFruit from "@/assets/recipes/oatmeal-pancakes-fruit.jpg";
+import cheeseSpinachOmelette from "@/assets/recipes/cheese-spinach-omelette.jpg";
+import bananaBreadFingers from "@/assets/recipes/banana-bread-fingers.jpg";
+import yogurtFruitParfait from "@/assets/recipes/yogurt-fruit-parfait.jpg";
+import cheeseCrackersPlate from "@/assets/recipes/cheese-crackers-plate.jpg";
+import fruitVeggieSmoothie from "@/assets/recipes/fruit-veggie-smoothie.jpg";
+import miniRiceCakesToppings from "@/assets/recipes/mini-rice-cakes-toppings.jpg";
+import teethingBiscuits from "@/assets/recipes/teething-biscuits.jpg";
+import babyEnergyBalls from "@/assets/recipes/baby-energy-balls.jpg";
+
 export const recipeImages = {
   avocadoPuree,
   sweetPotatoCarrot,
@@ -138,6 +173,40 @@ export const recipeImages = {
   kiwiBananaBlend,
   asparagusPotatoMash,
   tofuFruitPuree,
+  // New recipe images for IDs 239-271
+  veggieStickHummus,
+  miniCheeseQuesadillas,
+  bananaPancakeBites,
+  steamedBroccoliTrees,
+  sweetPotatoWedges,
+  avocadoToastFingers,
+  softCarrotSticks,
+  miniOatBananaMuffins,
+  cucumberCreamCheese,
+  appleAlmondButter,
+  chickenVeggieRisotto,
+  miniShepherdsPie,
+  salmonPastaBake,
+  beefSweetPotatoStew,
+  lentilVeggieCurry,
+  turkeyRiceCasserole,
+  fishPieCheesyMash,
+  chickenNoodleSoup,
+  veggieLasagnaBites,
+  lambCouscousBowl,
+  scrambledEggsVeggies,
+  frenchToastFingers,
+  berrySmoothieBowl,
+  avocadoEggMash,
+  oatmealPancakesFruit,
+  cheeseSpinachOmelette,
+  bananaBreadFingers,
+  yogurtFruitParfait,
+  cheeseCrackersPlate,
+  fruitVeggieSmoothie,
+  miniRiceCakesToppings,
+  teethingBiscuits,
+  babyEnergyBalls,
 };
 
 // Helper function to get appropriate image based on recipe type
@@ -179,6 +248,41 @@ export const getRecipeImage = (keywords: string[]): string => {
   if (keywordString.includes("237") || (keywordString.includes("asparagus") && keywordString.includes("potato") && keywordString.includes("mash"))) return asparagusPotatoMash;
   if (keywordString.includes("238") || (keywordString.includes("tofu") && keywordString.includes("fruit") && keywordString.includes("puree"))) return tofuFruitPuree;
   
+  // NEW RECIPE IMAGES 239-271 - EXACT MATCHES
+  if (keywordString.includes("239") || (keywordString.includes("veggie") && keywordString.includes("sticks") && keywordString.includes("hummus"))) return veggieStickHummus;
+  if (keywordString.includes("240") || (keywordString.includes("mini") && keywordString.includes("cheese") && keywordString.includes("quesadillas"))) return miniCheeseQuesadillas;
+  if (keywordString.includes("241") || (keywordString.includes("banana") && keywordString.includes("pancake") && keywordString.includes("bites"))) return bananaPancakeBites;
+  if (keywordString.includes("242") || (keywordString.includes("steamed") && keywordString.includes("broccoli") && keywordString.includes("trees"))) return steamedBroccoliTrees;
+  if (keywordString.includes("243") || (keywordString.includes("sweet potato") && keywordString.includes("wedges"))) return sweetPotatoWedges;
+  if (keywordString.includes("244") || (keywordString.includes("avocado") && keywordString.includes("toast") && keywordString.includes("fingers"))) return avocadoToastFingers;
+  if (keywordString.includes("245") || (keywordString.includes("soft") && keywordString.includes("carrot") && keywordString.includes("sticks"))) return softCarrotSticks;
+  if (keywordString.includes("246") || (keywordString.includes("mini") && keywordString.includes("oat") && keywordString.includes("banana") && keywordString.includes("muffins"))) return miniOatBananaMuffins;
+  if (keywordString.includes("247") || (keywordString.includes("cucumber") && keywordString.includes("cream cheese"))) return cucumberCreamCheese;
+  if (keywordString.includes("248") || (keywordString.includes("apple") && keywordString.includes("almond") && keywordString.includes("butter"))) return appleAlmondButter;
+  if (keywordString.includes("249") || (keywordString.includes("chicken") && keywordString.includes("veggie") && keywordString.includes("risotto"))) return chickenVeggieRisotto;
+  if (keywordString.includes("250") || (keywordString.includes("mini") && keywordString.includes("shepherd") && keywordString.includes("pie"))) return miniShepherdsPie;
+  if (keywordString.includes("251") || (keywordString.includes("salmon") && keywordString.includes("pasta") && keywordString.includes("bake"))) return salmonPastaBake;
+  if (keywordString.includes("252") || (keywordString.includes("beef") && keywordString.includes("sweet potato") && keywordString.includes("stew"))) return beefSweetPotatoStew;
+  if (keywordString.includes("253") || (keywordString.includes("lentil") && keywordString.includes("veggie") && keywordString.includes("curry"))) return lentilVeggieCurry;
+  if (keywordString.includes("254") || (keywordString.includes("turkey") && keywordString.includes("rice") && keywordString.includes("casserole"))) return turkeyRiceCasserole;
+  if (keywordString.includes("255") || (keywordString.includes("fish") && keywordString.includes("pie") && keywordString.includes("cheesy"))) return fishPieCheesyMash;
+  if (keywordString.includes("256") || (keywordString.includes("chicken") && keywordString.includes("noodle") && keywordString.includes("soup"))) return chickenNoodleSoup;
+  if (keywordString.includes("257") || (keywordString.includes("veggie") && keywordString.includes("lasagna") && keywordString.includes("bites"))) return veggieLasagnaBites;
+  if (keywordString.includes("258") || (keywordString.includes("lamb") && keywordString.includes("couscous") && keywordString.includes("bowl"))) return lambCouscousBowl;
+  if (keywordString.includes("259") || (keywordString.includes("scrambled") && keywordString.includes("eggs") && keywordString.includes("veggies"))) return scrambledEggsVeggies;
+  if (keywordString.includes("260") || (keywordString.includes("french") && keywordString.includes("toast") && keywordString.includes("fingers"))) return frenchToastFingers;
+  if (keywordString.includes("261") || (keywordString.includes("berry") && keywordString.includes("smoothie") && keywordString.includes("bowl"))) return berrySmoothieBowl;
+  if (keywordString.includes("262") || (keywordString.includes("avocado") && keywordString.includes("egg") && keywordString.includes("mash"))) return avocadoEggMash;
+  if (keywordString.includes("263") || (keywordString.includes("oatmeal") && keywordString.includes("pancakes") && keywordString.includes("fruit"))) return oatmealPancakesFruit;
+  if (keywordString.includes("264") || (keywordString.includes("cheese") && keywordString.includes("spinach") && keywordString.includes("omelette"))) return cheeseSpinachOmelette;
+  if (keywordString.includes("265") || (keywordString.includes("banana") && keywordString.includes("bread") && keywordString.includes("fingers"))) return bananaBreadFingers;
+  if (keywordString.includes("266") || (keywordString.includes("yogurt") && keywordString.includes("fruit") && keywordString.includes("parfait"))) return yogurtFruitParfait;
+  if (keywordString.includes("267") || (keywordString.includes("cheese") && keywordString.includes("crackers") && keywordString.includes("plate"))) return cheeseCrackersPlate;
+  if (keywordString.includes("268") || (keywordString.includes("fruit") && keywordString.includes("veggie") && keywordString.includes("smoothie"))) return fruitVeggieSmoothie;
+  if (keywordString.includes("269") || (keywordString.includes("mini") && keywordString.includes("rice cakes") && keywordString.includes("toppings"))) return miniRiceCakesToppings;
+  if (keywordString.includes("270") || (keywordString.includes("teething") && keywordString.includes("biscuits"))) return teethingBiscuits;
+  if (keywordString.includes("271") || (keywordString.includes("baby") && keywordString.includes("energy") && keywordString.includes("balls"))) return babyEnergyBalls;
+
   // New user-provided recipe images - EXACT MATCHES
   if (keywordString.includes("spinach") && keywordString.includes("apple") && keywordString.includes("surprise")) return spinachAppleSurprise;
   if (keywordString.includes("pear") && keywordString.includes("prune") && keywordString.includes("blend")) return pearPruneBlend;
