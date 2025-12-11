@@ -56,6 +56,13 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string
   }
 };
 
+// TIME TOLERANCE: Check within ±2 minutes window
+const TIME_TOLERANCE_MINUTES = 2;
+
+// RETRY CONFIG
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
 function toBuffer(arr: Uint8Array): ArrayBuffer {
   return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
 }
@@ -109,24 +116,64 @@ function createInfo(type: string, context: Uint8Array): Uint8Array {
   return info;
 }
 
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function sendWebPushNotificationWithRetry(
+  subscription: PushSubscriptionRecord,
+  title: string,
+  body: string,
+  motherName?: string,
+  tag?: string
+): Promise<{ success: boolean; expired: boolean }> {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    console.log(`📤 Attempt ${attempt}/${MAX_RETRIES} for user ${subscription.user_id}`);
+    
+    const result = await sendWebPushNotification(subscription, title, body, motherName, tag);
+    
+    if (result.success) {
+      console.log(`✅ Success on attempt ${attempt}`);
+      return result;
+    }
+    
+    if (result.expired) {
+      console.log(`⚠️ Subscription expired, no retry needed`);
+      return result;
+    }
+    
+    if (attempt < MAX_RETRIES) {
+      console.log(`⏳ Waiting ${RETRY_DELAY_MS}ms before retry...`);
+      await sleep(RETRY_DELAY_MS);
+    }
+  }
+  
+  console.log(`❌ All ${MAX_RETRIES} attempts failed`);
+  return { success: false, expired: false };
+}
+
 async function sendWebPushNotification(
   subscription: PushSubscriptionRecord,
   title: string,
   body: string,
   motherName?: string,
   tag?: string
-): Promise<boolean> {
+): Promise<{ success: boolean; expired: boolean }> {
   try {
     let vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
     let vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.error('❌ VAPID keys not configured');
-      return false;
+      return { success: false, expired: false };
     }
 
+    // Clean VAPID keys - remove quotes and whitespace
     vapidPublicKey = vapidPublicKey.replace(/^["']|["']$/g, '').trim();
     vapidPrivateKey = vapidPrivateKey.replace(/^["']|["']$/g, '').trim();
+
+    console.log(`🔑 VAPID public key length: ${vapidPublicKey.length}`);
+    console.log(`🔑 VAPID private key length: ${vapidPrivateKey.length}`);
 
     const personalizedBody = motherName ? `Hi ${motherName}! ${body}` : body;
 
@@ -175,7 +222,7 @@ async function sendWebPushNotification(
       );
     } catch (e) {
       console.error('❌ Failed to import VAPID private key:', e);
-      return false;
+      return { success: false, expired: false };
     }
 
     const signature = await crypto.subtle.sign(
@@ -267,7 +314,7 @@ async function sendWebPushNotification(
     encryptedPayload.set(header);
     encryptedPayload.set(new Uint8Array(encrypted), header.length);
 
-    console.log('📤 Sending push to:', subscription.endpoint.substring(0, 50) + '...');
+    console.log('📤 Sending push to:', subscription.endpoint.substring(0, 60) + '...');
 
     const response = await fetch(subscription.endpoint, {
       method: 'POST',
@@ -281,17 +328,36 @@ async function sendWebPushNotification(
       body: encryptedPayload
     });
 
-    console.log(`📬 Response: ${response.status}`);
+    console.log(`📬 Response status: ${response.status}`);
 
     if (response.status === 410 || response.status === 404) {
-      return false;
+      console.log('⚠️ Subscription expired or not found');
+      return { success: false, expired: true };
     }
 
-    return response.ok;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Push failed: ${response.status} - ${errorText}`);
+      return { success: false, expired: false };
+    }
+
+    return { success: true, expired: false };
   } catch (error) {
     console.error('❌ Push error:', error);
-    return false;
+    return { success: false, expired: false };
   }
+}
+
+// Get all minutes within tolerance window
+function getMinutesInWindow(currentMinute: number): number[] {
+  const minutes: number[] = [];
+  for (let offset = -TIME_TOLERANCE_MINUTES; offset <= TIME_TOLERANCE_MINUTES; offset++) {
+    let minute = currentMinute + offset;
+    if (minute < 0) minute += 60;
+    if (minute >= 60) minute -= 60;
+    minutes.push(minute);
+  }
+  return minutes;
 }
 
 Deno.serve(async (req) => {
@@ -307,36 +373,85 @@ Deno.serve(async (req) => {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
+    const minutesWindow = getMinutesInWindow(currentMinute);
 
-    console.log(`⏰ Checking meal reminders for ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
+    console.log(`\n========================================`);
+    console.log(`⏰ CHECK-MEAL-REMINDERS STARTED`);
+    console.log(`📅 Time: ${now.toISOString()}`);
+    console.log(`🕐 Current: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
+    console.log(`🔍 Checking minutes: ${minutesWindow.join(', ')}`);
+    console.log(`========================================\n`);
 
-    // 1. Check meal reminders
+    // 1. Get ALL enabled preferences for this hour and minutes window
     const { data: preferences, error: prefsError } = await supabase
       .from('notification_preferences')
       .select('user_id, meal_type, hour, minute, enabled')
       .eq('enabled', true)
       .eq('hour', currentHour)
-      .eq('minute', currentMinute);
+      .in('minute', minutesWindow);
 
     if (prefsError) {
       console.error('❌ Error fetching preferences:', prefsError);
     }
 
+    console.log(`📋 Enabled preferences found: ${preferences?.length || 0}`);
+
+    // Debug: Show all preferences in DB
+    const { data: allPrefs } = await supabase
+      .from('notification_preferences')
+      .select('user_id, meal_type, hour, minute, enabled')
+      .eq('enabled', true);
+    
+    console.log(`📊 Total enabled preferences in DB: ${allPrefs?.length || 0}`);
+    if (allPrefs && allPrefs.length > 0) {
+      allPrefs.forEach((p: NotificationPreference) => {
+        console.log(`   - User ${p.user_id.substring(0, 8)}...: ${p.meal_type} at ${p.hour}:${p.minute.toString().padStart(2, '0')}`);
+      });
+    }
+
+    // Get ALL push subscriptions
+    const { data: allSubs } = await supabase
+      .from('push_subscriptions')
+      .select('user_id, endpoint');
+    
+    console.log(`📱 Total push subscriptions: ${allSubs?.length || 0}`);
+    if (allSubs && allSubs.length > 0) {
+      allSubs.forEach((s: { user_id: string; endpoint: string }) => {
+        console.log(`   - User ${s.user_id.substring(0, 8)}...: ${s.endpoint.substring(0, 50)}...`);
+      });
+    }
+
     let sentCount = 0;
     let failedCount = 0;
     const expiredSubscriptions: string[] = [];
+    const processedUsers = new Set<string>();
 
     // Send meal reminders
     if (preferences && preferences.length > 0) {
-      console.log(`📋 Found ${preferences.length} meal reminders`);
+      console.log(`\n🔔 PROCESSING ${preferences.length} MEAL REMINDERS\n`);
 
       for (const pref of preferences as NotificationPreference[]) {
+        // Avoid duplicate notifications
+        const userMealKey = `${pref.user_id}-${pref.meal_type}`;
+        if (processedUsers.has(userMealKey)) {
+          console.log(`⏭️ Skipping duplicate for ${userMealKey}`);
+          continue;
+        }
+        processedUsers.add(userMealKey);
+
+        console.log(`\n👤 Processing: ${pref.meal_type} for user ${pref.user_id.substring(0, 8)}...`);
+
         const { data: subscriptions } = await supabase
           .from('push_subscriptions')
           .select('*')
           .eq('user_id', pref.user_id);
 
-        if (!subscriptions || subscriptions.length === 0) continue;
+        if (!subscriptions || subscriptions.length === 0) {
+          console.log(`⚠️ No push subscription for this user`);
+          continue;
+        }
+
+        console.log(`📱 Found ${subscriptions.length} subscription(s)`);
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -354,22 +469,25 @@ Deno.serve(async (req) => {
         const notificationTitle = `${mealInfo.emoji} ${mealInfo.title}`;
 
         for (const sub of subscriptions as PushSubscriptionRecord[]) {
-          const success = await sendWebPushNotification(sub, notificationTitle, mealInfo.body, motherName);
-          if (success) {
+          const result = await sendWebPushNotificationWithRetry(sub, notificationTitle, mealInfo.body, motherName);
+          if (result.success) {
             sentCount++;
+            console.log(`✅ Notification sent successfully!`);
           } else {
             failedCount++;
-            expiredSubscriptions.push(sub.id);
+            if (result.expired) {
+              expiredSubscriptions.push(sub.id);
+            }
           }
         }
       }
     } else {
-      console.log('📭 No preferences found for this time');
+      console.log('📭 No matching preferences for current time window');
     }
 
     // 2. Check for inactive users (once per hour at minute 0)
     if (currentMinute === 0) {
-      console.log('🔍 Checking for inactive users...');
+      console.log('\n🔍 Checking for inactive users...');
       
       const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
       
@@ -382,7 +500,6 @@ Deno.serve(async (req) => {
         console.log(`👋 Found ${inactiveSessions.length} inactive users`);
 
         for (const session of inactiveSessions as UserSession[]) {
-          // Check if we already sent an inactivity notification recently
           const { data: recentNotif } = await supabase
             .from('activity_logs')
             .select('id')
@@ -392,7 +509,7 @@ Deno.serve(async (req) => {
             .limit(1);
 
           if (recentNotif && recentNotif.length > 0) {
-            continue; // Already sent recently
+            continue;
           }
 
           const { data: subscriptions } = await supabase
@@ -414,16 +531,15 @@ Deno.serve(async (req) => {
             : 'Come back and continue your baby nutrition journey!';
 
           for (const sub of subscriptions as PushSubscriptionRecord[]) {
-            const success = await sendWebPushNotification(sub, title, body, profile?.mother_name, 'inactivity-reminder');
-            if (success) {
+            const result = await sendWebPushNotificationWithRetry(sub, title, body, profile?.mother_name, 'inactivity-reminder');
+            if (result.success) {
               sentCount++;
-              // Log that we sent this notification
               await supabase.from('activity_logs').insert({
                 user_id: session.user_id,
                 action_type: 'inactivity_reminder_sent',
                 action_details: { sent_at: now.toISOString() }
               });
-            } else {
+            } else if (result.expired) {
               expiredSubscriptions.push(sub.id);
             }
           }
@@ -433,21 +549,28 @@ Deno.serve(async (req) => {
 
     // Clean up expired subscriptions
     if (expiredSubscriptions.length > 0) {
-      console.log(`🧹 Cleaning ${expiredSubscriptions.length} expired subscriptions`);
+      console.log(`\n🧹 Cleaning ${expiredSubscriptions.length} expired subscriptions`);
       await supabase
         .from('push_subscriptions')
         .delete()
         .in('id', expiredSubscriptions);
     }
 
-    console.log(`📊 Summary: Sent ${sentCount}, Failed ${failedCount}`);
+    console.log(`\n========================================`);
+    console.log(`📊 SUMMARY`);
+    console.log(`   ✅ Sent: ${sentCount}`);
+    console.log(`   ❌ Failed: ${failedCount}`);
+    console.log(`   🗑️ Expired: ${expiredSubscriptions.length}`);
+    console.log(`========================================\n`);
 
     return new Response(
       JSON.stringify({
         success: true,
         sent: sentCount,
         failed: failedCount,
-        expired: expiredSubscriptions.length
+        expired: expiredSubscriptions.length,
+        timeChecked: `${currentHour}:${currentMinute.toString().padStart(2, '0')}`,
+        minutesWindow
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
