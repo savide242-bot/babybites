@@ -4,6 +4,7 @@ import { recipes47to100 } from "./recipes47-100";
 import { recipes101to150 } from "./recipes101-150";
 import { recipes151to200 } from "./recipes151-200";
 import { recipes201to205 } from "./recipes201-205";
+import { recipes206to238 } from "./recipes206-238";
 
 export interface Recipe {
   id: string;
