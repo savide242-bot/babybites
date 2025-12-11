@@ -1119,11 +1119,11 @@ export const recipes: Recipe[] = [
   },
   
   
-  // Import all additional recipes (recipes 44-205)
+  // Import all additional recipes (recipes 44-271)
   ...additionalRecipes,
   ...recipes47to100,
   ...recipes101to150,
   ...recipes151to200,
   ...recipes201to205,
-  
+  ...recipes206to238,
 ].map(addDefaultFields);
