@@ -9,6 +9,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "lunch",
     prepTime: "25 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "1 medium potato, peeled and cubed",
       "1 small leek, white part only, sliced",
@@ -34,12 +36,12 @@ export const recipes272to300: Recipe[] = [
       calories: "95",
       protein: "2g",
       carbs: "14g",
-      fats: "4g",
+      fat: "4g",
       fiber: "2g",
-      sugar: "1g"
+      vitamins: ["Vitamin K", "Vitamin C", "Potassium"]
     },
     allergens: ["Dairy"],
-    storageInstructions: "Refrigerate for up to 3 days. Freeze in portions for up to 2 months.",
+    storage: "Refrigerate for up to 3 days. Freeze in portions for up to 2 months.",
     healthBenefits: "Leeks provide prebiotics for gut health and vitamin K for bone development. Potatoes offer potassium for muscle function.",
     servingGuidance: "Serve 2-4 tablespoons as a side dish or mix with protein puree."
   },
@@ -50,6 +52,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "breakfast",
     prepTime: "15 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "3 tablespoons baby oats or ground oats",
       "2 Medjool dates, pitted",
@@ -75,12 +79,12 @@ export const recipes272to300: Recipe[] = [
       calories: "110",
       protein: "3g",
       carbs: "22g",
-      fats: "1g",
+      fat: "1g",
       fiber: "3g",
-      sugar: "10g"
+      vitamins: ["Iron", "Potassium", "B Vitamins"]
     },
     allergens: ["Gluten"],
-    storageInstructions: "Best served fresh. Can refrigerate for 24 hours - add liquid when reheating.",
+    storage: "Best served fresh. Can refrigerate for 24 hours - add liquid when reheating.",
     healthBenefits: "Dates provide natural iron and potassium. Oats offer beta-glucan fiber for healthy digestion and sustained energy.",
     servingGuidance: "Serve 3-5 tablespoons for breakfast. Pair with fruit puree for variety."
   },
@@ -91,6 +95,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "snack",
     prepTime: "20 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "1 medium parsnip, peeled and sliced",
       "1 ripe pear, peeled and cored",
@@ -115,12 +121,12 @@ export const recipes272to300: Recipe[] = [
       calories: "75",
       protein: "1g",
       carbs: "18g",
-      fats: "0g",
+      fat: "0g",
       fiber: "4g",
-      sugar: "10g"
+      vitamins: ["Vitamin C", "Folate", "Fiber"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 3 months.",
+    storage: "Refrigerate for up to 3 days. Freeze for up to 3 months.",
     healthBenefits: "Parsnips provide folate and vitamin C. Pears add natural sweetness and fiber for digestive health.",
     servingGuidance: "Serve 2-4 tablespoons as a snack or dessert."
   },
@@ -131,6 +137,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "lunch",
     prepTime: "30 min",
+    servings: "6 portions",
+    image: "",
     ingredients: [
       "2 oz ground turkey (dark meat preferred for iron)",
       "1 medium carrot, peeled and sliced",
@@ -156,12 +164,12 @@ export const recipes272to300: Recipe[] = [
       calories: "85",
       protein: "10g",
       carbs: "5g",
-      fats: "3g",
+      fat: "3g",
       fiber: "1g",
-      sugar: "2g"
+      vitamins: ["Iron", "Zinc", "Vitamin A"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze in ice cube portions for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze in ice cube portions for up to 1 month.",
     healthBenefits: "Turkey provides essential iron and zinc for growth. Carrots add vitamin A for eye health and immune function.",
     servingGuidance: "Start with 1-2 tablespoons mixed with vegetable puree. Increase to 2-4 tablespoons as baby adjusts."
   },
@@ -172,6 +180,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "snack",
     prepTime: "5 min",
+    servings: "1 portion",
+    image: "",
     ingredients: [
       "1 ripe banana",
       "1/2 teaspoon tahini (sesame paste)",
@@ -196,12 +206,12 @@ export const recipes272to300: Recipe[] = [
       calories: "105",
       protein: "2g",
       carbs: "22g",
-      fats: "2g",
+      fat: "2g",
       fiber: "2g",
-      sugar: "12g"
+      vitamins: ["Potassium", "Calcium", "Magnesium"]
     },
     allergens: ["Sesame"],
-    storageInstructions: "Best served fresh. Does not store well due to banana browning.",
+    storage: "Best served fresh. Does not store well due to banana browning.",
     healthBenefits: "Tahini provides calcium and healthy fats for brain development. Bananas offer potassium and natural energy.",
     servingGuidance: "Serve 2-4 tablespoons. Excellent for introducing sesame allergen."
   },
@@ -212,6 +222,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "dinner",
     prepTime: "25 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "2 oz fresh cod fillet, boneless",
       "1/2 cup butternut squash, cubed",
@@ -237,12 +249,12 @@ export const recipes272to300: Recipe[] = [
       calories: "95",
       protein: "8g",
       carbs: "8g",
-      fats: "4g",
+      fat: "4g",
       fiber: "1g",
-      sugar: "2g"
+      vitamins: ["Omega-3", "Vitamin A", "B12"]
     },
     allergens: ["Fish", "Dairy"],
-    storageInstructions: "Refrigerate for up to 24 hours. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 24 hours. Freeze for up to 1 month.",
     healthBenefits: "Cod provides lean protein and omega-3s for brain development. Butternut squash offers vitamin A and fiber.",
     servingGuidance: "Serve 2-4 tablespoons. Great for introducing fish allergen."
   },
@@ -253,6 +265,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "lunch",
     prepTime: "10 min",
+    servings: "6 portions",
+    image: "",
     ingredients: [
       "1/2 cup canned chickpeas, drained and rinsed",
       "1 tablespoon tahini",
@@ -278,12 +292,12 @@ export const recipes272to300: Recipe[] = [
       calories: "120",
       protein: "5g",
       carbs: "12g",
-      fats: "6g",
+      fat: "6g",
       fiber: "3g",
-      sugar: "1g"
+      vitamins: ["Iron", "Folate", "Healthy Fats"]
     },
     allergens: ["Sesame"],
-    storageInstructions: "Refrigerate for up to 5 days in an airtight container.",
+    storage: "Refrigerate for up to 5 days in an airtight container.",
     healthBenefits: "Chickpeas provide plant-based protein and iron. Olive oil offers healthy fats for brain development.",
     servingGuidance: "Serve 1-2 tablespoons as a dip with soft vegetables or spread on toast fingers."
   },
@@ -294,6 +308,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "snack",
     prepTime: "5 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "1/4 cup full-fat cottage cheese",
       "1 ripe peach, peeled and pitted",
@@ -317,12 +333,12 @@ export const recipes272to300: Recipe[] = [
       calories: "85",
       protein: "6g",
       carbs: "10g",
-      fats: "3g",
+      fat: "3g",
       fiber: "1g",
-      sugar: "9g"
+      vitamins: ["Vitamin C", "Calcium", "Protein"]
     },
     allergens: ["Dairy"],
-    storageInstructions: "Best served fresh. Refrigerate for up to 24 hours.",
+    storage: "Best served fresh. Refrigerate for up to 24 hours.",
     healthBenefits: "Cottage cheese provides protein and calcium for bone growth. Peaches offer vitamin C and beta-carotene.",
     servingGuidance: "Serve 2-4 tablespoons as a snack or breakfast addition."
   },
@@ -333,6 +349,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "dinner",
     prepTime: "20 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "1 medium sweet potato",
       "1 teaspoon fresh coriander (cilantro), finely chopped",
@@ -357,12 +375,12 @@ export const recipes272to300: Recipe[] = [
       calories: "100",
       protein: "1g",
       carbs: "16g",
-      fats: "4g",
+      fat: "4g",
       fiber: "2g",
-      sugar: "5g"
+      vitamins: ["Vitamin A", "Vitamin C", "Potassium"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
+    storage: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
     healthBenefits: "Sweet potato is rich in vitamin A and fiber. Coriander aids digestion and adds antioxidants.",
     servingGuidance: "Serve 3-5 tablespoons as a main puree or side dish."
   },
@@ -373,6 +391,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "lunch",
     prepTime: "10 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "1/2 ripe avocado",
       "1 cup fresh baby spinach",
@@ -397,12 +417,12 @@ export const recipes272to300: Recipe[] = [
       calories: "95",
       protein: "2g",
       carbs: "5g",
-      fats: "8g",
+      fat: "8g",
       fiber: "4g",
-      sugar: "0g"
+      vitamins: ["Iron", "Folate", "Healthy Fats"]
     },
     allergens: [],
-    storageInstructions: "Best served fresh. Lemon helps preserve color for a few hours.",
+    storage: "Best served fresh. Lemon helps preserve color for a few hours.",
     healthBenefits: "Spinach provides iron and folate. Avocado offers healthy monounsaturated fats for brain development.",
     servingGuidance: "Serve 2-4 tablespoons. Pair with iron-enhancing vitamin C foods."
   },
@@ -413,6 +433,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "dinner",
     prepTime: "25 min",
+    servings: "6 portions",
+    image: "",
     ingredients: [
       "2 oz boneless chicken breast",
       "1 cup broccoli florets",
@@ -437,12 +459,12 @@ export const recipes272to300: Recipe[] = [
       calories: "90",
       protein: "12g",
       carbs: "4g",
-      fats: "3g",
+      fat: "3g",
       fiber: "2g",
-      sugar: "1g"
+      vitamins: ["Vitamin C", "Vitamin K", "Protein"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Chicken provides complete protein and iron. Broccoli offers vitamin C, K, and cancer-fighting compounds.",
     servingGuidance: "Serve 2-4 tablespoons. Excellent iron source for growing babies."
   },
@@ -453,6 +475,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "snack",
     prepTime: "15 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "4 pitted prunes",
       "1 medium apple, peeled and cored",
@@ -476,12 +500,12 @@ export const recipes272to300: Recipe[] = [
       calories: "80",
       protein: "1g",
       carbs: "20g",
-      fats: "0g",
+      fat: "0g",
       fiber: "3g",
-      sugar: "15g"
+      vitamins: ["Fiber", "Vitamin K", "Potassium"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 5 days. Freeze in small portions.",
+    storage: "Refrigerate for up to 5 days. Freeze in small portions.",
     healthBenefits: "Prunes are a natural laxative with sorbitol. Apples add pectin fiber to regulate digestion.",
     servingGuidance: "Start with 1-2 tablespoons. Increase gradually to avoid loose stools."
   },
@@ -492,6 +516,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "lunch",
     prepTime: "30 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "2 tablespoons quinoa, rinsed well",
       "1/4 cup diced zucchini",
@@ -517,12 +543,12 @@ export const recipes272to300: Recipe[] = [
       calories: "85",
       protein: "3g",
       carbs: "12g",
-      fats: "3g",
+      fat: "3g",
       fiber: "2g",
-      sugar: "2g"
+      vitamins: ["Complete Protein", "Iron", "Magnesium"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
+    storage: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
     healthBenefits: "Quinoa is a complete protein with all essential amino acids. Vegetables add vitamins and fiber.",
     servingGuidance: "Serve 3-5 tablespoons as a main meal."
   },
@@ -533,6 +559,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "dinner",
     prepTime: "20 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "1/4 cup sweet corn kernels (fresh or frozen)",
       "1 small potato, peeled and cubed",
@@ -557,12 +585,12 @@ export const recipes272to300: Recipe[] = [
       calories: "105",
       protein: "2g",
       carbs: "16g",
-      fats: "4g",
+      fat: "4g",
       fiber: "1g",
-      sugar: "3g"
+      vitamins: ["B Vitamins", "Potassium", "Vitamin C"]
     },
     allergens: ["Dairy"],
-    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
+    storage: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
     healthBenefits: "Corn provides fiber and B vitamins. Potatoes offer potassium and vitamin C.",
     servingGuidance: "Serve 3-5 tablespoons as a comforting dinner puree."
   },
@@ -573,6 +601,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "snack",
     prepTime: "10 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "1/4 cup fresh or frozen raspberries",
       "1/4 cup plain whole milk yogurt",
@@ -596,12 +626,12 @@ export const recipes272to300: Recipe[] = [
       calories: "70",
       protein: "3g",
       carbs: "10g",
-      fats: "2g",
+      fat: "2g",
       fiber: "2g",
-      sugar: "7g"
+      vitamins: ["Vitamin C", "Probiotics", "Antioxidants"]
     },
     allergens: ["Dairy", "Gluten"],
-    storageInstructions: "Best served fresh. Raspberry puree can be stored separately for 3 days.",
+    storage: "Best served fresh. Raspberry puree can be stored separately for 3 days.",
     healthBenefits: "Raspberries are high in vitamin C and antioxidants. Yogurt provides probiotics for gut health.",
     servingGuidance: "Serve 2-4 tablespoons as a healthy snack or dessert."
   },
@@ -612,6 +642,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "lunch",
     prepTime: "30 min",
+    servings: "6 portions",
+    image: "",
     ingredients: [
       "2 oz ground lamb",
       "1/2 cup fresh green beans, trimmed",
@@ -637,12 +669,12 @@ export const recipes272to300: Recipe[] = [
       calories: "100",
       protein: "9g",
       carbs: "4g",
-      fats: "6g",
+      fat: "6g",
       fiber: "2g",
-      sugar: "1g"
+      vitamins: ["Iron", "Zinc", "B12"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Lamb is rich in iron and zinc for growth. Green beans provide fiber and folate.",
     servingGuidance: "Serve 2-4 tablespoons as a protein-rich main meal."
   },
@@ -653,6 +685,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "snack",
     prepTime: "10 min",
+    servings: "3 portions",
+    image: "",
     ingredients: [
       "1 cup ripe cantaloupe, cubed",
       "2-3 fresh mint leaves",
@@ -676,12 +710,12 @@ export const recipes272to300: Recipe[] = [
       calories: "45",
       protein: "1g",
       carbs: "11g",
-      fats: "0g",
+      fat: "0g",
       fiber: "1g",
-      sugar: "10g"
+      vitamins: ["Vitamin A", "Vitamin C", "Hydration"]
     },
     allergens: ["Dairy (if using yogurt)"],
-    storageInstructions: "Best served fresh. Can refrigerate for up to 24 hours.",
+    storage: "Best served fresh. Can refrigerate for up to 24 hours.",
     healthBenefits: "Cantaloupe is excellent for hydration and provides vitamin A. Mint aids digestion.",
     servingGuidance: "Serve 2-4 tablespoons as a refreshing snack."
   },
@@ -692,6 +726,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "breakfast",
     prepTime: "15 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "3 tablespoons baby oats",
       "3/4 cup water",
@@ -716,12 +752,12 @@ export const recipes272to300: Recipe[] = [
       calories: "115",
       protein: "4g",
       carbs: "20g",
-      fats: "3g",
+      fat: "3g",
       fiber: "3g",
-      sugar: "6g"
+      vitamins: ["Zinc", "Magnesium", "B Vitamins"]
     },
     allergens: ["Gluten"],
-    storageInstructions: "Best served fresh. Can refrigerate for 24 hours.",
+    storage: "Best served fresh. Can refrigerate for 24 hours.",
     healthBenefits: "Pumpkin seeds are rich in zinc and magnesium. Oats provide sustained energy and fiber.",
     servingGuidance: "Serve 3-5 tablespoons for a nutritious breakfast."
   },
@@ -732,6 +768,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "6-9",
     category: "dinner",
     prepTime: "30 min",
+    servings: "6 portions",
+    image: "",
     ingredients: [
       "2 oz lean ground beef",
       "1/2 cup frozen peas",
@@ -756,12 +794,12 @@ export const recipes272to300: Recipe[] = [
       calories: "110",
       protein: "11g",
       carbs: "6g",
-      fats: "5g",
+      fat: "5g",
       fiber: "2g",
-      sugar: "2g"
+      vitamins: ["Iron", "Zinc", "B12"]
     },
     allergens: [],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Beef provides heme iron which is easily absorbed. Peas add plant protein and fiber.",
     servingGuidance: "Serve 2-4 tablespoons as a protein-packed dinner."
   },
@@ -774,6 +812,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "breakfast",
     prepTime: "25 min",
+    servings: "6 bites",
+    image: "",
     ingredients: [
       "2 eggs",
       "2 tablespoons finely grated zucchini",
@@ -799,12 +839,12 @@ export const recipes272to300: Recipe[] = [
       calories: "35 per bite",
       protein: "2g",
       carbs: "1g",
-      fats: "2g",
+      fat: "2g",
       fiber: "0g",
-      sugar: "0g"
+      vitamins: ["Choline", "Vitamin A", "Protein"]
     },
     allergens: ["Eggs", "Dairy"],
-    storageInstructions: "Refrigerate for up to 3 days. Reheat gently or serve cold.",
+    storage: "Refrigerate for up to 3 days. Reheat gently or serve cold.",
     healthBenefits: "Eggs provide complete protein and choline for brain development. Hidden veggies add vitamins.",
     servingGuidance: "Serve 2-3 bites per meal as finger food."
   },
@@ -815,6 +855,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "lunch",
     prepTime: "30 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "2 oz salmon fillet",
       "1/4 cup broccoli florets",
@@ -840,12 +882,12 @@ export const recipes272to300: Recipe[] = [
       calories: "140",
       protein: "12g",
       carbs: "12g",
-      fats: "5g",
+      fat: "5g",
       fiber: "1g",
-      sugar: "0g"
+      vitamins: ["Omega-3", "DHA", "Vitamin D"]
     },
     allergens: ["Fish"],
-    storageInstructions: "Refrigerate for up to 24 hours. Best served fresh.",
+    storage: "Refrigerate for up to 24 hours. Best served fresh.",
     healthBenefits: "Salmon is excellent for brain development with omega-3s. Rice provides easy-to-digest energy.",
     servingGuidance: "Serve 1/4 to 1/2 cup as a main meal."
   },
@@ -856,6 +898,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "dinner",
     prepTime: "25 min",
+    servings: "3 portions",
+    image: "",
     ingredients: [
       "1/4 cup small pasta (stelline or orzo)",
       "2 oz ground beef or turkey",
@@ -881,12 +925,12 @@ export const recipes272to300: Recipe[] = [
       calories: "150",
       protein: "10g",
       carbs: "15g",
-      fats: "5g",
+      fat: "5g",
       fiber: "1g",
-      sugar: "2g"
+      vitamins: ["Iron", "Lycopene", "B Vitamins"]
     },
     allergens: ["Gluten"],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Meat provides iron and protein. Tomatoes offer lycopene and vitamin C.",
     servingGuidance: "Serve 1/4 to 1/3 cup as a main meal."
   },
@@ -897,6 +941,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "snack",
     prepTime: "25 min",
+    servings: "12 bites",
+    image: "",
     ingredients: [
       "1 cup cauliflower florets",
       "2 tablespoons grated cheddar cheese",
@@ -921,12 +967,12 @@ export const recipes272to300: Recipe[] = [
       calories: "60 per serving",
       protein: "3g",
       carbs: "5g",
-      fats: "3g",
+      fat: "3g",
       fiber: "1g",
-      sugar: "1g"
+      vitamins: ["Vitamin C", "Calcium", "Fiber"]
     },
     allergens: ["Dairy", "Gluten"],
-    storageInstructions: "Best served fresh. Can refrigerate for 1 day.",
+    storage: "Best served fresh. Can refrigerate for 1 day.",
     healthBenefits: "Cauliflower provides vitamin C and fiber. Cheese adds calcium and protein.",
     servingGuidance: "Serve 4-6 bites as a snack or side dish."
   },
@@ -937,6 +983,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "snack",
     prepTime: "5 min",
+    servings: "2 portions",
+    image: "",
     ingredients: [
       "1/2 ripe mango, cubed",
       "1/4 cup coconut milk",
@@ -961,12 +1009,12 @@ export const recipes272to300: Recipe[] = [
       calories: "95",
       protein: "2g",
       carbs: "18g",
-      fats: "3g",
+      fat: "3g",
       fiber: "2g",
-      sugar: "12g"
+      vitamins: ["Vitamin A", "Vitamin C", "Healthy Fats"]
     },
     allergens: ["Tree nuts (coconut)", "Gluten"],
-    storageInstructions: "Best served immediately. Refrigerate for up to 24 hours.",
+    storage: "Best served immediately. Refrigerate for up to 24 hours.",
     healthBenefits: "Mango provides vitamin A and C. Coconut offers healthy medium-chain fats.",
     servingGuidance: "Serve 1/4 to 1/3 cup as a snack."
   },
@@ -977,6 +1025,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "dinner",
     prepTime: "30 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "2 oz lean ground beef",
       "1 small potato, peeled and cubed",
@@ -1002,12 +1052,12 @@ export const recipes272to300: Recipe[] = [
       calories: "160",
       protein: "11g",
       carbs: "14g",
-      fats: "7g",
+      fat: "7g",
       fiber: "2g",
-      sugar: "1g"
+      vitamins: ["Iron", "Zinc", "Potassium"]
     },
     allergens: ["Dairy"],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Beef provides iron and zinc essential for development. Potatoes offer potassium and energy.",
     servingGuidance: "Serve 1/4 to 1/3 cup as a main meal."
   },
@@ -1018,6 +1068,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "breakfast",
     prepTime: "20 min",
+    servings: "8 fingers",
+    image: "",
     ingredients: [
       "1/4 cup whole wheat flour",
       "1 egg",
@@ -1043,12 +1095,12 @@ export const recipes272to300: Recipe[] = [
       calories: "45 per finger",
       protein: "2g",
       carbs: "7g",
-      fats: "1g",
+      fat: "1g",
       fiber: "1g",
-      sugar: "2g"
+      vitamins: ["Antioxidants", "Fiber", "Protein"]
     },
     allergens: ["Eggs", "Gluten", "Dairy"],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Blueberries are antioxidant-rich superfoods. Whole wheat adds fiber and nutrients.",
     servingGuidance: "Serve 2-4 fingers for breakfast."
   },
@@ -1059,6 +1111,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "lunch",
     prepTime: "25 min",
+    servings: "6 patties",
+    image: "",
     ingredients: [
       "3 oz ground chicken",
       "2 tablespoons grated apple",
@@ -1084,12 +1138,12 @@ export const recipes272to300: Recipe[] = [
       calories: "40 per patty",
       protein: "5g",
       carbs: "2g",
-      fats: "2g",
+      fat: "2g",
       fiber: "0g",
-      sugar: "1g"
+      vitamins: ["Protein", "Iron", "B Vitamins"]
     },
     allergens: ["Gluten"],
-    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    storage: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
     healthBenefits: "Chicken provides lean protein for muscle development. Apple adds natural sweetness and fiber.",
     servingGuidance: "Serve 2-3 patties as a main meal."
   },
@@ -1100,6 +1154,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "dinner",
     prepTime: "35 min",
+    servings: "4 portions",
+    image: "",
     ingredients: [
       "1/4 cup arborio rice",
       "1/2 cup low-sodium vegetable broth",
@@ -1126,12 +1182,12 @@ export const recipes272to300: Recipe[] = [
       calories: "120",
       protein: "3g",
       carbs: "20g",
-      fats: "3g",
+      fat: "3g",
       fiber: "1g",
-      sugar: "1g"
+      vitamins: ["Vitamin A", "Calcium", "Carbohydrates"]
     },
     allergens: ["Dairy"],
-    storageInstructions: "Refrigerate for up to 2 days. Add liquid when reheating.",
+    storage: "Refrigerate for up to 2 days. Add liquid when reheating.",
     healthBenefits: "Rice provides easy-to-digest carbohydrates. Vegetables add vitamins and fiber for balanced nutrition.",
     servingGuidance: "Serve 1/4 to 1/3 cup as a main meal."
   },
@@ -1142,6 +1198,8 @@ export const recipes272to300: Recipe[] = [
     ageGroup: "9-12",
     category: "snack",
     prepTime: "5 min + freezing",
+    servings: "3 portions",
+    image: "",
     ingredients: [
       "1 ripe banana, frozen",
       "4 strawberries, frozen",
@@ -1165,12 +1223,12 @@ export const recipes272to300: Recipe[] = [
       calories: "80",
       protein: "2g",
       carbs: "18g",
-      fats: "1g",
+      fat: "1g",
       fiber: "2g",
-      sugar: "12g"
+      vitamins: ["Vitamin C", "Potassium", "Probiotics"]
     },
     allergens: ["Dairy"],
-    storageInstructions: "Best served immediately. Can freeze for up to 1 week.",
+    storage: "Best served immediately. Can freeze for up to 1 week.",
     healthBenefits: "Made with real fruit only - no added sugar. Provides potassium, vitamin C, and probiotics from yogurt.",
     servingGuidance: "Serve 2-4 tablespoons as a healthy dessert or snack."
   }
