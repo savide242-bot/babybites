@@ -260,21 +260,21 @@ const FoodAnalyzer = () => {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5 pt-20 pb-8">
-      <div className="container max-w-5xl mx-auto px-4">
-        {/* Hero Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 mb-4 animate-pulse">
-            <Sparkles className="w-10 h-10 text-primary" />
+      <div className="container max-w-5xl mx-auto px-3 sm:px-4">
+        {/* Hero Header - Mobile Optimized */}
+        <div className="text-center mb-6 sm:mb-10">
+          <div className="inline-flex items-center justify-center p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 mb-3 sm:mb-4 animate-pulse">
+            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-3">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2 sm:mb-3">
             AI Food Analyzer
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto px-2">
             Your baby's personal nutritionist. Take a photo of any food and get expert-level analysis instantly.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Analysis Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Image Capture Card */}
@@ -446,33 +446,33 @@ const FoodAnalyzer = () => {
                   )}
                 </div>
 
-                <CardContent className="p-6 space-y-6">
-                  {/* Nutrition Grid */}
+                <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+                  {/* Nutrition Grid - Mobile Optimized */}
                   <div>
-                    <h4 className="font-bold mb-3 flex items-center gap-2">
+                    <h4 className="font-bold mb-2 sm:mb-3 flex items-center gap-2 text-sm sm:text-base">
                       <Apple className="w-4 h-4 text-primary" />
                       Nutritional Information (per serving)
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 text-center">
-                        <Flame className="w-6 h-6 mx-auto text-orange-500 mb-2" />
-                        <p className="text-2xl font-bold">{result.estimated_calories || 0}</p>
-                        <p className="text-xs text-muted-foreground">Calories</p>
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                      <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 text-center">
+                        <Flame className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-orange-500 mb-1 sm:mb-2" />
+                        <p className="text-lg sm:text-2xl font-bold">{result.estimated_calories || 0}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Calories</p>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-rose-500/10 text-center">
-                        <Beef className="w-6 h-6 mx-auto text-red-500 mb-2" />
-                        <p className="text-2xl font-bold">{result.estimated_protein_g || 0}g</p>
-                        <p className="text-xs text-muted-foreground">Protein</p>
+                      <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-rose-500/10 text-center">
+                        <Beef className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-red-500 mb-1 sm:mb-2" />
+                        <p className="text-lg sm:text-2xl font-bold">{result.estimated_protein_g || 0}g</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Protein</p>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 text-center">
-                        <Cookie className="w-6 h-6 mx-auto text-cyan-500 mb-2" />
-                        <p className="text-2xl font-bold">{result.estimated_carbs_g || 0}g</p>
-                        <p className="text-xs text-muted-foreground">Carbs</p>
+                      <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 text-center">
+                        <Cookie className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-cyan-500 mb-1 sm:mb-2" />
+                        <p className="text-lg sm:text-2xl font-bold">{result.estimated_carbs_g || 0}g</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Carbs</p>
                       </div>
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 text-center">
-                        <Droplets className="w-6 h-6 mx-auto text-purple-500 mb-2" />
-                        <p className="text-2xl font-bold">{result.estimated_fats_g || 0}g</p>
-                        <p className="text-xs text-muted-foreground">Fats</p>
+                      <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 text-center">
+                        <Droplets className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-purple-500 mb-1 sm:mb-2" />
+                        <p className="text-lg sm:text-2xl font-bold">{result.estimated_fats_g || 0}g</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Fats</p>
                       </div>
                     </div>
                   </div>
