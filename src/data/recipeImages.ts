@@ -74,6 +74,37 @@ import tofuFruitPuree from "@/assets/recipes/tofu-fruit-puree.jpg";
 // NEW RECIPE IMAGES FOR IDs 239-271 (9-12 months)
 import veggieStickHummus from "@/assets/recipes/veggie-sticks-hummus.jpg";
 import miniCheeseQuesadillas from "@/assets/recipes/mini-cheese-quesadillas.jpg";
+
+// NEW RECIPE IMAGES FOR IDs 272-300
+import potatoLeekPuree from "@/assets/recipes/potato-leek-puree.jpg";
+import oatDatePorridge from "@/assets/recipes/oat-date-porridge.jpg";
+import parsnipPearBlend from "@/assets/recipes/parsnip-pear-blend.jpg";
+import turkeyCarrotPuree from "@/assets/recipes/turkey-carrot-puree.jpg";
+import bananaTahiniCream from "@/assets/recipes/banana-tahini-cream.jpg";
+import codButternutPuree from "@/assets/recipes/cod-butternut-puree.jpg";
+import babyChickpeaHummus from "@/assets/recipes/baby-chickpea-hummus.jpg";
+import peachyCottageCheese from "@/assets/recipes/peachy-cottage-cheese.jpg";
+import sweetpotatoCoriander from "@/assets/recipes/sweetpotato-coriander.jpg";
+import avocadoSpinachPuree from "@/assets/recipes/avocado-spinach-puree.jpg";
+import chickenBroccoliPuree from "@/assets/recipes/chicken-broccoli-puree.jpg";
+import pruneAppleDigestive from "@/assets/recipes/prune-apple-digestive.jpg";
+import quinoaVegetableBowl from "@/assets/recipes/quinoa-vegetable-bowl.jpg";
+import cornPotatoPuree from "@/assets/recipes/corn-potato-puree.jpg";
+import raspberryYogurtSwirl from "@/assets/recipes/raspberry-yogurt-swirl.jpg";
+import greenbeanLambPuree from "@/assets/recipes/greenbean-lamb-puree.jpg";
+import cantaloupeMintPuree from "@/assets/recipes/cantaloupe-mint-puree.jpg";
+import pumpkinseedButterOats from "@/assets/recipes/pumpkinseed-butter-oats.jpg";
+import beefSweetpeaPuree from "@/assets/recipes/beef-sweetpea-puree.jpg";
+import miniVeggieFrittata from "@/assets/recipes/mini-veggie-frittata.jpg";
+import salmonBroccoliRice from "@/assets/recipes/salmon-broccoli-rice.jpg";
+import pastaStarsTomato from "@/assets/recipes/pasta-stars-tomato.jpg";
+import cheesyCauliflowerBites from "@/assets/recipes/cheesy-cauliflower-bites.jpg";
+import tropicalSmoothieBowl from "@/assets/recipes/tropical-smoothie-bowl.jpg";
+import beefPotatoMash from "@/assets/recipes/beef-potato-mash.jpg";
+import blueberryPancakeBites from "@/assets/recipes/blueberry-pancake-bites.jpg";
+import chickenApplePatties from "@/assets/recipes/chicken-apple-patties.jpg";
+import creamyVeggieRisotto from "@/assets/recipes/creamy-veggie-risotto.jpg";
+import strawberryBananaNicecream from "@/assets/recipes/strawberry-banana-nicecream.jpg";
 import bananaPancakeBites from "@/assets/recipes/banana-pancake-bites.jpg";
 import steamedBroccoliTrees from "@/assets/recipes/steamed-broccoli-trees.jpg";
 import sweetPotatoWedges from "@/assets/recipes/sweet-potato-wedges.jpg";
@@ -207,6 +238,36 @@ export const recipeImages = {
   miniRiceCakesToppings,
   teethingBiscuits,
   babyEnergyBalls,
+  // New recipe images for IDs 272-300
+  potatoLeekPuree,
+  oatDatePorridge,
+  parsnipPearBlend,
+  turkeyCarrotPuree,
+  bananaTahiniCream,
+  codButternutPuree,
+  babyChickpeaHummus,
+  peachyCottageCheese,
+  sweetpotatoCoriander,
+  avocadoSpinachPuree,
+  chickenBroccoliPuree,
+  pruneAppleDigestive,
+  quinoaVegetableBowl,
+  cornPotatoPuree,
+  raspberryYogurtSwirl,
+  greenbeanLambPuree,
+  cantaloupeMintPuree,
+  pumpkinseedButterOats,
+  beefSweetpeaPuree,
+  miniVeggieFrittata,
+  salmonBroccoliRice,
+  pastaStarsTomato,
+  cheesyCauliflowerBites,
+  tropicalSmoothieBowl,
+  beefPotatoMash,
+  blueberryPancakeBites,
+  chickenApplePatties,
+  creamyVeggieRisotto,
+  strawberryBananaNicecream,
 };
 
 // Helper function to get appropriate image based on recipe type
@@ -342,36 +403,36 @@ export const getRecipeImage = (keywords: string[]): string => {
   if (keywordString.includes("asparagus")) return asparagusPotatoMash;
   if (keywordString.includes("tofu")) return tofuFruitPuree;
   
-  // NEW RECIPE IMAGES 272-300 - EXACT ID MATCHES
-  if (keywordString.includes("272")) return zucchiniPotatoMash; // Creamy Potato & Leek
-  if (keywordString.includes("273")) return pearOatPorridge; // Gentle Oat & Date
-  if (keywordString.includes("274")) return whiteFishParsnip; // Silky Parsnip & Pear
-  if (keywordString.includes("275")) return turkeyVegetableBlend; // Turkey & Carrot
-  if (keywordString.includes("276")) return bananaAvocadoBlend; // Creamy Banana & Tahini
-  if (keywordString.includes("277")) return fishVegetablePuree; // Gentle Cod & Butternut
-  if (keywordString.includes("278")) return veggieStickHummus; // Smooth Chickpea Hummus
-  if (keywordString.includes("279")) return cottageCheesePoachBowl; // Peachy Cottage Cheese
-  if (keywordString.includes("280")) return sweetPotatoCinnamon; // Sweet Potato & Coriander
-  if (keywordString.includes("281")) return spinachPotatoMash; // Creamy Avocado & Spinach
-  if (keywordString.includes("282")) return chickenHerbBlend; // Mild Chicken & Broccoli
-  if (keywordString.includes("283")) return applePruneCompote; // Prune & Apple Digestive
-  if (keywordString.includes("284")) return pumpkinQuinoaBowl; // Quinoa & Vegetable
-  if (keywordString.includes("285")) return cauliflowerCheesePuree; // Creamy Corn & Potato
-  if (keywordString.includes("286")) return yogurtBerries; // Raspberry Yogurt Swirl
-  if (keywordString.includes("287")) return lambVegetableStew; // Green Bean & Lamb
-  if (keywordString.includes("288")) return melonCottageCheese; // Cantaloupe Mint
-  if (keywordString.includes("289")) return pearOatPorridge; // Pumpkin Seed Butter Oats
-  if (keywordString.includes("290")) return beefCarrotPuree; // Tender Beef & Sweet Pea
-  if (keywordString.includes("291")) return eggMuffins; // Mini Veggie Frittata
-  if (keywordString.includes("292")) return salmonPastaBake; // Salmon & Broccoli Rice
-  if (keywordString.includes("293")) return pastaTomato; // Soft Pasta Stars
-  if (keywordString.includes("294")) return cauliflowerCheesePuree; // Cheesy Cauliflower
-  if (keywordString.includes("295")) return mangoPuree; // Tropical Smoothie
-  if (keywordString.includes("296")) return beefSweetPotatoStew; // Tender Beef & Potato
-  if (keywordString.includes("297")) return bananaPancakeBites; // Blueberry Pancake
-  if (keywordString.includes("298")) return chickenPatties; // Chicken & Apple Patties
-  if (keywordString.includes("299")) return vegetableRisotto; // Creamy Vegetable Risotto
-  if (keywordString.includes("300")) return berrySmoothieBowl; // Strawberry Banana Nice Cream
+  // NEW RECIPE IMAGES 272-300 - EXACT ID MATCHES WITH UNIQUE IMAGES
+  if (keywordString.includes("272")) return potatoLeekPuree; // Creamy Potato & Leek
+  if (keywordString.includes("273")) return oatDatePorridge; // Gentle Oat & Date
+  if (keywordString.includes("274")) return parsnipPearBlend; // Silky Parsnip & Pear
+  if (keywordString.includes("275")) return turkeyCarrotPuree; // Turkey & Carrot
+  if (keywordString.includes("276")) return bananaTahiniCream; // Creamy Banana & Tahini
+  if (keywordString.includes("277")) return codButternutPuree; // Gentle Cod & Butternut
+  if (keywordString.includes("278")) return babyChickpeaHummus; // Smooth Chickpea Hummus
+  if (keywordString.includes("279")) return peachyCottageCheese; // Peachy Cottage Cheese
+  if (keywordString.includes("280")) return sweetpotatoCoriander; // Sweet Potato & Coriander
+  if (keywordString.includes("281")) return avocadoSpinachPuree; // Creamy Avocado & Spinach
+  if (keywordString.includes("282")) return chickenBroccoliPuree; // Mild Chicken & Broccoli
+  if (keywordString.includes("283")) return pruneAppleDigestive; // Prune & Apple Digestive
+  if (keywordString.includes("284")) return quinoaVegetableBowl; // Quinoa & Vegetable
+  if (keywordString.includes("285")) return cornPotatoPuree; // Creamy Corn & Potato
+  if (keywordString.includes("286")) return raspberryYogurtSwirl; // Raspberry Yogurt Swirl
+  if (keywordString.includes("287")) return greenbeanLambPuree; // Green Bean & Lamb
+  if (keywordString.includes("288")) return cantaloupeMintPuree; // Cantaloupe Mint
+  if (keywordString.includes("289")) return pumpkinseedButterOats; // Pumpkin Seed Butter Oats
+  if (keywordString.includes("290")) return beefSweetpeaPuree; // Tender Beef & Sweet Pea
+  if (keywordString.includes("291")) return miniVeggieFrittata; // Mini Veggie Frittata
+  if (keywordString.includes("292")) return salmonBroccoliRice; // Salmon & Broccoli Rice
+  if (keywordString.includes("293")) return pastaStarsTomato; // Soft Pasta Stars
+  if (keywordString.includes("294")) return cheesyCauliflowerBites; // Cheesy Cauliflower
+  if (keywordString.includes("295")) return tropicalSmoothieBowl; // Tropical Smoothie
+  if (keywordString.includes("296")) return beefPotatoMash; // Tender Beef & Potato
+  if (keywordString.includes("297")) return blueberryPancakeBites; // Blueberry Pancake
+  if (keywordString.includes("298")) return chickenApplePatties; // Chicken & Apple Patties
+  if (keywordString.includes("299")) return creamyVeggieRisotto; // Creamy Vegetable Risotto
+  if (keywordString.includes("300")) return strawberryBananaNicecream; // Strawberry Banana Nice Cream
   
   // Category-based fallbacks only - no single keyword matches that cause duplicates
   if (keywordString.includes("puree")) return avocadoPuree;
