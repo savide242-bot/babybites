@@ -342,33 +342,38 @@ export const getRecipeImage = (keywords: string[]): string => {
   if (keywordString.includes("asparagus")) return asparagusPotatoMash;
   if (keywordString.includes("tofu")) return tofuFruitPuree;
   
-  // Single keyword matches
-  if (keywordString.includes("risotto")) return vegetableRisotto;
-  if (keywordString.includes("avocado")) return avocadoPuree;
-  if (keywordString.includes("sweet potato")) return sweetPotatoCarrot;
-  if (keywordString.includes("blueberry")) return blueberryOatmeal;
-  if (keywordString.includes("egg")) return eggMuffins;
-  if (keywordString.includes("banana") && keywordString.includes("cookie")) return bananaOatCookies;
-  if (keywordString.includes("banana")) return bananaPancakes;
-  if (keywordString.includes("chicken")) return chickenPatties;
-  if (keywordString.includes("pea") || keywordString.includes("green")) return peaPuree;
-  if (keywordString.includes("apple") || keywordString.includes("pear")) return appleSauce;
-  if (keywordString.includes("pasta")) return pastaTomato;
-  if (keywordString.includes("yogurt") || keywordString.includes("berry")) return yogurtBerries;
-  if (keywordString.includes("quinoa") || keywordString.includes("grain")) return quinoaVeggies;
-  if (keywordString.includes("broccoli")) return broccoliTots;
-  if (keywordString.includes("salmon") || keywordString.includes("fish")) return salmonSweetPotato;
-  if (keywordString.includes("rice") || keywordString.includes("cereal")) return riceBanana;
-  if (keywordString.includes("lentil") || keywordString.includes("soup")) return lentilSoup;
-  if (keywordString.includes("mango") || keywordString.includes("tropical")) return mangoPuree;
-  if (keywordString.includes("beef")) return beefStew;
-  if (keywordString.includes("quesadilla") || keywordString.includes("spinach")) return spinachQuesadilla;
-  if (keywordString.includes("squash") || keywordString.includes("butternut")) return butternutSquash;
-  if (keywordString.includes("turkey") || keywordString.includes("meatball")) return turkeyMeatballs;
-  if (keywordString.includes("chickpea") || keywordString.includes("patties")) return chickpeaCarrotPatties;
-  if (keywordString.includes("cookie")) return bananaOatCookies;
+  // NEW RECIPE IMAGES 272-300 - EXACT ID MATCHES
+  if (keywordString.includes("272")) return zucchiniPotatoMash; // Creamy Potato & Leek
+  if (keywordString.includes("273")) return pearOatPorridge; // Gentle Oat & Date
+  if (keywordString.includes("274")) return whiteFishParsnip; // Silky Parsnip & Pear
+  if (keywordString.includes("275")) return turkeyVegetableBlend; // Turkey & Carrot
+  if (keywordString.includes("276")) return bananaAvocadoBlend; // Creamy Banana & Tahini
+  if (keywordString.includes("277")) return fishVegetablePuree; // Gentle Cod & Butternut
+  if (keywordString.includes("278")) return veggieStickHummus; // Smooth Chickpea Hummus
+  if (keywordString.includes("279")) return cottageCheesePoachBowl; // Peachy Cottage Cheese
+  if (keywordString.includes("280")) return sweetPotatoCinnamon; // Sweet Potato & Coriander
+  if (keywordString.includes("281")) return spinachPotatoMash; // Creamy Avocado & Spinach
+  if (keywordString.includes("282")) return chickenHerbBlend; // Mild Chicken & Broccoli
+  if (keywordString.includes("283")) return applePruneCompote; // Prune & Apple Digestive
+  if (keywordString.includes("284")) return pumpkinQuinoaBowl; // Quinoa & Vegetable
+  if (keywordString.includes("285")) return cauliflowerCheesePuree; // Creamy Corn & Potato
+  if (keywordString.includes("286")) return yogurtBerries; // Raspberry Yogurt Swirl
+  if (keywordString.includes("287")) return lambVegetableStew; // Green Bean & Lamb
+  if (keywordString.includes("288")) return melonCottageCheese; // Cantaloupe Mint
+  if (keywordString.includes("289")) return pearOatPorridge; // Pumpkin Seed Butter Oats
+  if (keywordString.includes("290")) return beefCarrotPuree; // Tender Beef & Sweet Pea
+  if (keywordString.includes("291")) return eggMuffins; // Mini Veggie Frittata
+  if (keywordString.includes("292")) return salmonPastaBake; // Salmon & Broccoli Rice
+  if (keywordString.includes("293")) return pastaTomato; // Soft Pasta Stars
+  if (keywordString.includes("294")) return cauliflowerCheesePuree; // Cheesy Cauliflower
+  if (keywordString.includes("295")) return mangoPuree; // Tropical Smoothie
+  if (keywordString.includes("296")) return beefSweetPotatoStew; // Tender Beef & Potato
+  if (keywordString.includes("297")) return bananaPancakeBites; // Blueberry Pancake
+  if (keywordString.includes("298")) return chickenPatties; // Chicken & Apple Patties
+  if (keywordString.includes("299")) return vegetableRisotto; // Creamy Vegetable Risotto
+  if (keywordString.includes("300")) return berrySmoothieBowl; // Strawberry Banana Nice Cream
   
-  // Category-based fallbacks
+  // Category-based fallbacks only - no single keyword matches that cause duplicates
   if (keywordString.includes("puree")) return avocadoPuree;
   if (keywordString.includes("finger food")) return chickenPatties;
   if (keywordString.includes("breakfast")) return bananaPancakes;

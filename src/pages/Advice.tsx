@@ -3,7 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Heart, Baby, Moon, Utensils, AlertCircle, Sparkles,
   Droplets, Scale, BookOpen, Apple, Brain, ShieldCheck,
-  Clock, Leaf, HandHeart, Stethoscope
+  Clock, Leaf, HandHeart, Stethoscope, ThermometerSun,
+  Pill, Milk, Wheat, Snowflake, Plane, Users, DollarSign,
+  Calendar, Dumbbell, Eye, Smile
 } from "lucide-react";
 
 const adviceArticles = [
@@ -247,6 +249,232 @@ const adviceArticles = [
       "Keep emergency healthy options: pouches, frozen veggies, quick oats.",
     ],
   },
+  // NEW ARTICLES
+  {
+    id: 17,
+    title: "Vitamin D: The Sunshine Vitamin",
+    description: "Why vitamin D is critical for bone health and immune function in babies",
+    category: "Nutrition",
+    icon: ThermometerSun,
+    color: "from-yellow-400 to-orange-500",
+    content: [
+      "Vitamin D helps babies absorb calcium for strong bones and teeth development.",
+      "Breastfed babies need 400 IU vitamin D supplement daily from birth - formula is usually fortified.",
+      "Limited sun exposure means dietary sources become more important: fatty fish, fortified cereals, egg yolks.",
+      "Deficiency can lead to rickets (soft bones), delayed motor development, and weakened immunity.",
+      "Ask your pediatrician about vitamin D drops and when to start them.",
+    ],
+  },
+  {
+    id: 18,
+    title: "Weaning from Breast or Bottle",
+    description: "Gentle transition strategies for moving away from milk feeds",
+    category: "Feeding",
+    icon: Milk,
+    color: "from-sky-400 to-blue-500",
+    content: [
+      "WHO recommends breastfeeding until age 2 or beyond, alongside solid foods from 6 months.",
+      "Night weaning can begin around 6-12 months when baby gets adequate daytime nutrition.",
+      "Gradual reduction works better than abrupt stopping - drop one feed at a time over weeks.",
+      "Introduce cup drinking early (around 6 months) to ease bottle-to-cup transition by 12-18 months.",
+      "Comfort nursing is natural - offer extra cuddles and attention during weaning.",
+    ],
+  },
+  {
+    id: 19,
+    title: "Reading Baby Food Labels",
+    description: "How to decode nutrition labels and ingredient lists on baby food products",
+    category: "Tips",
+    icon: Eye,
+    color: "from-indigo-400 to-violet-500",
+    content: [
+      "Ingredients are listed by weight - the first ingredient makes up the largest portion.",
+      "Avoid added sugars (including fruit juice concentrates, corn syrup, honey) before 12 months.",
+      "Watch for hidden sodium - babies need less than 1g salt per day before 12 months.",
+      "'Natural flavors' and 'organic' don't always mean healthier - check the full ingredient list.",
+      "Compare per-serving sizes - some products use smaller servings to make nutrition look better.",
+    ],
+  },
+  {
+    id: 20,
+    title: "Freezing & Storing Baby Food Safely",
+    description: "Best practices for preserving homemade baby food nutrition and safety",
+    category: "Tips",
+    icon: Snowflake,
+    color: "from-cyan-400 to-blue-500",
+    content: [
+      "Freeze purees in ice cube trays, then transfer to freezer bags labeled with date and contents.",
+      "Most homemade baby food stays fresh frozen for 1-3 months at 0°F (-18°C) or below.",
+      "Thaw overnight in refrigerator or use warm water bath - never microwave directly.",
+      "Once thawed, use within 24-48 hours and never refreeze previously frozen food.",
+      "Fresh purees can be refrigerated for 2-3 days in airtight containers.",
+    ],
+  },
+  {
+    id: 21,
+    title: "Traveling with Baby: Feeding Tips",
+    description: "How to maintain nutrition and safety when traveling with your infant",
+    category: "Tips",
+    icon: Plane,
+    color: "from-blue-400 to-indigo-500",
+    content: [
+      "Pack shelf-stable food pouches and jars for flights - TSA allows baby food in reasonable quantities.",
+      "Bring familiar foods to maintain routine and reduce feeding refusal in new environments.",
+      "Portable insulated bags with ice packs keep perishables safe for several hours.",
+      "Request baby-friendly meals from airlines 24 hours in advance - most accommodate special requests.",
+      "In new destinations, stick to cooked foods, bottled water for mixing, and wash fresh produce thoroughly.",
+    ],
+  },
+  {
+    id: 22,
+    title: "Feeding Twins & Multiples",
+    description: "Practical strategies for feeding multiple babies efficiently",
+    category: "Tips",
+    icon: Users,
+    color: "from-pink-400 to-rose-500",
+    content: [
+      "Synchronized feeding schedules help manage time - feed both at once when possible.",
+      "Invest in double feeding equipment: twin nursing pillow, multiple high chairs, divided plates.",
+      "Each baby may have different preferences and pace - that's normal and okay.",
+      "Batch cooking becomes essential - prepare larger quantities and freeze individual portions.",
+      "Accept help! Feeding multiples is demanding; having an extra pair of hands makes a difference.",
+    ],
+  },
+  {
+    id: 23,
+    title: "Organic vs Conventional Baby Food",
+    description: "Understanding the real differences and making informed choices",
+    category: "Nutrition",
+    icon: Leaf,
+    color: "from-green-400 to-emerald-500",
+    content: [
+      "Organic foods have lower pesticide residues, but conventional foods are also safe within regulations.",
+      "The 'Dirty Dozen' (strawberries, spinach, apples) have higher pesticide residues - prioritize organic here.",
+      "The 'Clean Fifteen' (avocados, bananas, peas) have low residues - conventional is often fine.",
+      "Organic doesn't automatically mean more nutritious - nutrition depends on the food itself.",
+      "If budget is tight, focus on organic for frequently-eaten foods and those with edible skins.",
+    ],
+  },
+  {
+    id: 24,
+    title: "Sugar & Salt: Hidden Dangers",
+    description: "Why to avoid added salt and sugar and where they hide in baby foods",
+    category: "Health",
+    icon: AlertCircle,
+    color: "from-red-400 to-rose-500",
+    content: [
+      "Babies' kidneys can't process excess salt - limit to under 1g per day before 12 months.",
+      "Added sugar trains taste preferences toward sweet foods and contributes to tooth decay.",
+      "Hidden sources: bread, cereals, yogurt, sauces, canned vegetables - always check labels.",
+      "Natural sugars in fruits are fine - it's added sugars (in processed foods) to avoid.",
+      "Herbs and spices (without salt) can make food tasty without sodium.",
+    ],
+  },
+  {
+    id: 25,
+    title: "Building Immune System Through Nutrition",
+    description: "Foods that strengthen your baby's natural defenses",
+    category: "Health",
+    icon: ShieldCheck,
+    color: "from-emerald-400 to-teal-500",
+    content: [
+      "Vitamin C (citrus, berries, peppers) supports immune cell function and wound healing.",
+      "Zinc (meat, beans, dairy) is crucial for immune development - babies are often deficient.",
+      "Probiotics (yogurt, fermented foods) support gut health where 70% of immune cells reside.",
+      "Vitamin A (sweet potatoes, carrots) maintains healthy mucous membranes - first defense against germs.",
+      "Diverse diet = diverse gut bacteria = stronger immune system.",
+    ],
+  },
+  {
+    id: 26,
+    title: "Seasonal Eating for Babies",
+    description: "Benefits of feeding seasonal produce and what's in season when",
+    category: "Nutrition",
+    icon: Calendar,
+    color: "from-amber-400 to-yellow-500",
+    content: [
+      "Spring: peas, asparagus, strawberries, artichokes - fresh and tender for purees.",
+      "Summer: berries, peaches, zucchini, tomatoes - peak nutrition and natural sweetness.",
+      "Fall: squash, apples, pears, sweet potatoes - perfect for warming purees.",
+      "Winter: citrus, root vegetables, brussels sprouts - vitamin C and fiber-rich.",
+      "Seasonal produce is fresher, more nutritious, often cheaper, and better for the environment.",
+    ],
+  },
+  {
+    id: 27,
+    title: "Budget-Friendly Baby Nutrition",
+    description: "How to feed your baby well without breaking the bank",
+    category: "Tips",
+    icon: DollarSign,
+    color: "from-green-400 to-lime-500",
+    content: [
+      "Homemade baby food costs 50-80% less than store-bought when using whole ingredients.",
+      "Buy frozen fruits and vegetables - equally nutritious and much cheaper than fresh.",
+      "Beans, lentils, and eggs are affordable protein sources with excellent nutrition.",
+      "Buy in bulk and freeze: sweet potatoes, bananas, oats, and seasonal produce.",
+      "Generic/store brands are often identical to name brands at lower prices.",
+    ],
+  },
+  {
+    id: 28,
+    title: "Introducing Gluten & Grains",
+    description: "When and how to safely introduce wheat, oats, and other grains",
+    category: "Feeding",
+    icon: Wheat,
+    color: "from-amber-500 to-orange-500",
+    content: [
+      "Introduce gluten-containing grains (wheat, barley, rye) around 6 months alongside other solids.",
+      "Start with single-grain cereals: rice, oat, or barley mixed with breast milk or formula.",
+      "Early introduction (before 12 months) may actually reduce celiac disease risk.",
+      "Watch for signs of intolerance: bloating, diarrhea, rash, poor weight gain - consult your doctor.",
+      "Variety matters: rotate between different grains (quinoa, millet, oats) for diverse nutrients.",
+    ],
+  },
+  {
+    id: 29,
+    title: "Supplements: What Babies Need",
+    description: "Essential supplements and when your baby might need them",
+    category: "Health",
+    icon: Pill,
+    color: "from-violet-400 to-purple-500",
+    content: [
+      "Vitamin D (400 IU daily): All breastfed babies need this; formula is usually fortified.",
+      "Iron: Breastfed babies may need supplements from 4 months; consult your pediatrician.",
+      "Vitamin K: Given at birth to prevent bleeding disorders - a one-time injection.",
+      "DHA/Omega-3: Consider if baby doesn't eat fish regularly - supports brain development.",
+      "Always consult your pediatrician before starting any supplement.",
+    ],
+  },
+  {
+    id: 30,
+    title: "Physical Activity & Appetite",
+    description: "How movement affects your baby's hunger and eating patterns",
+    category: "Development",
+    icon: Dumbbell,
+    color: "from-blue-400 to-cyan-500",
+    content: [
+      "Active babies often have bigger appetites - tummy time and crawling burn energy.",
+      "Movement before meals can stimulate appetite in reluctant eaters.",
+      "Avoid feeding immediately after vigorous activity - wait 15-20 minutes.",
+      "Outdoor play increases appetite and helps regulate eating schedules.",
+      "As babies become mobile (crawling, walking), calorie needs increase significantly.",
+    ],
+  },
+  {
+    id: 31,
+    title: "Teething & Feeding Challenges",
+    description: "How teething affects appetite and what foods help soothe sore gums",
+    category: "Feeding",
+    icon: Smile,
+    color: "from-pink-400 to-rose-500",
+    content: [
+      "Teething often causes temporary appetite loss - don't worry if baby eats less for a few days.",
+      "Cold foods soothe gums: frozen fruit in mesh feeders, chilled purees, cold teething biscuits.",
+      "Soft, smooth textures are easier when gums are sore - offer purees even if baby usually eats solids.",
+      "Avoid acidic foods (citrus, tomatoes) which can irritate sensitive gums.",
+      "Extra breastfeeding or bottle feeds may be needed for comfort during teething.",
+    ],
+  },
 ];
 
 const Advice = () => {
@@ -264,7 +492,7 @@ const Advice = () => {
                 Expert Advice & Tips
               </h1>
               <p className="text-muted-foreground">
-                Essential guides for your baby's nutrition journey
+                {adviceArticles.length} essential guides for your baby's nutrition journey
               </p>
             </div>
           </div>

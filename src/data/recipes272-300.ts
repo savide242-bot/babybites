@@ -1,0 +1,1177 @@
+import { Recipe } from "./recipes";
+
+export const recipes272to300: Recipe[] = [
+  // 6-9 MONTHS: 19 NEW RECIPES (IDs 272-290)
+  {
+    id: "272",
+    title: "Creamy Potato & Leek Puree",
+    description: "A mild, creamy introduction to leeks with buttery potato",
+    ageGroup: "6-9",
+    category: "lunch",
+    prepTime: "25 min",
+    ingredients: [
+      "1 medium potato, peeled and cubed",
+      "1 small leek, white part only, sliced",
+      "1 tablespoon unsalted butter",
+      "1/4 cup breast milk or formula",
+      "Pinch of dried thyme (optional)"
+    ],
+    instructions: [
+      "Rinse the leek thoroughly to remove any grit between layers.",
+      "Peel the potato and cut into 1-inch cubes for even cooking.",
+      "Place potato cubes in a steamer basket over boiling water.",
+      "Steam potatoes for 10 minutes until they start to soften.",
+      "Add sliced leek to the steamer basket with the potatoes.",
+      "Continue steaming for another 8-10 minutes until both are very tender.",
+      "Transfer the steamed vegetables to a blender or food processor.",
+      "Add the unsalted butter while vegetables are still hot so it melts.",
+      "Pour in the breast milk or formula for creaminess.",
+      "Add a tiny pinch of thyme if using for subtle flavor.",
+      "Blend until completely smooth with no lumps remaining.",
+      "Check temperature before serving - should be lukewarm, not hot."
+    ],
+    nutrition: {
+      calories: "95",
+      protein: "2g",
+      carbs: "14g",
+      fats: "4g",
+      fiber: "2g",
+      sugar: "1g"
+    },
+    allergens: ["Dairy"],
+    storageInstructions: "Refrigerate for up to 3 days. Freeze in portions for up to 2 months.",
+    healthBenefits: "Leeks provide prebiotics for gut health and vitamin K for bone development. Potatoes offer potassium for muscle function.",
+    servingGuidance: "Serve 2-4 tablespoons as a side dish or mix with protein puree."
+  },
+  {
+    id: "273",
+    title: "Gentle Oat & Date Porridge",
+    description: "Naturally sweetened breakfast porridge with fiber-rich dates",
+    ageGroup: "6-9",
+    category: "breakfast",
+    prepTime: "15 min",
+    ingredients: [
+      "3 tablespoons baby oats or ground oats",
+      "2 Medjool dates, pitted",
+      "3/4 cup water",
+      "2 tablespoons breast milk or formula",
+      "1/4 teaspoon cinnamon"
+    ],
+    instructions: [
+      "Pit the dates and soak them in warm water for 10 minutes to soften.",
+      "Drain the dates and blend them into a smooth paste with 2 tablespoons water.",
+      "Bring 3/4 cup water to a gentle simmer in a small saucepan.",
+      "Stir in the baby oats slowly to prevent clumping.",
+      "Cook on low heat for 5-7 minutes, stirring frequently.",
+      "Add the date paste to the oats and mix well.",
+      "Sprinkle in the cinnamon and stir to combine.",
+      "Remove from heat and let cool for 2-3 minutes.",
+      "Stir in the breast milk or formula for added nutrition.",
+      "Check consistency - add more liquid if too thick.",
+      "Test temperature on your wrist before serving.",
+      "Serve immediately while warm for best taste and texture."
+    ],
+    nutrition: {
+      calories: "110",
+      protein: "3g",
+      carbs: "22g",
+      fats: "1g",
+      fiber: "3g",
+      sugar: "10g"
+    },
+    allergens: ["Gluten"],
+    storageInstructions: "Best served fresh. Can refrigerate for 24 hours - add liquid when reheating.",
+    healthBenefits: "Dates provide natural iron and potassium. Oats offer beta-glucan fiber for healthy digestion and sustained energy.",
+    servingGuidance: "Serve 3-5 tablespoons for breakfast. Pair with fruit puree for variety."
+  },
+  {
+    id: "274",
+    title: "Silky Parsnip & Pear Blend",
+    description: "Sweet root vegetable puree with natural pear sweetness",
+    ageGroup: "6-9",
+    category: "snack",
+    prepTime: "20 min",
+    ingredients: [
+      "1 medium parsnip, peeled and sliced",
+      "1 ripe pear, peeled and cored",
+      "1/4 teaspoon nutmeg",
+      "2 tablespoons water"
+    ],
+    instructions: [
+      "Peel the parsnip and cut into thin slices for faster cooking.",
+      "Remove any woody core from the parsnip if present.",
+      "Peel, core, and dice the pear into small chunks.",
+      "Place parsnip slices in a steamer basket over boiling water.",
+      "Steam parsnips alone for 8 minutes as they take longer to cook.",
+      "Add pear pieces to the steamer with the parsnip.",
+      "Continue steaming for another 5-7 minutes until everything is very soft.",
+      "Transfer the steamed fruits and vegetables to a blender.",
+      "Add the nutmeg for a warm, subtle flavor.",
+      "Add 2 tablespoons of water to help blending.",
+      "Blend until silky smooth with no fibrous bits.",
+      "Allow to cool to lukewarm temperature before serving baby."
+    ],
+    nutrition: {
+      calories: "75",
+      protein: "1g",
+      carbs: "18g",
+      fats: "0g",
+      fiber: "4g",
+      sugar: "10g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 3 months.",
+    healthBenefits: "Parsnips provide folate and vitamin C. Pears add natural sweetness and fiber for digestive health.",
+    servingGuidance: "Serve 2-4 tablespoons as a snack or dessert."
+  },
+  {
+    id: "275",
+    title: "Turkey & Carrot First Meat",
+    description: "Lean protein puree perfect for introducing meat to baby",
+    ageGroup: "6-9",
+    category: "lunch",
+    prepTime: "30 min",
+    ingredients: [
+      "2 oz ground turkey (dark meat preferred for iron)",
+      "1 medium carrot, peeled and sliced",
+      "1/4 cup low-sodium chicken broth",
+      "1 teaspoon olive oil",
+      "Pinch of sage (optional)"
+    ],
+    instructions: [
+      "Heat olive oil in a small pan over medium heat.",
+      "Add ground turkey to the pan, breaking it into small pieces.",
+      "Cook turkey thoroughly until no pink remains, about 8-10 minutes.",
+      "While turkey cooks, peel and slice carrot into thin rounds.",
+      "Steam carrot slices for 10-12 minutes until very tender.",
+      "Place cooked turkey in a blender or food processor.",
+      "Add the steamed carrots to the blender with the turkey.",
+      "Pour in the chicken broth for moisture and flavor.",
+      "Add a tiny pinch of sage if desired for traditional flavor.",
+      "Blend on high until completely smooth - this may take 2-3 minutes for meat.",
+      "Add more broth if needed to reach desired consistency.",
+      "Test temperature before serving and cool if needed."
+    ],
+    nutrition: {
+      calories: "85",
+      protein: "10g",
+      carbs: "5g",
+      fats: "3g",
+      fiber: "1g",
+      sugar: "2g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze in ice cube portions for up to 1 month.",
+    healthBenefits: "Turkey provides essential iron and zinc for growth. Carrots add vitamin A for eye health and immune function.",
+    servingGuidance: "Start with 1-2 tablespoons mixed with vegetable puree. Increase to 2-4 tablespoons as baby adjusts."
+  },
+  {
+    id: "276",
+    title: "Creamy Banana & Tahini",
+    description: "Protein-rich blend with sesame and banana sweetness",
+    ageGroup: "6-9",
+    category: "snack",
+    prepTime: "5 min",
+    ingredients: [
+      "1 ripe banana",
+      "1/2 teaspoon tahini (sesame paste)",
+      "2 tablespoons breast milk or formula",
+      "Pinch of cinnamon"
+    ],
+    instructions: [
+      "Peel a ripe banana and break into chunks.",
+      "Place banana pieces in a bowl or blender.",
+      "Add the tahini - start with just 1/2 teaspoon for first introduction.",
+      "Pour in the breast milk or formula.",
+      "Mash with a fork for a chunkier texture (older babies).",
+      "Or blend until smooth for younger babies just starting solids.",
+      "Add a small pinch of cinnamon and mix well.",
+      "Taste to ensure tahini is well distributed.",
+      "Adjust consistency with more milk if needed.",
+      "Serve immediately as bananas brown quickly.",
+      "Watch for any allergic reaction - sesame is a common allergen.",
+      "Offer again in 3-5 days if no reaction to confirm tolerance."
+    ],
+    nutrition: {
+      calories: "105",
+      protein: "2g",
+      carbs: "22g",
+      fats: "2g",
+      fiber: "2g",
+      sugar: "12g"
+    },
+    allergens: ["Sesame"],
+    storageInstructions: "Best served fresh. Does not store well due to banana browning.",
+    healthBenefits: "Tahini provides calcium and healthy fats for brain development. Bananas offer potassium and natural energy.",
+    servingGuidance: "Serve 2-4 tablespoons. Excellent for introducing sesame allergen."
+  },
+  {
+    id: "277",
+    title: "Gentle Cod & Butternut",
+    description: "Mild white fish puree with sweet butternut squash",
+    ageGroup: "6-9",
+    category: "dinner",
+    prepTime: "25 min",
+    ingredients: [
+      "2 oz fresh cod fillet, boneless",
+      "1/2 cup butternut squash, cubed",
+      "1 tablespoon unsalted butter",
+      "3 tablespoons water",
+      "Pinch of dill (optional)"
+    ],
+    instructions: [
+      "Cut butternut squash into 1-inch cubes after peeling.",
+      "Steam squash cubes for 12-15 minutes until very soft.",
+      "While squash cooks, check cod carefully for any bones.",
+      "Cut cod into small pieces for even cooking.",
+      "Steam cod pieces for 6-8 minutes until fish flakes easily.",
+      "Fish should be white throughout with no translucent areas.",
+      "Combine cooked squash and cod in a blender.",
+      "Add the butter while ingredients are still warm.",
+      "Add water to help blending - start with 2 tablespoons.",
+      "Add a tiny pinch of dill if using for flavor.",
+      "Blend until completely smooth with no fish chunks.",
+      "Check for and remove any bones that may have been missed."
+    ],
+    nutrition: {
+      calories: "95",
+      protein: "8g",
+      carbs: "8g",
+      fats: "4g",
+      fiber: "1g",
+      sugar: "2g"
+    },
+    allergens: ["Fish", "Dairy"],
+    storageInstructions: "Refrigerate for up to 24 hours. Freeze for up to 1 month.",
+    healthBenefits: "Cod provides lean protein and omega-3s for brain development. Butternut squash offers vitamin A and fiber.",
+    servingGuidance: "Serve 2-4 tablespoons. Great for introducing fish allergen."
+  },
+  {
+    id: "278",
+    title: "Smooth Chickpea Hummus",
+    description: "Baby-friendly hummus without garlic for first legume introduction",
+    ageGroup: "6-9",
+    category: "lunch",
+    prepTime: "10 min",
+    ingredients: [
+      "1/2 cup canned chickpeas, drained and rinsed",
+      "1 tablespoon tahini",
+      "1 tablespoon olive oil",
+      "2 tablespoons water",
+      "Squeeze of lemon juice"
+    ],
+    instructions: [
+      "Drain and rinse canned chickpeas thoroughly.",
+      "For extra smooth hummus, remove chickpea skins by rubbing in a towel.",
+      "Place chickpeas in a food processor or blender.",
+      "Add the tahini and olive oil to the chickpeas.",
+      "Add 2 tablespoons of water to start.",
+      "Blend on high for 2-3 minutes, scraping down sides.",
+      "Add a small squeeze of lemon juice for brightness.",
+      "Continue blending until very smooth - babies need smooth texture.",
+      "Add more water if too thick - should be spreadable consistency.",
+      "Taste and adjust - no salt needed for baby.",
+      "Transfer to a small container for serving.",
+      "Serve at room temperature or slightly chilled."
+    ],
+    nutrition: {
+      calories: "120",
+      protein: "5g",
+      carbs: "12g",
+      fats: "6g",
+      fiber: "3g",
+      sugar: "1g"
+    },
+    allergens: ["Sesame"],
+    storageInstructions: "Refrigerate for up to 5 days in an airtight container.",
+    healthBenefits: "Chickpeas provide plant-based protein and iron. Olive oil offers healthy fats for brain development.",
+    servingGuidance: "Serve 1-2 tablespoons as a dip with soft vegetables or spread on toast fingers."
+  },
+  {
+    id: "279",
+    title: "Peachy Cottage Cheese Blend",
+    description: "Protein-rich dairy puree with sweet peach flavor",
+    ageGroup: "6-9",
+    category: "snack",
+    prepTime: "5 min",
+    ingredients: [
+      "1/4 cup full-fat cottage cheese",
+      "1 ripe peach, peeled and pitted",
+      "1 teaspoon ground flaxseed (optional)"
+    ],
+    instructions: [
+      "Choose a ripe peach that gives slightly when pressed.",
+      "Peel the peach - blanching in hot water makes this easier.",
+      "Cut the peach in half and remove the pit.",
+      "Cut peach into small chunks for easier blending.",
+      "Add cottage cheese to a blender or food processor.",
+      "Add the peach chunks to the cottage cheese.",
+      "If using flaxseed, add it now for omega-3s.",
+      "Blend until smooth - cottage cheese curds should be gone.",
+      "Check consistency and add water if too thick.",
+      "Scrape down sides and blend again if needed.",
+      "Transfer to serving bowl and check temperature.",
+      "Serve immediately for best texture and freshness."
+    ],
+    nutrition: {
+      calories: "85",
+      protein: "6g",
+      carbs: "10g",
+      fats: "3g",
+      fiber: "1g",
+      sugar: "9g"
+    },
+    allergens: ["Dairy"],
+    storageInstructions: "Best served fresh. Refrigerate for up to 24 hours.",
+    healthBenefits: "Cottage cheese provides protein and calcium for bone growth. Peaches offer vitamin C and beta-carotene.",
+    servingGuidance: "Serve 2-4 tablespoons as a snack or breakfast addition."
+  },
+  {
+    id: "280",
+    title: "Sweet Potato & Coriander",
+    description: "Aromatic sweet potato puree with gentle herb flavor",
+    ageGroup: "6-9",
+    category: "dinner",
+    prepTime: "20 min",
+    ingredients: [
+      "1 medium sweet potato",
+      "1 teaspoon fresh coriander (cilantro), finely chopped",
+      "1 tablespoon coconut oil",
+      "3 tablespoons water"
+    ],
+    instructions: [
+      "Wash and peel the sweet potato thoroughly.",
+      "Cut into 1-inch cubes for even cooking.",
+      "Place cubes in a steamer basket over boiling water.",
+      "Steam for 15-18 minutes until very soft when pierced.",
+      "While sweet potato steams, finely chop fresh coriander.",
+      "Transfer steamed sweet potato to a blender.",
+      "Add coconut oil while potato is still warm.",
+      "Add 3 tablespoons water and blend until smooth.",
+      "Blend on high for 1-2 minutes for silky texture.",
+      "Stir in the finely chopped fresh coriander.",
+      "The heat will slightly wilt the herb, releasing flavor.",
+      "Check temperature and serve at lukewarm."
+    ],
+    nutrition: {
+      calories: "100",
+      protein: "1g",
+      carbs: "16g",
+      fats: "4g",
+      fiber: "2g",
+      sugar: "5g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
+    healthBenefits: "Sweet potato is rich in vitamin A and fiber. Coriander aids digestion and adds antioxidants.",
+    servingGuidance: "Serve 3-5 tablespoons as a main puree or side dish."
+  },
+  {
+    id: "281",
+    title: "Creamy Avocado & Spinach",
+    description: "Iron-rich green puree with healthy avocado fats",
+    ageGroup: "6-9",
+    category: "lunch",
+    prepTime: "10 min",
+    ingredients: [
+      "1/2 ripe avocado",
+      "1 cup fresh baby spinach",
+      "2 tablespoons breast milk or formula",
+      "Squeeze of lemon juice"
+    ],
+    instructions: [
+      "Wash baby spinach leaves thoroughly.",
+      "Steam spinach for 2-3 minutes until wilted and bright green.",
+      "Rinse steamed spinach under cold water to stop cooking.",
+      "Squeeze out excess water from spinach.",
+      "Cut avocado in half and remove pit.",
+      "Scoop out the flesh from half the avocado.",
+      "Place spinach and avocado in a blender.",
+      "Add breast milk or formula for creaminess.",
+      "Add a tiny squeeze of lemon to prevent browning.",
+      "Blend until completely smooth and bright green.",
+      "Adjust consistency with more milk if needed.",
+      "Serve immediately as avocado browns quickly."
+    ],
+    nutrition: {
+      calories: "95",
+      protein: "2g",
+      carbs: "5g",
+      fats: "8g",
+      fiber: "4g",
+      sugar: "0g"
+    },
+    allergens: [],
+    storageInstructions: "Best served fresh. Lemon helps preserve color for a few hours.",
+    healthBenefits: "Spinach provides iron and folate. Avocado offers healthy monounsaturated fats for brain development.",
+    servingGuidance: "Serve 2-4 tablespoons. Pair with iron-enhancing vitamin C foods."
+  },
+  {
+    id: "282",
+    title: "Mild Chicken & Broccoli",
+    description: "Protein-packed puree with cruciferous vegetable goodness",
+    ageGroup: "6-9",
+    category: "dinner",
+    prepTime: "25 min",
+    ingredients: [
+      "2 oz boneless chicken breast",
+      "1 cup broccoli florets",
+      "1/4 cup low-sodium chicken broth",
+      "1 teaspoon olive oil"
+    ],
+    instructions: [
+      "Cut chicken breast into small, thin pieces for even cooking.",
+      "Heat olive oil in a pan over medium heat.",
+      "Cook chicken pieces thoroughly until white throughout, 8-10 minutes.",
+      "Cut broccoli into small florets for faster steaming.",
+      "Steam broccoli florets for 8-10 minutes until very soft.",
+      "Place cooked chicken in a blender or food processor.",
+      "Add the steamed broccoli to the blender.",
+      "Pour in the chicken broth for moisture.",
+      "Blend on high for 2-3 minutes - meat takes longer to puree.",
+      "Scrape down sides and continue blending until smooth.",
+      "Add more broth if mixture is too thick.",
+      "Check for any chunks and blend again if needed."
+    ],
+    nutrition: {
+      calories: "90",
+      protein: "12g",
+      carbs: "4g",
+      fats: "3g",
+      fiber: "2g",
+      sugar: "1g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Chicken provides complete protein and iron. Broccoli offers vitamin C, K, and cancer-fighting compounds.",
+    servingGuidance: "Serve 2-4 tablespoons. Excellent iron source for growing babies."
+  },
+  {
+    id: "283",
+    title: "Prune & Apple Digestive Aid",
+    description: "Natural remedy for constipation with delicious flavor",
+    ageGroup: "6-9",
+    category: "snack",
+    prepTime: "15 min",
+    ingredients: [
+      "4 pitted prunes",
+      "1 medium apple, peeled and cored",
+      "1/4 cup water"
+    ],
+    instructions: [
+      "Soak prunes in warm water for 10 minutes to soften.",
+      "Peel and core the apple, cutting into small chunks.",
+      "Place apple chunks in a small saucepan with 1/4 cup water.",
+      "Simmer apple for 8-10 minutes until very soft.",
+      "Drain the soaked prunes and add to the saucepan.",
+      "Continue cooking together for 2-3 minutes.",
+      "Transfer everything to a blender with cooking liquid.",
+      "Blend until completely smooth.",
+      "Add more water if consistency is too thick.",
+      "Allow to cool to lukewarm temperature.",
+      "Test temperature before serving.",
+      "Start with small portions as prunes are very effective."
+    ],
+    nutrition: {
+      calories: "80",
+      protein: "1g",
+      carbs: "20g",
+      fats: "0g",
+      fiber: "3g",
+      sugar: "15g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 5 days. Freeze in small portions.",
+    healthBenefits: "Prunes are a natural laxative with sorbitol. Apples add pectin fiber to regulate digestion.",
+    servingGuidance: "Start with 1-2 tablespoons. Increase gradually to avoid loose stools."
+  },
+  {
+    id: "284",
+    title: "Quinoa & Vegetable Medley",
+    description: "Complete protein grain with colorful vegetables",
+    ageGroup: "6-9",
+    category: "lunch",
+    prepTime: "30 min",
+    ingredients: [
+      "2 tablespoons quinoa, rinsed well",
+      "1/4 cup diced zucchini",
+      "1/4 cup diced carrots",
+      "1/2 cup water",
+      "1 teaspoon olive oil"
+    ],
+    instructions: [
+      "Rinse quinoa thoroughly under cold water to remove bitter coating.",
+      "Combine quinoa and 1/2 cup water in a small saucepan.",
+      "Bring to a boil, then reduce to simmer.",
+      "Cover and cook for 15 minutes until water is absorbed.",
+      "While quinoa cooks, dice zucchini and carrots into small pieces.",
+      "Steam diced vegetables for 10-12 minutes until very soft.",
+      "Fluff the cooked quinoa with a fork.",
+      "Combine quinoa and steamed vegetables in a blender.",
+      "Add olive oil for healthy fats.",
+      "Blend until desired consistency - smooth or slightly textured.",
+      "Add water if needed to thin the mixture.",
+      "Serve at lukewarm temperature."
+    ],
+    nutrition: {
+      calories: "85",
+      protein: "3g",
+      carbs: "12g",
+      fats: "3g",
+      fiber: "2g",
+      sugar: "2g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
+    healthBenefits: "Quinoa is a complete protein with all essential amino acids. Vegetables add vitamins and fiber.",
+    servingGuidance: "Serve 3-5 tablespoons as a main meal."
+  },
+  {
+    id: "285",
+    title: "Creamy Corn & Potato",
+    description: "Sweet corn and fluffy potato blend for happy babies",
+    ageGroup: "6-9",
+    category: "dinner",
+    prepTime: "20 min",
+    ingredients: [
+      "1/4 cup sweet corn kernels (fresh or frozen)",
+      "1 small potato, peeled and cubed",
+      "1 tablespoon unsalted butter",
+      "3 tablespoons breast milk or formula"
+    ],
+    instructions: [
+      "If using frozen corn, thaw completely before cooking.",
+      "Peel and cube potato into 1-inch pieces.",
+      "Place potato cubes in a steamer basket over boiling water.",
+      "Steam potatoes for 10 minutes until starting to soften.",
+      "Add corn kernels to the steamer with potatoes.",
+      "Continue steaming for another 8 minutes until everything is very soft.",
+      "Transfer to a blender with butter while still hot.",
+      "Add breast milk or formula for creaminess.",
+      "Blend on high for 2-3 minutes - corn skins need extra blending.",
+      "Strain through a fine mesh sieve to remove corn skins.",
+      "Press mixture through sieve to get smooth puree.",
+      "Serve at lukewarm temperature."
+    ],
+    nutrition: {
+      calories: "105",
+      protein: "2g",
+      carbs: "16g",
+      fats: "4g",
+      fiber: "1g",
+      sugar: "3g"
+    },
+    allergens: ["Dairy"],
+    storageInstructions: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
+    healthBenefits: "Corn provides fiber and B vitamins. Potatoes offer potassium and vitamin C.",
+    servingGuidance: "Serve 3-5 tablespoons as a comforting dinner puree."
+  },
+  {
+    id: "286",
+    title: "Raspberry Yogurt Swirl",
+    description: "Antioxidant-rich berries with creamy yogurt",
+    ageGroup: "6-9",
+    category: "snack",
+    prepTime: "10 min",
+    ingredients: [
+      "1/4 cup fresh or frozen raspberries",
+      "1/4 cup plain whole milk yogurt",
+      "1 teaspoon ground oats"
+    ],
+    instructions: [
+      "If using frozen raspberries, thaw completely first.",
+      "Place raspberries in a small saucepan with 1 tablespoon water.",
+      "Simmer gently for 5 minutes to soften berries.",
+      "Mash the berries with a fork until broken down.",
+      "Strain through a fine mesh sieve to remove seeds.",
+      "Press the pulp through to get smooth puree.",
+      "Discard seeds - they're too rough for young babies.",
+      "Place yogurt in a small serving bowl.",
+      "Stir in ground oats for added fiber and texture.",
+      "Swirl the raspberry puree through the yogurt.",
+      "Don't mix completely - the swirl looks appealing.",
+      "Serve immediately for best texture and temperature."
+    ],
+    nutrition: {
+      calories: "70",
+      protein: "3g",
+      carbs: "10g",
+      fats: "2g",
+      fiber: "2g",
+      sugar: "7g"
+    },
+    allergens: ["Dairy", "Gluten"],
+    storageInstructions: "Best served fresh. Raspberry puree can be stored separately for 3 days.",
+    healthBenefits: "Raspberries are high in vitamin C and antioxidants. Yogurt provides probiotics for gut health.",
+    servingGuidance: "Serve 2-4 tablespoons as a healthy snack or dessert."
+  },
+  {
+    id: "287",
+    title: "Green Bean & Lamb",
+    description: "Iron-rich lamb with tender green beans",
+    ageGroup: "6-9",
+    category: "lunch",
+    prepTime: "30 min",
+    ingredients: [
+      "2 oz ground lamb",
+      "1/2 cup fresh green beans, trimmed",
+      "1/4 cup water",
+      "1 teaspoon olive oil",
+      "Pinch of rosemary (optional)"
+    ],
+    instructions: [
+      "Trim the ends off fresh green beans.",
+      "Cut beans into 1-inch pieces for even cooking.",
+      "Steam green beans for 10-12 minutes until very soft.",
+      "Heat olive oil in a small pan over medium heat.",
+      "Add ground lamb, breaking into small pieces.",
+      "Cook thoroughly until no pink remains, about 10 minutes.",
+      "Drain excess fat from the lamb.",
+      "Combine lamb and green beans in a blender.",
+      "Add 1/4 cup water and optional rosemary pinch.",
+      "Blend on high for 2-3 minutes until smooth.",
+      "Scrape down sides and blend again if chunky.",
+      "Adjust consistency with more water if needed."
+    ],
+    nutrition: {
+      calories: "100",
+      protein: "9g",
+      carbs: "4g",
+      fats: "6g",
+      fiber: "2g",
+      sugar: "1g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Lamb is rich in iron and zinc for growth. Green beans provide fiber and folate.",
+    servingGuidance: "Serve 2-4 tablespoons as a protein-rich main meal."
+  },
+  {
+    id: "288",
+    title: "Cantaloupe Mint Refresher",
+    description: "Hydrating melon puree with a hint of fresh mint",
+    ageGroup: "6-9",
+    category: "snack",
+    prepTime: "10 min",
+    ingredients: [
+      "1 cup ripe cantaloupe, cubed",
+      "2-3 fresh mint leaves",
+      "1 tablespoon plain yogurt (optional)"
+    ],
+    instructions: [
+      "Choose a ripe cantaloupe that smells sweet and gives slightly when pressed.",
+      "Cut cantaloupe and remove seeds and rind.",
+      "Cube the flesh into small pieces.",
+      "Wash fresh mint leaves thoroughly.",
+      "Remove mint stems - use only the leaves.",
+      "Place cantaloupe in a blender with mint leaves.",
+      "Blend until completely smooth.",
+      "Strain through a sieve if any fibrous bits remain.",
+      "If using yogurt, stir it in for added creaminess.",
+      "Taste - cantaloupe should be naturally sweet enough.",
+      "Serve at room temperature or slightly chilled.",
+      "Best consumed immediately for freshness."
+    ],
+    nutrition: {
+      calories: "45",
+      protein: "1g",
+      carbs: "11g",
+      fats: "0g",
+      fiber: "1g",
+      sugar: "10g"
+    },
+    allergens: ["Dairy (if using yogurt)"],
+    storageInstructions: "Best served fresh. Can refrigerate for up to 24 hours.",
+    healthBenefits: "Cantaloupe is excellent for hydration and provides vitamin A. Mint aids digestion.",
+    servingGuidance: "Serve 2-4 tablespoons as a refreshing snack."
+  },
+  {
+    id: "289",
+    title: "Pumpkin Seed Butter Oats",
+    description: "Allergen-friendly oats with nutritious pumpkin seed butter",
+    ageGroup: "6-9",
+    category: "breakfast",
+    prepTime: "15 min",
+    ingredients: [
+      "3 tablespoons baby oats",
+      "3/4 cup water",
+      "1 teaspoon pumpkin seed butter",
+      "1/2 banana, mashed"
+    ],
+    instructions: [
+      "Bring water to a gentle simmer in a small saucepan.",
+      "Stir in baby oats slowly to prevent lumps.",
+      "Cook on low heat for 5-7 minutes, stirring frequently.",
+      "Mash half a banana with a fork until smooth.",
+      "Once oats are cooked, remove from heat.",
+      "Stir in the pumpkin seed butter while oats are warm.",
+      "Mix until butter is completely incorporated.",
+      "Fold in the mashed banana.",
+      "Let cool for 2-3 minutes before serving.",
+      "Check consistency - add water if too thick.",
+      "Test temperature on your wrist.",
+      "Serve warm for best taste."
+    ],
+    nutrition: {
+      calories: "115",
+      protein: "4g",
+      carbs: "20g",
+      fats: "3g",
+      fiber: "3g",
+      sugar: "6g"
+    },
+    allergens: ["Gluten"],
+    storageInstructions: "Best served fresh. Can refrigerate for 24 hours.",
+    healthBenefits: "Pumpkin seeds are rich in zinc and magnesium. Oats provide sustained energy and fiber.",
+    servingGuidance: "Serve 3-5 tablespoons for a nutritious breakfast."
+  },
+  {
+    id: "290",
+    title: "Tender Beef & Sweet Pea",
+    description: "Iron-rich beef puree with sweet garden peas",
+    ageGroup: "6-9",
+    category: "dinner",
+    prepTime: "30 min",
+    ingredients: [
+      "2 oz lean ground beef",
+      "1/2 cup frozen peas",
+      "1/4 cup water or low-sodium beef broth",
+      "1 teaspoon olive oil"
+    ],
+    instructions: [
+      "Heat olive oil in a small pan over medium heat.",
+      "Add ground beef, breaking into very small pieces.",
+      "Cook thoroughly until browned throughout, 10-12 minutes.",
+      "Drain any excess fat from the cooked beef.",
+      "While beef cooks, steam frozen peas for 8-10 minutes.",
+      "Peas should be very soft and bright green.",
+      "Combine cooked beef and peas in a blender.",
+      "Add water or beef broth for moisture.",
+      "Blend on high for 2-3 minutes until smooth.",
+      "Beef takes longer to puree than vegetables.",
+      "Scrape down sides and blend again if needed.",
+      "Check for any chunks and blend more if found."
+    ],
+    nutrition: {
+      calories: "110",
+      protein: "11g",
+      carbs: "6g",
+      fats: "5g",
+      fiber: "2g",
+      sugar: "2g"
+    },
+    allergens: [],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Beef provides heme iron which is easily absorbed. Peas add plant protein and fiber.",
+    servingGuidance: "Serve 2-4 tablespoons as a protein-packed dinner."
+  },
+  
+  // 9-12 MONTHS: 10 NEW RECIPES (IDs 291-300)
+  {
+    id: "291",
+    title: "Mini Veggie Frittata Bites",
+    description: "Egg bites packed with hidden vegetables for finger food fun",
+    ageGroup: "9-12",
+    category: "breakfast",
+    prepTime: "25 min",
+    ingredients: [
+      "2 eggs",
+      "2 tablespoons finely grated zucchini",
+      "2 tablespoons finely grated carrot",
+      "1 tablespoon cream cheese",
+      "1/4 teaspoon dried herbs"
+    ],
+    instructions: [
+      "Preheat oven to 350°F (175°C).",
+      "Grease a mini muffin tin with butter or cooking spray.",
+      "Grate zucchini and carrot very finely.",
+      "Squeeze excess moisture from grated zucchini using paper towels.",
+      "Crack eggs into a bowl and whisk well.",
+      "Add softened cream cheese and mix until smooth.",
+      "Fold in the grated vegetables and dried herbs.",
+      "Divide mixture evenly among 6 mini muffin cups.",
+      "Bake for 12-15 minutes until set and lightly golden.",
+      "Let cool in tin for 5 minutes before removing.",
+      "Cut any larger bites in half for safety.",
+      "Serve at room temperature as finger food."
+    ],
+    nutrition: {
+      calories: "35 per bite",
+      protein: "2g",
+      carbs: "1g",
+      fats: "2g",
+      fiber: "0g",
+      sugar: "0g"
+    },
+    allergens: ["Eggs", "Dairy"],
+    storageInstructions: "Refrigerate for up to 3 days. Reheat gently or serve cold.",
+    healthBenefits: "Eggs provide complete protein and choline for brain development. Hidden veggies add vitamins.",
+    servingGuidance: "Serve 2-3 bites per meal as finger food."
+  },
+  {
+    id: "292",
+    title: "Salmon & Broccoli Rice Bowl",
+    description: "Omega-3 rich salmon with vegetables over soft rice",
+    ageGroup: "9-12",
+    category: "lunch",
+    prepTime: "30 min",
+    ingredients: [
+      "2 oz salmon fillet",
+      "1/4 cup broccoli florets",
+      "1/4 cup cooked rice",
+      "1 teaspoon olive oil",
+      "Squeeze of lemon"
+    ],
+    instructions: [
+      "Cook rice according to package directions until very soft.",
+      "Steam broccoli florets for 10 minutes until very tender.",
+      "Check salmon carefully for any bones.",
+      "Place salmon in a small pan with olive oil.",
+      "Cook salmon over medium heat for 4-5 minutes per side.",
+      "Fish should flake easily when done.",
+      "Let salmon cool slightly, then flake into small pieces.",
+      "Double-check for any bones while flaking.",
+      "Chop steamed broccoli into small, soft pieces.",
+      "Combine rice, salmon, and broccoli in a bowl.",
+      "Add a tiny squeeze of lemon juice.",
+      "Mix gently and serve at appropriate temperature."
+    ],
+    nutrition: {
+      calories: "140",
+      protein: "12g",
+      carbs: "12g",
+      fats: "5g",
+      fiber: "1g",
+      sugar: "0g"
+    },
+    allergens: ["Fish"],
+    storageInstructions: "Refrigerate for up to 24 hours. Best served fresh.",
+    healthBenefits: "Salmon is excellent for brain development with omega-3s. Rice provides easy-to-digest energy.",
+    servingGuidance: "Serve 1/4 to 1/2 cup as a main meal."
+  },
+  {
+    id: "293",
+    title: "Soft Pasta Stars with Meat Sauce",
+    description: "Baby-sized pasta shapes in mild tomato meat sauce",
+    ageGroup: "9-12",
+    category: "dinner",
+    prepTime: "25 min",
+    ingredients: [
+      "1/4 cup small pasta (stelline or orzo)",
+      "2 oz ground beef or turkey",
+      "2 tablespoons tomato puree (no salt added)",
+      "1 teaspoon olive oil",
+      "Pinch of oregano"
+    ],
+    instructions: [
+      "Cook pasta according to package directions until very soft.",
+      "Drain pasta and set aside.",
+      "Heat olive oil in a small pan over medium heat.",
+      "Add ground meat, breaking into very small pieces.",
+      "Cook thoroughly until no pink remains, about 8 minutes.",
+      "Drain any excess fat from the meat.",
+      "Add tomato puree to the meat and stir.",
+      "Add a tiny pinch of oregano.",
+      "Simmer sauce for 5 minutes to blend flavors.",
+      "Add cooked pasta to the sauce and mix gently.",
+      "Let cool to appropriate temperature.",
+      "Check that meat pieces are small enough for baby."
+    ],
+    nutrition: {
+      calories: "150",
+      protein: "10g",
+      carbs: "15g",
+      fats: "5g",
+      fiber: "1g",
+      sugar: "2g"
+    },
+    allergens: ["Gluten"],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Meat provides iron and protein. Tomatoes offer lycopene and vitamin C.",
+    servingGuidance: "Serve 1/4 to 1/3 cup as a main meal."
+  },
+  {
+    id: "294",
+    title: "Cheesy Cauliflower Bites",
+    description: "Soft baked cauliflower with melted cheese coating",
+    ageGroup: "9-12",
+    category: "snack",
+    prepTime: "25 min",
+    ingredients: [
+      "1 cup cauliflower florets",
+      "2 tablespoons grated cheddar cheese",
+      "1 tablespoon breadcrumbs",
+      "1 teaspoon olive oil"
+    ],
+    instructions: [
+      "Preheat oven to 375°F (190°C).",
+      "Steam cauliflower florets for 10-12 minutes until very soft.",
+      "Drain well and pat dry with paper towels.",
+      "Cut larger florets into bite-sized pieces.",
+      "Place cauliflower in a bowl with olive oil and toss.",
+      "Add grated cheese and breadcrumbs.",
+      "Mix gently to coat all pieces.",
+      "Spread on a baking sheet lined with parchment.",
+      "Bake for 12-15 minutes until cheese is melted and golden.",
+      "Let cool for 5 minutes before serving.",
+      "Test temperature - cheese can stay hot.",
+      "Serve as finger food once cool enough."
+    ],
+    nutrition: {
+      calories: "60 per serving",
+      protein: "3g",
+      carbs: "5g",
+      fats: "3g",
+      fiber: "1g",
+      sugar: "1g"
+    },
+    allergens: ["Dairy", "Gluten"],
+    storageInstructions: "Best served fresh. Can refrigerate for 1 day.",
+    healthBenefits: "Cauliflower provides vitamin C and fiber. Cheese adds calcium and protein.",
+    servingGuidance: "Serve 4-6 bites as a snack or side dish."
+  },
+  {
+    id: "295",
+    title: "Tropical Smoothie Spoons",
+    description: "Thick smoothie perfect for spoon-feeding practice",
+    ageGroup: "9-12",
+    category: "snack",
+    prepTime: "5 min",
+    ingredients: [
+      "1/2 ripe mango, cubed",
+      "1/4 cup coconut milk",
+      "1/4 banana",
+      "1 tablespoon baby oatmeal"
+    ],
+    instructions: [
+      "Peel mango and cut into small cubes.",
+      "Break banana into chunks.",
+      "Add mango and banana to a blender.",
+      "Pour in coconut milk.",
+      "Blend until smooth.",
+      "Add baby oatmeal and blend briefly.",
+      "The oatmeal thickens the smoothie for spoon-feeding.",
+      "Pour into a small bowl.",
+      "Let sit for 2 minutes to thicken further.",
+      "Stir and check consistency.",
+      "Should be thick enough to stay on spoon.",
+      "Serve with a baby spoon for self-feeding practice."
+    ],
+    nutrition: {
+      calories: "95",
+      protein: "2g",
+      carbs: "18g",
+      fats: "3g",
+      fiber: "2g",
+      sugar: "12g"
+    },
+    allergens: ["Tree nuts (coconut)", "Gluten"],
+    storageInstructions: "Best served immediately. Refrigerate for up to 24 hours.",
+    healthBenefits: "Mango provides vitamin A and C. Coconut offers healthy medium-chain fats.",
+    servingGuidance: "Serve 1/4 to 1/3 cup as a snack."
+  },
+  {
+    id: "296",
+    title: "Tender Beef & Potato Mash",
+    description: "Hearty beef and potato combination for growing appetites",
+    ageGroup: "9-12",
+    category: "dinner",
+    prepTime: "30 min",
+    ingredients: [
+      "2 oz lean ground beef",
+      "1 small potato, peeled and cubed",
+      "2 tablespoons peas",
+      "1 tablespoon unsalted butter",
+      "2 tablespoons water"
+    ],
+    instructions: [
+      "Peel and cube potato into small pieces.",
+      "Steam potato for 12-15 minutes until very soft.",
+      "Steam peas for 5 minutes until tender.",
+      "Heat a pan over medium heat.",
+      "Cook ground beef, breaking into very small pieces.",
+      "Cook until no pink remains, about 10 minutes.",
+      "Drain any excess fat from beef.",
+      "Mash potato with butter until smooth.",
+      "Fold cooked beef into mashed potato.",
+      "Stir in the steamed peas.",
+      "Add water to adjust consistency if needed.",
+      "Serve warm with small pieces for picking up."
+    ],
+    nutrition: {
+      calories: "160",
+      protein: "11g",
+      carbs: "14g",
+      fats: "7g",
+      fiber: "2g",
+      sugar: "1g"
+    },
+    allergens: ["Dairy"],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Beef provides iron and zinc essential for development. Potatoes offer potassium and energy.",
+    servingGuidance: "Serve 1/4 to 1/3 cup as a main meal."
+  },
+  {
+    id: "297",
+    title: "Blueberry Pancake Fingers",
+    description: "Soft finger-friendly pancakes with real blueberries",
+    ageGroup: "9-12",
+    category: "breakfast",
+    prepTime: "20 min",
+    ingredients: [
+      "1/4 cup whole wheat flour",
+      "1 egg",
+      "3 tablespoons milk",
+      "2 tablespoons mashed banana",
+      "10 fresh blueberries"
+    ],
+    instructions: [
+      "Mash banana until smooth in a mixing bowl.",
+      "Add egg and whisk well with banana.",
+      "Stir in milk until combined.",
+      "Add flour and mix until just combined - don't overmix.",
+      "Wash blueberries and cut each in half for safety.",
+      "Fold blueberry halves into batter.",
+      "Heat a non-stick pan over medium-low heat.",
+      "Pour batter in strips for finger-shaped pancakes.",
+      "Cook for 2-3 minutes until bubbles form on surface.",
+      "Flip carefully and cook another 2 minutes.",
+      "Let cool completely before serving.",
+      "Cut into finger-sized strips for easy gripping."
+    ],
+    nutrition: {
+      calories: "45 per finger",
+      protein: "2g",
+      carbs: "7g",
+      fats: "1g",
+      fiber: "1g",
+      sugar: "2g"
+    },
+    allergens: ["Eggs", "Gluten", "Dairy"],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Blueberries are antioxidant-rich superfoods. Whole wheat adds fiber and nutrients.",
+    servingGuidance: "Serve 2-4 fingers for breakfast."
+  },
+  {
+    id: "298",
+    title: "Chicken & Apple Patties",
+    description: "Savory-sweet mini patties perfect for little hands",
+    ageGroup: "9-12",
+    category: "lunch",
+    prepTime: "25 min",
+    ingredients: [
+      "3 oz ground chicken",
+      "2 tablespoons grated apple",
+      "1 tablespoon breadcrumbs",
+      "1/4 teaspoon dried sage",
+      "1 teaspoon olive oil"
+    ],
+    instructions: [
+      "Peel and grate apple, squeezing out excess juice.",
+      "Combine ground chicken and grated apple in a bowl.",
+      "Add breadcrumbs and sage, mix well.",
+      "Divide mixture into 4-6 small balls.",
+      "Flatten each ball into a small patty.",
+      "Heat olive oil in a pan over medium heat.",
+      "Cook patties for 4-5 minutes per side.",
+      "Ensure chicken is cooked through - no pink inside.",
+      "Internal temperature should reach 165°F (74°C).",
+      "Let cool for 5 minutes before serving.",
+      "Cut patties in half for easier gripping.",
+      "Serve as finger food with dipping sauce."
+    ],
+    nutrition: {
+      calories: "40 per patty",
+      protein: "5g",
+      carbs: "2g",
+      fats: "2g",
+      fiber: "0g",
+      sugar: "1g"
+    },
+    allergens: ["Gluten"],
+    storageInstructions: "Refrigerate for up to 2 days. Freeze for up to 1 month.",
+    healthBenefits: "Chicken provides lean protein for muscle development. Apple adds natural sweetness and fiber.",
+    servingGuidance: "Serve 2-3 patties as a main meal."
+  },
+  {
+    id: "299",
+    title: "Creamy Vegetable Risotto",
+    description: "Restaurant-style risotto adapted for baby",
+    ageGroup: "9-12",
+    category: "dinner",
+    prepTime: "35 min",
+    ingredients: [
+      "1/4 cup arborio rice",
+      "1/2 cup low-sodium vegetable broth",
+      "2 tablespoons finely diced zucchini",
+      "2 tablespoons finely diced carrots",
+      "1 tablespoon parmesan cheese",
+      "1 teaspoon unsalted butter"
+    ],
+    instructions: [
+      "Dice zucchini and carrots very finely.",
+      "Steam vegetables for 8 minutes until very soft.",
+      "Melt butter in a small saucepan over medium heat.",
+      "Add arborio rice and stir for 1 minute.",
+      "Add vegetable broth 2 tablespoons at a time.",
+      "Stir constantly, adding more broth as it absorbs.",
+      "Continue for 20-25 minutes until rice is very soft.",
+      "Rice should be creamy, not chewy.",
+      "Stir in steamed vegetables and parmesan.",
+      "Remove from heat and let cool slightly.",
+      "Check texture - should be soft enough for baby.",
+      "Serve warm in small portions."
+    ],
+    nutrition: {
+      calories: "120",
+      protein: "3g",
+      carbs: "20g",
+      fats: "3g",
+      fiber: "1g",
+      sugar: "1g"
+    },
+    allergens: ["Dairy"],
+    storageInstructions: "Refrigerate for up to 2 days. Add liquid when reheating.",
+    healthBenefits: "Rice provides easy-to-digest carbohydrates. Vegetables add vitamins and fiber for balanced nutrition.",
+    servingGuidance: "Serve 1/4 to 1/3 cup as a main meal."
+  },
+  {
+    id: "300",
+    title: "Strawberry Banana Nice Cream",
+    description: "Healthy frozen treat made with real fruit only",
+    ageGroup: "9-12",
+    category: "snack",
+    prepTime: "5 min + freezing",
+    ingredients: [
+      "1 ripe banana, frozen",
+      "4 strawberries, frozen",
+      "1 tablespoon plain yogurt"
+    ],
+    instructions: [
+      "Peel ripe banana and cut into chunks before freezing.",
+      "Hull strawberries and freeze for at least 4 hours.",
+      "Remove frozen fruit from freezer and let sit 5 minutes.",
+      "Place frozen banana chunks in a food processor.",
+      "Add frozen strawberries to the processor.",
+      "Add yogurt for creaminess.",
+      "Process for 2-3 minutes, scraping down sides.",
+      "Continue until smooth and ice cream-like consistency.",
+      "Serve immediately for soft-serve texture.",
+      "Or freeze for 30 minutes for firmer texture.",
+      "Scoop into small portions for baby.",
+      "Let soften 2 minutes if too firm."
+    ],
+    nutrition: {
+      calories: "80",
+      protein: "2g",
+      carbs: "18g",
+      fats: "1g",
+      fiber: "2g",
+      sugar: "12g"
+    },
+    allergens: ["Dairy"],
+    storageInstructions: "Best served immediately. Can freeze for up to 1 week.",
+    healthBenefits: "Made with real fruit only - no added sugar. Provides potassium, vitamin C, and probiotics from yogurt.",
+    servingGuidance: "Serve 2-4 tablespoons as a healthy dessert or snack."
+  }
+];
