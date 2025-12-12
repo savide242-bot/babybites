@@ -188,7 +188,7 @@ const Settings = () => {
                 Dietary Preferences
               </CardTitle>
               <CardDescription>
-                Set your dietary restrictions to get personalized recipe recommendations
+                Set your dietary restrictions to get personalized recipe recommendations. Changes are saved automatically.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -235,8 +235,11 @@ const Settings = () => {
                   </div>
                   
                   {preferences.length > 0 && (
-                    <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                      <p className="text-sm font-medium mb-2">Your Preferences:</p>
+                    <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Check className="h-4 w-4 text-green-600" />
+                        <p className="text-sm font-medium text-green-700 dark:text-green-400">Preferences Saved!</p>
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {preferences.map((pref) => {
                           const option = DIETARY_OPTIONS.find((o) => o.value === pref);
