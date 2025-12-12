@@ -587,11 +587,44 @@ const recipeImageMap: Record<string, string> = {
   "300": strawberryBananaNicecream,
 };
 
-// Helper function to get image by recipe ID - PURE ID-BASED MATCHING
+// Keyword to ID mapping for backward compatibility with old getRecipeImage calls
+const keywordToIdMap: Record<string, string> = {
+  "avocado puree": "1", "avocado": "1",
+  "sweet potato carrot": "2", "sweet potato": "2",
+  "pea green": "3", "pea": "3", "green pea": "3",
+  "squash butternut": "4", "butternut squash": "4", "butternut": "4",
+  "apple sauce": "5", "apple cinnamon": "5",
+  "mango tropical": "6", "mango": "6",
+  "banana mash": "7", "banana baby": "7", "banana": "7",
+  "pear prune": "8", "pear prune blend": "8",
+  "zucchini potato": "9", "zucchini": "9",
+  "peach rice": "10", "rice peach": "10",
+  "blueberry banana": "11", "blueberry": "11",
+  "cauliflower parsnip": "12", "cauliflower": "12",
+  "papaya lime": "13", "papaya": "13",
+  "spinach apple": "14", "spinach": "14",
+  "pumpkin cinnamon": "15", "pumpkin": "15",
+  "banana pancakes": "16", "pancakes": "16",
+  "blueberry oatmeal": "17", "oatmeal": "17",
+  "egg muffin": "18", "egg vegetables": "18", "egg": "18",
+  "apple oatmeal": "19",
+  "hash browns": "20",
+  "turkey meatball": "21", "turkey": "21",
+  "chicken rice": "22", "chicken": "22",
+  "beef patty": "23", "beef": "23",
+  "salmon sweet potato": "24", "salmon": "24",
+  "quinoa grain": "25", "quinoa": "25",
+  "pasta tomato": "26", "pasta": "26",
+  "lentil soup": "27", "lentil": "27",
+  "broccoli tots": "28", "broccoli": "28",
+  "fish": "42",
+  "yogurt berry": "41", "yogurt": "41",
+  "snack": "50"
+};
+
+// Helper function to get image by recipe ID or keywords
 export const getRecipeImage = (keywords: string[]): string => {
-  const keywordString = keywords.join(" ").toLowerCase();
-  
-  // FIRST: Check for exact ID match (priority)
+  // FIRST: Check for exact ID match (e.g., ["1"] or ["206"])
   for (const keyword of keywords) {
     const id = keyword.trim();
     if (recipeImageMap[id]) {
@@ -599,19 +632,33 @@ export const getRecipeImage = (keywords: string[]): string => {
     }
   }
   
-  // SECOND: Check if ID is embedded in the keyword string
-  for (let i = 1; i <= 300; i++) {
-    const idStr = i.toString();
-    // Only match if it's the ID specifically, not part of a number
-    if (keywords.includes(idStr) || keywordString === idStr) {
-      if (recipeImageMap[idStr]) {
-        return recipeImageMap[idStr];
+  // SECOND: Try keyword-to-ID mapping
+  const keywordString = keywords.join(" ").toLowerCase().trim();
+  if (keywordToIdMap[keywordString]) {
+    const mappedId = keywordToIdMap[keywordString];
+    if (recipeImageMap[mappedId]) {
+      return recipeImageMap[mappedId];
+    }
+  }
+  
+  // THIRD: Try individual keywords in the mapping
+  for (const keyword of keywords) {
+    const lowerKeyword = keyword.toLowerCase().trim();
+    if (keywordToIdMap[lowerKeyword]) {
+      const mappedId = keywordToIdMap[lowerKeyword];
+      if (recipeImageMap[mappedId]) {
+        return recipeImageMap[mappedId];
       }
     }
   }
   
-  // FALLBACK: Use a default image (should rarely happen)
-  return sweetPotatoCarrot;
+  // FOURTH: Generate a pseudo-random but consistent ID based on keywords
+  // This ensures visual variety while being deterministic
+  const hashCode = keywords.join("").split("").reduce((acc, char) => {
+    return ((acc << 5) - acc) + char.charCodeAt(0);
+  }, 0);
+  const fallbackId = String(Math.abs(hashCode % 300) + 1);
+  return recipeImageMap[fallbackId] || sweetPotatoCarrot;
 };
 
 // Direct ID lookup function for components that have recipe IDs
