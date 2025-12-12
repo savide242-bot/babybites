@@ -1,7 +1,7 @@
 import { Recipe } from "./recipes";
-import { getRecipeImage } from "./recipeImages";
+import { getRecipeImageById } from "./recipeImages";
 
-// Recipes 41-200 with complete details
+// Recipes 41-46 with complete details
 export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance">[] = [
   {
     id: "41",
@@ -11,7 +11,7 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
     category: "Breakfast",
     prepTime: "5 minutes",
     servings: "1 serving",
-    image: getRecipeImage(["yogurt", "berry"]),
+    image: getRecipeImageById("41"),
     ingredients: ["1/2 cup plain full-fat yogurt", "1/4 cup mixed berries (blueberries, strawberries)", "1 tbsp crushed graham crackers"],
     instructions: [
       "Wash the berries thoroughly under cold running water. Pat them dry with a clean towel.",
@@ -35,7 +35,7 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
     category: "Lunch",
     prepTime: "20 minutes",
     servings: "6 fingers",
-    image: getRecipeImage(["fish"]),
+    image: getRecipeImageById("42"),
     ingredients: ["6 oz cod fillet, skinless and boneless", "1/4 cup panko breadcrumbs", "1 egg, beaten", "1/4 cup all-purpose flour", "1 tbsp olive oil", "Lemon wedge for serving"],
     instructions: [
       "Preheat oven to 400°F (200°C) and line a baking sheet with parchment paper.",
@@ -49,35 +49,33 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
       "Bake for 12-15 minutes, flipping halfway through, until golden brown and the fish flakes easily with a fork.",
       "Let cool for 5 minutes. Squeeze a tiny bit of fresh lemon juice over them before serving if desired."
     ],
-    nutrition: { calories: "85", protein: "10g", carbs: "7g", fat: "2g", fiber: "0g", vitamins: ["Protein", "Omega-3", "Vitamin D"] },
-    allergens: ["Fish", "Eggs", "Gluten"],
+    nutrition: { calories: "85", protein: "9g", carbs: "6g", fat: "3g", fiber: "0g", vitamins: ["Protein", "Omega-3", "Vitamin D"] },
+    allergens: ["Fish", "Gluten", "Eggs"],
     storage: "Refrigerate 2 days"
   },
   {
     id: "43",
     title: "Sweet Pea & Mint Soup",
-    description: "Refreshing green soup",
+    description: "Fresh green soup",
     ageGroup: "9-12 months",
     category: "Lunch",
     prepTime: "15 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["pea", "green"]),
-    ingredients: ["2 cups frozen peas", "1 cup low-sodium vegetable broth", "2 fresh mint leaves", "2 tbsp plain yogurt"],
+    image: getRecipeImageById("43"),
+    ingredients: ["1 1/2 cups frozen peas", "1/2 cup low-sodium vegetable broth", "2-3 fresh mint leaves", "1 tbsp plain yogurt for serving"],
     instructions: [
-      "In a small pot, bring 1 cup of low-sodium vegetable broth to a boil over medium-high heat.",
-      "Add 2 cups of frozen peas to the boiling broth.",
-      "Return to a boil, then reduce heat to medium and simmer for 5 minutes until peas are very tender.",
-      "Wash 2 fresh mint leaves thoroughly and tear them into small pieces.",
-      "Remove the pot from heat and add the mint leaves. Let steep for 2 minutes.",
-      "Carefully transfer the peas, broth, and mint to a blender. Be cautious with hot liquids.",
-      "Blend on high speed for 1-2 minutes until completely smooth with no lumps.",
-      "Pour the soup back into the pot and stir in 2 tablespoons of plain yogurt for creaminess.",
-      "Let cool to a safe eating temperature, stirring occasionally.",
-      "Serve in a small bowl with a soft-tipped spoon. The mint adds a fresh, mild flavor babies enjoy."
+      "Bring a pot of water to boil. Add frozen peas and cook for 5 minutes until very tender.",
+      "Drain peas well, reserving 1/4 cup of the cooking liquid.",
+      "Transfer peas to a blender. Add 1/2 cup vegetable broth and the reserved cooking liquid.",
+      "Add 2-3 fresh mint leaves (stems removed) for a subtle fresh flavor.",
+      "Blend on high for 1-2 minutes until completely smooth. Add more liquid if needed for desired consistency.",
+      "For very young babies, strain through a fine mesh sieve to remove any remaining skins.",
+      "Transfer to a bowl and let cool to a safe eating temperature.",
+      "Serve with a small dollop of plain yogurt swirled on top for extra creaminess and probiotics."
     ],
-    nutrition: { calories: "55", protein: "4g", carbs: "10g", fat: "0g", fiber: "3g", vitamins: ["Vitamin K", "Vitamin C", "Folate"] },
+    nutrition: { calories: "55", protein: "4g", carbs: "10g", fat: "0g", fiber: "4g", vitamins: ["Vitamin K", "Vitamin C", "Iron"] },
     allergens: ["Dairy"],
-    storage: "Refrigerate 3 days"
+    storage: "Refrigerate 3 days or freeze"
   },
   {
     id: "44",
@@ -87,48 +85,45 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
     category: "Puree",
     prepTime: "20 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["carrot"]),
-    ingredients: ["3 medium carrots, peeled and chopped", "1/8 tsp fresh ginger, grated", "1 cup water"],
+    image: getRecipeImageById("44"),
+    ingredients: ["4 large carrots, peeled and sliced", "1/4 inch piece fresh ginger, peeled", "1 cup water", "1 tbsp butter"],
     instructions: [
-      "Wash and peel 3 medium carrots. Chop them into uniform 1/2-inch rounds for even cooking.",
-      "Fill a pot with 1 cup of water and bring to a boil over high heat.",
-      "Add the chopped carrots to the boiling water. Reduce heat to medium and simmer covered for 15 minutes until very soft.",
-      "While carrots cook, peel a small piece of fresh ginger (about 1/2 inch) using the edge of a spoon.",
-      "Grate the ginger finely using a microplane or the smallest holes on a box grater. You need just 1/8 teaspoon.",
-      "When carrots are tender, reserve 1/4 cup of the cooking liquid and drain the rest.",
-      "Transfer cooked carrots to a blender. Add the grated ginger and 2 tablespoons of the reserved cooking liquid.",
-      "Blend on high for 1-2 minutes until completely smooth. Add more liquid if needed for desired consistency.",
-      "Let cool completely before serving. The ginger adds warmth and aids digestion."
+      "Wash and peel 4 large carrots. Cut them into 1/4 inch thick slices for quick cooking.",
+      "Peel a 1/4 inch piece of fresh ginger using a spoon (it peels easier this way).",
+      "Place carrots, ginger, and 1 cup water in a medium pot. Bring to a boil.",
+      "Reduce heat to medium-low, cover, and simmer for 15 minutes until carrots are very soft.",
+      "Remove from heat. Discard the ginger piece (it's added flavor but shouldn't be eaten).",
+      "Transfer carrots and cooking liquid to a blender. Add 1 tablespoon butter.",
+      "Blend on high until silky smooth, adding more water if needed for desired consistency.",
+      "Let cool before serving. The ginger adds a subtle warming flavor that aids digestion."
     ],
-    nutrition: { calories: "28", protein: "1g", carbs: "7g", fat: "0g", fiber: "2g", vitamins: ["Vitamin A", "Beta-carotene"] },
-    allergens: [],
-    storage: "Refrigerate 3 days or freeze"
+    nutrition: { calories: "48", protein: "1g", carbs: "8g", fat: "2g", fiber: "2g", vitamins: ["Vitamin A", "Beta-carotene", "Vitamin K"] },
+    allergens: ["Dairy"],
+    storage: "Refrigerate 4 days or freeze 3 months"
   },
   {
     id: "45",
     title: "Whole Wheat Mini Pizzas",
-    description: "Fun individual pizzas",
+    description: "Homemade finger food pizza",
     ageGroup: "18-24 months",
-    category: "Dinner",
+    category: "Lunch",
     prepTime: "20 minutes",
     servings: "4 mini pizzas",
-    image: getRecipeImage(["pasta", "tomato"]),
-    ingredients: ["2 whole wheat English muffins", "1/4 cup tomato sauce", "1/2 cup shredded mozzarella", "Optional: diced bell pepper, mushrooms"],
+    image: getRecipeImageById("45"),
+    ingredients: ["2 whole wheat English muffins", "1/4 cup marinara sauce", "1/2 cup shredded mozzarella", "2 tbsp finely diced bell peppers", "2 tbsp diced tomatoes"],
     instructions: [
       "Preheat oven to 375°F (190°C) and line a baking sheet with parchment paper.",
-      "Split the English muffins in half to create 4 round pieces.",
+      "Split each English muffin in half to create 4 mini pizza bases.",
       "Place the muffin halves cut-side up on the prepared baking sheet.",
-      "Toast them in the oven for 3-4 minutes to slightly crisp the surface.",
-      "Remove from oven and let cool for 2 minutes.",
-      "Spread 1 tablespoon of tomato sauce on each muffin half, leaving a small border around the edge.",
-      "Sprinkle shredded mozzarella cheese evenly over the sauce on each pizza.",
-      "If using vegetables, scatter small pieces of diced bell pepper or thinly sliced mushrooms on top.",
-      "Return to the oven and bake for 8-10 minutes until the cheese is melted and bubbly.",
-      "Let cool for 5 minutes before serving. Cut into smaller pieces if needed for easier eating."
+      "Spread 1 tablespoon of marinara sauce evenly on each muffin half.",
+      "Sprinkle 2 tablespoons of shredded mozzarella on each pizza.",
+      "Top with tiny pieces of diced bell pepper and tomato.",
+      "Bake for 10-12 minutes until cheese is melted and bubbly.",
+      "Let cool for 5 minutes - the cheese gets very hot! Cut into quarters for easy handling."
     ],
-    nutrition: { calories: "110", protein: "6g", carbs: "15g", fat: "4g", fiber: "2g", vitamins: ["Calcium", "Protein"] },
+    nutrition: { calories: "112", protein: "6g", carbs: "14g", fat: "4g", fiber: "2g", vitamins: ["Calcium", "Vitamin C"] },
     allergens: ["Dairy", "Gluten"],
-    storage: "Refrigerate 2 days"
+    storage: "Best served fresh"
   },
   {
     id: "46",
@@ -138,23 +133,21 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
     category: "Snack",
     prepTime: "25 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["mango", "rice"]),
-    ingredients: ["1/3 cup white rice", "1 cup coconut milk", "1/2 cup diced ripe mango", "1 tbsp maple syrup (optional)", "Pinch of cinnamon"],
+    image: getRecipeImageById("46"),
+    ingredients: ["1/2 cup jasmine rice", "1 cup coconut milk", "1/2 cup water", "1 ripe mango, diced", "1 tbsp honey (optional, 12+ months)"],
     instructions: [
-      "Rinse 1/3 cup of white rice under cold water until the water runs clear.",
-      "In a medium saucepan, combine the rinsed rice with 1 cup of coconut milk.",
-      "Bring to a boil over medium-high heat, stirring occasionally.",
-      "Once boiling, reduce heat to low, cover, and simmer for 18-20 minutes until rice is very soft and has absorbed most of the liquid.",
-      "While rice cooks, peel and dice 1/2 cup of ripe mango into small pieces.",
-      "When rice is done, remove from heat and stir in the diced mango.",
-      "If desired, add 1 tablespoon of maple syrup and a small pinch of cinnamon for extra flavor.",
-      "Let the pudding cool for 10-15 minutes, stirring occasionally. It will thicken as it cools.",
-      "Serve warm or chilled. The coconut milk makes this naturally creamy and dairy-free."
+      "Rinse jasmine rice under cold water until water runs clear.",
+      "In a small pot, combine rice, coconut milk, and water.",
+      "Bring to a boil over medium heat, stirring occasionally.",
+      "Reduce heat to low, cover, and simmer for 18-20 minutes until rice is very tender and creamy.",
+      "While rice cooks, peel and dice a ripe mango into small cubes.",
+      "Remove rice from heat and let stand covered for 5 minutes.",
+      "Fluff with a fork and stir in diced mango.",
+      "Add honey if desired for extra sweetness (only for babies 12+ months).",
+      "Serve warm or chilled. The coconut milk makes it naturally creamy and delicious."
     ],
-    nutrition: { calories: "125", protein: "2g", carbs: "22g", fat: "4g", fiber: "1g", vitamins: ["Vitamin C", "Iron"] },
+    nutrition: { calories: "145", protein: "2g", carbs: "28g", fat: "4g", fiber: "2g", vitamins: ["Vitamin C", "Vitamin A", "Manganese"] },
     allergens: [],
     storage: "Refrigerate 3 days"
   }
-  // Note: This file would continue with recipes 47-200, each following the same detailed format
-  // For the actual implementation, all remaining recipes would be included here
 ];
