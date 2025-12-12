@@ -1,4 +1,5 @@
 import { Recipe } from "./recipes";
+import { getRecipeImageById } from "./recipeImages";
 
 export const recipes272to300: Recipe[] = [
   // 6-9 MONTHS: 19 NEW RECIPES (IDs 272-290)
@@ -10,7 +11,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "25 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("272"),
     ingredients: [
       "1 medium potato, peeled and cubed",
       "1 small leek, white part only, sliced",
@@ -53,7 +54,7 @@ export const recipes272to300: Recipe[] = [
     category: "breakfast",
     prepTime: "15 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("273"),
     ingredients: [
       "3 tablespoons baby oats or ground oats",
       "2 Medjool dates, pitted",
@@ -96,7 +97,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "20 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("274"),
     ingredients: [
       "1 medium parsnip, peeled and sliced",
       "1 ripe pear, peeled and cored",
@@ -138,7 +139,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "30 min",
     servings: "6 portions",
-    image: "",
+    image: getRecipeImageById("275"),
     ingredients: [
       "2 oz ground turkey (dark meat preferred for iron)",
       "1 medium carrot, peeled and sliced",
@@ -181,7 +182,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "5 min",
     servings: "1 portion",
-    image: "",
+    image: getRecipeImageById("276"),
     ingredients: [
       "1 ripe banana",
       "1/2 teaspoon tahini (sesame paste)",
@@ -223,7 +224,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "25 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("277"),
     ingredients: [
       "2 oz fresh cod fillet, boneless",
       "1/2 cup butternut squash, cubed",
@@ -266,7 +267,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "10 min",
     servings: "6 portions",
-    image: "",
+    image: getRecipeImageById("278"),
     ingredients: [
       "1/2 cup canned chickpeas, drained and rinsed",
       "1 tablespoon tahini",
@@ -309,7 +310,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "5 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("279"),
     ingredients: [
       "1/4 cup full-fat cottage cheese",
       "1 ripe peach, peeled and pitted",
@@ -350,7 +351,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "20 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("280"),
     ingredients: [
       "1 medium sweet potato",
       "1 teaspoon fresh coriander (cilantro), finely chopped",
@@ -392,7 +393,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "10 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("281"),
     ingredients: [
       "1/2 ripe avocado",
       "1 cup fresh baby spinach",
@@ -434,7 +435,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "25 min",
     servings: "6 portions",
-    image: "",
+    image: getRecipeImageById("282"),
     ingredients: [
       "2 oz boneless chicken breast",
       "1 cup broccoli florets",
@@ -476,7 +477,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "15 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("283"),
     ingredients: [
       "4 pitted prunes",
       "1 medium apple, peeled and cored",
@@ -517,7 +518,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "30 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("284"),
     ingredients: [
       "2 tablespoons quinoa, rinsed well",
       "1/4 cup diced zucchini",
@@ -560,7 +561,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "20 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("285"),
     ingredients: [
       "1/4 cup sweet corn kernels (fresh or frozen)",
       "1 small potato, peeled and cubed",
@@ -602,7 +603,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "10 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("286"),
     ingredients: [
       "1/4 cup fresh or frozen raspberries",
       "1/4 cup plain whole milk yogurt",
@@ -643,7 +644,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "30 min",
     servings: "6 portions",
-    image: "",
+    image: getRecipeImageById("287"),
     ingredients: [
       "2 oz ground lamb",
       "1/2 cup fresh green beans, trimmed",
@@ -686,7 +687,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "10 min",
     servings: "3 portions",
-    image: "",
+    image: getRecipeImageById("288"),
     ingredients: [
       "1 cup ripe cantaloupe, cubed",
       "2-3 fresh mint leaves",
@@ -727,7 +728,7 @@ export const recipes272to300: Recipe[] = [
     category: "breakfast",
     prepTime: "15 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("289"),
     ingredients: [
       "3 tablespoons baby oats",
       "3/4 cup water",
@@ -769,7 +770,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "30 min",
     servings: "6 portions",
-    image: "",
+    image: getRecipeImageById("290"),
     ingredients: [
       "2 oz lean ground beef",
       "1/2 cup frozen peas",
@@ -813,7 +814,7 @@ export const recipes272to300: Recipe[] = [
     category: "breakfast",
     prepTime: "25 min",
     servings: "6 bites",
-    image: "",
+    image: getRecipeImageById("291"),
     ingredients: [
       "2 eggs",
       "2 tablespoons finely grated zucchini",
@@ -856,7 +857,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "30 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("292"),
     ingredients: [
       "2 oz salmon fillet",
       "1/4 cup broccoli florets",
@@ -899,7 +900,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "25 min",
     servings: "3 portions",
-    image: "",
+    image: getRecipeImageById("293"),
     ingredients: [
       "1/4 cup small pasta (stelline or orzo)",
       "2 oz ground beef or turkey",
@@ -942,7 +943,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "25 min",
     servings: "12 bites",
-    image: "",
+    image: getRecipeImageById("294"),
     ingredients: [
       "1 cup cauliflower florets",
       "2 tablespoons grated cheddar cheese",
@@ -984,7 +985,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "5 min",
     servings: "2 portions",
-    image: "",
+    image: getRecipeImageById("295"),
     ingredients: [
       "1/2 ripe mango, cubed",
       "1/4 cup coconut milk",
@@ -1026,7 +1027,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "30 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("296"),
     ingredients: [
       "2 oz lean ground beef",
       "1 small potato, peeled and cubed",
@@ -1069,7 +1070,7 @@ export const recipes272to300: Recipe[] = [
     category: "breakfast",
     prepTime: "20 min",
     servings: "8 fingers",
-    image: "",
+    image: getRecipeImageById("297"),
     ingredients: [
       "1/4 cup whole wheat flour",
       "1 egg",
@@ -1112,7 +1113,7 @@ export const recipes272to300: Recipe[] = [
     category: "lunch",
     prepTime: "25 min",
     servings: "6 patties",
-    image: "",
+    image: getRecipeImageById("298"),
     ingredients: [
       "3 oz ground chicken",
       "2 tablespoons grated apple",
@@ -1155,7 +1156,7 @@ export const recipes272to300: Recipe[] = [
     category: "dinner",
     prepTime: "35 min",
     servings: "4 portions",
-    image: "",
+    image: getRecipeImageById("299"),
     ingredients: [
       "1/4 cup arborio rice",
       "1/2 cup low-sodium vegetable broth",
@@ -1199,7 +1200,7 @@ export const recipes272to300: Recipe[] = [
     category: "snack",
     prepTime: "5 min + freezing",
     servings: "3 portions",
-    image: "",
+    image: getRecipeImageById("300"),
     ingredients: [
       "1 ripe banana, frozen",
       "4 strawberries, frozen",
