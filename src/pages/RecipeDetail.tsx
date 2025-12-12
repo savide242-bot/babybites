@@ -303,22 +303,72 @@ const RecipeDetail = () => {
   };
 
   // Cook Mode View
+  // Cook Mode Music
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
+  
+  useEffect(() => {
+    if (cookMode && musicRef.current) {
+      musicRef.current.volume = 0.3;
+      musicRef.current.play().catch(() => {});
+      setMusicPlaying(true);
+    } else if (!cookMode && musicRef.current) {
+      musicRef.current.pause();
+      setMusicPlaying(false);
+    }
+    return () => {
+      if (musicRef.current) musicRef.current.pause();
+    };
+  }, [cookMode]);
+  
+  const toggleMusic = () => {
+    if (musicRef.current) {
+      if (musicPlaying) {
+        musicRef.current.pause();
+      } else {
+        musicRef.current.play().catch(() => {});
+      }
+      setMusicPlaying(!musicPlaying);
+    }
+  };
+
   if (cookMode) {
     return (
       <div className="fixed inset-0 bg-gray-900 text-white z-50 overflow-y-auto">
         <audio ref={audioRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE" preload="auto" />
+        {/* Relaxing Lo-Fi Music - Royalty Free */}
+        <audio 
+          ref={musicRef} 
+          src="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3"
+          loop
+          preload="auto"
+        />
         
         <div className="p-6">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">{recipe.title}</h1>
-            <Button 
-              onClick={() => setCookMode(false)} 
-              variant="ghost" 
-              size="icon"
-              className="text-white hover:bg-white/20"
-            >
-              <X className="h-6 w-6" />
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={toggleMusic}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 gap-2"
+              >
+                {musicPlaying ? (
+                  <>🎵 Music On</>
+                ) : (
+                  <>🔇 Music Off</>
+                )}
+              </Button>
+              <Button 
+                onClick={() => setCookMode(false)} 
+                variant="ghost" 
+                size="icon"
+                className="text-white hover:bg-white/20"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
           </div>
 
           {/* Timer in Cook Mode */}
@@ -495,9 +545,9 @@ const RecipeDetail = () => {
               <Button 
                 onClick={() => setCookMode(true)} 
                 size="lg" 
-                className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 py-6 text-lg font-semibold animate-pulse-soft shadow-lg hover:shadow-xl transition-all"
+                className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 py-4 text-base font-semibold shadow-md hover:shadow-lg transition-all"
               >
-                <ChefHat className="mr-3 h-6 w-6" />
+                <ChefHat className="mr-2 h-5 w-5" />
                 Cook Mode
               </Button>
             </div>
