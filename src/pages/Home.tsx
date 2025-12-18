@@ -10,6 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
 import CircularProgress from "@/components/CircularProgress";
 import { toast } from "sonner";
 import { useGamification } from "@/hooks/useGamification";
+import { useEngagement } from "@/hooks/useEngagement";
+import DailyTipCard from "@/components/engagement/DailyTipCard";
+import DailyCheckinWidget from "@/components/engagement/DailyCheckinWidget";
+import WeeklyProgressTracker from "@/components/engagement/WeeklyProgressTracker";
+import ActiveChallengeCard from "@/components/engagement/ActiveChallengeCard";
 
 interface DailyTask {
   id: string;
@@ -24,6 +29,14 @@ const Home = () => {
   const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { streak, logActivity } = useGamification();
+  const { 
+    dailyTip, 
+    todayCheckin, 
+    activeChallenge, 
+    challengeProgress, 
+    weeklyProgress,
+    submitCheckin 
+  } = useEngagement();
 
   const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
@@ -276,6 +289,24 @@ const Home = () => {
             )}
           </div>
         </div>
+
+        {/* Daily Tip with 24h expiration */}
+        <DailyTipCard tip={dailyTip} />
+
+        {/* Daily Check-in with Emotional Feedback */}
+        <DailyCheckinWidget 
+          todayCheckin={todayCheckin} 
+          onSubmit={submitCheckin} 
+        />
+
+        {/* Active Challenge with Countdown */}
+        <ActiveChallengeCard 
+          challenge={activeChallenge} 
+          progress={challengeProgress} 
+        />
+
+        {/* Weekly Progress Tracker */}
+        <WeeklyProgressTracker progress={weeklyProgress} />
 
         {/* Navigation Grid */}
         <div className="grid grid-cols-3 gap-3">
