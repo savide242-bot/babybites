@@ -647,6 +647,7 @@ export type Database = {
           id: string
           is_verified_pediatrician: boolean | null
           mother_name: string | null
+          timezone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -660,6 +661,7 @@ export type Database = {
           id: string
           is_verified_pediatrician?: boolean | null
           mother_name?: string | null
+          timezone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -673,6 +675,7 @@ export type Database = {
           id?: string
           is_verified_pediatrician?: boolean | null
           mother_name?: string | null
+          timezone?: string | null
           updated_at?: string | null
         }
         Relationships: []

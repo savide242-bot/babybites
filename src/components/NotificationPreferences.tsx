@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Clock, Save } from 'lucide-react';
+import { Clock, Save, Globe } from 'lucide-react';
 
 interface NotificationPref {
   meal_type: string;
@@ -30,6 +30,33 @@ const MEAL_LABELS: Record<string, string> = {
   'dinner': '🍽️ Dinner',
 };
 
+// Common timezones grouped by region
+const COMMON_TIMEZONES = [
+  // Africa
+  { value: 'Africa/Maputo', label: '🇲🇿 Maputo (CAT)' },
+  { value: 'Africa/Johannesburg', label: '🇿🇦 Johannesburg (SAST)' },
+  { value: 'Africa/Lagos', label: '🇳🇬 Lagos (WAT)' },
+  { value: 'Africa/Cairo', label: '🇪🇬 Cairo (EET)' },
+  { value: 'Africa/Nairobi', label: '🇰🇪 Nairobi (EAT)' },
+  // Europe
+  { value: 'Europe/Lisbon', label: '🇵🇹 Lisbon (WET)' },
+  { value: 'Europe/London', label: '🇬🇧 London (GMT/BST)' },
+  { value: 'Europe/Paris', label: '🇫🇷 Paris (CET)' },
+  { value: 'Europe/Berlin', label: '🇩🇪 Berlin (CET)' },
+  // Americas
+  { value: 'America/New_York', label: '🇺🇸 New York (EST)' },
+  { value: 'America/Sao_Paulo', label: '🇧🇷 São Paulo (BRT)' },
+  { value: 'America/Los_Angeles', label: '🇺🇸 Los Angeles (PST)' },
+  // Asia
+  { value: 'Asia/Dubai', label: '🇦🇪 Dubai (GST)' },
+  { value: 'Asia/Singapore', label: '🇸🇬 Singapore (SGT)' },
+  { value: 'Asia/Tokyo', label: '🇯🇵 Tokyo (JST)' },
+  // Oceania
+  { value: 'Australia/Sydney', label: '🇦🇺 Sydney (AEST)' },
+  // UTC
+  { value: 'UTC', label: '🌍 UTC' },
+];
+
 export function NotificationPreferences() {
   const [prefs, setPrefs] = useState<NotificationPref[]>(DEFAULT_PREFS);
   const [initialPrefs, setInitialPrefs] = useState<NotificationPref[]>(DEFAULT_PREFS);
@@ -37,12 +64,49 @@ export function NotificationPreferences() {
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [userTimezone, setUserTimezone] = useState<string>('UTC');
+  const [initialTimezone, setInitialTimezone] = useState<string>('UTC');
   const { toast } = useToast();
   const { subscribeToPushNotifications, isSupported } = usePushNotifications();
 
   useEffect(() => {
     loadPreferences();
+    detectAndSaveTimezone();
   }, []);
+
+  const detectAndSaveTimezone = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get user's current timezone from browser
+      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Check if user already has a timezone saved
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('timezone')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.timezone) {
+        setUserTimezone(profile.timezone);
+        setInitialTimezone(profile.timezone);
+      } else {
+        // Auto-save detected timezone
+        await supabase
+          .from('profiles')
+          .update({ timezone: detectedTimezone })
+          .eq('id', user.id);
+        
+        setUserTimezone(detectedTimezone);
+        setInitialTimezone(detectedTimezone);
+        console.log(`🌍 Auto-detected timezone: ${detectedTimezone}`);
+      }
+    } catch (error) {
+      console.error('Error detecting timezone:', error);
+    }
+  };
 
   const loadPreferences = async () => {
     try {
@@ -94,8 +158,13 @@ export function NotificationPreferences() {
     setIsSaved(false);
   };
 
+  const handleTimezoneChange = (newTimezone: string) => {
+    setUserTimezone(newTimezone);
+    setIsSaved(false);
+  };
+
   const hasChanges = () => {
-    return JSON.stringify(prefs) !== JSON.stringify(initialPrefs);
+    return JSON.stringify(prefs) !== JSON.stringify(initialPrefs) || userTimezone !== initialTimezone;
   };
 
   const handleEdit = () => {
@@ -104,6 +173,7 @@ export function NotificationPreferences() {
 
   const handleCancel = () => {
     setPrefs(initialPrefs);
+    setUserTimezone(initialTimezone);
     setIsEditing(false);
     setIsSaved(true);
   };
@@ -113,6 +183,12 @@ export function NotificationPreferences() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      // Save timezone to profile
+      await supabase
+        .from('profiles')
+        .update({ timezone: userTimezone })
+        .eq('id', user.id);
 
       // Delete existing preferences
       await supabase
@@ -176,7 +252,7 @@ export function NotificationPreferences() {
           const motherName = profile?.mother_name || '';
           
           await registration.showNotification('✅ Notification System Activated!', {
-            body: `Hi ${motherName}! Your meal reminders are now scheduled. You'll receive notifications at your chosen times.`,
+            body: `Hi ${motherName}! Your meal reminders are now scheduled for your timezone (${userTimezone}).`,
             icon: '/icon-192x192.png',
             badge: '/icon-192x192.png',
             tag: 'notification-activated',
@@ -190,12 +266,13 @@ export function NotificationPreferences() {
       }
 
       setInitialPrefs(prefs);
+      setInitialTimezone(userTimezone);
       setIsSaved(true);
       setIsEditing(false);
 
       toast({
         title: "✅ Preferences Saved",
-        description: "Your notification times have been updated successfully!",
+        description: `Your notification times have been updated for timezone ${userTimezone}!`,
       });
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -230,6 +307,29 @@ export function NotificationPreferences() {
             </span>
           )}
         </div>
+      </div>
+
+      {/* Timezone Selector */}
+      <div className="p-4 bg-muted/50 rounded-lg border border-border/50">
+        <div className="flex items-center gap-2 mb-3">
+          <Globe className="h-4 w-4 text-primary" />
+          <Label className="font-medium">Your Timezone</Label>
+        </div>
+        <select
+          value={userTimezone}
+          onChange={(e) => handleTimezoneChange(e.target.value)}
+          disabled={!isEditing}
+          className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-50"
+        >
+          {COMMON_TIMEZONES.map((tz) => (
+            <option key={tz.value} value={tz.value}>
+              {tz.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground mt-2">
+          Notifications will be sent based on this timezone
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -295,7 +395,7 @@ export function NotificationPreferences() {
       )}
 
       <p className="text-sm text-muted-foreground">
-        Your notification times are automatically scheduled. Edit anytime to adjust your reminders.
+        Your notification times are based on your selected timezone. Edit anytime to adjust your reminders.
       </p>
     </div>
   );

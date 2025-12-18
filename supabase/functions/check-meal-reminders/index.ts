@@ -28,6 +28,13 @@ interface UserSession {
   last_active: string | null;
 }
 
+interface UserProfile {
+  id: string;
+  mother_name: string | null;
+  baby_name: string | null;
+  timezone: string | null;
+}
+
 const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string }> = {
   'breakfast': {
     title: 'Good Morning! Breakfast Time',
@@ -118,6 +125,46 @@ function createInfo(type: string, context: Uint8Array): Uint8Array {
 
 async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Get current time in user's timezone
+function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minute: number } {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    });
+    
+    const parts = formatter.formatToParts(utcDate);
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+    
+    return { hour, minute };
+  } catch (error) {
+    console.error(`❌ Invalid timezone "${timezone}", falling back to UTC:`, error);
+    return { hour: utcDate.getUTCHours(), minute: utcDate.getUTCMinutes() };
+  }
+}
+
+// Check if time matches within tolerance
+function timeMatchesWithTolerance(
+  userHour: number, 
+  userMinute: number, 
+  prefHour: number, 
+  prefMinute: number
+): boolean {
+  // Convert to total minutes for easier comparison
+  const userTotalMinutes = userHour * 60 + userMinute;
+  const prefTotalMinutes = prefHour * 60 + prefMinute;
+  
+  const diff = Math.abs(userTotalMinutes - prefTotalMinutes);
+  
+  // Handle midnight wrap-around
+  const wrappedDiff = Math.min(diff, 24 * 60 - diff);
+  
+  return wrappedDiff <= TIME_TOLERANCE_MINUTES;
 }
 
 async function sendWebPushNotificationWithRetry(
@@ -348,18 +395,6 @@ async function sendWebPushNotification(
   }
 }
 
-// Get all minutes within tolerance window
-function getMinutesInWindow(currentMinute: number): number[] {
-  const minutes: number[] = [];
-  for (let offset = -TIME_TOLERANCE_MINUTES; offset <= TIME_TOLERANCE_MINUTES; offset++) {
-    let minute = currentMinute + offset;
-    if (minute < 0) minute += 60;
-    if (minute >= 60) minute -= 60;
-    minutes.push(minute);
-  }
-  return minutes;
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -371,80 +406,92 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const minutesWindow = getMinutesInWindow(currentMinute);
 
     console.log(`\n========================================`);
-    console.log(`⏰ CHECK-MEAL-REMINDERS STARTED`);
-    console.log(`📅 Time: ${now.toISOString()}`);
-    console.log(`🕐 Current: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
-    console.log(`🔍 Checking minutes: ${minutesWindow.join(', ')}`);
+    console.log(`⏰ CHECK-MEAL-REMINDERS STARTED (TIMEZONE-AWARE)`);
+    console.log(`📅 Server Time (UTC): ${now.toISOString()}`);
     console.log(`========================================\n`);
 
-    // 1. Get ALL enabled preferences for this hour and minutes window
-    const { data: preferences, error: prefsError } = await supabase
+    // 1. Get ALL enabled preferences
+    const { data: allPreferences, error: prefsError } = await supabase
       .from('notification_preferences')
       .select('user_id, meal_type, hour, minute, enabled')
-      .eq('enabled', true)
-      .eq('hour', currentHour)
-      .in('minute', minutesWindow);
+      .eq('enabled', true);
 
     if (prefsError) {
       console.error('❌ Error fetching preferences:', prefsError);
     }
 
-    console.log(`📋 Enabled preferences found: ${preferences?.length || 0}`);
+    console.log(`📋 Total enabled preferences: ${allPreferences?.length || 0}`);
 
-    // Debug: Show all preferences in DB
-    const { data: allPrefs } = await supabase
-      .from('notification_preferences')
-      .select('user_id, meal_type, hour, minute, enabled')
-      .eq('enabled', true);
+    // 2. Get all user profiles with timezones
+    const userIds = [...new Set((allPreferences || []).map((p: NotificationPreference) => p.user_id))];
     
-    console.log(`📊 Total enabled preferences in DB: ${allPrefs?.length || 0}`);
-    if (allPrefs && allPrefs.length > 0) {
-      allPrefs.forEach((p: NotificationPreference) => {
-        console.log(`   - User ${p.user_id.substring(0, 8)}...: ${p.meal_type} at ${p.hour}:${p.minute.toString().padStart(2, '0')}`);
-      });
-    }
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, mother_name, baby_name, timezone')
+      .in('id', userIds);
+
+    const profileMap = new Map<string, UserProfile>();
+    (profiles || []).forEach((p: UserProfile) => profileMap.set(p.id, p));
+
+    console.log(`👥 Profiles loaded: ${profiles?.length || 0}`);
 
     // Get ALL push subscriptions
     const { data: allSubs } = await supabase
       .from('push_subscriptions')
-      .select('user_id, endpoint');
+      .select('*');
     
+    const subsMap = new Map<string, PushSubscriptionRecord[]>();
+    (allSubs || []).forEach((s: PushSubscriptionRecord) => {
+      const existing = subsMap.get(s.user_id) || [];
+      existing.push(s);
+      subsMap.set(s.user_id, existing);
+    });
+
     console.log(`📱 Total push subscriptions: ${allSubs?.length || 0}`);
-    if (allSubs && allSubs.length > 0) {
-      allSubs.forEach((s: { user_id: string; endpoint: string }) => {
-        console.log(`   - User ${s.user_id.substring(0, 8)}...: ${s.endpoint.substring(0, 50)}...`);
-      });
-    }
 
     let sentCount = 0;
     let failedCount = 0;
     const expiredSubscriptions: string[] = [];
     const processedUsers = new Set<string>();
 
-    // Send meal reminders
-    if (preferences && preferences.length > 0) {
-      console.log(`\n🔔 PROCESSING ${preferences.length} MEAL REMINDERS\n`);
+    // 3. Check each preference against user's LOCAL time
+    if (allPreferences && allPreferences.length > 0) {
+      console.log(`\n🔔 PROCESSING PREFERENCES WITH TIMEZONE CONVERSION\n`);
 
-      for (const pref of preferences as NotificationPreference[]) {
+      for (const pref of allPreferences as NotificationPreference[]) {
+        const profile = profileMap.get(pref.user_id);
+        const userTimezone = profile?.timezone || 'UTC';
+        
+        // Get user's local time
+        const userLocalTime = getUserLocalTime(now, userTimezone);
+        
+        // Check if preference matches current local time
+        const matches = timeMatchesWithTolerance(
+          userLocalTime.hour, 
+          userLocalTime.minute, 
+          pref.hour, 
+          pref.minute
+        );
+
+        if (!matches) {
+          continue;
+        }
+
         // Avoid duplicate notifications
         const userMealKey = `${pref.user_id}-${pref.meal_type}`;
         if (processedUsers.has(userMealKey)) {
-          console.log(`⏭️ Skipping duplicate for ${userMealKey}`);
           continue;
         }
         processedUsers.add(userMealKey);
 
-        console.log(`\n👤 Processing: ${pref.meal_type} for user ${pref.user_id.substring(0, 8)}...`);
+        console.log(`\n👤 MATCH FOUND: ${pref.meal_type} for user ${pref.user_id.substring(0, 8)}...`);
+        console.log(`   🌍 Timezone: ${userTimezone}`);
+        console.log(`   🕐 User's local time: ${userLocalTime.hour}:${userLocalTime.minute.toString().padStart(2, '0')}`);
+        console.log(`   ⏰ Preference time: ${pref.hour}:${pref.minute.toString().padStart(2, '0')}`);
 
-        const { data: subscriptions } = await supabase
-          .from('push_subscriptions')
-          .select('*')
-          .eq('user_id', pref.user_id);
+        const subscriptions = subsMap.get(pref.user_id);
 
         if (!subscriptions || subscriptions.length === 0) {
           console.log(`⚠️ No push subscription for this user`);
@@ -453,13 +500,6 @@ Deno.serve(async (req) => {
 
         console.log(`📱 Found ${subscriptions.length} subscription(s)`);
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('mother_name')
-          .eq('id', pref.user_id)
-          .single();
-
-        const motherName = profile?.mother_name;
         const mealInfo = MEAL_MESSAGES[pref.meal_type] || {
           title: 'Meal Reminder',
           body: 'Time for a meal!',
@@ -468,8 +508,8 @@ Deno.serve(async (req) => {
 
         const notificationTitle = `${mealInfo.emoji} ${mealInfo.title}`;
 
-        for (const sub of subscriptions as PushSubscriptionRecord[]) {
-          const result = await sendWebPushNotificationWithRetry(sub, notificationTitle, mealInfo.body, motherName);
+        for (const sub of subscriptions) {
+          const result = await sendWebPushNotificationWithRetry(sub, notificationTitle, mealInfo.body, profile?.mother_name || undefined);
           if (result.success) {
             sentCount++;
             console.log(`✅ Notification sent successfully!`);
@@ -481,12 +521,15 @@ Deno.serve(async (req) => {
           }
         }
       }
-    } else {
-      console.log('📭 No matching preferences for current time window');
     }
 
-    // 2. Check for inactive users (once per hour at minute 0)
-    if (currentMinute === 0) {
+    if (processedUsers.size === 0) {
+      console.log('📭 No matching preferences for current time (considering user timezones)');
+    }
+
+    // 4. Check for inactive users (once per hour at minute 0 UTC)
+    const utcMinute = now.getUTCMinutes();
+    if (utcMinute === 0) {
       console.log('\n🔍 Checking for inactive users...');
       
       const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
@@ -512,26 +555,19 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          const { data: subscriptions } = await supabase
-            .from('push_subscriptions')
-            .select('*')
-            .eq('user_id', session.user_id);
+          const subscriptions = subsMap.get(session.user_id);
 
           if (!subscriptions || subscriptions.length === 0) continue;
 
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('mother_name, baby_name')
-            .eq('id', session.user_id)
-            .single();
+          const profile = profileMap.get(session.user_id);
 
           const title = '💕 We Miss You!';
           const body = profile?.baby_name 
             ? `${profile.baby_name} needs your care! Come back and plan some delicious meals.`
             : 'Come back and continue your baby nutrition journey!';
 
-          for (const sub of subscriptions as PushSubscriptionRecord[]) {
-            const result = await sendWebPushNotificationWithRetry(sub, title, body, profile?.mother_name, 'inactivity-reminder');
+          for (const sub of subscriptions) {
+            const result = await sendWebPushNotificationWithRetry(sub, title, body, profile?.mother_name || undefined, 'inactivity-reminder');
             if (result.success) {
               sentCount++;
               await supabase.from('activity_logs').insert({
@@ -569,8 +605,8 @@ Deno.serve(async (req) => {
         sent: sentCount,
         failed: failedCount,
         expired: expiredSubscriptions.length,
-        timeChecked: `${currentHour}:${currentMinute.toString().padStart(2, '0')}`,
-        minutesWindow
+        serverTimeUTC: now.toISOString(),
+        usersChecked: processedUsers.size
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
