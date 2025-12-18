@@ -15,6 +15,7 @@ import DailyTipCard from "@/components/engagement/DailyTipCard";
 import DailyCheckinWidget from "@/components/engagement/DailyCheckinWidget";
 import WeeklyProgressTracker from "@/components/engagement/WeeklyProgressTracker";
 import ActiveChallengeCard from "@/components/engagement/ActiveChallengeCard";
+import EnrichedDailyContent from "@/components/engagement/EnrichedDailyContent";
 
 interface DailyTask {
   id: string;
@@ -31,6 +32,7 @@ const Home = () => {
   const { streak, logActivity } = useGamification();
   const { 
     dailyTip, 
+    dailyContent,
     todayCheckin, 
     activeChallenge, 
     challengeProgress, 
@@ -290,8 +292,12 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Daily Tip with 24h expiration */}
-        <DailyTipCard tip={dailyTip} />
+        {/* Enriched Daily Content (rotates by day type) */}
+        {dailyContent ? (
+          <EnrichedDailyContent content={dailyContent} />
+        ) : (
+          <DailyTipCard tip={dailyTip} />
+        )}
 
         {/* Daily Check-in with Emotional Feedback */}
         <DailyCheckinWidget 

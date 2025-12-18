@@ -9,6 +9,16 @@ interface DailyTip {
   age_range: string;
 }
 
+interface DailyContent {
+  id: string;
+  content_type: 'safe_food' | 'common_mistake' | 'quick_tip' | 'try_today';
+  title: string;
+  content_text: string;
+  age_range: string | null;
+  icon: string;
+  day_of_week: number | null;
+}
+
 interface DailyCheckin {
   id: string;
   checkin_date: string;
@@ -43,6 +53,7 @@ interface WeeklyProgress {
 
 export const useEngagement = () => {
   const [dailyTip, setDailyTip] = useState<DailyTip | null>(null);
+  const [dailyContent, setDailyContent] = useState<DailyContent | null>(null);
   const [todayCheckin, setTodayCheckin] = useState<DailyCheckin | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<WeeklyChallenge | null>(null);
   const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress | null>(null);
@@ -53,9 +64,33 @@ export const useEngagement = () => {
     consistencyStreak: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [babyAgeMonths, setBabyAgeMonths] = useState<number | null>(null);
 
-  // Get the tip for today based on day of year (rotates daily)
-  const fetchDailyTip = useCallback(async () => {
+  // Calculate baby's age in months from birth date
+  const calculateBabyAge = (birthDate: string | null): number | null => {
+    if (!birthDate) return null;
+    const birth = new Date(birthDate);
+    const now = new Date();
+    const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+    return Math.max(0, months);
+  };
+
+  // Check if age matches the range (e.g., "6-12", "9-12", "all")
+  const ageMatchesRange = (ageMonths: number | null, range: string | null): boolean => {
+    if (!range || range === 'all') return true;
+    if (ageMonths === null) return true; // Show all if no age set
+    
+    const match = range.match(/(\d+)-(\d+)/);
+    if (match) {
+      const min = parseInt(match[1]);
+      const max = parseInt(match[2]);
+      return ageMonths >= min && ageMonths <= max;
+    }
+    return true;
+  };
+
+  // Fetch daily tip filtered by baby's age
+  const fetchDailyTip = useCallback(async (ageMonths: number | null) => {
     try {
       const { data: tips, error } = await supabase
         .from('daily_tips')
@@ -63,12 +98,55 @@ export const useEngagement = () => {
 
       if (error || !tips || tips.length === 0) return;
 
-      // Rotate tips daily based on day of year
-      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-      const tipIndex = dayOfYear % tips.length;
-      setDailyTip(tips[tipIndex] as DailyTip);
+      // Filter tips by age range
+      const filteredTips = tips.filter(tip => 
+        ageMatchesRange(ageMonths, tip.age_range)
+      );
+
+      if (filteredTips.length === 0) {
+        // Fallback to all tips if no age-specific ones
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+        const tipIndex = dayOfYear % tips.length;
+        setDailyTip(tips[tipIndex] as DailyTip);
+      } else {
+        // Rotate age-filtered tips daily
+        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+        const tipIndex = dayOfYear % filteredTips.length;
+        setDailyTip(filteredTips[tipIndex] as DailyTip);
+      }
     } catch (err) {
       console.error('Error fetching daily tip:', err);
+    }
+  }, []);
+
+  // Fetch enriched daily content based on day of week and age
+  const fetchDailyContent = useCallback(async (ageMonths: number | null) => {
+    try {
+      const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+      
+      const { data: contents, error } = await supabase
+        .from('daily_content')
+        .select('*')
+        .eq('day_of_week', dayOfWeek)
+        .eq('is_active', true);
+
+      if (error || !contents || contents.length === 0) return;
+
+      // Filter by age range
+      const filteredContents = contents.filter((content: any) => 
+        ageMatchesRange(ageMonths, content.age_range)
+      );
+
+      if (filteredContents.length > 0) {
+        // Pick one randomly or rotate
+        const index = new Date().getDate() % filteredContents.length;
+        setDailyContent(filteredContents[index] as DailyContent);
+      } else if (contents.length > 0) {
+        // Fallback to first content if no age match
+        setDailyContent(contents[0] as DailyContent);
+      }
+    } catch (err) {
+      console.error('Error fetching daily content:', err);
     }
   }, []);
 
@@ -259,13 +337,32 @@ export const useEngagement = () => {
       setIsLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       
-      await fetchDailyTip();
+      let ageMonths: number | null = null;
       
       if (session?.user) {
+        // Fetch baby's birth date from profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('baby_birth_date')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile?.baby_birth_date) {
+          ageMonths = calculateBabyAge(profile.baby_birth_date);
+          setBabyAgeMonths(ageMonths);
+        }
+        
         await Promise.all([
+          fetchDailyTip(ageMonths),
+          fetchDailyContent(ageMonths),
           fetchTodayCheckin(session.user.id),
           fetchActiveChallenge(session.user.id),
           fetchWeeklyProgress(session.user.id)
+        ]);
+      } else {
+        await Promise.all([
+          fetchDailyTip(null),
+          fetchDailyContent(null)
         ]);
       }
       
@@ -273,15 +370,17 @@ export const useEngagement = () => {
     };
 
     init();
-  }, [fetchDailyTip, fetchTodayCheckin, fetchActiveChallenge, fetchWeeklyProgress]);
+  }, [fetchDailyTip, fetchDailyContent, fetchTodayCheckin, fetchActiveChallenge, fetchWeeklyProgress]);
 
   return {
     dailyTip,
+    dailyContent,
     todayCheckin,
     activeChallenge,
     challengeProgress,
     weeklyProgress,
     isLoading,
+    babyAgeMonths,
     submitCheckin,
     refetch: async () => {
       const { data: { session } } = await supabase.auth.getSession();

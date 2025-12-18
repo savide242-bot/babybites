@@ -143,6 +143,41 @@ export type Database = {
         }
         Relationships: []
       }
+      completed_challenges_history: {
+        Row: {
+          challenge_id: string
+          challenge_title: string
+          completed_at: string
+          id: string
+          reward_points: number | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          challenge_title: string
+          completed_at?: string
+          id?: string
+          reward_points?: number | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          challenge_title?: string
+          completed_at?: string
+          id?: string
+          reward_points?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "completed_challenges_history_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
@@ -167,6 +202,42 @@ export type Database = {
           notes?: string | null
           status?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      daily_content: {
+        Row: {
+          age_range: string | null
+          content_text: string
+          content_type: string
+          created_at: string
+          day_of_week: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+        }
+        Insert: {
+          age_range?: string | null
+          content_text: string
+          content_type: string
+          created_at?: string
+          day_of_week?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+        }
+        Update: {
+          age_range?: string | null
+          content_text?: string
+          content_type?: string
+          created_at?: string
+          day_of_week?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
         }
         Relationships: []
       }
@@ -430,32 +501,44 @@ export type Database = {
       }
       notification_preferences: {
         Row: {
+          achievement_celebration_enabled: boolean | null
+          challenge_alerts_enabled: boolean | null
+          checkin_reminder_enabled: boolean | null
           created_at: string
           enabled: boolean
           hour: number
           id: string
           meal_type: string
           minute: number
+          streak_risk_alerts_enabled: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          achievement_celebration_enabled?: boolean | null
+          challenge_alerts_enabled?: boolean | null
+          checkin_reminder_enabled?: boolean | null
           created_at?: string
           enabled?: boolean
           hour: number
           id?: string
           meal_type: string
           minute: number
+          streak_risk_alerts_enabled?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          achievement_celebration_enabled?: boolean | null
+          challenge_alerts_enabled?: boolean | null
+          checkin_reminder_enabled?: boolean | null
           created_at?: string
           enabled?: boolean
           hour?: number
           id?: string
           meal_type?: string
           minute?: number
+          streak_risk_alerts_enabled?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -872,9 +955,13 @@ export type Database = {
         Row: {
           created_at: string
           current_streak: number
+          grace_period_days_missed: number | null
+          grace_period_eligible: boolean | null
           id: string
           last_activity_date: string | null
+          last_freeze_reset_at: string | null
           longest_streak: number
+          streak_freezes_available: number | null
           total_points: number
           updated_at: string
           user_id: string
@@ -882,9 +969,13 @@ export type Database = {
         Insert: {
           created_at?: string
           current_streak?: number
+          grace_period_days_missed?: number | null
+          grace_period_eligible?: boolean | null
           id?: string
           last_activity_date?: string | null
+          last_freeze_reset_at?: string | null
           longest_streak?: number
+          streak_freezes_available?: number | null
           total_points?: number
           updated_at?: string
           user_id: string
@@ -892,9 +983,13 @@ export type Database = {
         Update: {
           created_at?: string
           current_streak?: number
+          grace_period_days_missed?: number | null
+          grace_period_eligible?: boolean | null
           id?: string
           last_activity_date?: string | null
+          last_freeze_reset_at?: string | null
           longest_streak?: number
+          streak_freezes_available?: number | null
           total_points?: number
           updated_at?: string
           user_id?: string
