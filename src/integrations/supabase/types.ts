@@ -143,6 +143,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          checkin_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_tasks: {
         Row: {
           completed: boolean | null
@@ -175,20 +202,26 @@ export type Database = {
       }
       daily_tips: {
         Row: {
+          age_range: string | null
           category: string
           created_at: string
+          display_date: string | null
           id: string
           tip_text: string
         }
         Insert: {
+          age_range?: string | null
           category?: string
           created_at?: string
+          display_date?: string | null
           id?: string
           tip_text: string
         }
         Update: {
+          age_range?: string | null
           category?: string
           created_at?: string
+          display_date?: string | null
           id?: string
           tip_text?: string
         }
@@ -713,6 +746,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          current_count: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_count?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_count?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           created_at: string | null
@@ -824,6 +898,45 @@ export type Database = {
           total_points?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      weekly_challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string
+          description: string
+          ends_at: string
+          goal_count: number
+          id: string
+          is_active: boolean
+          reward_points: number
+          starts_at: string
+          title: string
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string
+          description: string
+          ends_at: string
+          goal_count?: number
+          id?: string
+          is_active?: boolean
+          reward_points?: number
+          starts_at?: string
+          title: string
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string
+          description?: string
+          ends_at?: string
+          goal_count?: number
+          id?: string
+          is_active?: boolean
+          reward_points?: number
+          starts_at?: string
+          title?: string
         }
         Relationships: []
       }
