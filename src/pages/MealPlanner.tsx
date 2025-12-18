@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { DayCard } from "@/components/meal-planner/DayCard";
 import { RecipePickerModal } from "@/components/meal-planner/RecipePickerModal";
 import { NutritionBalanceWidget } from "@/components/meal-planner/NutritionBalanceWidget";
 import { WeekTemplatesModal, WeekTemplate } from "@/components/meal-planner/WeekTemplatesModal";
+import { WeekCompletionModal } from "@/components/meal-planner/WeekCompletionModal";
 import { MealPlanSkeleton } from "@/components/skeletons/MealPlanSkeleton";
 import confetti from "canvas-confetti";
 
@@ -88,9 +89,32 @@ const getRecipesByMealType = (mealType: string, ageMonths: number) => {
     .sort((a, b) => b.score - a.score);
 };
 
-// Generate automatic meal plan based on age and preferences
-const generateAutoPlan = (ageMonths: number, dietaryPrefs: string[] = []): MealPlan => {
-  const usedRecipeIds = new Set<string>();
+// Get the start of the current week (Monday)
+const getWeekStartDate = (date: Date = new Date()): string => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().split('T')[0];
+};
+
+// Get current week number of the year
+const getWeekNumber = (date: Date = new Date()): number => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+};
+
+// Generate automatic meal plan based on age and preferences, avoiding recently used recipes
+const generateAutoPlan = (
+  ageMonths: number, 
+  dietaryPrefs: string[] = [], 
+  recentlyUsedRecipeIds: string[] = []
+): MealPlan => {
+  const usedRecipeIds = new Set<string>([...recentlyUsedRecipeIds]);
   const plan: MealPlan = {};
   
   // Filter by dietary preferences
@@ -115,7 +139,7 @@ const generateAutoPlan = (ageMonths: number, dietaryPrefs: string[] = []): MealP
       const candidates = getRecipesByMealType(mealType, ageMonths);
       const filtered = filterByDiet(candidates.map(c => c.recipe));
       
-      // Find unused recipe
+      // Find unused recipe (prioritize recipes not used recently)
       const available = filtered.filter(r => !usedRecipeIds.has(r.id));
       
       if (available.length > 0) {
@@ -130,7 +154,7 @@ const generateAutoPlan = (ageMonths: number, dietaryPrefs: string[] = []): MealP
         
         usedRecipeIds.add(selected.id);
       } else if (filtered.length > 0) {
-        // All used, pick any
+        // All used, pick any (reset cycle)
         const selected = filtered[Math.floor(Math.random() * filtered.length)];
         plan[day][mealType] = {
           recipeId: selected.id,
@@ -155,6 +179,10 @@ const MealPlanner = () => {
   const [activeTab, setActiveTab] = useState<string>("auto");
   const [babyAgeMonths, setBabyAgeMonths] = useState(9);
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>([]);
+  const [showWeekCompletionModal, setShowWeekCompletionModal] = useState(false);
+  const [currentWeekStart, setCurrentWeekStart] = useState<string>(getWeekStartDate());
+  const [hasShownCompletionModal, setHasShownCompletionModal] = useState(false);
+  const [recentlyUsedRecipes, setRecentlyUsedRecipes] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -190,15 +218,124 @@ const MealPlanner = () => {
     }
     
     // Generate initial auto plan
-    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs);
+    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
     setAutoPlan(generated);
   };
 
+  // Check if the current week is complete (all meals prepared)
+  const checkWeekCompletion = useCallback(() => {
+    const totalMeals = Object.values(mealPlan).reduce((acc, dayMeals) => {
+      return acc + Object.keys(dayMeals).length;
+    }, 0);
+    
+    const preparedMeals = Object.values(mealPlan).reduce((acc, dayMeals) => {
+      return acc + Object.values(dayMeals).filter(slot => slot.prepared).length;
+    }, 0);
+
+    // Check if all meals are prepared (minimum 7 meals for a valid week)
+    const isComplete = totalMeals >= 7 && preparedMeals === totalMeals;
+    
+    if (isComplete && !hasShownCompletionModal && activeTab === "manual") {
+      setShowWeekCompletionModal(true);
+      setHasShownCompletionModal(true);
+    }
+  }, [mealPlan, hasShownCompletionModal, activeTab]);
+
+  // Monitor meal completion
+  useEffect(() => {
+    if (Object.keys(mealPlan).length > 0) {
+      checkWeekCompletion();
+    }
+  }, [mealPlan, checkWeekCompletion]);
+
   const regenerateAutoPlan = () => {
-    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs);
+    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
     setAutoPlan(generated);
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
     toast.success("🎉 New meal plan generated!");
+  };
+
+  // Generate new week plan after completing the current week
+  const generateNewWeekPlan = async () => {
+    if (!userId) return;
+    
+    // Collect all recipe IDs from current plan to avoid repeating
+    const currentRecipeIds: string[] = [];
+    Object.values(mealPlan).forEach(dayMeals => {
+      Object.values(dayMeals).forEach(slot => {
+        if (slot.recipeId) currentRecipeIds.push(slot.recipeId);
+      });
+    });
+    
+    // Update recently used recipes (keep last 2 weeks worth)
+    const newRecentlyUsed = [...recentlyUsedRecipes, ...currentRecipeIds].slice(-56);
+    setRecentlyUsedRecipes(newRecentlyUsed);
+    
+    // Clear current plan from database
+    const allDbIds: string[] = [];
+    Object.values(mealPlan).forEach(dayMeals => {
+      Object.values(dayMeals).forEach(slot => {
+        if (slot.dbId) allDbIds.push(slot.dbId);
+      });
+    });
+
+    if (allDbIds.length > 0) {
+      await supabase.from('meal_plans').delete().in('id', allDbIds);
+    }
+    
+    // Generate new plan avoiding recently used recipes
+    const newPlan = generateAutoPlan(babyAgeMonths, dietaryPrefs, newRecentlyUsed);
+    
+    // Insert new plan into database
+    const inserts: any[] = [];
+    const newWeekStart = getWeekStartDate();
+    
+    Object.entries(newPlan).forEach(([day, meals]) => {
+      Object.entries(meals).forEach(([mealType, slot]) => {
+        if (slot.recipeId) {
+          inserts.push({
+            user_id: userId,
+            day_of_week: day,
+            meal_type: mealType,
+            recipe_id: slot.recipeId,
+            prepared: false,
+            week_start_date: newWeekStart,
+          });
+        }
+      });
+    });
+
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .insert(inserts)
+      .select();
+
+    if (error) {
+      toast.error("Failed to generate new plan");
+      return;
+    }
+
+    // Rebuild local state
+    const rebuiltPlan: MealPlan = {};
+    data?.forEach(item => {
+      if (!rebuiltPlan[item.day_of_week]) {
+        rebuiltPlan[item.day_of_week] = {};
+      }
+      rebuiltPlan[item.day_of_week][item.meal_type] = {
+        recipeId: item.recipe_id,
+        prepared: false,
+        dbId: item.id,
+      };
+    });
+
+    setMealPlan(rebuiltPlan);
+    setAutoPlan(newPlan);
+    setCurrentWeekStart(newWeekStart);
+    setHasShownCompletionModal(false);
+    
+    confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+    toast.success("🎉 Nova semana gerada! Bom apetite!");
+    updateShoppingList();
   };
 
   const applyAutoPlanToManual = async () => {
@@ -845,6 +982,14 @@ const MealPlanner = () => {
         open={templatesOpen}
         onClose={() => setTemplatesOpen(false)}
         onApplyTemplate={applyTemplate}
+      />
+
+      <WeekCompletionModal
+        open={showWeekCompletionModal}
+        onClose={() => setShowWeekCompletionModal(false)}
+        onGenerateNewWeek={generateNewWeekPlan}
+        completedMeals={stats.preparedMeals}
+        weekNumber={getWeekNumber()}
       />
     </div>
   );
