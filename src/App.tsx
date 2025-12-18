@@ -31,6 +31,7 @@ import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
+import Achievements from "./pages/Achievements";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { NotificationPromptModal } from "@/components/NotificationPromptModal";
@@ -83,6 +84,7 @@ const AppContent = () => {
                 <Route path="/reports" element={<ProgressReports />} />
                 <Route path="/shopping" element={<ShoppingList />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/achievements" element={<Achievements />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </>

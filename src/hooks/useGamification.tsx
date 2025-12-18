@@ -15,11 +15,21 @@ export interface UserStreak {
   longest_streak: number;
   total_points: number;
   last_activity_date: string | null;
+  streak_freezes_available: number;
+  grace_period_eligible: boolean;
+  grace_period_days_missed: number;
 }
 
 export interface UserBadge {
   badge_id: string;
   earned_at: string;
+}
+
+export interface CompletedChallenge {
+  id: string;
+  challenge_title: string;
+  completed_at: string;
+  reward_points: number;
 }
 
 // All available badges
@@ -34,6 +44,8 @@ export const BADGES: Badge[] = [
   { id: 'community_star', name: 'Community Star', description: 'Create 5 community posts', icon: '⭐', requirement: 'posts_5' },
   { id: 'growth_tracker', name: 'Growth Tracker', description: 'Log 5 growth records', icon: '📈', requirement: 'growth_5' },
   { id: 'task_master', name: 'Task Master', description: 'Complete all daily tasks 5 days in a row', icon: '✅', requirement: 'tasks_5' },
+  { id: 'checkin_champion', name: 'Check-in Champion', description: 'Do 10 daily check-ins', icon: '📊', requirement: 'checkins_10' },
+  { id: 'challenge_warrior', name: 'Challenge Warrior', description: 'Complete 3 weekly challenges', icon: '🏆', requirement: 'challenges_3' },
 ];
 
 // Points for different actions
@@ -46,11 +58,14 @@ export const POINTS = {
   badge_earned: 200,
   post_created: 15,
   growth_logged: 30,
+  checkin: 15,
+  streak_freeze_used: -50,
 };
 
 export const useGamification = () => {
   const [streak, setStreak] = useState<UserStreak | null>(null);
   const [badges, setBadges] = useState<UserBadge[]>([]);
+  const [completedChallenges, setCompletedChallenges] = useState<CompletedChallenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -83,7 +98,13 @@ export const useGamification = () => {
           longest_streak: streakData.longest_streak,
           total_points: streakData.total_points,
           last_activity_date: streakData.last_activity_date,
+          streak_freezes_available: (streakData as any).streak_freezes_available || 1,
+          grace_period_eligible: (streakData as any).grace_period_eligible || false,
+          grace_period_days_missed: (streakData as any).grace_period_days_missed || 0,
         });
+        
+        // Check if we need to reset weekly freeze
+        await checkAndResetWeeklyFreeze(uid, streakData);
       } else {
         // Create initial streak record
         const { data: newStreak } = await supabase
@@ -98,6 +119,9 @@ export const useGamification = () => {
             longest_streak: 0,
             total_points: 0,
             last_activity_date: null,
+            streak_freezes_available: 1,
+            grace_period_eligible: false,
+            grace_period_days_missed: 0,
           });
         }
       }
@@ -111,10 +135,116 @@ export const useGamification = () => {
       if (badgesData) {
         setBadges(badgesData);
       }
+
+      // Load completed challenges history
+      const { data: challengesData } = await supabase
+        .from('completed_challenges_history')
+        .select('*')
+        .eq('user_id', uid)
+        .order('completed_at', { ascending: false });
+
+      if (challengesData) {
+        setCompletedChallenges(challengesData as CompletedChallenge[]);
+      }
     } catch (error) {
       console.error('Error loading gamification data:', error);
     }
   };
+
+  // Check and reset weekly freeze (resets every Monday)
+  const checkAndResetWeeklyFreeze = async (uid: string, streakData: any) => {
+    const lastReset = streakData.last_freeze_reset_at ? new Date(streakData.last_freeze_reset_at) : null;
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    
+    // If it's Monday (day 1) and we haven't reset this week
+    if (dayOfWeek === 1) {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - dayOfWeek);
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      if (!lastReset || lastReset < startOfWeek) {
+        await supabase
+          .from('user_streaks')
+          .update({ 
+            streak_freezes_available: 1,
+            last_freeze_reset_at: now.toISOString()
+          })
+          .eq('user_id', uid);
+        
+        setStreak(prev => prev ? { ...prev, streak_freezes_available: 1 } : null);
+      }
+    }
+  };
+
+  // Use a streak freeze
+  const useStreakFreeze = useCallback(async () => {
+    if (!userId || !streak || streak.streak_freezes_available <= 0) return false;
+
+    try {
+      const { error } = await supabase
+        .from('user_streaks')
+        .update({ 
+          streak_freezes_available: streak.streak_freezes_available - 1,
+          last_activity_date: new Date().toISOString().split('T')[0]
+        })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      setStreak(prev => prev ? { 
+        ...prev, 
+        streak_freezes_available: prev.streak_freezes_available - 1 
+      } : null);
+
+      toast({
+        title: '❄️ Streak Freeze Used!',
+        description: 'Your streak is protected for today.',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error using streak freeze:', error);
+      return false;
+    }
+  }, [userId, streak, toast]);
+
+  // Recover streak with grace period
+  const recoverStreak = useCallback(async () => {
+    if (!userId || !streak || !streak.grace_period_eligible) return false;
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { error } = await supabase
+        .from('user_streaks')
+        .update({ 
+          grace_period_eligible: false,
+          grace_period_days_missed: 0,
+          last_activity_date: today
+        })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      setStreak(prev => prev ? { 
+        ...prev, 
+        grace_period_eligible: false,
+        grace_period_days_missed: 0,
+        last_activity_date: today
+      } : null);
+
+      toast({
+        title: '🎉 Streak Recovered!',
+        description: 'Great job coming back! Keep the momentum going.',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error recovering streak:', error);
+      return false;
+    }
+  }, [userId, streak, toast]);
 
   // Update streak when user is active
   const updateStreak = useCallback(async () => {
@@ -134,6 +264,8 @@ export const useGamification = () => {
       const lastActivity = current.last_activity_date;
       let newStreak = current.current_streak;
       let newPoints = current.total_points;
+      let gracePeriodEligible = false;
+      let gracePeriodDaysMissed = 0;
 
       if (lastActivity === today) {
         // Already logged today
@@ -156,8 +288,22 @@ export const useGamification = () => {
           await awardBadge('super_mom');
         }
       } else if (lastActivity !== today) {
-        // Streak broken - reset
-        newStreak = 1;
+        // Calculate days missed
+        const lastDate = lastActivity ? new Date(lastActivity) : null;
+        const todayDate = new Date(today);
+        const daysMissed = lastDate 
+          ? Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)) - 1
+          : 0;
+
+        if (daysMissed > 0 && daysMissed <= 3 && current.current_streak >= 3) {
+          // Eligible for grace period recovery
+          gracePeriodEligible = true;
+          gracePeriodDaysMissed = daysMissed;
+          // Don't reset streak yet, give them a chance to recover
+        } else {
+          // Streak broken - reset
+          newStreak = 1;
+        }
       }
 
       const longestStreak = Math.max(newStreak, current.longest_streak);
@@ -169,6 +315,8 @@ export const useGamification = () => {
           longest_streak: longestStreak,
           total_points: newPoints,
           last_activity_date: today,
+          grace_period_eligible: gracePeriodEligible,
+          grace_period_days_missed: gracePeriodDaysMissed,
         })
         .eq('user_id', userId)
         .select()
@@ -180,6 +328,9 @@ export const useGamification = () => {
           longest_streak: updated.longest_streak,
           total_points: updated.total_points,
           last_activity_date: updated.last_activity_date,
+          streak_freezes_available: (updated as any).streak_freezes_available || 1,
+          grace_period_eligible: gracePeriodEligible,
+          grace_period_days_missed: gracePeriodDaysMissed,
         });
       }
     } catch (error) {
@@ -204,7 +355,7 @@ export const useGamification = () => {
       if (data) {
         setStreak(prev => prev ? { ...prev, total_points: newPoints } : null);
         
-        if (reason) {
+        if (reason && points > 0) {
           toast({
             title: `+${points} points!`,
             description: reason,
@@ -315,6 +466,26 @@ export const useGamification = () => {
       if (growthCount && growthCount >= 5) {
         await awardBadge('growth_tracker');
       }
+
+      // Check daily checkins
+      const { count: checkinCount } = await supabase
+        .from('daily_checkins')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (checkinCount && checkinCount >= 10) {
+        await awardBadge('checkin_champion');
+      }
+
+      // Check completed challenges
+      const { count: challengeCount } = await supabase
+        .from('completed_challenges_history')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (challengeCount && challengeCount >= 3) {
+        await awardBadge('challenge_warrior');
+      }
     } catch (error) {
       console.error('Error checking badges:', error);
     }
@@ -327,9 +498,25 @@ export const useGamification = () => {
     await checkBadges();
   }, [updateStreak, addPoints, checkBadges]);
 
+  // Refresh completed challenges
+  const refreshCompletedChallenges = useCallback(async () => {
+    if (!userId) return;
+    
+    const { data } = await supabase
+      .from('completed_challenges_history')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false });
+
+    if (data) {
+      setCompletedChallenges(data as CompletedChallenge[]);
+    }
+  }, [userId]);
+
   return {
     streak,
     badges,
+    completedChallenges,
     isLoading,
     BADGES,
     POINTS,
@@ -338,6 +525,9 @@ export const useGamification = () => {
     awardBadge,
     checkBadges,
     logActivity,
+    useStreakFreeze,
+    recoverStreak,
+    refreshCompletedChallenges,
     hasBadge: (badgeId: string) => badges.some(b => b.badge_id === badgeId),
     getBadgeInfo: (badgeId: string) => BADGES.find(b => b.id === badgeId),
   };
