@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { useGamification, BADGES, Badge } from "@/hooks/useGamification";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { 
   Trophy, Star, Flame, Target, Calendar, Lock,
-  Snowflake, ArrowLeft
+  Snowflake, ArrowLeft, Share2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import ShareAchievementModal from "@/components/ShareAchievementModal";
 
 const Achievements = () => {
   const { 
@@ -20,6 +22,19 @@ const Achievements = () => {
     useStreakFreeze,
     recoverStreak
   } = useGamification();
+
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareData, setShareData] = useState<{
+    type: 'badge' | 'streak' | 'points' | 'challenge';
+    title: string;
+    value?: number | string;
+    icon?: string;
+  } | null>(null);
+
+  const handleShare = (type: 'badge' | 'streak' | 'points' | 'challenge', title: string, value?: number | string, icon?: string) => {
+    setShareData({ type, title, value, icon });
+    setShareOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -69,28 +84,40 @@ const Achievements = () => {
       <div className="max-w-lg mx-auto px-4 py-5 space-y-5">
         {/* Stats Overview */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="p-4 text-center bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+          <Card 
+            className="p-4 text-center bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20 cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => handleShare('streak', 'Streak Atual', streak?.current_streak || 0, '🔥')}
+          >
             <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-2">
               <Flame className="w-5 h-5 text-accent" />
             </div>
             <p className="text-2xl font-bold text-foreground">{streak?.current_streak || 0}</p>
             <p className="text-xs text-muted-foreground">Current Streak</p>
+            <Share2 className="w-3 h-3 text-muted-foreground mx-auto mt-1" />
           </Card>
           
-          <Card className="p-4 text-center bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <Card 
+            className="p-4 text-center bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => handleShare('points', 'Pontos Totais', streak?.total_points || 0, '⭐')}
+          >
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
               <Star className="w-5 h-5 text-primary" />
             </div>
             <p className="text-2xl font-bold text-foreground">{streak?.total_points || 0}</p>
             <p className="text-xs text-muted-foreground">Total Points</p>
+            <Share2 className="w-3 h-3 text-muted-foreground mx-auto mt-1" />
           </Card>
           
-          <Card className="p-4 text-center bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
+          <Card 
+            className="p-4 text-center bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20 cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => handleShare('streak', 'Melhor Streak', streak?.longest_streak || 0, '🏆')}
+          >
             <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-2">
               <Target className="w-5 h-5 text-secondary" />
             </div>
             <p className="text-2xl font-bold text-foreground">{streak?.longest_streak || 0}</p>
             <p className="text-xs text-muted-foreground">Best Streak</p>
+            <Share2 className="w-3 h-3 text-muted-foreground mx-auto mt-1" />
           </Card>
         </div>
 
@@ -152,10 +179,12 @@ const Achievements = () => {
                 return (
                   <div 
                     key={badge.id} 
-                    className="text-center p-2 rounded-xl bg-gradient-to-br from-accent/20 to-accent/10 border border-accent/30"
+                    className="text-center p-2 rounded-xl bg-gradient-to-br from-accent/20 to-accent/10 border border-accent/30 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => handleShare('badge', badge.name, undefined, badge.icon)}
                   >
                     <div className="text-2xl mb-1">{badge.icon}</div>
                     <p className="text-xs font-medium truncate">{badge.name}</p>
+                    <Share2 className="w-3 h-3 text-muted-foreground mx-auto mt-1" />
                   </div>
                 );
               })}
@@ -245,6 +274,15 @@ const Achievements = () => {
           )}
         </Card>
       </div>
+
+      {/* Share Modal */}
+      {shareData && (
+        <ShareAchievementModal
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+          achievement={shareData}
+        />
+      )}
     </div>
   );
 };

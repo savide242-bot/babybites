@@ -1,5 +1,47 @@
 project_id = "bdkfoxzlndwxvzbbrbgl"
 
+[functions.analyze-food]
+verify_jwt = false
+
+[functions.bibi-chat]
+verify_jwt = false
+
+[functions.check-meal-reminders]
+verify_jwt = false
+
+[functions.debug-notifications]
+verify_jwt = false
+
+[functions.generate-recipe-image]
+verify_jwt = false
+
+[functions.get-vapid-key]
+verify_jwt = false
+
+[functions.notify-all-users]
+verify_jwt = false
+
+[functions.notify-update]
+verify_jwt = false
+
+[functions.rotate-challenges]
+verify_jwt = false
+
+[functions.send-engagement-notifications]
+verify_jwt = false
+
+[functions.send-meal-reminder]
+verify_jwt = false
+
+[functions.test-push-notification]
+verify_jwt = false
+
+[functions.verify-product]
+verify_jwt = false
+
+[functions.baby-birthday-check]
+verify_jwt = false
+
 [api]
 enabled = true
 port = 54321

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, User, Lock, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Mail, User, Lock, Sparkles, Loader2, Calendar } from "lucide-react";
 import { z } from "zod";
 import GoogleLogo from "@/components/auth/GoogleLogo";
 import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
@@ -19,6 +19,13 @@ const signupSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100),
   motherName: z.string().min(2, "Mother's name must be at least 2 characters").max(100),
   babyName: z.string().min(2, "Baby's name must be at least 2 characters").max(100),
+  babyBirthDate: z.string().min(1, "Baby's birth date is required").refine((date) => {
+    const d = new Date(date);
+    const now = new Date();
+    const threeYearsAgo = new Date();
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+    return d <= now && d >= threeYearsAgo;
+  }, "Birth date must be within the last 3 years"),
   email: z.string().email().max(255),
   password: z.string()
     .min(8, "Password must be at least 8 characters")
@@ -45,6 +52,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [motherName, setMotherName] = useState('');
   const [babyName, setBabyName] = useState('');
+  const [babyBirthDate, setBabyBirthDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
@@ -98,7 +106,7 @@ const Auth = () => {
 
   const handleSignup = async () => {
     setErrors({});
-    const validation = signupSchema.safeParse({ fullName, motherName, babyName, email, password, confirmPassword });
+    const validation = signupSchema.safeParse({ fullName, motherName, babyName, babyBirthDate, email, password, confirmPassword });
     
     if (!validation.success) {
       const newErrors: Record<string, string> = {};
@@ -118,7 +126,8 @@ const Auth = () => {
           data: { 
             full_name: fullName,
             mother_name: motherName,
-            baby_name: babyName
+            baby_name: babyName,
+            baby_birth_date: babyBirthDate
           },
           emailRedirectTo: `${window.location.origin}/`
         }
@@ -347,6 +356,17 @@ const Auth = () => {
               />
 
               <FormInput
+                id="babyBirthDate"
+                label="Baby's Birth Date *"
+                type="date"
+                value={babyBirthDate}
+                onChange={setBabyBirthDate}
+                error={errors.babyBirthDate}
+                icon={Calendar}
+                placeholder=""
+              />
+
+              <FormInput
                 id="password"
                 label="Create Password"
                 type="password"
@@ -372,7 +392,7 @@ const Auth = () => {
 
               <Button
                 onClick={handleSignup}
-                disabled={isLoading || !fullName || !password || !confirmPassword}
+                disabled={isLoading || !fullName || !password || !confirmPassword || !babyBirthDate}
                 size="lg"
                 className="w-full h-12 text-base font-semibold"
               >
