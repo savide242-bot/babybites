@@ -80,6 +80,33 @@ export type Database = {
         }
         Relationships: []
       }
+      baby_birthday_notifications: {
+        Row: {
+          baby_age_months: number
+          id: string
+          insight_text: string | null
+          seen: boolean | null
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          baby_age_months: number
+          id?: string
+          insight_text?: string | null
+          seen?: boolean | null
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          baby_age_months?: number
+          id?: string
+          insight_text?: string | null
+          seen?: boolean | null
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       baby_growth: {
         Row: {
           baby_name: string
@@ -478,6 +505,7 @@ export type Database = {
           prepared: boolean | null
           recipe_id: string
           user_id: string
+          week_start_date: string | null
         }
         Insert: {
           created_at?: string | null
@@ -487,6 +515,7 @@ export type Database = {
           prepared?: boolean | null
           recipe_id: string
           user_id: string
+          week_start_date?: string | null
         }
         Update: {
           created_at?: string | null
@@ -496,6 +525,7 @@ export type Database = {
           prepared?: boolean | null
           recipe_id?: string
           user_id?: string
+          week_start_date?: string | null
         }
         Relationships: []
       }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   User, Baby, Calendar, Flame, Star, Trophy, 
-  BookOpen, Utensils, Eye, Target, Camera, Pencil, Save, X
+  BookOpen, Utensils, Eye, Target, Camera, Pencil, Save, X, Loader2, Trash2
 } from "lucide-react";
 import { differenceInMonths, format } from "date-fns";
 
@@ -39,6 +39,8 @@ const Profile = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editForm, setEditForm] = useState({
     mother_name: "",
     baby_name: "",
@@ -160,6 +162,100 @@ const Profile = () => {
     return "BB";
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione uma imagem");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 2MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error("Not authenticated");
+
+      const userId = session.user.id;
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${userId}/avatar.${fileExt}`;
+
+      // Delete existing avatar if any
+      await supabase.storage.from('avatars').remove([filePath]);
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      toast.success("Avatar atualizado com sucesso!");
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error("Falha ao atualizar avatar");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const userId = session.user.id;
+
+      // List and remove all files in user's folder
+      const { data: files } = await supabase.storage
+        .from('avatars')
+        .list(userId);
+
+      if (files && files.length > 0) {
+        const filePaths = files.map(f => `${userId}/${f.name}`);
+        await supabase.storage.from('avatars').remove(filePaths);
+      }
+
+      // Update profile
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: null, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+      setProfile(prev => prev ? { ...prev, avatar_url: null } : null);
+      toast.success("Avatar removido");
+    } catch (error) {
+      console.error('Error removing avatar:', error);
+      toast.error("Falha ao remover avatar");
+    }
+  };
+
   const statCards = [
     { icon: Flame, label: "Day Streak", value: stats?.currentStreak || 0, color: "text-accent", bg: "bg-accent/10" },
     { icon: Star, label: "Total Points", value: stats?.totalPoints || 0, color: "text-sunshine", bg: "bg-sunshine/20" },
@@ -197,20 +293,46 @@ const Profile = () => {
         <div className="container max-w-2xl">
           <div className="flex flex-col items-center text-center">
             <div className="relative">
-              <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
-                  {getInitials()}
-                </AvatarFallback>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              <Avatar className="h-24 w-24 border-4 border-background shadow-lg cursor-pointer" onClick={handleAvatarClick}>
+                {isUploadingAvatar ? (
+                  <AvatarFallback className="bg-primary/50">
+                    <Loader2 className="h-8 w-8 animate-spin text-white" />
+                  </AvatarFallback>
+                ) : (
+                  <>
+                    <AvatarImage src={profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </>
+                )}
               </Avatar>
               <Button
                 size="icon"
                 variant="secondary"
                 className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full shadow-md"
-                onClick={() => toast.info("Avatar upload coming soon!")}
+                onClick={handleAvatarClick}
+                disabled={isUploadingAvatar}
               >
                 <Camera className="h-4 w-4" />
               </Button>
+              {profile?.avatar_url && (
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -bottom-1 -left-1 h-6 w-6 rounded-full shadow-md"
+                  onClick={handleRemoveAvatar}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
             </div>
             
             <h1 className="mt-4 text-2xl font-bold text-foreground">
