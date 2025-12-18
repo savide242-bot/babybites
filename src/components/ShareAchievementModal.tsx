@@ -21,47 +21,47 @@ const ShareAchievementModal = ({ isOpen, onClose, achievement }: ShareAchievemen
   const getShareText = () => {
     switch (achievement.type) {
       case 'badge':
-        return `🏆 Acabei de ganhar o badge "${achievement.title}" no BabyBites! Estou a cuidar da alimentação do meu bebé com amor! 💕 #BabyBites #BabyNutrition`;
+        return `🏆 I just earned the "${achievement.title}" badge on BabyBites! Taking care of my baby's nutrition with love! 💕 #BabyBites #BabyNutrition`;
       case 'streak':
-        return `🔥 Estou com ${achievement.value} dias de streak no BabyBites! Consistência é a chave para uma alimentação saudável! 💪 #BabyBites #MãeDedicada`;
+        return `🔥 I'm on a ${achievement.value} day streak on BabyBites! Consistency is key for healthy nutrition! 💪 #BabyBites #DedicatedMom`;
       case 'points':
-        return `⭐ Já conquistei ${achievement.value} pontos no BabyBites! A jornada de nutrição do meu bebé está a correr super bem! 🌟 #BabyBites`;
+        return `⭐ I've earned ${achievement.value} points on BabyBites! My baby's nutrition journey is going great! 🌟 #BabyBites`;
       case 'challenge':
-        return `🎯 Completei o desafio "${achievement.title}" no BabyBites! Mais um passo na jornada de alimentação saudável! 🎉 #BabyBites`;
+        return `🎯 I completed the "${achievement.title}" challenge on BabyBites! Another step in the healthy eating journey! 🎉 #BabyBites`;
       default:
-        return `Estou a usar o BabyBites para cuidar da alimentação do meu bebé! 💕 #BabyBites`;
+        return `I'm using BabyBites to take care of my baby's nutrition! 💕 #BabyBites`;
     }
   };
 
   const shareText = getShareText();
-  const shareUrl = "https://babybites.app";
 
   const shareToTwitter = () => {
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank', 'width=600,height=400');
-    toast.success("A abrir Twitter/X...");
+    toast.success("Opening Twitter/X...");
   };
 
   const shareToFacebook = () => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+    // Facebook share without URL - just the quote
+    const url = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank', 'width=600,height=400');
-    toast.success("A abrir Facebook...");
+    toast.success("Opening Facebook...");
   };
 
   const shareToWhatsApp = () => {
-    const url = `https://wa.me/?text=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
-    toast.success("A abrir WhatsApp...");
+    toast.success("Opening WhatsApp...");
   };
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(shareText + '\n\n' + shareUrl);
+      await navigator.clipboard.writeText(shareText);
       setCopied(true);
-      toast.success("Copiado para a área de transferência!");
+      toast.success("Copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Falha ao copiar");
+      toast.error("Failed to copy");
     }
   };
 
@@ -69,11 +69,10 @@ const ShareAchievementModal = ({ isOpen, onClose, achievement }: ShareAchievemen
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Minha conquista no BabyBites!',
+          title: 'My BabyBites Achievement!',
           text: shareText,
-          url: shareUrl,
         });
-        toast.success("Partilhado com sucesso!");
+        toast.success("Shared successfully!");
       } catch (err) {
         // User cancelled or error
       }
@@ -86,7 +85,7 @@ const ShareAchievementModal = ({ isOpen, onClose, achievement }: ShareAchievemen
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-primary" />
-            Partilhar Conquista
+            Share Achievement
           </DialogTitle>
         </DialogHeader>
 
@@ -117,7 +116,7 @@ const ShareAchievementModal = ({ isOpen, onClose, achievement }: ShareAchievemen
               className="col-span-2 bg-gradient-to-r from-primary to-mint text-white"
             >
               <Share2 className="mr-2 h-4 w-4" />
-              Partilhar
+              Share
             </Button>
           )}
 
@@ -156,12 +155,12 @@ const ShareAchievementModal = ({ isOpen, onClose, achievement }: ShareAchievemen
             {copied ? (
               <>
                 <Check className="h-4 w-4 text-green-600" />
-                Copiado!
+                Copied!
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" />
-                Copiar
+                Copy
               </>
             )}
           </Button>
