@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
-  Flame, Star, Sparkles
+  Flame, Star, Sparkles, Trophy
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -176,6 +176,7 @@ const Home = () => {
     { icon: Scan, label: "Food AI", path: "/scanner", color: "bg-mint/15 text-mint", iconBg: "bg-mint" },
     { icon: Bot, label: "Ask Bibi", path: "/chat", color: "bg-accent/20 text-accent-foreground", iconBg: "bg-accent" },
     { icon: TrendingUp, label: "Growth", path: "/growth", color: "bg-soft-blue text-soft-blue-foreground", iconBg: "bg-secondary" },
+    { icon: Trophy, label: "Achievements", path: "/achievements", color: "bg-sunshine/30 text-sunshine-foreground", iconBg: "bg-sunshine" },
   ];
 
   const taskEmojis: { [key: string]: string } = {

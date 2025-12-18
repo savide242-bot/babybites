@@ -7,7 +7,7 @@ import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useAdminRole } from '@/hooks/useAdminRole';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send, Clock, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send, Clock, Shield, Flame, Trophy, CalendarCheck, PartyPopper } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
@@ -24,10 +24,78 @@ const Settings = () => {
   const { isAdmin } = useAdminRole();
   const [updateNotifications, setUpdateNotifications] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [engagementPrefs, setEngagementPrefs] = useState({
+    checkin_reminder_enabled: true,
+    streak_risk_alerts_enabled: true,
+    challenge_alerts_enabled: true,
+    achievement_celebration_enabled: true
+  });
+  const [loadingEngagement, setLoadingEngagement] = useState(true);
+  const [savingEngagement, setSavingEngagement] = useState(false);
 
   useEffect(() => {
     setUpdateNotifications(!!subscription);
   }, [subscription]);
+
+  // Load engagement notification preferences
+  useEffect(() => {
+    const loadEngagementPrefs = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          setLoadingEngagement(false);
+          return;
+        }
+
+        const { data } = await supabase
+          .from('notification_preferences')
+          .select('checkin_reminder_enabled, streak_risk_alerts_enabled, challenge_alerts_enabled, achievement_celebration_enabled')
+          .eq('user_id', session.user.id)
+          .limit(1)
+          .maybeSingle();
+
+        if (data) {
+          setEngagementPrefs({
+            checkin_reminder_enabled: data.checkin_reminder_enabled ?? true,
+            streak_risk_alerts_enabled: data.streak_risk_alerts_enabled ?? true,
+            challenge_alerts_enabled: data.challenge_alerts_enabled ?? true,
+            achievement_celebration_enabled: data.achievement_celebration_enabled ?? true
+          });
+        }
+      } catch (error) {
+        console.error('Error loading engagement prefs:', error);
+      } finally {
+        setLoadingEngagement(false);
+      }
+    };
+
+    loadEngagementPrefs();
+  }, []);
+
+  const handleEngagementToggle = async (key: keyof typeof engagementPrefs, value: boolean) => {
+    setEngagementPrefs(prev => ({ ...prev, [key]: value }));
+    setSavingEngagement(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      await supabase
+        .from('notification_preferences')
+        .update({ [key]: value, updated_at: new Date().toISOString() })
+        .eq('user_id', session.user.id);
+        
+      toast({
+        title: "✅ Preference Saved",
+        description: `${key.replace(/_/g, ' ').replace('enabled', '')} ${value ? 'enabled' : 'disabled'}`,
+      });
+    } catch (error) {
+      console.error('Error saving engagement pref:', error);
+      setEngagementPrefs(prev => ({ ...prev, [key]: !value }));
+    } finally {
+      setSavingEngagement(false);
+    }
+  };
 
   const handleToggleNotifications = async (enabled: boolean) => {
     if (enabled) {
@@ -308,6 +376,95 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <NotificationPreferences />
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Engagement Notifications
+              </CardTitle>
+              <CardDescription>
+                Stay motivated with helpful reminders and celebrations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {loadingEngagement ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <CalendarCheck className="h-5 w-5 text-mint" />
+                      <div>
+                        <p className="font-medium">Daily Check-in Reminders</p>
+                        <p className="text-sm text-muted-foreground">
+                          Get reminded to log how meals went
+                        </p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={engagementPrefs.checkin_reminder_enabled} 
+                      onCheckedChange={(v) => handleEngagementToggle('checkin_reminder_enabled', v)}
+                      disabled={savingEngagement}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Flame className="h-5 w-5 text-accent" />
+                      <div>
+                        <p className="font-medium">Streak Risk Alerts</p>
+                        <p className="text-sm text-muted-foreground">
+                          Warning when your streak is at risk
+                        </p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={engagementPrefs.streak_risk_alerts_enabled} 
+                      onCheckedChange={(v) => handleEngagementToggle('streak_risk_alerts_enabled', v)}
+                      disabled={savingEngagement}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Trophy className="h-5 w-5 text-sunshine" />
+                      <div>
+                        <p className="font-medium">Challenge Alerts</p>
+                        <p className="text-sm text-muted-foreground">
+                          Updates about weekly challenges
+                        </p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={engagementPrefs.challenge_alerts_enabled} 
+                      onCheckedChange={(v) => handleEngagementToggle('challenge_alerts_enabled', v)}
+                      disabled={savingEngagement}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <PartyPopper className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Achievement Celebrations</p>
+                        <p className="text-sm text-muted-foreground">
+                          Celebrate when you earn badges
+                        </p>
+                      </div>
+                    </div>
+                    <Switch 
+                      checked={engagementPrefs.achievement_celebration_enabled} 
+                      onCheckedChange={(v) => handleEngagementToggle('achievement_celebration_enabled', v)}
+                      disabled={savingEngagement}
+                    />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
