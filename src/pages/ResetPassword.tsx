@@ -28,22 +28,75 @@ const ResetPassword = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null);
   const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkResetToken();
-  }, []);
-
-  const checkResetToken = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsValidToken(!!session);
-    } catch (error) {
-      console.error("Token check error:", error);
+    // Check for error in URL hash (e.g., expired link)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const error = hashParams.get('error');
+    const errorDescription = hashParams.get('error_description');
+    
+    if (error) {
       setIsValidToken(false);
-    } finally {
+      setTokenError(errorDescription || 'Invalid or expired reset link');
       setIsCheckingToken(false);
+      return;
     }
-  };
+
+    // Listen for auth state changes - PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsValidToken(true);
+        setIsCheckingToken(false);
+      } else if (event === 'SIGNED_IN' && session) {
+        // User might have been signed in via the recovery token
+        setIsValidToken(true);
+        setIsCheckingToken(false);
+      }
+    });
+
+    // Check if there's already a session (user came from email link)
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Check if this is a recovery session by looking at the URL or session metadata
+          const urlHasRecoveryToken = window.location.hash.includes('type=recovery') || 
+                                       window.location.hash.includes('access_token');
+          
+          if (urlHasRecoveryToken || session.user?.recovery_sent_at) {
+            setIsValidToken(true);
+          } else {
+            // User is logged in but not for password recovery
+            setIsValidToken(true); // Still allow password change if logged in
+          }
+        } else {
+          // No session and no recovery token in URL
+          const hasToken = window.location.hash.includes('access_token') || 
+                          window.location.hash.includes('type=recovery');
+          
+          if (!hasToken) {
+            setIsValidToken(false);
+            setTokenError('No reset token found. Please request a new password reset link.');
+          }
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+        setIsValidToken(false);
+        setTokenError('Failed to verify reset link. Please try again.');
+      } finally {
+        // Give a small delay to allow auth state change to fire
+        setTimeout(() => {
+          setIsCheckingToken(false);
+        }, 1000);
+      }
+    };
+
+    checkSession();
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleResetPassword = async () => {
     setErrors({});
@@ -67,6 +120,10 @@ const ResetPassword = () => {
       if (error) {
         if (error.message.includes('same as')) {
           toast.error("Please choose a different password from your previous one.");
+        } else if (error.message.includes('session')) {
+          toast.error("Your reset link has expired. Please request a new one.");
+          setIsValidToken(false);
+          setTokenError('Reset link expired. Please request a new password reset.');
         } else {
           toast.error(error.message);
         }
@@ -120,7 +177,7 @@ const ResetPassword = () => {
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-foreground">Invalid or Expired Link</h2>
                 <p className="text-muted-foreground">
-                  This password reset link is invalid or has expired. Please request a new one.
+                  {tokenError || "This password reset link is invalid or has expired. Please request a new one."}
                 </p>
               </div>
               <Button onClick={() => navigate('/auth')} size="lg" className="w-full">

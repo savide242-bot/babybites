@@ -14,6 +14,7 @@ import { toast } from '@/components/ui/use-toast';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import ChangePasswordSection from '@/components/auth/ChangePasswordSection';
 
 const Settings = () => {
   const { t } = useLanguage();
@@ -467,6 +468,8 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+
+          <ChangePasswordSection />
 
           <Card className="border-2 shadow-elegant">
             <CardHeader>
