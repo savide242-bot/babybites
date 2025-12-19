@@ -182,6 +182,19 @@ export function NotificationPreferences() {
   const handleTestNotification = async () => {
     setTestingNotification(true);
     try {
+      if (!isSupported) {
+        toast({
+          title: "❌ Not Supported",
+          description: "Push notifications are not supported in this browser.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Ensure we have a fresh subscription saved on the backend
+      const subscribed = await subscribeToPushNotifications();
+      if (!subscribed) return;
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -190,21 +203,6 @@ export function NotificationPreferences() {
           variant: "destructive",
         });
         return;
-      }
-
-      // Check if notifications are permitted
-      if (Notification.permission !== 'granted') {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          toast({
-            title: "⚠️ Permission Denied",
-            description: "Please allow notifications in your browser settings",
-            variant: "destructive",
-          });
-          return;
-        }
-        // Subscribe after permission granted
-        await subscribeToPushNotifications();
       }
 
       const { data, error } = await supabase.functions.invoke('test-push-notification', {
@@ -218,7 +216,7 @@ export function NotificationPreferences() {
       if (data?.success) {
         toast({
           title: "✅ Test Sent!",
-          description: "Check for a notification on your device. It may take a few seconds.",
+          description: "If you don't see it within ~15s, your device/browser is blocking push delivery.",
         });
       } else {
         toast({

@@ -73,194 +73,53 @@ async function sendWebPushNotification(
   title: string,
   body: string
 ): Promise<{ success: boolean; error?: string; status?: number }> {
+  const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+  const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    return { success: false, error: 'VAPID keys not configured' };
+  }
+
   try {
-    let vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
-    let vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+    const webpush = await import('https://esm.sh/web-push@3.6.7');
 
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      return { success: false, error: 'VAPID keys not configured' };
-    }
-
-    // Clean VAPID keys
-    vapidPublicKey = vapidPublicKey.replace(/^["']|["']$/g, '').trim();
-    vapidPrivateKey = vapidPrivateKey.replace(/^["']|["']$/g, '').trim();
-
-    console.log('🔑 VAPID public key length:', vapidPublicKey.length);
-
-    // Decode VAPID public key to get x and y coordinates
-    const { x, y } = decodeVapidPublicKey(vapidPublicKey);
-    console.log(`🔑 Decoded x length: ${x.length}, y length: ${y.length}`);
+    webpush.setVapidDetails(
+      'mailto:support@babybites.app',
+      vapidPublicKey.replace(/^['"]|['"]$/g, '').trim(),
+      vapidPrivateKey.replace(/^['"]|['"]$/g, '').trim()
+    );
 
     const payload = JSON.stringify({
       title,
       body,
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
-      tag: 'test-notification',
+      // Unique tag so repeated tests always show as a new notification
+      tag: `test-${Date.now()}`,
       data: { url: '/', timestamp: Date.now() }
     });
 
-    const endpointUrl = new URL(subscription.endpoint);
-    const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
-
-    // Create VAPID JWT
-    const jwtHeader = { typ: 'JWT', alg: 'ES256' };
-    const jwtPayload = {
-      aud: audience,
-      exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
-      sub: 'mailto:support@babybites.app'
-    };
-
-    const headerB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(jwtHeader)));
-    const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(jwtPayload)));
-    const unsignedToken = `${headerB64}.${payloadB64}`;
-
-    // Import VAPID private key with CORRECT x and y from decoded public key
-    const jwk = {
-      kty: 'EC',
-      crv: 'P-256',
-      d: vapidPrivateKey,
-      x: x,
-      y: y
-    };
-
-    let privateKey;
-    try {
-      privateKey = await crypto.subtle.importKey(
-        'jwk',
-        jwk,
-        { name: 'ECDSA', namedCurve: 'P-256' },
-        false,
-        ['sign']
-      );
-    } catch (e) {
-      console.error('❌ Failed to import VAPID private key:', e);
-      return { success: false, error: `VAPID key import failed: ${e}` };
-    }
-
-    const signature = await crypto.subtle.sign(
-      { name: 'ECDSA', hash: 'SHA-256' },
-      privateKey,
-      new TextEncoder().encode(unsignedToken)
-    );
-
-    const signatureB64 = base64UrlEncode(new Uint8Array(signature));
-    const vapidToken = `${unsignedToken}.${signatureB64}`;
-
-    // Generate local key pair for encryption
-    const localKeyPair = await crypto.subtle.generateKey(
-      { name: 'ECDH', namedCurve: 'P-256' },
-      true,
-      ['deriveBits']
-    );
-
-    const localPublicKeyRaw = await crypto.subtle.exportKey('raw', localKeyPair.publicKey);
-    const localPublicKeyBytes = new Uint8Array(localPublicKeyRaw);
-
-    // Import user's public key
-    const p256dhBytes = base64UrlDecode(subscription.keys.p256dh);
-    const userPublicKey = await crypto.subtle.importKey(
-      'raw',
-      toBuffer(p256dhBytes),
-      { name: 'ECDH', namedCurve: 'P-256' },
-      false,
-      []
-    );
-
-    // Derive shared secret
-    const sharedSecretBits = await crypto.subtle.deriveBits(
-      { name: 'ECDH', public: userPublicKey },
-      localKeyPair.privateKey,
-      256
-    );
-    const sharedSecret = new Uint8Array(sharedSecretBits);
-    const authSecret = base64UrlDecode(subscription.keys.auth);
-
-    // Derive encryption keys
-    const authInfo = new TextEncoder().encode('Content-Encoding: auth\0');
-    const prk = await hkdf(sharedSecret, authSecret, authInfo, 32);
-
-    const context = new Uint8Array(1 + 2 + 65 + 2 + 65);
-    context[0] = 0;
-    context[1] = 0;
-    context[2] = 65;
-    context.set(p256dhBytes, 3);
-    context[68] = 0;
-    context[69] = 65;
-    context.set(localPublicKeyBytes, 70);
-
-    const cekInfo = createInfo('Content-Encoding: aes128gcm', context);
-    const nonceInfo = createInfo('Content-Encoding: nonce', context);
-
-    const cek = await hkdf(prk, new Uint8Array(0), cekInfo, 16);
-    const nonce = await hkdf(prk, new Uint8Array(0), nonceInfo, 12);
-
-    // Encrypt payload
-    const payloadBytes = new TextEncoder().encode(payload);
-    const paddedPayload = new Uint8Array(payloadBytes.length + 2);
-    paddedPayload.set(payloadBytes);
-    paddedPayload[payloadBytes.length] = 2;
-    paddedPayload[payloadBytes.length + 1] = 0;
-
-    const aesKey = await crypto.subtle.importKey(
-      'raw',
-      toBuffer(cek),
-      { name: 'AES-GCM' },
-      false,
-      ['encrypt']
-    );
-
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: toBuffer(nonce) },
-      aesKey,
-      toBuffer(paddedPayload)
-    );
-
-    // Build encrypted message
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const recordSize = new Uint8Array(4);
-    new DataView(recordSize.buffer).setUint32(0, 4096, false);
-
-    const header = new Uint8Array(16 + 4 + 1 + 65);
-    header.set(salt);
-    header.set(recordSize, 16);
-    header[20] = 65;
-    header.set(localPublicKeyBytes, 21);
-
-    const encryptedPayload = new Uint8Array(header.length + encrypted.byteLength);
-    encryptedPayload.set(header);
-    encryptedPayload.set(new Uint8Array(encrypted), header.length);
-
     console.log('📤 Sending test push to:', subscription.endpoint.substring(0, 60) + '...');
 
-    const response = await fetch(subscription.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'Content-Encoding': 'aes128gcm',
-        'Authorization': `vapid t=${vapidToken}, k=${vapidPublicKey}`,
-        'TTL': '86400',
-        'Urgency': 'high'
+    await webpush.sendNotification(
+      {
+        endpoint: subscription.endpoint,
+        keys: subscription.keys,
       },
-      body: encryptedPayload
-    });
+      payload,
+      {
+        TTL: 60 * 60 * 24,
+        urgency: 'high',
+      }
+    );
 
-    console.log(`📬 Response status: ${response.status}`);
-
-    if (response.status === 410 || response.status === 404) {
-      return { success: false, error: 'Subscription expired', status: response.status };
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ Push failed: ${errorText}`);
-      return { success: false, error: errorText, status: response.status };
-    }
-
-    return { success: true, status: response.status };
-  } catch (error) {
-    console.error('❌ Push error:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    console.log('✅ Push accepted by provider');
+    return { success: true, status: 201 };
+  } catch (error: any) {
+    const status = error?.statusCode ?? error?.status;
+    const details = error?.body ?? error?.message ?? String(error);
+    console.error('❌ web-push error:', { status, details });
+    return { success: false, status, error: details };
   }
 }
 
