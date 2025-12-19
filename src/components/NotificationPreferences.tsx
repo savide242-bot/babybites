@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Clock, Save, Globe } from 'lucide-react';
+import { Clock, Save, Globe, Bell, Loader2 } from 'lucide-react';
 
 interface NotificationPref {
   meal_type: string;
@@ -66,6 +66,7 @@ export function NotificationPreferences() {
   const [isEditing, setIsEditing] = useState(false);
   const [userTimezone, setUserTimezone] = useState<string>('UTC');
   const [initialTimezone, setInitialTimezone] = useState<string>('UTC');
+  const [testingNotification, setTestingNotification] = useState(false);
   const { toast } = useToast();
   const { subscribeToPushNotifications, isSupported } = usePushNotifications();
 
@@ -176,6 +177,66 @@ export function NotificationPreferences() {
     setUserTimezone(initialTimezone);
     setIsEditing(false);
     setIsSaved(true);
+  };
+
+  const handleTestNotification = async () => {
+    setTestingNotification(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "❌ Error",
+          description: "You must be logged in to test notifications",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if notifications are permitted
+      if (Notification.permission !== 'granted') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          toast({
+            title: "⚠️ Permission Denied",
+            description: "Please allow notifications in your browser settings",
+            variant: "destructive",
+          });
+          return;
+        }
+        // Subscribe after permission granted
+        await subscribeToPushNotifications();
+      }
+
+      const { data, error } = await supabase.functions.invoke('test-push-notification', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "✅ Test Sent!",
+          description: "Check for a notification on your device. It may take a few seconds.",
+        });
+      } else {
+        toast({
+          title: "⚠️ Test Result",
+          description: data?.message || "Notification may not have been delivered",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Test notification error:', error);
+      toast({
+        title: "❌ Error",
+        description: error.message || "Failed to send test notification",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingNotification(false);
+    }
   };
 
   const handleSave = async () => {
@@ -392,6 +453,33 @@ export function NotificationPreferences() {
         <Button onClick={handleEdit} className="w-full">
           Edit Preferences
         </Button>
+      )}
+
+      {/* Test Notification Button */}
+      {isSaved && !isEditing && (
+        <div className="pt-4 border-t border-border/50">
+          <Button 
+            onClick={handleTestNotification}
+            disabled={testingNotification}
+            variant="outline"
+            className="w-full"
+          >
+            {testingNotification ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Sending Test...
+              </>
+            ) : (
+              <>
+                <Bell className="h-4 w-4 mr-2" />
+                Test Notification Now
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            Send a test notification to verify your setup works
+          </p>
+        </div>
       )}
 
       <p className="text-sm text-muted-foreground">

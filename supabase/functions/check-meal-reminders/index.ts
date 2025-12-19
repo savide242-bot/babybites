@@ -58,7 +58,7 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string
   }
 };
 
-const TIME_TOLERANCE_MINUTES = 2;
+const TIME_TOLERANCE_MINUTES = 5;
 
 // ==================== VAPID / WEB PUSH HELPERS ====================
 
@@ -409,12 +409,26 @@ Deno.serve(async (req) => {
 
         const userLocalTime = getUserLocalTime(now, userTimezone);
 
+        // Calculate time difference for logging
+        const userTotalMinutes = userLocalTime.hour * 60 + userLocalTime.minute;
+        const prefTotalMinutes = pref.hour * 60 + pref.minute;
+        const diff = Math.abs(userTotalMinutes - prefTotalMinutes);
+        const wrappedDiff = Math.min(diff, 24 * 60 - diff);
+
         const matches = timeMatchesWithTolerance(
           userLocalTime.hour,
           userLocalTime.minute,
           pref.hour,
           pref.minute
         );
+
+        // Detailed logging for debugging
+        console.log(`📋 Checking: ${pref.meal_type} | User: ${pref.user_id.substring(0, 8)}...`);
+        console.log(`   🌍 Timezone: ${userTimezone}`);
+        console.log(`   ⏰ User Local Time: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
+        console.log(`   🎯 Preference Time: ${pref.hour}:${String(pref.minute).padStart(2, '0')}`);
+        console.log(`   📏 Difference: ${wrappedDiff} min (tolerance: ${TIME_TOLERANCE_MINUTES} min)`);
+        console.log(`   ${matches ? '✅ MATCHES!' : '❌ Does not match'}`);
 
         if (!matches) continue;
 
