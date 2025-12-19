@@ -23,11 +23,6 @@ interface PushSubscriptionRecord {
   };
 }
 
-interface UserSession {
-  user_id: string;
-  last_active: string | null;
-}
-
 interface UserProfile {
   id: string;
   mother_name: string | null;
@@ -37,42 +32,35 @@ interface UserProfile {
 
 const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string }> = {
   'breakfast': {
-    title: 'Good Morning! Breakfast Time',
+    title: '🍳 Breakfast Time!',
     body: "Start baby's day with a nutritious breakfast!",
     emoji: '🍳'
   },
   'morning-snack': {
-    title: 'Morning Snack Time',
+    title: '🍎 Morning Snack Time',
     body: 'A healthy snack keeps baby energized!',
     emoji: '🍎'
   },
   'lunch': {
-    title: 'Lunch Time!',
+    title: '🥗 Lunch Time!',
     body: 'Time for a delicious and balanced lunch!',
     emoji: '🥗'
   },
   'afternoon-snack': {
-    title: 'Afternoon Snack',
+    title: '🍌 Afternoon Snack',
     body: 'Keep baby happy with a tasty snack!',
     emoji: '🍌'
   },
   'dinner': {
-    title: 'Dinner Time!',
+    title: '🍽️ Dinner Time!',
     body: 'End the day with a wholesome dinner!',
     emoji: '🍽️'
   }
 };
 
-// TIME TOLERANCE: Check within ±2 minutes window
 const TIME_TOLERANCE_MINUTES = 2;
 
-// RETRY CONFIG
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1000;
-
-function toBuffer(arr: Uint8Array): ArrayBuffer {
-  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
-}
+// ==================== VAPID / WEB PUSH HELPERS ====================
 
 function base64UrlDecode(base64Url: string): Uint8Array {
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -86,31 +74,17 @@ function base64UrlEncode(data: Uint8Array): string {
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-async function hkdf(
-  ikm: Uint8Array,
-  salt: Uint8Array,
-  info: Uint8Array,
-  length: number
-): Promise<Uint8Array> {
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    toBuffer(ikm),
-    { name: 'HKDF' },
-    false,
-    ['deriveBits']
-  );
-  
+function toBuffer(arr: Uint8Array): ArrayBuffer {
+  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
+}
+
+async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
+  const keyMaterial = await crypto.subtle.importKey('raw', toBuffer(ikm), { name: 'HKDF' }, false, ['deriveBits']);
   const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: 'HKDF',
-      hash: 'SHA-256',
-      salt: toBuffer(salt),
-      info: toBuffer(info)
-    },
+    { name: 'HKDF', hash: 'SHA-256', salt: toBuffer(salt), info: toBuffer(info) },
     keyMaterial,
     length * 8
   );
-  
   return new Uint8Array(derivedBits);
 }
 
@@ -123,80 +97,22 @@ function createInfo(type: string, context: Uint8Array): Uint8Array {
   return info;
 }
 
-async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Get current time in user's timezone
-function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minute: number } {
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: false,
-    });
-    
-    const parts = formatter.formatToParts(utcDate);
-    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
-    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
-    
-    return { hour, minute };
-  } catch (error) {
-    console.error(`❌ Invalid timezone "${timezone}", falling back to UTC:`, error);
-    return { hour: utcDate.getUTCHours(), minute: utcDate.getUTCMinutes() };
-  }
-}
-
-// Check if time matches within tolerance
-function timeMatchesWithTolerance(
-  userHour: number, 
-  userMinute: number, 
-  prefHour: number, 
-  prefMinute: number
-): boolean {
-  // Convert to total minutes for easier comparison
-  const userTotalMinutes = userHour * 60 + userMinute;
-  const prefTotalMinutes = prefHour * 60 + prefMinute;
+// Properly decode VAPID public key (65-byte uncompressed EC point) to x and y coordinates
+function decodeVapidPublicKey(vapidPublicKey: string): { x: string; y: string } {
+  const publicKeyBytes = base64UrlDecode(vapidPublicKey);
   
-  const diff = Math.abs(userTotalMinutes - prefTotalMinutes);
-  
-  // Handle midnight wrap-around
-  const wrappedDiff = Math.min(diff, 24 * 60 - diff);
-  
-  return wrappedDiff <= TIME_TOLERANCE_MINUTES;
-}
-
-async function sendWebPushNotificationWithRetry(
-  subscription: PushSubscriptionRecord,
-  title: string,
-  body: string,
-  motherName?: string,
-  tag?: string
-): Promise<{ success: boolean; expired: boolean }> {
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    console.log(`📤 Attempt ${attempt}/${MAX_RETRIES} for user ${subscription.user_id}`);
-    
-    const result = await sendWebPushNotification(subscription, title, body, motherName, tag);
-    
-    if (result.success) {
-      console.log(`✅ Success on attempt ${attempt}`);
-      return result;
-    }
-    
-    if (result.expired) {
-      console.log(`⚠️ Subscription expired, no retry needed`);
-      return result;
-    }
-    
-    if (attempt < MAX_RETRIES) {
-      console.log(`⏳ Waiting ${RETRY_DELAY_MS}ms before retry...`);
-      await sleep(RETRY_DELAY_MS);
-    }
+  // Uncompressed EC point format: 0x04 || x (32 bytes) || y (32 bytes)
+  if (publicKeyBytes.length !== 65 || publicKeyBytes[0] !== 0x04) {
+    throw new Error(`Invalid VAPID public key format. Length: ${publicKeyBytes.length}, First byte: ${publicKeyBytes[0]}`);
   }
   
-  console.log(`❌ All ${MAX_RETRIES} attempts failed`);
-  return { success: false, expired: false };
+  const x = publicKeyBytes.slice(1, 33);
+  const y = publicKeyBytes.slice(33, 65);
+  
+  return {
+    x: base64UrlEncode(x),
+    y: base64UrlEncode(y)
+  };
 }
 
 async function sendWebPushNotification(
@@ -205,22 +121,24 @@ async function sendWebPushNotification(
   body: string,
   motherName?: string,
   tag?: string
-): Promise<{ success: boolean; expired: boolean }> {
+): Promise<{ success: boolean; expired: boolean; error?: string }> {
   try {
     let vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
     let vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
 
     if (!vapidPublicKey || !vapidPrivateKey) {
-      console.error('❌ VAPID keys not configured');
-      return { success: false, expired: false };
+      return { success: false, expired: false, error: 'VAPID keys not configured' };
     }
 
-    // Clean VAPID keys - remove quotes and whitespace
+    // Clean VAPID keys
     vapidPublicKey = vapidPublicKey.replace(/^["']|["']$/g, '').trim();
     vapidPrivateKey = vapidPrivateKey.replace(/^["']|["']$/g, '').trim();
 
     console.log(`🔑 VAPID public key length: ${vapidPublicKey.length}`);
-    console.log(`🔑 VAPID private key length: ${vapidPrivateKey.length}`);
+
+    // Decode VAPID public key to get x and y coordinates
+    const { x, y } = decodeVapidPublicKey(vapidPublicKey);
+    console.log(`🔑 Decoded x length: ${x.length}, y length: ${y.length}`);
 
     const personalizedBody = motherName ? `Hi ${motherName}! ${body}` : body;
 
@@ -230,15 +148,13 @@ async function sendWebPushNotification(
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
       tag: tag || 'meal-reminder',
-      data: {
-        url: '/planner',
-        timestamp: Date.now()
-      }
+      data: { url: '/planner', timestamp: Date.now() }
     });
 
     const endpointUrl = new URL(subscription.endpoint);
     const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
 
+    // Create VAPID JWT
     const jwtHeader = { typ: 'JWT', alg: 'ES256' };
     const jwtPayload = {
       aud: audience,
@@ -250,14 +166,15 @@ async function sendWebPushNotification(
     const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(jwtPayload)));
     const unsignedToken = `${headerB64}.${payloadB64}`;
 
+    // Import VAPID private key with CORRECT x and y from decoded public key
     const jwk = {
       kty: 'EC',
       crv: 'P-256',
       d: vapidPrivateKey,
-      x: vapidPublicKey.substring(0, 43),
-      y: vapidPublicKey.substring(43)
+      x: x,
+      y: y
     };
-    
+
     let privateKey;
     try {
       privateKey = await crypto.subtle.importKey(
@@ -269,7 +186,7 @@ async function sendWebPushNotification(
       );
     } catch (e) {
       console.error('❌ Failed to import VAPID private key:', e);
-      return { success: false, expired: false };
+      return { success: false, expired: false, error: `Key import failed: ${e}` };
     }
 
     const signature = await crypto.subtle.sign(
@@ -278,10 +195,10 @@ async function sendWebPushNotification(
       new TextEncoder().encode(unsignedToken)
     );
 
-    const signatureBytes = new Uint8Array(signature);
-    const signatureB64 = base64UrlEncode(signatureBytes);
+    const signatureB64 = base64UrlEncode(new Uint8Array(signature));
     const vapidToken = `${unsignedToken}.${signatureB64}`;
 
+    // Generate local key pair for encryption
     const localKeyPair = await crypto.subtle.generateKey(
       { name: 'ECDH', namedCurve: 'P-256' },
       true,
@@ -291,6 +208,7 @@ async function sendWebPushNotification(
     const localPublicKeyRaw = await crypto.subtle.exportKey('raw', localKeyPair.publicKey);
     const localPublicKeyBytes = new Uint8Array(localPublicKeyRaw);
 
+    // Import user's public key
     const p256dhBytes = base64UrlDecode(subscription.keys.p256dh);
     const userPublicKey = await crypto.subtle.importKey(
       'raw',
@@ -300,15 +218,16 @@ async function sendWebPushNotification(
       []
     );
 
+    // Derive shared secret
     const sharedSecretBits = await crypto.subtle.deriveBits(
       { name: 'ECDH', public: userPublicKey },
       localKeyPair.privateKey,
       256
     );
     const sharedSecret = new Uint8Array(sharedSecretBits);
-
     const authSecret = base64UrlDecode(subscription.keys.auth);
 
+    // Derive encryption keys
     const authInfo = new TextEncoder().encode('Content-Encoding: auth\0');
     const prk = await hkdf(sharedSecret, authSecret, authInfo, 32);
 
@@ -327,6 +246,7 @@ async function sendWebPushNotification(
     const cek = await hkdf(prk, new Uint8Array(0), cekInfo, 16);
     const nonce = await hkdf(prk, new Uint8Array(0), nonceInfo, 12);
 
+    // Encrypt payload
     const payloadBytes = new TextEncoder().encode(payload);
     const paddedPayload = new Uint8Array(payloadBytes.length + 2);
     paddedPayload.set(payloadBytes);
@@ -347,10 +267,11 @@ async function sendWebPushNotification(
       toBuffer(paddedPayload)
     );
 
+    // Build encrypted message
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const recordSize = new Uint8Array(4);
     new DataView(recordSize.buffer).setUint32(0, 4096, false);
-    
+
     const header = new Uint8Array(16 + 4 + 1 + 65);
     header.set(salt);
     header.set(recordSize, 16);
@@ -378,21 +299,49 @@ async function sendWebPushNotification(
     console.log(`📬 Response status: ${response.status}`);
 
     if (response.status === 410 || response.status === 404) {
-      console.log('⚠️ Subscription expired or not found');
       return { success: false, expired: true };
     }
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ Push failed: ${response.status} - ${errorText}`);
-      return { success: false, expired: false };
+      return { success: false, expired: false, error: `${response.status}: ${errorText}` };
     }
 
     return { success: true, expired: false };
   } catch (error) {
     console.error('❌ Push error:', error);
-    return { success: false, expired: false };
+    return { success: false, expired: false, error: String(error) };
   }
+}
+
+// Get current time in user's timezone
+function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minute: number } {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(utcDate);
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+
+    return { hour, minute };
+  } catch (error) {
+    console.error(`❌ Invalid timezone "${timezone}":`, error);
+    return { hour: utcDate.getUTCHours(), minute: utcDate.getUTCMinutes() };
+  }
+}
+
+function timeMatchesWithTolerance(userHour: number, userMinute: number, prefHour: number, prefMinute: number): boolean {
+  const userTotalMinutes = userHour * 60 + userMinute;
+  const prefTotalMinutes = prefHour * 60 + prefMinute;
+  const diff = Math.abs(userTotalMinutes - prefTotalMinutes);
+  const wrappedDiff = Math.min(diff, 24 * 60 - diff);
+  return wrappedDiff <= TIME_TOLERANCE_MINUTES;
 }
 
 Deno.serve(async (req) => {
@@ -408,11 +357,11 @@ Deno.serve(async (req) => {
     const now = new Date();
 
     console.log(`\n========================================`);
-    console.log(`⏰ CHECK-MEAL-REMINDERS STARTED (TIMEZONE-AWARE)`);
+    console.log(`⏰ CHECK-MEAL-REMINDERS STARTED`);
     console.log(`📅 Server Time (UTC): ${now.toISOString()}`);
     console.log(`========================================\n`);
 
-    // 1. Get ALL enabled preferences
+    // Get all enabled preferences
     const { data: allPreferences, error: prefsError } = await supabase
       .from('notification_preferences')
       .select('user_id, meal_type, hour, minute, enabled')
@@ -424,9 +373,9 @@ Deno.serve(async (req) => {
 
     console.log(`📋 Total enabled preferences: ${allPreferences?.length || 0}`);
 
-    // 2. Get all user profiles with timezones
+    // Get user profiles with timezones
     const userIds = [...new Set((allPreferences || []).map((p: NotificationPreference) => p.user_id))];
-    
+
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, mother_name, baby_name, timezone')
@@ -435,13 +384,9 @@ Deno.serve(async (req) => {
     const profileMap = new Map<string, UserProfile>();
     (profiles || []).forEach((p: UserProfile) => profileMap.set(p.id, p));
 
-    console.log(`👥 Profiles loaded: ${profiles?.length || 0}`);
+    // Get push subscriptions
+    const { data: allSubs } = await supabase.from('push_subscriptions').select('*');
 
-    // Get ALL push subscriptions
-    const { data: allSubs } = await supabase
-      .from('push_subscriptions')
-      .select('*');
-    
     const subsMap = new Map<string, PushSubscriptionRecord[]>();
     (allSubs || []).forEach((s: PushSubscriptionRecord) => {
       const existing = subsMap.get(s.user_id) || [];
@@ -456,128 +401,56 @@ Deno.serve(async (req) => {
     const expiredSubscriptions: string[] = [];
     const processedUsers = new Set<string>();
 
-    // 3. Check each preference against user's LOCAL time
+    // Check each preference against user's LOCAL time
     if (allPreferences && allPreferences.length > 0) {
-      console.log(`\n🔔 PROCESSING PREFERENCES WITH TIMEZONE CONVERSION\n`);
-
       for (const pref of allPreferences as NotificationPreference[]) {
         const profile = profileMap.get(pref.user_id);
         const userTimezone = profile?.timezone || 'UTC';
-        
-        // Get user's local time
+
         const userLocalTime = getUserLocalTime(now, userTimezone);
-        
-        // Check if preference matches current local time
+
         const matches = timeMatchesWithTolerance(
-          userLocalTime.hour, 
-          userLocalTime.minute, 
-          pref.hour, 
+          userLocalTime.hour,
+          userLocalTime.minute,
+          pref.hour,
           pref.minute
         );
 
-        if (!matches) {
-          continue;
-        }
+        if (!matches) continue;
 
-        // Avoid duplicate notifications
         const userMealKey = `${pref.user_id}-${pref.meal_type}`;
-        if (processedUsers.has(userMealKey)) {
-          continue;
-        }
+        if (processedUsers.has(userMealKey)) continue;
         processedUsers.add(userMealKey);
 
-        console.log(`\n👤 MATCH FOUND: ${pref.meal_type} for user ${pref.user_id.substring(0, 8)}...`);
-        console.log(`   🌍 Timezone: ${userTimezone}`);
-        console.log(`   🕐 User's local time: ${userLocalTime.hour}:${userLocalTime.minute.toString().padStart(2, '0')}`);
-        console.log(`   ⏰ Preference time: ${pref.hour}:${pref.minute.toString().padStart(2, '0')}`);
+        console.log(`\n👤 MATCH: ${pref.meal_type} for ${pref.user_id.substring(0, 8)}...`);
+        console.log(`   🌍 Timezone: ${userTimezone}, Local: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
 
         const subscriptions = subsMap.get(pref.user_id);
-
         if (!subscriptions || subscriptions.length === 0) {
           console.log(`⚠️ No push subscription for this user`);
           continue;
         }
 
-        console.log(`📱 Found ${subscriptions.length} subscription(s)`);
-
-        const mealInfo = MEAL_MESSAGES[pref.meal_type] || {
-          title: 'Meal Reminder',
-          body: 'Time for a meal!',
-          emoji: '🍽️'
-        };
-
-        const notificationTitle = `${mealInfo.emoji} ${mealInfo.title}`;
+        const message = MEAL_MESSAGES[pref.meal_type] || MEAL_MESSAGES['lunch'];
 
         for (const sub of subscriptions) {
-          const result = await sendWebPushNotificationWithRetry(sub, notificationTitle, mealInfo.body, profile?.mother_name || undefined);
+          const result = await sendWebPushNotification(
+            sub,
+            message.title,
+            message.body,
+            profile?.mother_name || undefined,
+            `meal-${pref.meal_type}`
+          );
+
           if (result.success) {
             sentCount++;
-            console.log(`✅ Notification sent successfully!`);
+            console.log(`✅ Notification sent!`);
+          } else if (result.expired) {
+            expiredSubscriptions.push(sub.id);
+            failedCount++;
           } else {
             failedCount++;
-            if (result.expired) {
-              expiredSubscriptions.push(sub.id);
-            }
-          }
-        }
-      }
-    }
-
-    if (processedUsers.size === 0) {
-      console.log('📭 No matching preferences for current time (considering user timezones)');
-    }
-
-    // 4. Check for inactive users (once per hour at minute 0 UTC)
-    const utcMinute = now.getUTCMinutes();
-    if (utcMinute === 0) {
-      console.log('\n🔍 Checking for inactive users...');
-      
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      
-      const { data: inactiveSessions } = await supabase
-        .from('user_sessions')
-        .select('user_id, last_active')
-        .lt('last_active', twentyFourHoursAgo);
-
-      if (inactiveSessions && inactiveSessions.length > 0) {
-        console.log(`👋 Found ${inactiveSessions.length} inactive users`);
-
-        for (const session of inactiveSessions as UserSession[]) {
-          const { data: recentNotif } = await supabase
-            .from('activity_logs')
-            .select('id')
-            .eq('user_id', session.user_id)
-            .eq('action_type', 'inactivity_reminder_sent')
-            .gte('created_at', twentyFourHoursAgo)
-            .limit(1);
-
-          if (recentNotif && recentNotif.length > 0) {
-            continue;
-          }
-
-          const subscriptions = subsMap.get(session.user_id);
-
-          if (!subscriptions || subscriptions.length === 0) continue;
-
-          const profile = profileMap.get(session.user_id);
-
-          const title = '💕 We Miss You!';
-          const body = profile?.baby_name 
-            ? `${profile.baby_name} needs your care! Come back and plan some delicious meals.`
-            : 'Come back and continue your baby nutrition journey!';
-
-          for (const sub of subscriptions) {
-            const result = await sendWebPushNotificationWithRetry(sub, title, body, profile?.mother_name || undefined, 'inactivity-reminder');
-            if (result.success) {
-              sentCount++;
-              await supabase.from('activity_logs').insert({
-                user_id: session.user_id,
-                action_type: 'inactivity_reminder_sent',
-                action_details: { sent_at: now.toISOString() }
-              });
-            } else if (result.expired) {
-              expiredSubscriptions.push(sub.id);
-            }
+            console.log(`❌ Failed: ${result.error}`);
           }
         }
       }
@@ -585,37 +458,26 @@ Deno.serve(async (req) => {
 
     // Clean up expired subscriptions
     if (expiredSubscriptions.length > 0) {
-      console.log(`\n🧹 Cleaning ${expiredSubscriptions.length} expired subscriptions`);
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .in('id', expiredSubscriptions);
+      console.log(`🧹 Cleaning ${expiredSubscriptions.length} expired subscriptions`);
+      await supabase.from('push_subscriptions').delete().in('id', expiredSubscriptions);
     }
 
-    console.log(`\n========================================`);
-    console.log(`📊 SUMMARY`);
-    console.log(`   ✅ Sent: ${sentCount}`);
-    console.log(`   ❌ Failed: ${failedCount}`);
-    console.log(`   🗑️ Expired: ${expiredSubscriptions.length}`);
-    console.log(`========================================\n`);
+    console.log(`\n📊 Results: ${sentCount} sent, ${failedCount} failed`);
 
     return new Response(
       JSON.stringify({
         success: true,
         sent: sentCount,
         failed: failedCount,
-        expired: expiredSubscriptions.length,
-        serverTimeUTC: now.toISOString(),
-        usersChecked: processedUsers.size
+        expiredCleaned: expiredSubscriptions.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
-    console.error('💥 Error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error('❌ Error:', error);
+    return new Response(JSON.stringify({ error: String(error) }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 });

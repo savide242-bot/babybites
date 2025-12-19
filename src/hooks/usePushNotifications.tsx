@@ -7,12 +7,12 @@ const fetchVapidPublicKey = async (): Promise<string | null> => {
   try {
     console.log('🔑 Fetching VAPID public key...');
     const { data, error } = await supabase.functions.invoke('get-vapid-key');
-    
+
     if (error) {
       console.error('❌ Error fetching VAPID key:', error);
       return null;
     }
-    
+
     if (!data?.vapidPublicKey) {
       console.error('❌ No VAPID key in response:', data);
       return null;
@@ -31,7 +31,6 @@ export const usePushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
-    // Check if push notifications are supported
     const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setIsSupported(supported);
     console.log('📱 Push notifications supported:', supported);
@@ -45,11 +44,10 @@ export const usePushNotifications = () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const existingSub = await registration.pushManager.getSubscription();
-      
+
       if (existingSub) {
         console.log('✅ Found existing push subscription');
         setSubscription(existingSub);
-        
         // Ensure it's saved to database
         await saveSubscription(existingSub);
       } else {
@@ -62,7 +60,7 @@ export const usePushNotifications = () => {
 
   const subscribeToPushNotifications = async (): Promise<boolean> => {
     console.log('🔔 Starting push notification subscription...');
-    
+
     if (!isSupported) {
       console.error('❌ Push notifications not supported');
       toast({
@@ -78,7 +76,7 @@ export const usePushNotifications = () => {
       console.log('🔐 Requesting notification permission...');
       const permission = await Notification.requestPermission();
       console.log('🔐 Permission result:', permission);
-      
+
       if (permission !== 'granted') {
         toast({
           title: "Permission Denied",
@@ -93,44 +91,47 @@ export const usePushNotifications = () => {
       const registration = await navigator.serviceWorker.ready;
       console.log('✅ Service worker ready');
 
-      // Step 3: Check for existing subscription
-      let sub = await registration.pushManager.getSubscription();
-      
-      if (sub) {
-        console.log('✅ Using existing subscription');
-      } else {
-        // Step 4: Fetch VAPID key from edge function
-        console.log('🔑 Fetching VAPID key...');
-        const vapidKey = await fetchVapidPublicKey();
-        
-        if (!vapidKey) {
-          console.error('❌ Failed to get VAPID key');
-          toast({
-            title: "Configuration Error",
-            description: "Could not configure push notifications. Please try again later.",
-            variant: "destructive"
-          });
-          return false;
-        }
+      // Step 3: ALWAYS unsubscribe existing and create new subscription
+      // This ensures we're using the current VAPID key
+      const existingSub = await registration.pushManager.getSubscription();
+      if (existingSub) {
+        console.log('🔄 Unsubscribing from old subscription to ensure fresh key...');
+        await existingSub.unsubscribe();
+      }
 
-        // Step 5: Subscribe to push manager
-        console.log('📱 Creating new push subscription...');
-        try {
-          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-          sub = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: applicationServerKey.buffer as ArrayBuffer
-          });
-          console.log('✅ Push subscription created successfully');
-        } catch (subscribeError) {
-          console.error('❌ Push subscribe failed:', subscribeError);
-          toast({
-            title: "Subscription Failed",
-            description: subscribeError instanceof Error ? subscribeError.message : "Could not enable push notifications.",
-            variant: "destructive"
-          });
-          return false;
-        }
+      // Step 4: Fetch VAPID key from edge function
+      console.log('🔑 Fetching VAPID key...');
+      const vapidKey = await fetchVapidPublicKey();
+
+      if (!vapidKey) {
+        console.error('❌ Failed to get VAPID key');
+        toast({
+          title: "Configuration Error",
+          description: "Could not configure push notifications. Please try again later.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Step 5: Create NEW push subscription with current VAPID key
+      console.log('📱 Creating new push subscription with current VAPID key...');
+      let sub: PushSubscription;
+      try {
+        const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+        sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey.buffer as ArrayBuffer
+        });
+        console.log('✅ Push subscription created successfully');
+        console.log('📍 Endpoint:', sub.endpoint.substring(0, 60) + '...');
+      } catch (subscribeError) {
+        console.error('❌ Push subscribe failed:', subscribeError);
+        toast({
+          title: "Subscription Failed",
+          description: subscribeError instanceof Error ? subscribeError.message : "Could not enable push notifications.",
+          variant: "destructive"
+        });
+        return false;
       }
 
       setSubscription(sub);
@@ -138,7 +139,7 @@ export const usePushNotifications = () => {
       // Step 6: Save subscription to database
       console.log('💾 Saving subscription to database...');
       const saved = await saveSubscription(sub);
-      
+
       if (!saved) {
         console.error('❌ Failed to save subscription to database');
         toast({
@@ -170,7 +171,7 @@ export const usePushNotifications = () => {
   const saveSubscription = async (sub: PushSubscription): Promise<boolean> => {
     try {
       console.log('💾 Starting saveSubscription...');
-      
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.warn('⚠️ No user found, cannot save subscription');
@@ -202,7 +203,7 @@ export const usePushNotifications = () => {
         auth_length: subscriptionData.keys.auth.length
       });
 
-      // First, try to delete any existing subscription for this user
+      // Delete any existing subscription for this user
       const { error: deleteError } = await supabase
         .from('push_subscriptions')
         .delete()
@@ -222,7 +223,7 @@ export const usePushNotifications = () => {
         console.error('❌ Database insert error:', error);
         return false;
       }
-      
+
       console.log('✅ Push subscription saved to database:', data);
       return true;
     } catch (error) {
