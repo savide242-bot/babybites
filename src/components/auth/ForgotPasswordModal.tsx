@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import FormInput from "./FormInput";
 
@@ -22,6 +22,20 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
+  // Reset email when prop changes
+  useEffect(() => {
+    if (email) setResetEmail(email);
+  }, [email]);
 
   const handleSendResetEmail = async () => {
     setError("");
@@ -39,8 +53,9 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
       });
       
       if (error) {
-        if (error.message.includes('rate limit')) {
-          toast.error("Too many requests. Please wait a few minutes.");
+        if (error.message.includes('rate limit') || error.message.includes('too many')) {
+          setCooldown(60); // 60 second cooldown
+          toast.error("Too many requests. Please wait 60 seconds.");
         } else {
           toast.error("Failed to send reset email. Please try again.");
         }
@@ -58,6 +73,7 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
   };
 
   const handleResend = () => {
+    if (cooldown > 0) return;
     setIsSent(false);
     handleSendResetEmail();
   };
@@ -134,9 +150,16 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
               </DialogDescription>
             </DialogHeader>
 
-            <p className="text-sm text-muted-foreground">
-              Click the link in the email to reset your password. The link expires in 60 minutes.
-            </p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>Click the link in the email to reset your password.</p>
+              <p>The link expires in <span className="font-medium text-foreground">60 minutes</span>.</p>
+              <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg mt-3">
+                <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Can't find the email? Check your <span className="font-medium">spam or junk folder</span>.
+                </p>
+              </div>
+            </div>
 
             <div className="space-y-3">
               <Button onClick={handleClose} className="w-full">
@@ -144,9 +167,12 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
               </Button>
               <button
                 onClick={handleResend}
-                className="text-sm text-primary hover:underline"
+                disabled={cooldown > 0}
+                className={`text-sm ${cooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary hover:underline'}`}
               >
-                Didn't receive it? Resend email
+                {cooldown > 0 
+                  ? `Wait ${cooldown}s to resend` 
+                  : "Didn't receive it? Resend email"}
               </button>
             </div>
           </div>
