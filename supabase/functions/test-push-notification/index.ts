@@ -5,10 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper functions for Web Push encryption
-function toBuffer(arr: Uint8Array): ArrayBuffer {
-  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
-}
+// ==================== VAPID / WEB PUSH HELPERS ====================
 
 function base64UrlDecode(base64Url: string): Uint8Array {
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -22,31 +19,17 @@ function base64UrlEncode(data: Uint8Array): string {
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-async function hkdf(
-  ikm: Uint8Array,
-  salt: Uint8Array,
-  info: Uint8Array,
-  length: number
-): Promise<Uint8Array> {
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    toBuffer(ikm),
-    { name: 'HKDF' },
-    false,
-    ['deriveBits']
-  );
-  
+function toBuffer(arr: Uint8Array): ArrayBuffer {
+  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
+}
+
+async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
+  const keyMaterial = await crypto.subtle.importKey('raw', toBuffer(ikm), { name: 'HKDF' }, false, ['deriveBits']);
   const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: 'HKDF',
-      hash: 'SHA-256',
-      salt: toBuffer(salt),
-      info: toBuffer(info)
-    },
+    { name: 'HKDF', hash: 'SHA-256', salt: toBuffer(salt), info: toBuffer(info) },
     keyMaterial,
     length * 8
   );
-  
   return new Uint8Array(derivedBits);
 }
 
@@ -57,6 +40,24 @@ function createInfo(type: string, context: Uint8Array): Uint8Array {
   info[typeBytes.length] = 0;
   info.set(context, typeBytes.length + 1);
   return info;
+}
+
+// Properly decode VAPID public key (65-byte uncompressed EC point) to x and y coordinates
+function decodeVapidPublicKey(vapidPublicKey: string): { x: string; y: string } {
+  const publicKeyBytes = base64UrlDecode(vapidPublicKey);
+  
+  // Uncompressed EC point format: 0x04 || x (32 bytes) || y (32 bytes)
+  if (publicKeyBytes.length !== 65 || publicKeyBytes[0] !== 0x04) {
+    throw new Error(`Invalid VAPID public key format. Length: ${publicKeyBytes.length}, First byte: ${publicKeyBytes[0]}`);
+  }
+  
+  const x = publicKeyBytes.slice(1, 33);
+  const y = publicKeyBytes.slice(33, 65);
+  
+  return {
+    x: base64UrlEncode(x),
+    y: base64UrlEncode(y)
+  };
 }
 
 interface PushSubscription {
@@ -80,12 +81,15 @@ async function sendWebPushNotification(
       return { success: false, error: 'VAPID keys not configured' };
     }
 
-    // Clean up VAPID keys
+    // Clean VAPID keys
     vapidPublicKey = vapidPublicKey.replace(/^["']|["']$/g, '').trim();
     vapidPrivateKey = vapidPrivateKey.replace(/^["']|["']$/g, '').trim();
 
     console.log('🔑 VAPID public key length:', vapidPublicKey.length);
-    console.log('🔑 VAPID private key length:', vapidPrivateKey.length);
+
+    // Decode VAPID public key to get x and y coordinates
+    const { x, y } = decodeVapidPublicKey(vapidPublicKey);
+    console.log(`🔑 Decoded x length: ${x.length}, y length: ${y.length}`);
 
     const payload = JSON.stringify({
       title,
@@ -93,17 +97,13 @@ async function sendWebPushNotification(
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
       tag: 'test-notification',
-      data: {
-        url: '/',
-        timestamp: Date.now()
-      }
+      data: { url: '/', timestamp: Date.now() }
     });
 
-    // Parse endpoint URL for audience
     const endpointUrl = new URL(subscription.endpoint);
     const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
 
-    // Create JWT for VAPID authentication
+    // Create VAPID JWT
     const jwtHeader = { typ: 'JWT', alg: 'ES256' };
     const jwtPayload = {
       aud: audience,
@@ -115,15 +115,15 @@ async function sendWebPushNotification(
     const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(jwtPayload)));
     const unsignedToken = `${headerB64}.${payloadB64}`;
 
-    // Import VAPID private key as JWK
+    // Import VAPID private key with CORRECT x and y from decoded public key
     const jwk = {
       kty: 'EC',
       crv: 'P-256',
       d: vapidPrivateKey,
-      x: vapidPublicKey.substring(0, 43),
-      y: vapidPublicKey.substring(43)
+      x: x,
+      y: y
     };
-    
+
     let privateKey;
     try {
       privateKey = await crypto.subtle.importKey(
@@ -144,22 +144,20 @@ async function sendWebPushNotification(
       new TextEncoder().encode(unsignedToken)
     );
 
-    const signatureBytes = new Uint8Array(signature);
-    const signatureB64 = base64UrlEncode(signatureBytes);
+    const signatureB64 = base64UrlEncode(new Uint8Array(signature));
     const vapidToken = `${unsignedToken}.${signatureB64}`;
 
-    // Generate ephemeral ECDH key pair for encryption
+    // Generate local key pair for encryption
     const localKeyPair = await crypto.subtle.generateKey(
       { name: 'ECDH', namedCurve: 'P-256' },
       true,
       ['deriveBits']
     );
 
-    // Export local public key
     const localPublicKeyRaw = await crypto.subtle.exportKey('raw', localKeyPair.publicKey);
     const localPublicKeyBytes = new Uint8Array(localPublicKeyRaw);
 
-    // Import user's p256dh key
+    // Import user's public key
     const p256dhBytes = base64UrlDecode(subscription.keys.p256dh);
     const userPublicKey = await crypto.subtle.importKey(
       'raw',
@@ -176,15 +174,12 @@ async function sendWebPushNotification(
       256
     );
     const sharedSecret = new Uint8Array(sharedSecretBits);
-
-    // Get auth secret
     const authSecret = base64UrlDecode(subscription.keys.auth);
 
-    // Derive encryption keys using HKDF
+    // Derive encryption keys
     const authInfo = new TextEncoder().encode('Content-Encoding: auth\0');
     const prk = await hkdf(sharedSecret, authSecret, authInfo, 32);
 
-    // Create context for key derivation
     const context = new Uint8Array(1 + 2 + 65 + 2 + 65);
     context[0] = 0;
     context[1] = 0;
@@ -200,7 +195,7 @@ async function sendWebPushNotification(
     const cek = await hkdf(prk, new Uint8Array(0), cekInfo, 16);
     const nonce = await hkdf(prk, new Uint8Array(0), nonceInfo, 12);
 
-    // Encrypt payload with AES-GCM
+    // Encrypt payload
     const payloadBytes = new TextEncoder().encode(payload);
     const paddedPayload = new Uint8Array(payloadBytes.length + 2);
     paddedPayload.set(payloadBytes);
@@ -221,23 +216,22 @@ async function sendWebPushNotification(
       toBuffer(paddedPayload)
     );
 
-    // Build aes128gcm header
+    // Build encrypted message
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const recordSize = new Uint8Array(4);
     new DataView(recordSize.buffer).setUint32(0, 4096, false);
-    
+
     const header = new Uint8Array(16 + 4 + 1 + 65);
     header.set(salt);
     header.set(recordSize, 16);
     header[20] = 65;
     header.set(localPublicKeyBytes, 21);
 
-    // Combine header and encrypted payload
     const encryptedPayload = new Uint8Array(header.length + encrypted.byteLength);
     encryptedPayload.set(header);
     encryptedPayload.set(new Uint8Array(encrypted), header.length);
 
-    console.log('📤 Sending test push notification to:', subscription.endpoint.substring(0, 60) + '...');
+    console.log('📤 Sending test push to:', subscription.endpoint.substring(0, 60) + '...');
 
     const response = await fetch(subscription.endpoint, {
       method: 'POST',
@@ -251,7 +245,7 @@ async function sendWebPushNotification(
       body: encryptedPayload
     });
 
-    console.log(`📬 Push response: ${response.status} ${response.statusText}`);
+    console.log(`📬 Response status: ${response.status}`);
 
     if (response.status === 410 || response.status === 404) {
       return { success: false, error: 'Subscription expired', status: response.status };
@@ -263,10 +257,9 @@ async function sendWebPushNotification(
       return { success: false, error: errorText, status: response.status };
     }
 
-    console.log('✅ Test push notification sent successfully');
     return { success: true, status: response.status };
   } catch (error) {
-    console.error('❌ Error sending push notification:', error);
+    console.error('❌ Push error:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
@@ -309,7 +302,6 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id);
 
     if (subError) {
-      console.error('❌ Error fetching subscription:', subError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch subscription', details: subError }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -317,18 +309,15 @@ Deno.serve(async (req) => {
     }
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log('📭 No subscription found for user');
       return new Response(
-        JSON.stringify({ 
-          error: 'No push subscription found', 
+        JSON.stringify({
+          error: 'No push subscription found',
           message: 'Please enable notifications first in Settings > Meal Reminders',
           subscriptionCount: 0
         }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log(`📱 Found ${subscriptions.length} subscription(s)`);
 
     // Get user profile for personalization
     const { data: profile } = await supabase
@@ -347,13 +336,13 @@ Deno.serve(async (req) => {
         keys: subscription.keys as { p256dh: string; auth: string }
       },
       '🔔 Test Notification',
-      `Hi ${motherName}! Your meal reminders are working perfectly! You'll receive notifications at your scheduled times.`
+      `Hi ${motherName}! Your meal reminders are working perfectly!`
     );
 
     if (result.success) {
       return new Response(
-        JSON.stringify({ 
-          success: true, 
+        JSON.stringify({
+          success: true,
           message: 'Test notification sent successfully!',
           subscriptionCount: subscriptions.length
         }),
@@ -366,11 +355,11 @@ Deno.serve(async (req) => {
           .from('push_subscriptions')
           .delete()
           .eq('id', subscription.id);
-        
+
         return new Response(
-          JSON.stringify({ 
-            error: 'Subscription expired', 
-            message: 'Your notification subscription has expired. Please re-enable notifications in Settings.',
+          JSON.stringify({
+            error: 'Subscription expired',
+            message: 'Please re-enable notifications in Settings.',
             needsResubscribe: true
           }),
           { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -378,7 +367,7 @@ Deno.serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'Failed to send notification',
           details: result.error,
           status: result.status
@@ -387,7 +376,7 @@ Deno.serve(async (req) => {
       );
     }
   } catch (error) {
-    console.error('💥 Error in test-push-notification:', error);
+    console.error('💥 Error:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

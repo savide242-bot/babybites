@@ -1,15 +1,11 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper functions for Web Push encryption
-function toBuffer(arr: Uint8Array): ArrayBuffer {
-  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
-}
+// ==================== VAPID / WEB PUSH HELPERS ====================
 
 function base64UrlDecode(base64Url: string): Uint8Array {
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -23,31 +19,17 @@ function base64UrlEncode(data: Uint8Array): string {
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-async function hkdf(
-  ikm: Uint8Array,
-  salt: Uint8Array,
-  info: Uint8Array,
-  length: number
-): Promise<Uint8Array> {
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    toBuffer(ikm),
-    { name: 'HKDF' },
-    false,
-    ['deriveBits']
-  );
-  
+function toBuffer(arr: Uint8Array): ArrayBuffer {
+  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
+}
+
+async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
+  const keyMaterial = await crypto.subtle.importKey('raw', toBuffer(ikm), { name: 'HKDF' }, false, ['deriveBits']);
   const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: 'HKDF',
-      hash: 'SHA-256',
-      salt: toBuffer(salt),
-      info: toBuffer(info)
-    },
+    { name: 'HKDF', hash: 'SHA-256', salt: toBuffer(salt), info: toBuffer(info) },
     keyMaterial,
     length * 8
   );
-  
   return new Uint8Array(derivedBits);
 }
 
@@ -58,6 +40,24 @@ function createInfo(type: string, context: Uint8Array): Uint8Array {
   info[typeBytes.length] = 0;
   info.set(context, typeBytes.length + 1);
   return info;
+}
+
+// Properly decode VAPID public key (65-byte uncompressed EC point) to x and y coordinates
+function decodeVapidPublicKey(vapidPublicKey: string): { x: string; y: string } {
+  const publicKeyBytes = base64UrlDecode(vapidPublicKey);
+  
+  // Uncompressed EC point format: 0x04 || x (32 bytes) || y (32 bytes)
+  if (publicKeyBytes.length !== 65 || publicKeyBytes[0] !== 0x04) {
+    throw new Error(`Invalid VAPID public key format. Length: ${publicKeyBytes.length}, First byte: ${publicKeyBytes[0]}`);
+  }
+  
+  const x = publicKeyBytes.slice(1, 33);
+  const y = publicKeyBytes.slice(33, 65);
+  
+  return {
+    x: base64UrlEncode(x),
+    y: base64UrlEncode(y)
+  };
 }
 
 interface PushSubscription {
@@ -74,6 +74,9 @@ async function sendWebPushNotification(
   vapidPublicKey: string,
   vapidPrivateKey: string
 ): Promise<Response> {
+  // Decode VAPID public key to get x and y coordinates
+  const { x, y } = decodeVapidPublicKey(vapidPublicKey);
+  
   const endpointUrl = new URL(subscription.endpoint);
   const audience = `${endpointUrl.protocol}//${endpointUrl.host}`;
 
@@ -82,22 +85,22 @@ async function sendWebPushNotification(
   const jwtPayload = {
     aud: audience,
     exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
-    sub: 'mailto:admin@bibi-app.com'
+    sub: 'mailto:support@babybites.app'
   };
 
   const headerB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(jwtHeader)));
   const payloadB64 = base64UrlEncode(new TextEncoder().encode(JSON.stringify(jwtPayload)));
   const unsignedToken = `${headerB64}.${payloadB64}`;
 
-  // Import VAPID private key using JWK format
+  // Import VAPID private key with CORRECT x and y from decoded public key
   const jwk = {
     kty: 'EC',
     crv: 'P-256',
     d: vapidPrivateKey,
-    x: vapidPublicKey.substring(0, 43),
-    y: vapidPublicKey.substring(43)
+    x: x,
+    y: y
   };
-  
+
   const privateKey = await crypto.subtle.importKey(
     'jwk',
     jwk,
@@ -112,8 +115,7 @@ async function sendWebPushNotification(
     new TextEncoder().encode(unsignedToken)
   );
 
-  const signatureBytes = new Uint8Array(signature);
-  const signatureB64 = base64UrlEncode(signatureBytes);
+  const signatureB64 = base64UrlEncode(new Uint8Array(signature));
   const vapidToken = `${unsignedToken}.${signatureB64}`;
 
   // Generate local key pair for encryption
@@ -143,14 +145,12 @@ async function sendWebPushNotification(
     256
   );
   const sharedSecret = new Uint8Array(sharedSecretBits);
-
   const authSecret = base64UrlDecode(subscription.keys.auth);
 
   // Derive encryption keys using HKDF
   const authInfo = new TextEncoder().encode('Content-Encoding: auth\0');
   const prk = await hkdf(sharedSecret, authSecret, authInfo, 32);
 
-  // Build context for key derivation
   const context = new Uint8Array(1 + 2 + 65 + 2 + 65);
   context[0] = 0;
   context[1] = 0;
@@ -187,11 +187,11 @@ async function sendWebPushNotification(
     toBuffer(paddedPayload)
   );
 
-  // Build encrypted message with header
+  // Build encrypted message
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const recordSize = new Uint8Array(4);
   new DataView(recordSize.buffer).setUint32(0, 4096, false);
-  
+
   const header = new Uint8Array(16 + 4 + 1 + 65);
   header.set(salt);
   header.set(recordSize, 16);
@@ -203,7 +203,7 @@ async function sendWebPushNotification(
   encryptedPayload.set(new Uint8Array(encrypted), header.length);
 
   // Send the push notification
-  const response = await fetch(subscription.endpoint, {
+  return await fetch(subscription.endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/octet-stream',
@@ -214,23 +214,21 @@ async function sendWebPushNotification(
     },
     body: encryptedPayload
   });
-
-  return response;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { userId, mealType, title, body } = await req.json();
-    
+
     console.log('📬 Sending meal reminder:', { userId, mealType, title });
 
     let vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
     let vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
-    
+
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.error('❌ VAPID keys not configured');
       throw new Error('VAPID keys not configured');
@@ -247,11 +245,11 @@ serve(async (req) => {
 
     // Get push subscription(s)
     let query = supabaseClient.from("push_subscriptions").select("*");
-    
+
     if (userId) {
       query = query.eq("user_id", userId);
     }
-    
+
     const { data: subscriptions, error } = await query;
 
     if (error) {
@@ -270,13 +268,13 @@ serve(async (req) => {
     console.log(`Found ${subscriptions.length} subscriptions`);
 
     const payload = JSON.stringify({
-      title: title || `🍽️ Hora da ${mealType || 'refeição'}!`,
-      body: body || `Não te esqueças de preparar a refeição do bebé.`,
+      title: title || `🍽️ Meal Time!`,
+      body: body || `Don't forget to prepare baby's meal.`,
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
       tag: 'meal-reminder',
       data: {
-        url: '/meal-planner',
+        url: '/planner',
         mealType: mealType
       }
     });
@@ -289,21 +287,21 @@ serve(async (req) => {
     for (const sub of subscriptions) {
       try {
         console.log(`📤 Sending notification to user ${sub.user_id}`);
-        
+
         const subscription: PushSubscription = {
           endpoint: sub.endpoint,
           keys: sub.keys as { p256dh: string; auth: string }
         };
-        
+
         const response = await sendWebPushNotification(
           subscription,
           payload,
           vapidPublicKey,
           vapidPrivateKey
         );
-        
+
         console.log(`📬 Response status: ${response.status}`);
-        
+
         if (response.ok || response.status === 201) {
           console.log(`✅ Notification sent successfully to user ${sub.user_id}`);
           successCount++;
@@ -330,18 +328,18 @@ serve(async (req) => {
         .delete()
         .in("id", expiredSubscriptions);
     }
-    
+
     console.log(`📊 Results: ${successCount} sent, ${failedCount} failed`);
 
     return new Response(
-      JSON.stringify({ 
-        message: "Notifications processed", 
+      JSON.stringify({
+        message: "Notifications processed",
         total: subscriptions.length,
         successful: successCount,
         failed: failedCount,
         expiredCleaned: expiredSubscriptions.length
       }),
-      { 
+      {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200
       }
