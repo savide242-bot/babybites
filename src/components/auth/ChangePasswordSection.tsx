@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ const passwordSchema = z.object({
 });
 
 const ChangePasswordSection = () => {
+  const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -75,12 +77,14 @@ const ChangePasswordSection = () => {
       
       toast({
         title: "✅ Password Changed",
-        description: "Your password has been updated successfully.",
+        description: "Please log in again with your new password.",
       });
       
-      // Clear form
-      setNewPassword('');
-      setConfirmPassword('');
+      // Force logout to invalidate old session
+      await supabase.auth.signOut();
+      
+      // Redirect to login page
+      navigate('/auth');
     } catch (error: any) {
       console.error("Change password error:", error);
       toast({

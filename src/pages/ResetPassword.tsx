@@ -130,10 +130,13 @@ const ResetPassword = () => {
         return;
       }
       
-      toast.success("Password reset successfully! Redirecting...");
+      toast.success("Password reset successfully! Please log in with your new password.");
+      
+      // Force logout to invalidate old session and require login with new password
+      await supabase.auth.signOut();
       
       setTimeout(() => {
-        navigate('/');
+        navigate('/auth');
       }, 1500);
     } catch (error: any) {
       console.error("Reset password error:", error);
