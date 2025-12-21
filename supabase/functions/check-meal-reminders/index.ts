@@ -5,11 +5,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface NotificationPreference {
+interface MealTime {
+  id: string;
   user_id: string;
   meal_type: string;
-  hour: number;
-  minute: number;
+  preferred_hour: number;
+  preferred_minute: number;
   enabled: boolean;
 }
 
@@ -32,94 +33,36 @@ interface UserProfile {
 
 const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string }> = {
   'breakfast': {
-    title: '🍳 Breakfast Time!',
-    body: "Start baby's day with a nutritious breakfast!",
-    emoji: '🍳'
-  },
-  'morning-snack': {
-    title: '🍎 Morning Snack Time',
-    body: 'A healthy snack keeps baby energized!',
-    emoji: '🍎'
+    title: '🌅 Hora do Café da Manhã!',
+    body: 'Em 30 minutos é hora do café! Que tal preparar algo especial para {baby}?',
+    emoji: '🌅'
   },
   'lunch': {
-    title: '🥗 Lunch Time!',
-    body: 'Time for a delicious and balanced lunch!',
-    emoji: '🥗'
+    title: '☀️ Hora do Almoço!',
+    body: 'Em 30 minutos é hora do almoço de {baby}! Vamos preparar uma refeição nutritiva?',
+    emoji: '☀️'
   },
-  'afternoon-snack': {
-    title: '🍌 Afternoon Snack',
-    body: 'Keep baby happy with a tasty snack!',
-    emoji: '🍌'
+  'snack': {
+    title: '🍎 Hora do Lanche!',
+    body: 'Em 30 minutos é hora do lanche de {baby}! Uma fruta ou algo leve?',
+    emoji: '🍎'
   },
   'dinner': {
-    title: '🍽️ Dinner Time!',
-    body: 'End the day with a wholesome dinner!',
-    emoji: '🍽️'
+    title: '🌙 Hora do Jantar!',
+    body: 'Em 30 minutos é hora do jantar! Vamos preparar a última refeição do dia para {baby}?',
+    emoji: '🌙'
   }
 };
 
-const TIME_TOLERANCE_MINUTES = 5;
+const TIME_TOLERANCE_MINUTES = 3;
+const REMINDER_MINUTES_BEFORE = 30;
 
 // ==================== VAPID / WEB PUSH HELPERS ====================
-
-function base64UrlDecode(base64Url: string): Uint8Array {
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const padding = '='.repeat((4 - base64.length % 4) % 4);
-  const rawData = atob(base64 + padding);
-  return Uint8Array.from(rawData, c => c.charCodeAt(0));
-}
-
-function base64UrlEncode(data: Uint8Array): string {
-  const base64 = btoa(String.fromCharCode(...data));
-  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-function toBuffer(arr: Uint8Array): ArrayBuffer {
-  return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
-}
-
-async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
-  const keyMaterial = await crypto.subtle.importKey('raw', toBuffer(ikm), { name: 'HKDF' }, false, ['deriveBits']);
-  const derivedBits = await crypto.subtle.deriveBits(
-    { name: 'HKDF', hash: 'SHA-256', salt: toBuffer(salt), info: toBuffer(info) },
-    keyMaterial,
-    length * 8
-  );
-  return new Uint8Array(derivedBits);
-}
-
-function createInfo(type: string, context: Uint8Array): Uint8Array {
-  const typeBytes = new TextEncoder().encode(type);
-  const info = new Uint8Array(typeBytes.length + 1 + context.length);
-  info.set(typeBytes);
-  info[typeBytes.length] = 0;
-  info.set(context, typeBytes.length + 1);
-  return info;
-}
-
-// Properly decode VAPID public key (65-byte uncompressed EC point) to x and y coordinates
-function decodeVapidPublicKey(vapidPublicKey: string): { x: string; y: string } {
-  const publicKeyBytes = base64UrlDecode(vapidPublicKey);
-  
-  // Uncompressed EC point format: 0x04 || x (32 bytes) || y (32 bytes)
-  if (publicKeyBytes.length !== 65 || publicKeyBytes[0] !== 0x04) {
-    throw new Error(`Invalid VAPID public key format. Length: ${publicKeyBytes.length}, First byte: ${publicKeyBytes[0]}`);
-  }
-  
-  const x = publicKeyBytes.slice(1, 33);
-  const y = publicKeyBytes.slice(33, 65);
-  
-  return {
-    x: base64UrlEncode(x),
-    y: base64UrlEncode(y)
-  };
-}
 
 async function sendWebPushNotification(
   subscription: PushSubscriptionRecord,
   title: string,
   body: string,
-  motherName?: string,
   tag?: string
 ): Promise<{ success: boolean; expired: boolean; error?: string }> {
   const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
@@ -138,11 +81,9 @@ async function sendWebPushNotification(
       vapidPrivateKey.replace(/^['"]|['"]$/g, '').trim()
     );
 
-    const personalizedBody = motherName ? `Hi ${motherName}! ${body}` : body;
-
     const payload = JSON.stringify({
       title,
-      body: personalizedBody,
+      body,
       icon: '/icon-192x192.png',
       badge: '/icon-192x192.png',
       tag: tag || `meal-${Date.now()}`,
@@ -200,10 +141,26 @@ function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minu
   }
 }
 
-function timeMatchesWithTolerance(userHour: number, userMinute: number, prefHour: number, prefMinute: number): boolean {
+// Calculate reminder time (30 min before meal)
+function getReminderTime(mealHour: number, mealMinute: number): { hour: number; minute: number } {
+  let reminderMinute = mealMinute - REMINDER_MINUTES_BEFORE;
+  let reminderHour = mealHour;
+  
+  if (reminderMinute < 0) {
+    reminderMinute += 60;
+    reminderHour -= 1;
+    if (reminderHour < 0) {
+      reminderHour = 23;
+    }
+  }
+  
+  return { hour: reminderHour, minute: reminderMinute };
+}
+
+function timeMatchesWithTolerance(userHour: number, userMinute: number, targetHour: number, targetMinute: number): boolean {
   const userTotalMinutes = userHour * 60 + userMinute;
-  const prefTotalMinutes = prefHour * 60 + prefMinute;
-  const diff = Math.abs(userTotalMinutes - prefTotalMinutes);
+  const targetTotalMinutes = targetHour * 60 + targetMinute;
+  const diff = Math.abs(userTotalMinutes - targetTotalMinutes);
   const wrappedDiff = Math.min(diff, 24 * 60 - diff);
   return wrappedDiff <= TIME_TOLERANCE_MINUTES;
 }
@@ -223,22 +180,31 @@ Deno.serve(async (req) => {
     console.log(`\n========================================`);
     console.log(`⏰ CHECK-MEAL-REMINDERS STARTED`);
     console.log(`📅 Server Time (UTC): ${now.toISOString()}`);
+    console.log(`🔔 Reminders sent ${REMINDER_MINUTES_BEFORE} min before meal time`);
     console.log(`========================================\n`);
 
-    // Get all enabled preferences
-    const { data: allPreferences, error: prefsError } = await supabase
-      .from('notification_preferences')
-      .select('user_id, meal_type, hour, minute, enabled')
+    // Get all enabled meal times from baby_meal_times table
+    const { data: allMealTimes, error: mealTimesError } = await supabase
+      .from('baby_meal_times')
+      .select('id, user_id, meal_type, preferred_hour, preferred_minute, enabled')
       .eq('enabled', true);
 
-    if (prefsError) {
-      console.error('❌ Error fetching preferences:', prefsError);
+    if (mealTimesError) {
+      console.error('❌ Error fetching meal times:', mealTimesError);
+      throw mealTimesError;
     }
 
-    console.log(`📋 Total enabled preferences: ${allPreferences?.length || 0}`);
+    console.log(`📋 Total enabled meal times: ${allMealTimes?.length || 0}`);
+
+    if (!allMealTimes || allMealTimes.length === 0) {
+      return new Response(
+        JSON.stringify({ success: true, message: 'No enabled meal times found', sent: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get user profiles with timezones
-    const userIds = [...new Set((allPreferences || []).map((p: NotificationPreference) => p.user_id))];
+    const userIds = [...new Set(allMealTimes.map((m: MealTime) => m.user_id))];
 
     const { data: profiles } = await supabase
       .from('profiles')
@@ -265,71 +231,71 @@ Deno.serve(async (req) => {
     const expiredSubscriptions: string[] = [];
     const processedUsers = new Set<string>();
 
-    // Check each preference against user's LOCAL time
-    if (allPreferences && allPreferences.length > 0) {
-      for (const pref of allPreferences as NotificationPreference[]) {
-        const profile = profileMap.get(pref.user_id);
-        const userTimezone = profile?.timezone || 'UTC';
+    // Check each meal time against user's LOCAL time
+    for (const mealTime of allMealTimes as MealTime[]) {
+      const profile = profileMap.get(mealTime.user_id);
+      const userTimezone = profile?.timezone || 'America/Sao_Paulo';
+      const babyName = profile?.baby_name || 'bebê';
 
-        const userLocalTime = getUserLocalTime(now, userTimezone);
+      const userLocalTime = getUserLocalTime(now, userTimezone);
+      const reminderTime = getReminderTime(mealTime.preferred_hour, mealTime.preferred_minute);
 
-        // Calculate time difference for logging
-        const userTotalMinutes = userLocalTime.hour * 60 + userLocalTime.minute;
-        const prefTotalMinutes = pref.hour * 60 + pref.minute;
-        const diff = Math.abs(userTotalMinutes - prefTotalMinutes);
-        const wrappedDiff = Math.min(diff, 24 * 60 - diff);
+      // Calculate time difference for logging
+      const userTotalMinutes = userLocalTime.hour * 60 + userLocalTime.minute;
+      const reminderTotalMinutes = reminderTime.hour * 60 + reminderTime.minute;
+      const diff = Math.abs(userTotalMinutes - reminderTotalMinutes);
+      const wrappedDiff = Math.min(diff, 24 * 60 - diff);
 
-        const matches = timeMatchesWithTolerance(
-          userLocalTime.hour,
-          userLocalTime.minute,
-          pref.hour,
-          pref.minute
+      const matches = timeMatchesWithTolerance(
+        userLocalTime.hour,
+        userLocalTime.minute,
+        reminderTime.hour,
+        reminderTime.minute
+      );
+
+      // Detailed logging for debugging
+      console.log(`📋 Checking: ${mealTime.meal_type} | User: ${mealTime.user_id.substring(0, 8)}...`);
+      console.log(`   🌍 Timezone: ${userTimezone}`);
+      console.log(`   ⏰ User Local Time: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
+      console.log(`   🍽️ Meal Time: ${mealTime.preferred_hour}:${String(mealTime.preferred_minute).padStart(2, '0')}`);
+      console.log(`   🔔 Reminder Time: ${reminderTime.hour}:${String(reminderTime.minute).padStart(2, '0')}`);
+      console.log(`   📏 Difference: ${wrappedDiff} min (tolerance: ${TIME_TOLERANCE_MINUTES} min)`);
+      console.log(`   ${matches ? '✅ MATCHES! Time to send reminder!' : '❌ Does not match'}`);
+
+      if (!matches) continue;
+
+      const userMealKey = `${mealTime.user_id}-${mealTime.meal_type}`;
+      if (processedUsers.has(userMealKey)) continue;
+      processedUsers.add(userMealKey);
+
+      console.log(`\n🔔 SENDING REMINDER: ${mealTime.meal_type} for user ${mealTime.user_id.substring(0, 8)}...`);
+
+      const subscriptions = subsMap.get(mealTime.user_id);
+      if (!subscriptions || subscriptions.length === 0) {
+        console.log(`⚠️ No push subscription for this user`);
+        continue;
+      }
+
+      const message = MEAL_MESSAGES[mealTime.meal_type] || MEAL_MESSAGES['snack'];
+      const personalizedBody = message.body.replace('{baby}', babyName);
+
+      for (const sub of subscriptions) {
+        const result = await sendWebPushNotification(
+          sub,
+          message.title,
+          personalizedBody,
+          `meal-${mealTime.meal_type}`
         );
 
-        // Detailed logging for debugging
-        console.log(`📋 Checking: ${pref.meal_type} | User: ${pref.user_id.substring(0, 8)}...`);
-        console.log(`   🌍 Timezone: ${userTimezone}`);
-        console.log(`   ⏰ User Local Time: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
-        console.log(`   🎯 Preference Time: ${pref.hour}:${String(pref.minute).padStart(2, '0')}`);
-        console.log(`   📏 Difference: ${wrappedDiff} min (tolerance: ${TIME_TOLERANCE_MINUTES} min)`);
-        console.log(`   ${matches ? '✅ MATCHES!' : '❌ Does not match'}`);
-
-        if (!matches) continue;
-
-        const userMealKey = `${pref.user_id}-${pref.meal_type}`;
-        if (processedUsers.has(userMealKey)) continue;
-        processedUsers.add(userMealKey);
-
-        console.log(`\n👤 MATCH: ${pref.meal_type} for ${pref.user_id.substring(0, 8)}...`);
-        console.log(`   🌍 Timezone: ${userTimezone}, Local: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
-
-        const subscriptions = subsMap.get(pref.user_id);
-        if (!subscriptions || subscriptions.length === 0) {
-          console.log(`⚠️ No push subscription for this user`);
-          continue;
-        }
-
-        const message = MEAL_MESSAGES[pref.meal_type] || MEAL_MESSAGES['lunch'];
-
-        for (const sub of subscriptions) {
-          const result = await sendWebPushNotification(
-            sub,
-            message.title,
-            message.body,
-            profile?.mother_name || undefined,
-            `meal-${pref.meal_type}`
-          );
-
-          if (result.success) {
-            sentCount++;
-            console.log(`✅ Notification sent!`);
-          } else if (result.expired) {
-            expiredSubscriptions.push(sub.id);
-            failedCount++;
-          } else {
-            failedCount++;
-            console.log(`❌ Failed: ${result.error}`);
-          }
+        if (result.success) {
+          sentCount++;
+          console.log(`✅ Notification sent for ${mealTime.meal_type}!`);
+        } else if (result.expired) {
+          expiredSubscriptions.push(sub.id);
+          failedCount++;
+        } else {
+          failedCount++;
+          console.log(`❌ Failed: ${result.error}`);
         }
       }
     }
@@ -347,7 +313,8 @@ Deno.serve(async (req) => {
         success: true,
         sent: sentCount,
         failed: failedCount,
-        expiredCleaned: expiredSubscriptions.length
+        expiredCleaned: expiredSubscriptions.length,
+        checkedAt: now.toISOString()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
