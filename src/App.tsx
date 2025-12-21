@@ -14,6 +14,7 @@ import { useSessionTracking } from "@/hooks/useSessionTracking";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Onboarding from "./pages/Onboarding";
+import FirstDay from "./pages/FirstDay";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import MealPlanner from "./pages/MealPlanner";
@@ -70,6 +71,7 @@ const AppContent = () => {
               <BirthdayCelebrationModal />
               <Routes>
                 <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/first-day" element={<FirstDay />} />
                 <Route path="/" element={<Home />} />
                 <Route path="/recipes" element={<Recipes />} />
                 <Route path="/recipe/:id" element={<RecipeDetail />} />
