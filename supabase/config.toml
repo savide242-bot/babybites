@@ -1,47 +1,5 @@
 project_id = "bdkfoxzlndwxvzbbrbgl"
 
-[functions.analyze-food]
-verify_jwt = false
-
-[functions.bibi-chat]
-verify_jwt = false
-
-[functions.check-meal-reminders]
-verify_jwt = false
-
-[functions.debug-notifications]
-verify_jwt = false
-
-[functions.generate-recipe-image]
-verify_jwt = false
-
-[functions.get-vapid-key]
-verify_jwt = false
-
-[functions.notify-all-users]
-verify_jwt = false
-
-[functions.notify-update]
-verify_jwt = false
-
-[functions.rotate-challenges]
-verify_jwt = false
-
-[functions.send-engagement-notifications]
-verify_jwt = false
-
-[functions.send-meal-reminder]
-verify_jwt = false
-
-[functions.test-push-notification]
-verify_jwt = false
-
-[functions.verify-product]
-verify_jwt = false
-
-[functions.baby-birthday-check]
-verify_jwt = false
-
 [api]
 enabled = true
 port = 54321
@@ -52,16 +10,28 @@ max_rows = 1000
 [auth]
 enabled = true
 
-[functions.bibi-chat]
+[functions.analyze-food]
 verify_jwt = true
 
-[functions.get-vapid-key]
+[functions.baby-birthday-check]
 verify_jwt = false
+
+[functions.batch-generate-recipe-images]
+verify_jwt = true
+
+[functions.bibi-chat]
+verify_jwt = true
 
 [functions.check-meal-reminders]
 verify_jwt = false
 
-[functions.send-meal-reminder]
+[functions.debug-notifications]
+verify_jwt = false
+
+[functions.generate-recipe-image]
+verify_jwt = true
+
+[functions.get-vapid-key]
 verify_jwt = false
 
 [functions.notify-all-users]
@@ -70,23 +40,17 @@ verify_jwt = true
 [functions.notify-update]
 verify_jwt = false
 
-[functions.verify-product]
-verify_jwt = true
-
-[functions.analyze-food]
-verify_jwt = true
-
-[functions.test-push-notification]
-verify_jwt = true
-
-[functions.generate-recipe-image]
-verify_jwt = true
-
-[functions.debug-notifications]
+[functions.rotate-challenges]
 verify_jwt = false
 
 [functions.send-engagement-notifications]
 verify_jwt = false
 
-[functions.rotate-challenges]
+[functions.send-meal-reminder]
 verify_jwt = false
+
+[functions.test-push-notification]
+verify_jwt = true
+
+[functions.verify-product]
+verify_jwt = true
