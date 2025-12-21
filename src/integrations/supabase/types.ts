@@ -143,6 +143,39 @@ export type Database = {
         }
         Relationships: []
       }
+      baby_meal_times: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          meal_type: string
+          preferred_hour: number
+          preferred_minute: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          meal_type: string
+          preferred_hour: number
+          preferred_minute?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          meal_type?: string
+          preferred_hour?: number
+          preferred_minute?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -265,6 +298,36 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           title?: string
+        }
+        Relationships: []
+      }
+      daily_polls: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          created_at: string | null
+          id: string
+          poll_date: string | null
+          question: string
+          user_id: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string | null
+          id?: string
+          poll_date?: string | null
+          question: string
+          user_id: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string | null
+          id?: string
+          poll_date?: string | null
+          question?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -444,6 +507,42 @@ export type Database = {
           recipe_id?: string | null
           tried_at?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      food_firsts: {
+        Row: {
+          category: string
+          celebrated: boolean | null
+          created_at: string | null
+          first_tried_at: string | null
+          food_name: string
+          id: string
+          photo_url: string | null
+          reaction: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          celebrated?: boolean | null
+          created_at?: string | null
+          first_tried_at?: string | null
+          food_name: string
+          id?: string
+          photo_url?: string | null
+          reaction?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          celebrated?: boolean | null
+          created_at?: string | null
+          first_tried_at?: string | null
+          food_name?: string
+          id?: string
+          photo_url?: string | null
+          reaction?: string | null
           user_id?: string
         }
         Relationships: []
@@ -631,6 +730,48 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_progress: {
+        Row: {
+          completed_steps: string[] | null
+          created_at: string | null
+          day_of_journey: number | null
+          first_checkin_done: boolean | null
+          first_recipe_prepared: boolean | null
+          id: string
+          meal_times_configured: boolean | null
+          seven_day_challenge_completed: boolean | null
+          seven_day_challenge_started: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_steps?: string[] | null
+          created_at?: string | null
+          day_of_journey?: number | null
+          first_checkin_done?: boolean | null
+          first_recipe_prepared?: boolean | null
+          id?: string
+          meal_times_configured?: boolean | null
+          seven_day_challenge_completed?: boolean | null
+          seven_day_challenge_started?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_steps?: string[] | null
+          created_at?: string | null
+          day_of_journey?: number | null
+          first_checkin_done?: boolean | null
+          first_recipe_prepared?: boolean | null
+          id?: string
+          meal_times_configured?: boolean | null
+          seven_day_challenge_completed?: boolean | null
+          seven_day_challenge_started?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string
@@ -782,6 +923,42 @@ export type Database = {
           recipe_id?: string
           user_id?: string
           viewed_at?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          referred_email: string | null
+          referred_user_id: string | null
+          referrer_id: string
+          reward_claimed: boolean | null
+          reward_points: number | null
+          status: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id: string
+          reward_claimed?: boolean | null
+          reward_points?: number | null
+          status?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string
+          reward_claimed?: boolean | null
+          reward_points?: number | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -1122,6 +1299,39 @@ export type Database = {
           reward_points?: number
           starts_at?: string
           title?: string
+        }
+        Relationships: []
+      }
+      winback_campaigns: {
+        Row: {
+          campaign_type: string
+          converted_at: string | null
+          created_at: string | null
+          id: string
+          message_sent: string | null
+          opened_at: string | null
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          campaign_type: string
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          message_sent?: string | null
+          opened_at?: string | null
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          campaign_type?: string
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          message_sent?: string | null
+          opened_at?: string | null
+          sent_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
