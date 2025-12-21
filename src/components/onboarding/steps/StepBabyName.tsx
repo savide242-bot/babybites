@@ -26,21 +26,21 @@ const StepBabyName = ({ value, motherName, onChange, onNext, onBack }: StepBabyN
           <Baby className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-foreground">
-          Olá, {motherName}! 👋
+          Hi, {motherName}! 👋
         </h2>
         <p className="text-muted-foreground">
-          Qual é o nome do teu bebé?
+          What's your baby's name?
         </p>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="babyName" className="text-foreground font-medium">
-          Nome do bebé
+          Baby's name
         </Label>
         <Input
           id="babyName"
           type="text"
-          placeholder="Ex: Miguel, Leonor, Martim..."
+          placeholder="e.g. Oliver, Emma, Noah..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="border-2 focus:border-primary transition-colors text-lg py-6"
@@ -57,7 +57,7 @@ const StepBabyName = ({ value, motherName, onChange, onNext, onBack }: StepBabyN
           className="flex-1 py-6"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          Back
         </Button>
         <Button
           type="submit"
@@ -65,7 +65,7 @@ const StepBabyName = ({ value, motherName, onChange, onNext, onBack }: StepBabyN
           disabled={!value.trim()}
         >
           <span className="flex items-center gap-2">
-            Continuar
+            Continue
             <ArrowRight className="w-5 h-5" />
           </span>
         </Button>

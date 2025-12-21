@@ -13,11 +13,11 @@ interface StepDietaryPreferencesProps {
 }
 
 const DIETARY_OPTIONS: { value: DietaryTag; label: string; emoji: string; description: string }[] = [
-  { value: 'vegetarian', label: 'Vegetariano', emoji: '🥬', description: 'Sem carne ou peixe' },
-  { value: 'vegan', label: 'Vegano', emoji: '🌱', description: 'Sem produtos animais' },
-  { value: 'dairy-free', label: 'Sem Lactose', emoji: '🥛', description: 'Sem leite ou derivados' },
-  { value: 'nut-free', label: 'Sem Frutos Secos', emoji: '🥜', description: 'Sem nozes, amêndoas, etc.' },
-  { value: 'gluten-free', label: 'Sem Glúten', emoji: '🌾', description: 'Sem trigo, centeio, cevada' },
+  { value: 'vegetarian', label: 'Vegetarian', emoji: '🥬', description: 'No meat or fish' },
+  { value: 'vegan', label: 'Vegan', emoji: '🌱', description: 'No animal products' },
+  { value: 'dairy-free', label: 'Dairy-Free', emoji: '🥛', description: 'No milk or dairy' },
+  { value: 'nut-free', label: 'Nut-Free', emoji: '🥜', description: 'No nuts or peanuts' },
+  { value: 'gluten-free', label: 'Gluten-Free', emoji: '🌾', description: 'No wheat, rye, barley' },
 ];
 
 const StepDietaryPreferences = ({ value, babyName, onChange, onNext, onBack }: StepDietaryPreferencesProps) => {
@@ -41,16 +41,16 @@ const StepDietaryPreferences = ({ value, babyName, onChange, onNext, onBack }: S
           <Utensils className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-foreground">
-          O {babyName} tem alergias?
+          Does {babyName} have allergies?
         </h2>
         <p className="text-muted-foreground">
-          Seleciona todas as que se aplicam (opcional)
+          Select all that apply (optional)
         </p>
       </div>
 
       <div className="space-y-2">
         <Label className="text-foreground font-medium">
-          Preferências dietéticas
+          Dietary preferences
         </Label>
         <div className="grid gap-3">
           {DIETARY_OPTIONS.map((option) => {
@@ -91,14 +91,14 @@ const StepDietaryPreferences = ({ value, babyName, onChange, onNext, onBack }: S
           className="flex-1 py-6"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          Back
         </Button>
         <Button
           type="submit"
           className="flex-1 bg-gradient-to-r from-primary to-mint text-white font-semibold py-6 text-lg hover:shadow-glow transition-all duration-300"
         >
           <span className="flex items-center gap-2">
-            {value.length > 0 ? `Continuar (${value.length})` : "Nenhuma, continuar"}
+            {value.length > 0 ? `Continue (${value.length})` : "None, continue"}
             <ArrowRight className="w-5 h-5" />
           </span>
         </Button>

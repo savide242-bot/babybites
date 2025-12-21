@@ -5,7 +5,6 @@ import { ArrowRight, ArrowLeft, Calendar, Cake } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format, differenceInMonths } from "date-fns";
-import { pt } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface StepBirthDateProps {
@@ -40,16 +39,16 @@ const StepBirthDate = ({ value, babyName, onChange, onNext, onBack }: StepBirthD
           <Cake className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-foreground">
-          Quando nasceu o {babyName}?
+          When was {babyName} born?
         </h2>
         <p className="text-muted-foreground">
-          Isto ajuda-nos a sugerir receitas adequadas à idade
+          This helps us suggest age-appropriate recipes
         </p>
       </div>
 
       <div className="space-y-2">
         <Label className="text-foreground font-medium">
-          Data de nascimento
+          Birth date
         </Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -61,7 +60,7 @@ const StepBirthDate = ({ value, babyName, onChange, onNext, onBack }: StepBirthD
               )}
             >
               <Calendar className="mr-2 h-5 w-5" />
-              {value ? format(value, "PPP", { locale: pt }) : "Seleciona a data"}
+              {value ? format(value, "PPP") : "Select date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="center">
@@ -73,7 +72,6 @@ const StepBirthDate = ({ value, babyName, onChange, onNext, onBack }: StepBirthD
                 date > new Date() || date < new Date("2020-01-01")
               }
               initialFocus
-              locale={pt}
               className="pointer-events-auto"
             />
           </PopoverContent>
@@ -83,10 +81,10 @@ const StepBirthDate = ({ value, babyName, onChange, onNext, onBack }: StepBirthD
       {babyAgeMonths !== null && babyAgeMonths >= 0 && (
         <div className="bg-primary/10 rounded-lg p-4 text-center animate-fade-in">
           <p className="text-foreground font-medium">
-            🎂 O {babyName} tem {babyAgeMonths} {babyAgeMonths === 1 ? "mês" : "meses"}!
+            🎂 {babyName} is {babyAgeMonths} {babyAgeMonths === 1 ? "month" : "months"} old!
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            Vamos recomendar receitas perfeitas para esta idade
+            We'll recommend perfect recipes for this age
           </p>
         </div>
       )}
@@ -99,7 +97,7 @@ const StepBirthDate = ({ value, babyName, onChange, onNext, onBack }: StepBirthD
           className="flex-1 py-6"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          Back
         </Button>
         <Button
           type="submit"
@@ -107,7 +105,7 @@ const StepBirthDate = ({ value, babyName, onChange, onNext, onBack }: StepBirthD
           disabled={!value}
         >
           <span className="flex items-center gap-2">
-            Continuar
+            Continue
             <ArrowRight className="w-5 h-5" />
           </span>
         </Button>

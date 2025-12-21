@@ -44,7 +44,7 @@ const OnboardingProgress = ({ currentStep, totalSteps }: OnboardingProgressProps
         })}
       </div>
       <p className="text-center text-sm text-muted-foreground">
-        Passo {currentStep} de {totalSteps}
+        Step {currentStep} of {totalSteps}
       </p>
     </div>
   );
