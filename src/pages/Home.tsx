@@ -114,52 +114,47 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b border-border/50 px-4 py-5">
-        <div className="max-w-lg mx-auto">
-          {isLoading ? (
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div>
-                <Skeleton className="h-6 w-40 mb-2" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-peach text-2xl shadow-soft">
-                  {emoji}
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-foreground">
-                    {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
-                  </h1>
-                  <p className="text-muted-foreground text-sm flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-accent" />
-                    {emotionalMessage}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Streak & Points */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 bg-accent/20 px-3 py-1.5 rounded-full">
-                  <Flame className="w-4 h-4 text-accent" />
-                  <span className="text-sm font-bold text-foreground">{streak?.current_streak || 0}</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-sunshine/30 px-3 py-1.5 rounded-full">
-                  <Star className="w-4 h-4 text-sunshine-foreground" />
-                  <span className="text-sm font-bold text-foreground">{streak?.total_points || 0}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content - Simple & Clean */}
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+        {/* Header */}
+        {isLoading ? (
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div>
+              <Skeleton className="h-6 w-40 mb-2" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-peach text-2xl shadow-soft">
+                {emoji}
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-foreground">
+                  {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
+                </h1>
+                <p className="text-muted-foreground text-sm flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-accent" />
+                  {emotionalMessage}
+                </p>
+              </div>
+            </div>
+            
+            {/* Streak & Points */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-accent/20 px-3 py-1.5 rounded-full">
+                <Flame className="w-4 h-4 text-accent" />
+                <span className="text-sm font-bold text-foreground">{streak?.current_streak || 0}</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-sunshine/30 px-3 py-1.5 rounded-full">
+                <Star className="w-4 h-4 text-sunshine-foreground" />
+                <span className="text-sm font-bold text-foreground">{streak?.total_points || 0}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Recipe of the Day - Hero */}
         {!isLoading && recipeOfTheDay && (
           <RecipeOfTheDay recipe={recipeOfTheDay} babyName={babyName} />
