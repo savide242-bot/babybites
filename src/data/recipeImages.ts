@@ -344,6 +344,16 @@ import scrambledEggsVeggies107 from "@/assets/recipes/scrambled-eggs-veggies-107
 import lentilVeggieCurry173 from "@/assets/recipes/lentil-veggie-curry-173.jpg";
 import turkeyVegetableBlend135 from "@/assets/recipes/turkey-vegetable-blend-135.jpg";
 
+// Final unique images for IDs 240-262 to eliminate all remaining duplications
+import miniCheeseQuesadillas240 from "@/assets/recipes/mini-cheese-quesadillas-240.jpg";
+import bananaPancakeBites241 from "@/assets/recipes/banana-pancake-bites-241.jpg";
+import steamedBroccoli242 from "@/assets/recipes/steamed-broccoli-242.jpg";
+import shepherdsPie250 from "@/assets/recipes/shepherds-pie-250.jpg";
+import chickenSoup256 from "@/assets/recipes/chicken-soup-256.jpg";
+import veggieScrambledEggs259 from "@/assets/recipes/veggie-scrambled-eggs-259.jpg";
+import avocadoEggBowl262 from "@/assets/recipes/avocado-egg-bowl-262.jpg";
+import papayaCoconut193 from "@/assets/recipes/papaya-coconut-193.jpg";
+
 export const recipeImages = {
   avocadoPuree, sweetPotatoCarrot, blueberryOatmeal, eggMuffins, bananaPancakes,
   chickenPatties, peaPuree, appleSauce, pastaTomato, yogurtBerries, quinoaVeggies,
@@ -585,7 +595,7 @@ const recipeImageMap: Record<string, string> = {
   "190": chickenHerbBlendUnique,
   "191": melonCottageCheeseUnique,
   "192": lambVegetableStewUnique,
-  "193": papayaCoconutCream,
+  "193": papayaCoconut193,
   "194": beetrootApplePureeUnique,
   "195": eggYolkVegetableUnique,
   "196": spinachBananaSmoothie,
@@ -638,9 +648,9 @@ const recipeImageMap: Record<string, string> = {
 
   // IDs 239-271 (recipes239-271.ts) - ALL UNIQUE IMAGES
   "239": veggieStickHummusUnique,
-  "240": miniCheeseQuesadillas,
-  "241": bananaPancakeBites,
-  "242": steamedBroccoliTrees,
+  "240": miniCheeseQuesadillas240,
+  "241": bananaPancakeBites241,
+  "242": steamedBroccoli242,
   "243": sweetPotatoWedgesUnique,
   "244": avocadoToastFingersUnique,
   "245": softCarrotSticksUnique,
@@ -648,19 +658,19 @@ const recipeImageMap: Record<string, string> = {
   "247": cucumberCreamCheeseUnique,
   "248": appleAlmondButterUnique,
   "249": chickenVeggieRisottoUnique,
-  "250": miniShepherdsPie,
+  "250": shepherdsPie250,
   "251": salmonPastaBakeUnique,
   "252": beefSweetPotatoStewUnique,
   "253": lentilVeggieCurryUnique,
   "254": turkeyRiceCasseroleUnique,
   "255": fishPieCheesyMashUnique,
-  "256": chickenNoodleSoup,
+  "256": chickenSoup256,
   "257": veggieLasagnaBitesUnique,
   "258": lambCouscousBowlUnique,
-  "259": scrambledEggsVeggies,
+  "259": veggieScrambledEggs259,
   "260": frenchToastFingersUnique,
   "261": berrySmoothieBowlUnique,
-  "262": avocadoEggMash,
+  "262": avocadoEggBowl262,
   "263": oatmealPancakesFruitUnique,
   "264": cheeseSpinachOmeletteUnique,
   "265": bananaBreadFingersUnique,
