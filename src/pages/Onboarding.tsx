@@ -92,7 +92,7 @@ const Onboarding = () => {
       }
 
       toast.success(`Welcome to BabyBites, ${motherName}! 🎉`);
-      navigate('/');
+      navigate('/first-day');
     } catch (error) {
       console.error('Error saving profile:', error);
       toast.error("Failed to save information. Please try again.");
