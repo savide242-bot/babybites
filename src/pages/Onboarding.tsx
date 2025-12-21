@@ -1,46 +1,98 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { DietaryTag } from "@/hooks/useDietaryPreferences";
+
+import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
+import StepMotherName from "@/components/onboarding/steps/StepMotherName";
+import StepBabyName from "@/components/onboarding/steps/StepBabyName";
+import StepBirthDate from "@/components/onboarding/steps/StepBirthDate";
+import StepDietaryPreferences from "@/components/onboarding/steps/StepDietaryPreferences";
+import StepReminders, { ReminderSetting, DEFAULT_REMINDERS } from "@/components/onboarding/steps/StepReminders";
+import StepWelcome from "@/components/onboarding/steps/StepWelcome";
+
+const TOTAL_STEPS = 6;
 
 const Onboarding = () => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [motherName, setMotherName] = useState("");
   const [babyName, setBabyName] = useState("");
+  const [birthDate, setBirthDate] = useState<Date | undefined>();
+  const [dietaryPreferences, setDietaryPreferences] = useState<DietaryTag[]>([]);
+  const [reminders, setReminders] = useState<ReminderSetting[]>(DEFAULT_REMINDERS);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleContinue = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!motherName.trim() || !babyName.trim()) {
-      toast.error("Please fill in both names");
-      return;
+  const nextStep = () => {
+    if (currentStep < TOTAL_STEPS) {
+      setCurrentStep(currentStep + 1);
     }
+  };
 
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleComplete = async () => {
     setIsLoading(true);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (session?.user) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            mother_name: motherName.trim(),
-            baby_name: babyName.trim(),
-          })
-          .eq('id', session.user.id);
-
-        if (error) throw error;
-
-        toast.success(`Welcome to BabyBites, ${motherName}!`);
-        navigate('/');
+      if (!session?.user) {
+        toast.error("Session expired. Please sign in again.");
+        navigate('/auth');
+        return;
       }
+
+      // Update profile with all onboarding data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          mother_name: motherName.trim(),
+          baby_name: babyName.trim(),
+          baby_birth_date: birthDate?.toISOString().split('T')[0],
+          dietary_preferences: dietaryPreferences,
+        })
+        .eq('id', session.user.id);
+
+      if (profileError) throw profileError;
+
+      // Save notification preferences
+      const enabledReminders = reminders.filter(r => r.enabled);
+      
+      if (enabledReminders.length > 0) {
+        // First delete existing preferences
+        await supabase
+          .from('notification_preferences')
+          .delete()
+          .eq('user_id', session.user.id);
+
+        // Insert new preferences
+        const preferencesToInsert = reminders.map(reminder => ({
+          user_id: session.user.id,
+          meal_type: reminder.id,
+          enabled: reminder.enabled,
+          hour: reminder.hour,
+          minute: reminder.minute,
+        }));
+
+        const { error: notifError } = await supabase
+          .from('notification_preferences')
+          .insert(preferencesToInsert);
+
+        if (notifError) {
+          console.error('Error saving notification preferences:', notifError);
+          // Don't throw, just log - notifications are optional
+        }
+      }
+
+      toast.success(`Bem-vinda ao BabyBites, ${motherName}! 🎉`);
+      navigate('/');
     } catch (error) {
       console.error('Error saving profile:', error);
       toast.error("Failed to save information. Please try again.");
@@ -49,75 +101,85 @@ const Onboarding = () => {
     }
   };
 
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <StepMotherName
+            value={motherName}
+            onChange={setMotherName}
+            onNext={nextStep}
+          />
+        );
+      case 2:
+        return (
+          <StepBabyName
+            value={babyName}
+            motherName={motherName}
+            onChange={setBabyName}
+            onNext={nextStep}
+            onBack={prevStep}
+          />
+        );
+      case 3:
+        return (
+          <StepBirthDate
+            value={birthDate}
+            babyName={babyName}
+            onChange={setBirthDate}
+            onNext={nextStep}
+            onBack={prevStep}
+          />
+        );
+      case 4:
+        return (
+          <StepDietaryPreferences
+            value={dietaryPreferences}
+            babyName={babyName}
+            onChange={setDietaryPreferences}
+            onNext={nextStep}
+            onBack={prevStep}
+          />
+        );
+      case 5:
+        return (
+          <StepReminders
+            value={reminders}
+            onChange={setReminders}
+            onNext={nextStep}
+            onBack={prevStep}
+          />
+        );
+      case 6:
+        return (
+          <StepWelcome
+            motherName={motherName}
+            babyName={babyName}
+            birthDate={birthDate}
+            isLoading={isLoading}
+            onComplete={handleComplete}
+            onBack={prevStep}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-300 via-pink-200 to-cyan-100 flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/20 rounded-full blur-3xl animate-blob" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-mint/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 border-2 border-white/50 shadow-2xl animate-fade-in">
-        <CardContent className="p-8 space-y-6">
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-mint mb-2">
-              <Heart className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">Welcome to BabyBites!</h1>
-            <p className="text-muted-foreground">Let's personalize your experience</p>
-          </div>
-
-          <form onSubmit={handleContinue} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="motherName" className="text-foreground font-medium">
-                Your Name
-              </Label>
-              <Input
-                id="motherName"
-                type="text"
-                placeholder="How should we call you?"
-                value={motherName}
-                onChange={(e) => setMotherName(e.target.value)}
-                className="border-2 focus:border-primary transition-colors"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="babyName" className="text-foreground font-medium">
-                Baby's Name
-              </Label>
-              <Input
-                id="babyName"
-                type="text"
-                placeholder="Your little one's name"
-                value={babyName}
-                onChange={(e) => setBabyName(e.target.value)}
-                className="border-2 focus:border-primary transition-colors"
-                required
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-mint text-white font-semibold py-6 text-lg hover:shadow-glow transition-all duration-300 hover:scale-105"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Saving...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Continue
-                  <Sparkles className="w-5 h-5" />
-                </span>
-              )}
-            </Button>
-          </form>
-
-          <div className="text-center text-sm text-muted-foreground">
-            This helps us personalize your baby nutrition journey
+      <Card className="w-full max-w-md relative z-10 border-2 border-white/50 shadow-2xl">
+        <CardContent className="p-6 sm:p-8 space-y-6">
+          <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+          
+          <div className="min-h-[400px] flex flex-col justify-center">
+            {renderStep()}
           </div>
         </CardContent>
       </Card>
