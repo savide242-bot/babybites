@@ -11,7 +11,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "35 minutes",
     servings: "6 shells",
-    image: getRecipeImage(["pasta", "spinach"]),
+    image: getRecipeImage(["47"]),
     ingredients: ["6 jumbo pasta shells", "1/2 cup ricotta cheese", "1/4 cup finely chopped cooked spinach", "2 tbsp grated parmesan", "1/2 cup marinara sauce"],
     instructions: [
       "Preheat oven to 350°F (175°C). Lightly grease a small baking dish.",
@@ -37,7 +37,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "20 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["beef", "vegetables"]),
+    image: getRecipeImage(["48"]),
     ingredients: ["6 oz lean beef sirloin, thinly sliced", "1/2 cup broccoli florets", "1/4 cup sliced bell pepper", "1/4 cup snap peas", "1 tbsp low-sodium soy sauce", "1 tsp sesame oil", "1 clove garlic, minced"],
     instructions: [
       "Slice the beef against the grain into very thin strips, about 1/4 inch wide.",
@@ -63,7 +63,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Puree",
     prepTime: "25 minutes",
     servings: "5 servings",
-    image: getRecipeImage(["pumpkin", "apple"]),
+    image: getRecipeImage(["49"]),
     ingredients: ["1 cup pumpkin puree (canned or fresh)", "1 medium apple, peeled and chopped", "1/4 cup water", "Pinch of cinnamon (8+ months)"],
     instructions: [
       "If using fresh pumpkin, cube it and steam for 15-20 minutes until very soft, then puree. If using canned, ensure it's 100% pumpkin.",
@@ -88,7 +88,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "15 minutes",
     servings: "12 balls",
-    image: getRecipeImage(["snack"]),
+    image: getRecipeImage(["50"]),
     ingredients: ["1/2 cup almond butter", "1/4 cup honey", "3/4 cup rolled oats", "2 tbsp ground flaxseed", "2 tbsp mini chocolate chips (optional)"],
     instructions: [
       "In a medium mixing bowl, combine 1/2 cup almond butter and 1/4 cup honey. Stir until well mixed.",
@@ -113,7 +113,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "10 minutes + overnight",
     servings: "2 servings",
-    image: getRecipeImage(["mango", "coconut"]),
+    image: getRecipeImage(["51"]),
     ingredients: ["3 tbsp chia seeds", "3/4 cup coconut milk", "1/2 cup diced mango", "1 tsp maple syrup", "1/4 tsp vanilla extract"],
     instructions: [
       "In a small bowl or jar, combine 3 tablespoons chia seeds with 3/4 cup coconut milk.",
@@ -138,7 +138,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "30 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["chicken", "soup"]),
+    image: getRecipeImage(["52"]),
     ingredients: ["6 oz cooked chicken, diced", "1 cup sweet corn kernels", "1 medium potato, diced", "1/2 cup milk", "1 cup low-sodium chicken broth", "1 tbsp butter", "1 tbsp flour"],
     instructions: [
       "Peel and dice the potato into small 1/2-inch cubes.",
@@ -164,7 +164,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Puree",
     prepTime: "30 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["beet", "apple"]),
+    image: getRecipeImage(["53"]),
     ingredients: ["1 medium beet, peeled and cubed", "1 large apple, peeled and chopped", "1/2 cup water"],
     instructions: [
       "Wear gloves when handling beets to avoid staining your hands.",
@@ -190,7 +190,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "15 minutes",
     servings: "4 sliders",
-    image: getRecipeImage(["turkey", "sandwich"]),
+    image: getRecipeImage(["54"]),
     ingredients: ["4 small whole wheat rolls", "4 slices deli turkey", "2 slices cheese", "2 tbsp cream cheese", "Lettuce leaves", "4 cherry tomatoes, sliced"],
     instructions: [
       "Slice the whole wheat rolls in half horizontally.",
@@ -216,7 +216,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "25 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["pineapple", "rice"]),
+    image: getRecipeImage(["55"]),
     ingredients: ["1/2 cup jasmine rice", "3/4 cup coconut milk", "1/4 cup water", "1/2 cup diced fresh pineapple", "1 tsp honey (optional)"],
     instructions: [
       "Rinse 1/2 cup jasmine rice under cold water until water runs clear.",
@@ -242,7 +242,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "25 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["kale", "soup"]),
+    image: getRecipeImage(["56"]),
     ingredients: ["2 cups chopped kale", "1 cup canned white beans, drained", "2 cups low-sodium vegetable broth", "1 small carrot, diced", "1 clove garlic, minced", "1 tbsp olive oil"],
     instructions: [
       "Wash the kale thoroughly and remove thick stems.",
@@ -269,7 +269,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "10 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["strawberry", "banana"]),
+    image: getRecipeImage(["57"]),
     ingredients: ["1 cup frozen strawberries", "1 frozen banana", "1/4 cup plain yogurt", "2 tbsp milk", "Toppings: sliced banana, granola bits"],
     instructions: [
       "Freeze the banana ahead of time by peeling, slicing, and freezing in a sealed bag.",
@@ -294,7 +294,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "45 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["lamb", "stew"]),
+    image: getRecipeImage(["58"]),
     ingredients: ["6 oz lamb shoulder, cubed", "1 small carrot, diced", "1 small parsnip, diced", "1/2 cup diced turnip", "1 1/2 cups low-sodium beef broth", "1 bay leaf", "1 tbsp olive oil"],
     instructions: [
       "Cut the lamb into small 1/2-inch cubes, removing any visible fat.",
@@ -321,7 +321,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "10 minutes",
     servings: "8 rolls",
-    image: getRecipeImage(["cucumber", "cheese"]),
+    image: getRecipeImage(["59"]),
     ingredients: ["1 large cucumber", "1/4 cup cream cheese", "4 slices whole wheat bread", "Fresh dill (optional)"],
     instructions: [
       "Wash the cucumber and peel it completely.",
@@ -347,7 +347,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "15 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["beans", "avocado"]),
+    image: getRecipeImage(["60"]),
     ingredients: ["2 small whole wheat tortillas", "1/2 cup canned black beans, drained", "1/4 avocado, mashed", "1/4 cup shredded cheese", "1 tsp olive oil"],
     instructions: [
       "Drain and rinse the black beans. Lightly mash with a fork.",
@@ -375,7 +375,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "20 minutes",
     servings: "6 pancakes",
-    image: getRecipeImage(["blueberry", "pancakes"]),
+    image: getRecipeImage(["61"]),
     ingredients: ["1/2 cup flour", "1/4 cup coconut flour", "1 tsp baking powder", "1 egg", "1/2 cup coconut milk", "1/2 cup fresh blueberries", "1 tbsp maple syrup"],
     instructions: [
       "In a bowl, whisk together regular flour, coconut flour, and baking powder.",
@@ -400,7 +400,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "20 minutes",
     servings: "3 servings",
-    image: getRecipeImage(["fish", "pasta"]),
+    image: getRecipeImage(["62"]),
     ingredients: ["1 cup small pasta", "1 can sardines in water", "1/2 cup cherry tomatoes", "1 clove garlic", "1 tbsp olive oil", "Fresh basil leaves"],
     instructions: [
       "Cook pasta according to package directions.",
@@ -426,7 +426,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "15 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["carrot", "oats"]),
+    image: getRecipeImage(["63"]),
     ingredients: ["1/2 cup rolled oats", "1 cup milk", "1/4 cup grated carrot", "1 tbsp raisins", "1/4 tsp cinnamon", "1/4 tsp vanilla", "1 tsp maple syrup"],
     instructions: [
       "In a small pot, combine oats and milk.",
@@ -451,7 +451,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "25 minutes",
     servings: "8 mushrooms",
-    image: getRecipeImage(["mushroom", "spinach"]),
+    image: getRecipeImage(["64"]),
     ingredients: ["8 large button mushrooms", "1/2 cup chopped spinach", "1/4 cup ricotta cheese", "2 tbsp breadcrumbs", "1 tbsp grated parmesan", "1 clove garlic"],
     instructions: [
       "Preheat oven to 375°F (190°C).",
@@ -477,7 +477,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Puree",
     prepTime: "10 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["mango", "avocado"]),
+    image: getRecipeImage(["65"]),
     ingredients: ["1 ripe mango", "1/2 ripe avocado", "2 tbsp water or breast milk"],
     instructions: [
       "Peel and dice the ripe mango, removing the pit.",
@@ -501,7 +501,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "45 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["beef", "soup"]),
+    image: getRecipeImage(["66"]),
     ingredients: ["6 oz lean beef, cubed", "1/4 cup pearl barley", "1 carrot, diced", "1 celery stalk, diced", "2 cups low-sodium beef broth", "1 bay leaf", "1 tbsp olive oil"],
     instructions: [
       "Cut beef into very small 1/2-inch cubes.",
@@ -527,7 +527,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "30 minutes",
     servings: "12 mini muffins",
-    image: getRecipeImage(["raspberry", "muffin"]),
+    image: getRecipeImage(["67"]),
     ingredients: ["1 cup flour", "1/2 tsp baking powder", "1 egg", "1/4 cup milk", "2 tbsp melted butter", "2 tbsp honey", "1/2 cup fresh raspberries", "1 tsp lemon zest"],
     instructions: [
       "Preheat oven to 375°F (190°C). Line mini muffin tin with paper liners.",
@@ -553,7 +553,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "40 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["chicken", "rice"]),
+    image: getRecipeImage(["68"]),
     ingredients: ["1/4 cup white rice", "3 cups low-sodium chicken broth", "4 oz cooked chicken, shredded", "1 green onion, chopped", "1/2 tsp grated ginger"],
     instructions: [
       "Rinse rice thoroughly under cold water.",
@@ -579,7 +579,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "30 minutes",
     servings: "8 patties",
-    image: getRecipeImage(["sweet potato", "chickpeas"]),
+    image: getRecipeImage(["69"]),
     ingredients: ["1 cup mashed sweet potato", "1 cup canned chickpeas, drained", "1/4 cup flour", "1 egg", "1/4 tsp cumin", "2 tbsp olive oil for frying"],
     instructions: [
       "Drain and rinse chickpeas, then mash with a fork.",
@@ -605,7 +605,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "35 minutes",
     servings: "12 bites",
-    image: getRecipeImage(["quinoa", "apple"]),
+    image: getRecipeImage(["70"]),
     ingredients: ["1 cup cooked quinoa", "1 apple, grated", "1 egg", "1/4 cup oats", "1/2 tsp cinnamon", "2 tbsp maple syrup"],
     instructions: [
       "Preheat oven to 350°F (175°C). Line a mini muffin tin with liners.",
@@ -631,7 +631,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "30 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["chicken", "mushroom"]),
+    image: getRecipeImage(["71"]),
     ingredients: ["8 oz chicken breast, cubed", "1 cup sliced mushrooms", "1/4 cup cream", "1/2 cup low-sodium chicken broth", "1 tbsp flour", "1 tbsp butter", "1 clove garlic"],
     instructions: [
       "Cut chicken into small bite-sized cubes.",
@@ -658,7 +658,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "5 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["papaya", "banana"]),
+    image: getRecipeImage(["72"]),
     ingredients: ["1 cup ripe papaya, diced", "1 banana", "1/4 cup plain yogurt", "1/4 cup water", "1 tsp honey (12+ months)"],
     instructions: [
       "Peel and dice ripe papaya, removing all seeds.",
@@ -683,7 +683,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "30 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["lentils", "spinach"]),
+    image: getRecipeImage(["73"]),
     ingredients: ["1 cup red lentils", "2 cups baby spinach", "1 cup coconut milk", "1 cup vegetable broth", "1/2 tsp cumin", "1/4 tsp turmeric", "1 tbsp olive oil"],
     instructions: [
       "Rinse lentils thoroughly.",
@@ -710,7 +710,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "5 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["cottage cheese", "peach"]),
+    image: getRecipeImage(["74"]),
     ingredients: ["1 cup cottage cheese", "1 ripe peach, diced", "1 tbsp ground flaxseed", "Drizzle of honey (12+ months)", "Pinch of cinnamon"],
     instructions: [
       "Wash, peel, and dice the ripe peach into small pieces.",
@@ -735,7 +735,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "25 minutes",
     servings: "8 slices",
-    image: getRecipeImage(["zucchini", "pizza"]),
+    image: getRecipeImage(["75"]),
     ingredients: ["2 medium zucchinis", "1/2 cup marinara sauce", "1/2 cup shredded mozzarella", "1/4 cup diced bell peppers", "4 cherry tomatoes, sliced", "Dried oregano"],
     instructions: [
       "Preheat oven to 400°F (200°C). Line a baking sheet with parchment.",
@@ -762,7 +762,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "15 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["fruit", "tropical"]),
+    image: getRecipeImage(["76"]),
     ingredients: ["1/2 cup diced mango", "1/2 cup diced pineapple", "1/2 cup diced papaya", "1 kiwi, diced", "1 tbsp lime juice", "Fresh mint leaves"],
     instructions: [
       "Peel and dice mango into small pieces.",
@@ -788,7 +788,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "40 minutes",
     servings: "5 servings",
-    image: getRecipeImage(["pork", "apple"]),
+    image: getRecipeImage(["77"]),
     ingredients: ["8 oz pork tenderloin, cubed", "2 apples, diced", "1 sweet potato, diced", "1 1/2 cups low-sodium chicken broth", "1/4 tsp thyme", "1 tbsp olive oil"],
     instructions: [
       "Cut pork into small 1/2-inch cubes.",
@@ -814,7 +814,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "40 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["pasta", "cheese"]),
+    image: getRecipeImage(["78"]),
     ingredients: ["2 cups ziti pasta", "1 cup marinara sauce", "1/2 cup ricotta cheese", "1 cup shredded mozzarella", "1/2 cup pureed butternut squash", "1/4 cup pureed spinach", "2 tbsp grated parmesan"],
     instructions: [
       "Preheat oven to 375°F (190°C).",
@@ -842,7 +842,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "10 minutes + freezing",
     servings: "6 popsicles",
-    image: getRecipeImage(["cantaloupe", "yogurt"]),
+    image: getRecipeImage(["79"]),
     ingredients: ["2 cups ripe cantaloupe, diced", "1/2 cup plain yogurt", "1 tbsp honey (12+ months)", "1/4 tsp vanilla extract"],
     instructions: [
       "Peel and dice ripe cantaloupe, removing all seeds.",
@@ -868,7 +868,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "30 minutes",
     servings: "12 nuggets",
-    image: getRecipeImage(["salmon", "broccoli"]),
+    image: getRecipeImage(["80"]),
     ingredients: ["6 oz cooked salmon, flaked", "1 cup finely chopped broccoli", "1/4 cup breadcrumbs", "1 egg", "2 tbsp grated cheese", "1 tsp lemon juice"],
     instructions: [
       "Preheat oven to 375°F (190°C). Line a baking sheet with parchment.",
@@ -895,7 +895,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "5 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["pumpkin", "smoothie"]),
+    image: getRecipeImage(["81"]),
     ingredients: ["1/2 cup pumpkin puree", "1 banana", "1/2 cup milk", "1/4 tsp pumpkin pie spice", "1 tbsp maple syrup", "1/4 tsp vanilla"],
     instructions: [
       "Place pumpkin puree in blender.",
@@ -920,7 +920,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "15 minutes",
     servings: "2 burritos",
-    image: getRecipeImage(["egg", "burrito"]),
+    image: getRecipeImage(["82"]),
     ingredients: ["2 small whole wheat tortillas", "2 eggs", "2 tbsp diced bell pepper", "2 tbsp diced tomato", "2 tbsp shredded cheese", "1 tsp butter"],
     instructions: [
       "Dice bell pepper and tomato into very small pieces.",
@@ -947,7 +947,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "40 minutes",
     servings: "5 servings",
-    image: getRecipeImage(["carrot", "soup"]),
+    image: getRecipeImage(["83"]),
     ingredients: ["4 large carrots", "1/4 tsp fresh grated ginger", "1 1/2 cups vegetable broth", "1/4 cup coconut milk", "1 tbsp olive oil", "Pinch of cumin"],
     instructions: [
       "Preheat oven to 400°F (200°C).",
@@ -974,7 +974,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "10 minutes + overnight",
     servings: "3 servings",
-    image: getRecipeImage(["blueberry", "chia"]),
+    image: getRecipeImage(["84"]),
     ingredients: ["3 tbsp chia seeds", "1 cup milk", "1/2 cup fresh blueberries", "1 tbsp maple syrup", "1/4 tsp vanilla extract"],
     instructions: [
       "In a bowl, combine chia seeds and milk.",
@@ -1000,7 +1000,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "35 minutes",
     servings: "6 mini loaves",
-    image: getRecipeImage(["turkey", "meatloaf"]),
+    image: getRecipeImage(["85"]),
     ingredients: ["8 oz ground turkey", "1/4 cup grated zucchini", "1/4 cup grated carrot", "1/4 cup breadcrumbs", "1 egg", "2 tbsp ketchup", "1/4 tsp garlic powder"],
     instructions: [
       "Preheat oven to 375°F (190°C). Grease a 6-cup muffin tin.",
@@ -1027,7 +1027,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "10 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["cucumber", "yogurt"]),
+    image: getRecipeImage(["86"]),
     ingredients: ["1 cup plain Greek yogurt", "1/2 cup finely diced cucumber", "1 tbsp fresh dill, chopped", "1/2 tsp lemon juice", "Pinch of garlic powder"],
     instructions: [
       "Wash cucumber and dice very finely.",
@@ -1052,7 +1052,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "25 minutes",
     servings: "3 servings",
-    image: getRecipeImage(["fish", "mango"]),
+    image: getRecipeImage(["87"]),
     ingredients: ["2 tilapia fillets (6 oz)", "1/2 cup diced mango", "2 tbsp diced red bell pepper", "1 tbsp lime juice", "1 tsp olive oil", "Fresh cilantro"],
     instructions: [
       "Preheat oven to 375°F (190°C).",
@@ -1078,7 +1078,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "25 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["sweet potato", "beans"]),
+    image: getRecipeImage(["88"]),
     ingredients: ["1 small sweet potato", "1/2 cup black beans, drained", "2 whole wheat tortillas", "1/2 cup shredded cheese", "1/4 tsp cumin", "1 tsp olive oil"],
     instructions: [
       "Peel and dice sweet potato into small cubes.",
@@ -1105,7 +1105,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Puree",
     prepTime: "20 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["pear", "prune"]),
+    image: getRecipeImage(["89"]),
     ingredients: ["2 ripe pears", "4 pitted prunes", "1/2 cup water", "Pinch of cinnamon"],
     instructions: [
       "Wash, peel, and core the pears. Chop into chunks.",
@@ -1131,7 +1131,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "30 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["chicken", "soup"]),
+    image: getRecipeImage(["90"]),
     ingredients: ["6 oz cooked chicken, shredded", "1/2 cup small pasta or noodles", "1 carrot, diced", "1 celery stalk, diced", "3 cups low-sodium chicken broth", "1 bay leaf", "Fresh parsley"],
     instructions: [
       "Dice carrot and celery into very small pieces.",
@@ -1157,7 +1157,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "5 minutes + overnight",
     servings: "2 servings",
-    image: getRecipeImage(["apple", "oats"]),
+    image: getRecipeImage(["91"]),
     ingredients: ["1/2 cup rolled oats", "1/2 cup milk", "1/4 cup plain yogurt", "1/2 apple, grated", "1/2 tsp cinnamon", "1 tsp maple syrup"],
     instructions: [
       "In a jar or bowl, combine rolled oats and milk.",
@@ -1183,7 +1183,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "25 minutes",
     servings: "8 patties",
-    image: getRecipeImage(["fish", "beans"]),
+    image: getRecipeImage(["92"]),
     ingredients: ["1 can (5 oz) tuna in water", "1/2 cup white beans, drained", "1/4 cup breadcrumbs", "1 egg", "1 tbsp chopped parsley", "1 tsp lemon juice", "2 tbsp olive oil for frying"],
     instructions: [
       "Drain tuna well and flake into a bowl.",
@@ -1209,7 +1209,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "25 minutes",
     servings: "12 mini muffins",
-    image: getRecipeImage(["banana", "walnut"]),
+    image: getRecipeImage(["93"]),
     ingredients: ["2 ripe bananas", "1 egg", "1 cup flour", "1/4 cup chopped walnuts", "1/4 cup maple syrup", "1/4 cup melted butter", "1 tsp baking powder"],
     instructions: [
       "Preheat oven to 350°F (175°C). Line mini muffin tin with liners.",
@@ -1236,7 +1236,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Lunch",
     prepTime: "10 minutes",
     servings: "2 wraps",
-    image: getRecipeImage(["hummus", "vegetables"]),
+    image: getRecipeImage(["94"]),
     ingredients: ["2 small whole wheat tortillas", "1/4 cup hummus", "1/4 cup grated carrot", "1/4 cup diced cucumber", "2 tbsp diced tomato", "Lettuce leaves"],
     instructions: [
       "Spread 2 tablespoons hummus on each tortilla.",
@@ -1262,7 +1262,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Snack",
     prepTime: "35 minutes",
     servings: "6 servings",
-    image: getRecipeImage(["peach", "raspberry"]),
+    image: getRecipeImage(["95"]),
     ingredients: ["2 ripe peaches, diced", "1/2 cup raspberries", "1/4 cup rolled oats", "2 tbsp flour", "2 tbsp butter", "1 tbsp brown sugar", "1/4 tsp cinnamon"],
     instructions: [
       "Preheat oven to 350°F (175°C).",
@@ -1288,7 +1288,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "40 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["beef", "potato"]),
+    image: getRecipeImage(["96"]),
     ingredients: ["6 oz ground beef", "1/2 cup frozen mixed vegetables", "1 cup mashed potato", "1/4 cup low-sodium beef broth", "1 tbsp tomato paste", "1/4 cup shredded cheese"],
     instructions: [
       "Preheat oven to 375°F (190°C).",
@@ -1314,7 +1314,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "10 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["spinach", "smoothie"]),
+    image: getRecipeImage(["97"]),
     ingredients: ["1 banana", "1/2 cup baby spinach", "1/2 cup frozen mango", "1/4 cup plain yogurt", "1/4 cup milk", "Toppings: sliced fruit, granola"],
     instructions: [
       "Place banana, spinach, frozen mango, yogurt, and milk in blender.",
@@ -1339,7 +1339,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "35 minutes",
     servings: "12 bites",
-    image: getRecipeImage(["eggplant", "cheese"]),
+    image: getRecipeImage(["98"]),
     ingredients: ["1 small eggplant", "1/2 cup marinara sauce", "1/2 cup shredded mozzarella", "1/4 cup breadcrumbs", "2 tbsp grated parmesan", "1 egg", "Olive oil spray"],
     instructions: [
       "Preheat oven to 400°F (200°C). Line baking sheet with parchment.",
@@ -1365,7 +1365,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Breakfast",
     prepTime: "15 minutes",
     servings: "2 servings",
-    image: getRecipeImage(["cherry", "oats"]),
+    image: getRecipeImage(["99"]),
     ingredients: ["1/2 cup rolled oats", "1 cup milk", "1/2 cup pitted cherries, chopped", "1 tbsp almond butter", "1/4 tsp almond extract", "1 tsp honey"],
     instructions: [
       "In a pot, combine oats and milk.",
@@ -1391,7 +1391,7 @@ export const recipes47to100: Omit<Recipe, "healthBenefits" | "servingGuidance">[
     category: "Dinner",
     prepTime: "20 minutes",
     servings: "4 servings",
-    image: getRecipeImage(["rice", "tofu"]),
+    image: getRecipeImage(["100"]),
     ingredients: ["2 cups cooked rice", "4 oz firm tofu, cubed", "1/4 cup diced carrots", "1/4 cup frozen peas", "1 egg", "2 green onions", "1 tbsp sesame oil", "1 tsp soy sauce"],
     instructions: [
       "Press tofu to remove moisture and cut into small cubes.",

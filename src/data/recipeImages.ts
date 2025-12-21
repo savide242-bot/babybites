@@ -500,99 +500,99 @@ const recipeImageMap: Record<string, string> = {
   "149": sweetPotatoCarrot,
   "150": avocadoPuree,
 
-  // IDs 151-200 (recipes151-200.ts)
-  "151": greenPeaPuree,
-  "152": butternutSquash,
-  "153": appleCinnamonSauce,
-  "154": mangoPuree,
-  "155": riceBanana,
-  "156": peaPuree,
-  "157": spinachAppleSurprise,
-  "158": pearPruneBlend,
-  "159": pumpkinAppleMash,
-  "160": blueberryOatmeal,
-  "161": appleSauce,
-  "162": cottageCheesePoachBowl,
-  "163": appleCinnamonOatmeal,
-  "164": bananaPancakes,
-  "165": eggMuffins,
-  "166": yogurtBerries,
-  "167": pastaTomato,
-  "168": chickenPatties,
-  "169": turkeyMeatballs,
-  "170": salmonSweetPotato,
-  "171": beefStew,
-  "172": lentilSoup,
-  "173": vegetableRisotto,
-  "174": quinoaVeggies,
-  "175": broccoliTots,
-  "176": spinachQuesadilla,
-  "177": miniFishFingers,
-  "178": chickpeaCarrotPatties,
-  "179": creamySpinachPasta,
-  "180": bananaOatCookies,
-  "181": mangoYogurtSwirl,
-  "182": pearOatPorridge,
-  "183": blueberryOatCream,
-  "184": cauliflowerCheesePuree,
-  "185": sweetPotatoCinnamon,
-  "186": broccoliPearPuree,
-  "187": salmonDillMash,
-  "188": apricotRiceCream,
-  "189": greenBeanPotato,
-  "190": chickenHerbBlend,
-  "191": melonCottageCheese,
-  "192": lambVegetableStew,
-  "193": papayaCoconutCream,
-  "194": beetrootApplePuree,
-  "195": eggYolkVegetable,
-  "196": plumOatPorridge,
-  "197": whiteFishParsnip,
-  "198": kiwiBananaBlend,
-  "199": asparagusPotatoMash,
-  "200": tofuFruitPuree,
+// IDs 151-200 (recipes151-200.ts) - CORRECTED: Using unique images instead of recycling
+  "151": pastaTomato, // Creamy Tomato Basil Soup
+  "152": bananaPancakeBitesUnique, // Buckwheat Pancakes with Blueberries
+  "153": veggieStickHummusUnique, // Roasted Red Pepper Hummus
+  "154": salmonDillMashUnique, // Maple Glazed Salmon Bites
+  "155": zucchiniPotatoMashUnique, // Zucchini Noodles with Pesto
+  "156": chickenVeggieRisottoUnique, // Chicken & Broccoli Rice Balls
+  "157": butternutAppleMixUnique, // Butternut Squash & Sage Risotto
+  "158": strawberryChiaPudding, // Raspberry Chia Jam
+  "159": zucchiniCarrotFritters, // Corn & Zucchini Fritters
+  "160": appleAlmondButterUnique, // Apricot & Almond Energy Bites
+  "161": cheeseSpinachOmeletteUnique, // Spinach & Feta Mini Quiches
+  "162": sweetPotatoWedgesUnique, // Sweet Potato & Black Bean Tacos
+  "163": plumOatPorridgeUnique, // Plum & Cinnamon Compote
+  "164": fishVegetableMedley, // Tuna Avocado Rice Bowl
+  "165": bananaPancakes, // Cottage Cheese Pancakes
+  "166": cucumberDillYogurtDip, // Greek Yogurt Dip with Veggies
+  "167": miniMacCheeseCups, // Mac & Cheese Bites
+  "168": beefCarrotPureeUnique, // Beef & Barley Stew
+  "169": oatmealPancakesFruitUnique, // Oatmeal Raisin Pancakes
+  "170": chickenNoodleSoupUnique, // Chicken Vegetable Soup
+  "171": avocadoEggMashUnique, // Avocado Egg Salad
+  "172": pearPruneCompote, // Pear & Prune Compote
+  "173": lentilVegetableCurry, // Lentil Vegetable Curry
+  "174": chickenVeggiePastaStars, // Chicken Veggie Pasta Stars
+  "175": steamedBroccoliTreesUnique, // Steamed Broccoli with Cheese
+  "176": miniCheeseQuesadillasUnique, // Mini Cheese Quesadillas
+  "177": fishPieCheesyMash, // Fish Pie with Cheesy Mash
+  "178": chickenApplePatties, // Chicken Apple Patties
+  "179": creamyVeggiePasta, // Creamy Veggie Pasta
+  "180": blueberryLemonYogurtBark, // Blueberry Lemon Yogurt Bark
+  "181": mangoTropicalPuree, // Mango Tropical Puree
+  "182": pumpkinSpiceQuinoa, // Pumpkin Spice Quinoa
+  "183": blueberryOatCreamUnique, // Blueberry Oat Cream
+  "184": cauliflowerCheesePureeUnique, // Cauliflower Cheese Puree
+  "185": sweetPotatoCinnamonUnique, // Sweet Potato Cinnamon
+  "186": broccoliPearPureeUnique, // Broccoli Pear Puree
+  "187": salmonBroccoliRice, // Salmon Broccoli Rice
+  "188": apricotRiceCreamUnique, // Apricot Rice Cream
+  "189": greenBeanPotatoUnique, // Green Bean Potato
+  "190": chickenHerbBlendUnique, // Chicken Herb Blend
+  "191": melonCottageCheeseUnique, // Melon Cottage Cheese
+  "192": lambVegetableStewUnique, // Lamb Vegetable Stew
+  "193": papayaCoconutCreamUnique, // Papaya Coconut Cream
+  "194": beetrootApplePureeUnique, // Beetroot Apple Puree
+  "195": eggYolkVegetableUnique, // Egg Yolk Vegetable
+  "196": spinachBananaSmoothie, // Spinach Banana Smoothie
+  "197": whiteFishParsnipUnique, // White Fish Parsnip
+  "198": kiwiBananaBlendUnique, // Kiwi Banana Blend
+  "199": asparagusPotatoMashUnique, // Asparagus Potato Mash
+  "200": tofuFruitPureeUnique, // Tofu Fruit Puree
 
-  // IDs 201-205 (recipes201-205.ts)
-  "201": zucchiniPotatoMash,
-  "202": carrotLentilPuree,
-  "203": ricePeachBlend,
-  "204": chickenSweetPotatoPuree,
-  "205": butternutAppleMix,
+  // IDs 201-205 (recipes201-205.ts) - CORRECTED: Matching actual recipe titles
+  "201": vegetableRisotto, // Vegetable Risotto
+  "202": miniFishFingers, // Mini Fish Fingers
+  "203": chickpeaCarrotPatties, // Chickpea & Carrot Patties
+  "204": creamySpinachPasta, // Creamy Spinach Pasta
+  "205": bananaOatCookies, // Banana Oat Cookies
 
-  // IDs 206-238 (recipes206-238.ts)
-  "206": zucchiniPotatoMash,
-  "207": carrotLentilPuree,
-  "208": ricePeachBlend,
-  "209": chickenSweetPotatoPuree,
-  "210": pearOatPorridge,
-  "211": butternutAppleMix,
-  "212": fishVegetablePuree,
-  "213": bananaAvocadoBlend,
-  "214": spinachPotatoMash,
-  "215": beefCarrotPuree,
-  "216": mangoYogurtSwirl,
-  "217": peaMintPuree,
-  "218": pumpkinQuinoaBowl,
-  "219": applePruneCompote,
-  "220": turkeyVegetableBlend,
-  "221": blueberryOatCream,
-  "222": cauliflowerCheesePuree,
-  "223": sweetPotatoCinnamon,
-  "224": broccoliPearPuree,
-  "225": salmonDillMash,
-  "226": apricotRiceCream,
-  "227": greenBeanPotato,
-  "228": chickenHerbBlend,
-  "229": melonCottageCheese,
-  "230": lambVegetableStew,
-  "231": papayaCoconutCream,
-  "232": beetrootApplePuree,
-  "233": eggYolkVegetable,
-  "234": plumOatPorridge,
-  "235": whiteFishParsnip,
-  "236": kiwiBananaBlend,
-  "237": asparagusPotatoMash,
-  "238": tofuFruitPuree,
+  // IDs 206-238 (recipes206-238.ts) - CORRECTED: Using unique images for each recipe
+  "206": chickenSweetPotatoPureeUnique, // Chicken & Butternut Squash Puree
+  "207": turkeyVegetableBlendUnique, // Turkey & Sweet Potato Velvet
+  "208": carrotLentilPureeUnique, // Lentil & Carrot Power Puree
+  "209": avocadoEggMashUnique, // Egg Yolk & Avocado Cream
+  "210": whiteFishParsnipUnique, // White Fish & Potato Cloud
+  "211": beefCarrotPureeUnique, // Beef & Root Vegetable Blend
+  "212": salmonDillMashUnique, // Salmon & Dill Mash
+  "213": quinoaVegetableBowlUnique, // Quinoa & Vegetable Medley
+  "214": spinachPotatoPuree, // Spinach & Potato Mash
+  "215": riceBanana, // Banana & Oat Breakfast
+  "216": mangoYogurtSwirlUnique, // Mango & Yogurt Swirl
+  "217": peaMintPureeUnique, // Pea & Mint Puree
+  "218": pumpkinQuinoaBowlUnique, // Pumpkin & Quinoa Bowl
+  "219": applePruneCompoteUnique, // Apple & Prune Compote
+  "220": turkeyVegetableMix, // Turkey & Vegetable Blend
+  "221": blueberryOatCreamUnique, // Blueberry & Oat Cream
+  "222": cauliflowerCheesePureeUnique, // Cauliflower Cheese Mash
+  "223": sweetPotatoCinnamonUnique, // Sweet Potato Cinnamon Swirl
+  "224": broccoliPearPureeUnique, // Broccoli & Pear Puree
+  "225": salmonPastaBakeUnique, // Salmon Dill Mash
+  "226": apricotRiceCreamUnique, // Apricot Rice Cream
+  "227": greenBeanPotatoUnique, // Green Bean & Potato
+  "228": chickenHerbBlendUnique, // Chicken Herb Blend
+  "229": melonCottageCheeseUnique, // Melon & Cottage Cheese
+  "230": lambVegetableStewUnique, // Lamb & Vegetable Stew
+  "231": papayaCoconutCreamUnique, // Papaya Coconut Cream
+  "232": beetrootApplePureeUnique, // Beetroot & Apple Puree
+  "233": eggYolkVegetableUnique, // Egg Yolk & Vegetable Mix
+  "234": plumOatPorridgeUnique, // Plum & Oat Porridge
+  "235": fishVegetableMedley, // White Fish & Parsnip
+  "236": kiwiBananaBlendUnique, // Kiwi & Banana Blend
+  "237": asparagusPotatoMashUnique, // Asparagus & Potato Mash
+  "238": tofuFruitPureeUnique, // Tofu & Fruit Puree
 
   // IDs 239-271 (recipes239-271.ts)
   "239": veggieStickHummus,
