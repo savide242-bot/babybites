@@ -412,6 +412,42 @@ export type Database = {
         }
         Relationships: []
       }
+      food_diary: {
+        Row: {
+          created_at: string
+          food_name: string
+          id: string
+          notes: string | null
+          reaction: string
+          recipe_id: string | null
+          tried_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          food_name: string
+          id?: string
+          notes?: string | null
+          reaction: string
+          recipe_id?: string | null
+          tried_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          food_name?: string
+          id?: string
+          notes?: string | null
+          reaction?: string
+          recipe_id?: string | null
+          tried_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       forum_posts: {
         Row: {
           comments_count: number | null
@@ -526,6 +562,27 @@ export type Database = {
           recipe_id?: string
           user_id?: string
           week_start_date?: string | null
+        }
+        Relationships: []
+      }
+      milestone_alerts_viewed: {
+        Row: {
+          id: string
+          milestone_month: number
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          milestone_month: number
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          milestone_month?: number
+          user_id?: string
+          viewed_at?: string
         }
         Relationships: []
       }

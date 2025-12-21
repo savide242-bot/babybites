@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BookOpen, Calendar, Heart, TrendingUp, Scan, Bot, 
-  Flame, Star, Sparkles, Trophy, X
+  Flame, Star, Sparkles, Trophy, X, BookOpen as Diary
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,8 @@ import EnrichedDailyContent from "@/components/engagement/EnrichedDailyContent";
 import RecipeOfTheDay from "@/components/home/RecipeOfTheDay";
 import TodaysMealsPreview from "@/components/home/TodaysMealsPreview";
 import TutorialTooltip from "@/components/tutorial/TutorialTooltip";
+import { DevelopmentalAlert } from "@/components/milestones/DevelopmentalAlert";
+import { StreakRecoveryWidget } from "@/components/streak/StreakRecoveryWidget";
 
 interface DailyTask {
   id: string;
@@ -201,6 +203,7 @@ const Home = () => {
     { icon: Scan, label: "Food AI", path: "/scanner", color: "bg-mint/15 text-mint", iconBg: "bg-mint", tutorialId: "scanner" },
     { icon: Bot, label: "Ask Bibi", path: "/chat", color: "bg-accent/20 text-accent-foreground", iconBg: "bg-accent", tutorialId: "chat" },
     { icon: TrendingUp, label: "Growth", path: "/growth", color: "bg-soft-blue text-soft-blue-foreground", iconBg: "bg-secondary", tutorialId: null },
+    { icon: Diary, label: "Food Diary", path: "/food-diary", color: "bg-peach/30 text-peach-foreground", iconBg: "bg-primary", tutorialId: null },
     { icon: Trophy, label: "Achievements", path: "/achievements", color: "bg-sunshine/30 text-sunshine-foreground", iconBg: "bg-sunshine", tutorialId: null },
   ];
 
@@ -278,6 +281,17 @@ const Home = () => {
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
+        {/* Developmental Milestone Alert */}
+        {!isLoading && babyAgeMonths >= 6 && babyAgeMonths <= 12 && (
+          <DevelopmentalAlert 
+            babyAgeMonths={babyAgeMonths} 
+            babyName={babyName} 
+          />
+        )}
+
+        {/* Streak Recovery Alert */}
+        <StreakRecoveryWidget />
+
         {/* HERO: Recipe of the Day - Primary CTA */}
         {!isLoading && recipeOfTheDay && (
           <RecipeOfTheDay recipe={recipeOfTheDay} babyName={babyName} />
@@ -390,7 +404,7 @@ const Home = () => {
         </div>
 
         {/* Secondary Nav */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {navCircles.slice(4).map((item, index) => (
             <Link 
               key={index} 
