@@ -6,6 +6,12 @@ import { recipes } from "@/data/recipes";
 import { differenceInMonths } from "date-fns";
 import RecipeOfTheDay from "@/components/home/RecipeOfTheDay";
 import TodaysMealsPreview from "@/components/home/TodaysMealsPreview";
+import QuickCheckinWidget from "@/components/engagement/QuickCheckinWidget";
+import DailyPollWidget from "@/components/engagement/DailyPollWidget";
+import SevenDayChallengeCard from "@/components/engagement/SevenDayChallengeCard";
+import ReferralWidget from "@/components/referral/ReferralWidget";
+import FoodJourneyTimeline from "@/components/journey/FoodJourneyTimeline";
+import { useEngagement } from "@/hooks/useEngagement";
 
 interface TodayMeal {
   mealType: string;
@@ -21,6 +27,8 @@ const Home = () => {
   const [todayMeals, setTodayMeals] = useState<TodayMeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
+
+  const { todayCheckin, submitCheckin } = useEngagement();
 
   const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
@@ -114,7 +122,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
         {/* Header */}
         {isLoading ? (
           <div className="flex items-center gap-3">
@@ -155,6 +163,21 @@ const Home = () => {
           </div>
         )}
 
+        {/* Quick Check-in - 1 Tap */}
+        {!isLoading && (
+          <QuickCheckinWidget 
+            todayCheckin={todayCheckin} 
+            onSubmit={submitCheckin}
+            babyName={babyName}
+          />
+        )}
+
+        {/* 7-Day Challenge for New Users */}
+        {!isLoading && <SevenDayChallengeCard babyName={babyName} />}
+
+        {/* Daily Poll */}
+        {!isLoading && <DailyPollWidget babyName={babyName} />}
+
         {/* Recipe of the Day - Hero */}
         {!isLoading && recipeOfTheDay && (
           <RecipeOfTheDay recipe={recipeOfTheDay} babyName={babyName} />
@@ -162,6 +185,12 @@ const Home = () => {
 
         {/* Today's Meals */}
         <TodaysMealsPreview meals={todayMeals} />
+
+        {/* Food Journey Timeline */}
+        {!isLoading && <FoodJourneyTimeline compact babyName={babyName} />}
+
+        {/* Referral Widget */}
+        {!isLoading && <ReferralWidget />}
 
         {/* Motivational Message */}
         <div className="bg-peach/30 rounded-2xl p-5 border border-peach/50">
