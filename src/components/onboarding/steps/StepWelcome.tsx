@@ -32,13 +32,13 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
 
   const getAgeBasedMessage = () => {
     if (babyAgeMonths < 6) {
-      return "Perfeito para começar a introdução alimentar!";
+      return "Perfect for starting the weaning journey!";
     } else if (babyAgeMonths < 9) {
-      return "Fase ideal para explorar novos sabores e texturas!";
+      return "Great time to explore new flavors and textures!";
     } else if (babyAgeMonths < 12) {
-      return "Pronto para receitas mais complexas e finger foods!";
+      return "Ready for more complex recipes and finger foods!";
     } else {
-      return "Altura perfeita para refeições em família!";
+      return "Perfect time for family meals together!";
     }
   };
 
@@ -49,16 +49,16 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
           <Sparkles className="w-10 h-10 text-white" />
         </div>
         <h2 className="text-3xl font-bold text-foreground">
-          🎉 Tudo pronto, {motherName}!
+          🎉 All set, {motherName}!
         </h2>
         <p className="text-lg text-muted-foreground">
-          Bem-vinda ao BabyBites
+          Welcome to BabyBites
         </p>
       </div>
 
       <div className="bg-gradient-to-br from-primary/10 via-mint/10 to-cyan-100/30 rounded-2xl p-6 space-y-4">
         <h3 className="font-semibold text-foreground text-center">
-          O que preparámos para o {babyName}:
+          What we prepared for {babyName}:
         </h3>
         
         <div className="space-y-3">
@@ -67,8 +67,8 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
               <ChefHat className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-medium text-foreground">+300 Receitas Personalizadas</p>
-              <p className="text-sm text-muted-foreground">Adaptadas para {babyAgeMonths} meses</p>
+              <p className="font-medium text-foreground">300+ Personalized Recipes</p>
+              <p className="text-sm text-muted-foreground">Tailored for {babyAgeMonths} months</p>
             </div>
           </div>
 
@@ -77,7 +77,7 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
               <Calendar className="w-5 h-5 text-mint" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Plano Semanal Gerado</p>
+              <p className="font-medium text-foreground">Weekly Meal Plan</p>
               <p className="text-sm text-muted-foreground">{getAgeBasedMessage()}</p>
             </div>
           </div>
@@ -87,8 +87,8 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
               <Heart className="w-5 h-5 text-pink-500" />
             </div>
             <div>
-              <p className="font-medium text-foreground">Dicas Diárias</p>
-              <p className="text-sm text-muted-foreground">Conselhos de nutrição infantil</p>
+              <p className="font-medium text-foreground">Daily Tips</p>
+              <p className="text-sm text-muted-foreground">Expert baby nutrition advice</p>
             </div>
           </div>
         </div>
@@ -103,7 +103,7 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
           disabled={isLoading}
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          Back
         </Button>
         <Button
           onClick={onComplete}
@@ -113,11 +113,11 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
           {isLoading ? (
             <span className="flex items-center gap-2">
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              A guardar...
+              Saving...
             </span>
           ) : (
             <span className="flex items-center gap-2">
-              Começar a explorar!
+              Start exploring!
               <Sparkles className="w-5 h-5" />
             </span>
           )}

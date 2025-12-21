@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Bell, Clock } from "lucide-react";
@@ -22,11 +21,11 @@ interface StepRemindersProps {
 }
 
 const DEFAULT_REMINDERS: ReminderSetting[] = [
-  { id: 'breakfast', label: 'Pequeno-almoço', emoji: '🍳', enabled: true, hour: 7, minute: 30 },
-  { id: 'morning-snack', label: 'Lanche da manhã', emoji: '🍎', enabled: false, hour: 10, minute: 0 },
-  { id: 'lunch', label: 'Almoço', emoji: '🥗', enabled: true, hour: 12, minute: 30 },
-  { id: 'afternoon-snack', label: 'Lanche da tarde', emoji: '🍌', enabled: false, hour: 15, minute: 30 },
-  { id: 'dinner', label: 'Jantar', emoji: '🍽️', enabled: true, hour: 18, minute: 0 },
+  { id: 'breakfast', label: 'Breakfast', emoji: '🍳', enabled: true, hour: 7, minute: 30 },
+  { id: 'morning-snack', label: 'Morning snack', emoji: '🍎', enabled: false, hour: 10, minute: 0 },
+  { id: 'lunch', label: 'Lunch', emoji: '🥗', enabled: true, hour: 12, minute: 30 },
+  { id: 'afternoon-snack', label: 'Afternoon snack', emoji: '🍌', enabled: false, hour: 15, minute: 30 },
+  { id: 'dinner', label: 'Dinner', emoji: '🍽️', enabled: true, hour: 18, minute: 0 },
 ];
 
 const formatTime = (hour: number, minute: number) => {
@@ -65,10 +64,10 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
           <Bell className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-foreground">
-          Lembretes de refeições
+          Meal reminders
         </h2>
         <p className="text-muted-foreground">
-          Recebe notificações nos horários das refeições
+          Get notified at meal times
         </p>
       </div>
 
@@ -111,7 +110,7 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
 
       {enabledCount === 0 && (
         <p className="text-center text-sm text-muted-foreground">
-          Podes sempre ativar os lembretes mais tarde nas definições
+          You can always enable reminders later in settings
         </p>
       )}
 
@@ -123,14 +122,14 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
           className="flex-1 py-6"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          Back
         </Button>
         <Button
           type="submit"
           className="flex-1 bg-gradient-to-r from-primary to-mint text-white font-semibold py-6 text-lg hover:shadow-glow transition-all duration-300"
         >
           <span className="flex items-center gap-2">
-            Continuar
+            Continue
             <ArrowRight className="w-5 h-5" />
           </span>
         </Button>

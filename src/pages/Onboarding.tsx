@@ -91,7 +91,7 @@ const Onboarding = () => {
         }
       }
 
-      toast.success(`Bem-vinda ao BabyBites, ${motherName}! 🎉`);
+      toast.success(`Welcome to BabyBites, ${motherName}! 🎉`);
       navigate('/');
     } catch (error) {
       console.error('Error saving profile:', error);

@@ -23,20 +23,20 @@ const StepMotherName = ({ value, onChange, onNext }: StepMotherNameProps) => {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-mint mb-4">
           <User className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Olá! Como te chamas?</h2>
+        <h2 className="text-2xl font-bold text-foreground">Hi there! What's your name?</h2>
         <p className="text-muted-foreground">
-          Vamos personalizar a tua experiência
+          Let's personalize your experience
         </p>
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="motherName" className="text-foreground font-medium">
-          O teu nome
+          Your name
         </Label>
         <Input
           id="motherName"
           type="text"
-          placeholder="Ex: Maria, Ana, Sofia..."
+          placeholder="e.g. Sarah, Emily, Jessica..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="border-2 focus:border-primary transition-colors text-lg py-6"
@@ -51,7 +51,7 @@ const StepMotherName = ({ value, onChange, onNext }: StepMotherNameProps) => {
         disabled={!value.trim()}
       >
         <span className="flex items-center gap-2">
-          Continuar
+          Continue
           <ArrowRight className="w-5 h-5" />
         </span>
       </Button>
