@@ -5,16 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { differenceInMonths } from "date-fns";
-import { Sparkles, ChefHat, ArrowRight, Clock, Baby } from "lucide-react";
+import { Sparkles, ChefHat, ArrowRight, Clock, Baby, Calendar, CheckCircle2 } from "lucide-react";
 import { recipes, Recipe } from "@/data/recipes";
 import { getRecipeImageById } from "@/data/recipeImages";
 import confetti from "canvas-confetti";
+
+interface MealPlanPreview {
+  day: string;
+  meals: { mealType: string; recipeTitle: string }[];
+}
 
 const FirstDay = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [babyName, setBabyName] = useState("");
   const [babyAgeMonths, setBabyAgeMonths] = useState(6);
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
+  const [mealPlanPreview, setMealPlanPreview] = useState<MealPlanPreview[]>([]);
   const [shouldShow, setShouldShow] = useState(false);
   const navigate = useNavigate();
 
@@ -50,22 +56,58 @@ const FirstDay = () => {
           .eq('id', session.user.id)
           .single();
 
+        let calculatedAge = 6;
         if (profile) {
           setBabyName(profile.baby_name || "your baby");
           
           if (profile.baby_birth_date) {
             const birthDate = new Date(profile.baby_birth_date);
-            const ageMonths = differenceInMonths(new Date(), birthDate);
-            setBabyAgeMonths(Math.max(0, ageMonths));
+            calculatedAge = Math.max(0, differenceInMonths(new Date(), birthDate));
+            setBabyAgeMonths(calculatedAge);
           }
         }
 
+        // Fetch the generated meal plan preview (first 3 days)
+        const { data: mealPlanData } = await supabase
+          .from('meal_plans')
+          .select('day_of_week, meal_type, recipe_id')
+          .eq('user_id', session.user.id)
+          .order('day_of_week');
+
+        if (mealPlanData && mealPlanData.length > 0) {
+          // Group by day and get first 3 days
+          const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+          const groupedByDay: { [key: string]: { mealType: string; recipeTitle: string }[] } = {};
+          
+          mealPlanData.forEach(item => {
+            if (!groupedByDay[item.day_of_week]) {
+              groupedByDay[item.day_of_week] = [];
+            }
+            const recipe = recipes.find(r => r.id === item.recipe_id);
+            if (recipe) {
+              groupedByDay[item.day_of_week].push({
+                mealType: item.meal_type,
+                recipeTitle: recipe.title
+              });
+            }
+          });
+
+          const preview: MealPlanPreview[] = dayOrder
+            .filter(day => groupedByDay[day])
+            .slice(0, 3)
+            .map(day => ({
+              day,
+              meals: groupedByDay[day].slice(0, 2) // Show max 2 meals per day in preview
+            }));
+
+          setMealPlanPreview(preview);
+        }
+
         // Get recipes based on age
-        const recommendedRecipes = getAgeAppropriateRecipes(babyAgeMonths);
+        const recommendedRecipes = getAgeAppropriateRecipes(calculatedAge);
         setRecommendedRecipes(recommendedRecipes);
       } catch (error) {
         console.error('Error fetching data:', error);
-        // On error, redirect to home to avoid being stuck
         navigate('/', { replace: true });
       } finally {
         setIsLoading(false);
@@ -282,6 +324,59 @@ const FirstDay = () => {
             </Card>
           ))}
         </div>
+
+        {/* Weekly Meal Plan Preview */}
+        {mealPlanPreview.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-mint" />
+              <h2 className="text-lg font-semibold text-foreground">
+                Your Weekly Plan is Ready!
+              </h2>
+            </div>
+
+            <Card className="border-2 border-mint/30 bg-white/90 backdrop-blur-sm overflow-hidden">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center gap-2 text-mint">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="text-sm font-medium">Personalized for {babyName}</span>
+                </div>
+                
+                {mealPlanPreview.map((dayPlan) => (
+                  <div key={dayPlan.day} className="border-t border-border/50 pt-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      {dayPlan.day}
+                    </p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {dayPlan.meals.map((meal, idx) => (
+                        <span 
+                          key={idx}
+                          className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
+                        >
+                          {meal.mealType}: {meal.recipeTitle.length > 20 
+                            ? meal.recipeTitle.substring(0, 20) + '...' 
+                            : meal.recipeTitle}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => markAsSeenAndNavigate('/planner')}
+                  className="w-full mt-2 border-mint text-mint hover:bg-mint/10"
+                >
+                  <span className="flex items-center gap-2">
+                    View Full Weekly Plan
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* CTA Buttons */}
         <div className="space-y-3 pt-4">

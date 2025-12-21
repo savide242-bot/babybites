@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DietaryTag } from "@/hooks/useDietaryPreferences";
+import { generateInitialMealPlan } from "@/utils/mealPlanGenerator";
 
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
 import StepMotherName from "@/components/onboarding/steps/StepMotherName";
@@ -90,6 +91,9 @@ const Onboarding = () => {
           // Don't throw, just log - notifications are optional
         }
       }
+
+      // Generate initial weekly meal plan based on baby's age and dietary preferences
+      await generateInitialMealPlan(session.user.id, birthDate, dietaryPreferences);
 
       toast.success(`Welcome to BabyBites, ${motherName}! 🎉`);
       navigate('/first-day');
