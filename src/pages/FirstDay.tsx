@@ -15,24 +15,11 @@ const FirstDay = () => {
   const [babyName, setBabyName] = useState("");
   const [babyAgeMonths, setBabyAgeMonths] = useState(6);
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
+  const [shouldShow, setShouldShow] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Trigger confetti on mount
-    const timer = setTimeout(() => {
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.5 },
-        colors: ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3']
-      });
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const fetchProfileAndRecipes = async () => {
+    const checkAndFetchData = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -40,6 +27,22 @@ const FirstDay = () => {
           navigate('/auth');
           return;
         }
+
+        // Check if user has already seen the welcome/first-day page
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('has_seen_welcome')
+          .eq('user_id', session.user.id)
+          .single();
+
+        // If user has already seen welcome, redirect to home
+        if (preferences?.has_seen_welcome) {
+          navigate('/', { replace: true });
+          return;
+        }
+
+        // User hasn't seen welcome yet, show the page
+        setShouldShow(true);
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -58,23 +61,70 @@ const FirstDay = () => {
         }
 
         // Get recipes based on age
-        const recipes = getAgeAppropriateRecipes(babyAgeMonths);
-        setRecommendedRecipes(recipes);
+        const recommendedRecipes = getAgeAppropriateRecipes(babyAgeMonths);
+        setRecommendedRecipes(recommendedRecipes);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching data:', error);
+        // On error, redirect to home to avoid being stuck
+        navigate('/', { replace: true });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProfileAndRecipes();
+    checkAndFetchData();
   }, [navigate, babyAgeMonths]);
+
+  useEffect(() => {
+    // Trigger confetti only when page should be shown
+    if (!shouldShow || isLoading) return;
+    
+    const timer = setTimeout(() => {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.5 },
+        colors: ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3']
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [shouldShow, isLoading]);
+
+  const markAsSeenAndNavigate = async (path: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Try to update existing preference
+        const { error: updateError } = await supabase
+          .from('user_preferences')
+          .update({ has_seen_welcome: true })
+          .eq('user_id', session.user.id);
+
+        // If no row exists, insert one
+        if (updateError) {
+          await supabase
+            .from('user_preferences')
+            .insert({ 
+              user_id: session.user.id, 
+              has_seen_welcome: true,
+              language: 'en'
+            });
+        }
+      }
+    } catch (error) {
+      console.error('Error marking welcome as seen:', error);
+    }
+    
+    navigate(path);
+  };
 
   const getAgeAppropriateRecipes = (ageMonths: number): Recipe[] => {
     let targetAgeGroup: string;
     
     if (ageMonths < 6) {
-      targetAgeGroup = "6-9 months"; // Start with beginner recipes
+      targetAgeGroup = "6-9 months";
     } else if (ageMonths < 9) {
       targetAgeGroup = "6-9 months";
     } else if (ageMonths < 12) {
@@ -85,10 +135,8 @@ const FirstDay = () => {
       targetAgeGroup = "18-24 months";
     }
 
-    // Filter recipes by age group and prefer simple ones (purees for younger, finger foods for older)
     const ageFilteredRecipes = recipes.filter(r => r.ageGroup === targetAgeGroup);
     
-    // Prioritize categories based on age
     let preferredCategories: string[];
     if (ageMonths < 9) {
       preferredCategories = ["Puree", "Breakfast"];
@@ -98,7 +146,6 @@ const FirstDay = () => {
       preferredCategories = ["Finger Food", "Lunch", "Dinner"];
     }
 
-    // Sort by preferred categories
     const sortedRecipes = ageFilteredRecipes.sort((a, b) => {
       const aIndex = preferredCategories.indexOf(a.category);
       const bIndex = preferredCategories.indexOf(b.category);
@@ -107,7 +154,6 @@ const FirstDay = () => {
       return aPriority - bPriority;
     });
 
-    // Return top 3 unique recipes
     return sortedRecipes.slice(0, 3);
   };
 
@@ -139,6 +185,11 @@ const FirstDay = () => {
         </Card>
       </div>
     );
+  }
+
+  // Don't render if user shouldn't see this page
+  if (!shouldShow) {
+    return null;
   }
 
   return (
@@ -192,7 +243,7 @@ const FirstDay = () => {
             <Card 
               key={recipe.id}
               className="border-2 border-white/50 shadow-lg bg-white/90 backdrop-blur-sm overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-              onClick={() => navigate(`/recipe/${recipe.id}`)}
+              onClick={() => markAsSeenAndNavigate(`/recipe/${recipe.id}`)}
             >
               <div className="flex">
                 <div className="w-24 h-24 flex-shrink-0">
@@ -235,7 +286,7 @@ const FirstDay = () => {
         {/* CTA Buttons */}
         <div className="space-y-3 pt-4">
           <Button
-            onClick={() => navigate('/recipes')}
+            onClick={() => markAsSeenAndNavigate('/recipes')}
             className="w-full bg-gradient-to-r from-primary to-mint text-white font-semibold py-6 text-lg hover:shadow-glow transition-all duration-300"
           >
             <span className="flex items-center gap-2">
@@ -246,7 +297,7 @@ const FirstDay = () => {
           
           <Button
             variant="outline"
-            onClick={() => navigate('/')}
+            onClick={() => markAsSeenAndNavigate('/')}
             className="w-full py-6 border-2"
           >
             Go to Home
