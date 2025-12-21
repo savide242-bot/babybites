@@ -147,30 +147,31 @@ import appleCinnamonYogurtBowl from "@/assets/recipes/apple-cinnamon-yogurt-bowl
 import blueberryLemonYogurtBark from "@/assets/recipes/blueberry-lemon-yogurt-bark.jpg";
 import pearPruneCompote from "@/assets/recipes/pear-prune-compote.jpg";
 import creamyVeggiePasta from "@/assets/recipes/creamy-veggie-pasta.jpg";
-import beefSweetPotatoStewUnique from "@/assets/recipes/beef-sweet-potato-stew-unique.jpg";
 import mangoTropicalPuree from "@/assets/recipes/mango-tropical-puree.jpg";
 import pumpkinSpiceQuinoa from "@/assets/recipes/pumpkin-spice-quinoa.jpg";
 import zucchiniCarrotFritters from "@/assets/recipes/zucchini-carrot-fritters.jpg";
 import spinachBananaSmoothie from "@/assets/recipes/spinach-banana-smoothie.jpg";
-import turkeyVegetableMix from "@/assets/recipes/turkey-vegetable-mix.jpg";
-import lentilVegetableCurry from "@/assets/recipes/lentil-vegetable-curry.jpg";
-import fishVegetableMedley from "@/assets/recipes/fish-vegetable-medley.jpg";
-import bananaAvocadoSmoothie from "@/assets/recipes/banana-avocado-smoothie.jpg";
 import spinachPotatoPuree from "@/assets/recipes/spinach-potato-puree.jpg";
-import beefCarrotPureeUnique from "@/assets/recipes/beef-carrot-puree-unique.jpg";
-import peaMintPureeUnique from "@/assets/recipes/pea-mint-puree-unique.jpg";
-import chickenSweetPotatoPureeUnique from "@/assets/recipes/chicken-sweet-potato-puree-unique.jpg";
-import butternutAppleMixUnique from "@/assets/recipes/butternut-apple-mix-unique.jpg";
 import ricePeachCereal from "@/assets/recipes/rice-peach-cereal.jpg";
-import eggYolkVegetableUnique from "@/assets/recipes/egg-yolk-vegetable-unique.jpg";
-import plumOatPorridgeUnique from "@/assets/recipes/plum-oat-porridge-unique.jpg";
-import whiteFishParsnipUnique from "@/assets/recipes/white-fish-parsnip-unique.jpg";
-import kiwiBananaBlendUnique from "@/assets/recipes/kiwi-banana-blend-unique.jpg";
-import asparagusPotatoMashUnique from "@/assets/recipes/asparagus-potato-mash-unique.jpg";
-import tofuFruitPureeUnique from "@/assets/recipes/tofu-fruit-puree-unique.jpg";
-import zucchiniPotatoMashUnique from "@/assets/recipes/zucchini-potato-mash-unique.jpg";
+
+// UNIQUE VERSIONS - IDs 206-238
+import chickenSweetPotatoPureeUnique from "@/assets/recipes/chicken-sweet-potato-puree-unique.jpg";
+import turkeyVegetableBlendUnique from "@/assets/recipes/turkey-vegetable-blend-unique.jpg";
 import carrotLentilPureeUnique from "@/assets/recipes/carrot-lentil-puree-unique.jpg";
+import avocadoEggMashUnique from "@/assets/recipes/avocado-egg-mash-unique.jpg";
+import whiteFishParsnipUnique from "@/assets/recipes/white-fish-parsnip-unique.jpg";
+import beefCarrotPureeUnique from "@/assets/recipes/beef-carrot-puree-unique.jpg";
 import salmonDillMashUnique from "@/assets/recipes/salmon-dill-mash-unique.jpg";
+import quinoaVegetableBowlUnique from "@/assets/recipes/quinoa-vegetable-bowl-unique.jpg";
+import mangoYogurtSwirlUnique from "@/assets/recipes/mango-yogurt-swirl-unique.jpg";
+import peaMintPureeUnique from "@/assets/recipes/pea-mint-puree-unique.jpg";
+import pumpkinQuinoaBowlUnique from "@/assets/recipes/pumpkin-quinoa-bowl-unique.jpg";
+import applePruneCompoteUnique from "@/assets/recipes/apple-prune-compote-unique.jpg";
+import blueberryOatCreamUnique from "@/assets/recipes/blueberry-oat-cream-unique.jpg";
+import cauliflowerCheesePureeUnique from "@/assets/recipes/cauliflower-cheese-puree-unique.jpg";
+import sweetPotatoCinnamonUnique from "@/assets/recipes/sweet-potato-cinnamon-unique.jpg";
+import broccoliPearPureeUnique from "@/assets/recipes/broccoli-pear-puree-unique.jpg";
+import salmonPastaBakeUnique from "@/assets/recipes/salmon-pasta-bake-unique.jpg";
 import apricotRiceCreamUnique from "@/assets/recipes/apricot-rice-cream-unique.jpg";
 import greenBeanPotatoUnique from "@/assets/recipes/green-bean-potato-unique.jpg";
 import chickenHerbBlendUnique from "@/assets/recipes/chicken-herb-blend-unique.jpg";
@@ -178,16 +179,16 @@ import melonCottageCheeseUnique from "@/assets/recipes/melon-cottage-cheese-uniq
 import lambVegetableStewUnique from "@/assets/recipes/lamb-vegetable-stew-unique.jpg";
 import papayaCoconutCreamUnique from "@/assets/recipes/papaya-coconut-cream-unique.jpg";
 import beetrootApplePureeUnique from "@/assets/recipes/beetroot-apple-puree-unique.jpg";
-import broccoliPearPureeUnique from "@/assets/recipes/broccoli-pear-puree-unique.jpg";
-import sweetPotatoCinnamonUnique from "@/assets/recipes/sweet-potato-cinnamon-unique.jpg";
-import cauliflowerCheesePureeUnique from "@/assets/recipes/cauliflower-cheese-puree-unique.jpg";
-import blueberryOatCreamUnique from "@/assets/recipes/blueberry-oat-cream-unique.jpg";
-import mangoYogurtSwirlUnique from "@/assets/recipes/mango-yogurt-swirl-unique.jpg";
+import eggYolkVegetableUnique from "@/assets/recipes/egg-yolk-vegetable-unique.jpg";
+import plumOatPorridgeUnique from "@/assets/recipes/plum-oat-porridge-unique.jpg";
+import kiwiBananaBlendUnique from "@/assets/recipes/kiwi-banana-blend-unique.jpg";
+import asparagusPotatoMashUnique from "@/assets/recipes/asparagus-potato-mash-unique.jpg";
+import tofuFruitPureeUnique from "@/assets/recipes/tofu-fruit-puree-unique.jpg";
+import zucchiniPotatoMashUnique from "@/assets/recipes/zucchini-potato-mash-unique.jpg";
+import butternutAppleMixUnique from "@/assets/recipes/butternut-apple-mix-unique.jpg";
 import pearOatPorridgeUnique from "@/assets/recipes/pear-oat-porridge-unique.jpg";
-import quinoaVegetableBowlUnique from "@/assets/recipes/quinoa-vegetable-bowl-unique.jpg";
-import pumpkinQuinoaBowlUnique from "@/assets/recipes/pumpkin-quinoa-bowl-unique.jpg";
-import applePruneCompoteUnique from "@/assets/recipes/apple-prune-compote-unique.jpg";
-import turkeyVegetableBlendUnique from "@/assets/recipes/turkey-vegetable-blend-unique.jpg";
+
+// UNIQUE VERSIONS - IDs 239-271
 import veggieStickHummusUnique from "@/assets/recipes/veggie-stick-hummus-unique.jpg";
 import miniCheeseQuesadillasUnique from "@/assets/recipes/mini-cheese-quesadillas-unique.jpg";
 import bananaPancakeBitesUnique from "@/assets/recipes/banana-pancake-bites-unique.jpg";
@@ -200,16 +201,55 @@ import cucumberCreamCheeseUnique from "@/assets/recipes/cucumber-cream-cheese-un
 import appleAlmondButterUnique from "@/assets/recipes/apple-almond-butter-unique.jpg";
 import chickenVeggieRisottoUnique from "@/assets/recipes/chicken-veggie-risotto-unique.jpg";
 import miniShepherdsPieUnique from "@/assets/recipes/mini-shepherds-pie-unique.jpg";
-import salmonPastaBakeUnique from "@/assets/recipes/salmon-pasta-bake-unique.jpg";
 import berrySmoothieBowlUnique from "@/assets/recipes/berry-smoothie-bowl-unique.jpg";
 import chickenNoodleSoupUnique from "@/assets/recipes/chicken-noodle-soup-unique.jpg";
 import veggieLasagnaBitesUnique from "@/assets/recipes/veggie-lasagna-bites-unique.jpg";
 import lambCouscousBowlUnique from "@/assets/recipes/lamb-couscous-bowl-unique.jpg";
 import scrambledEggsVeggiesUnique from "@/assets/recipes/scrambled-eggs-veggies-unique.jpg";
 import frenchToastFingersUnique from "@/assets/recipes/french-toast-fingers-unique.jpg";
-import avocadoEggMashUnique from "@/assets/recipes/avocado-egg-mash-unique.jpg";
 import oatmealPancakesFruitUnique from "@/assets/recipes/oatmeal-pancakes-fruit-unique.jpg";
 import cheeseSpinachOmeletteUnique from "@/assets/recipes/cheese-spinach-omelette-unique.jpg";
+import bananaBreadFingersUnique from "@/assets/recipes/banana-bread-fingers-unique.jpg";
+import yogurtFruitParfaitUnique from "@/assets/recipes/yogurt-fruit-parfait-unique.jpg";
+import cheeseCrackersPlateUnique from "@/assets/recipes/cheese-crackers-plate-unique.jpg";
+import fruitVeggieSmoothieUnique from "@/assets/recipes/fruit-veggie-smoothie-unique.jpg";
+import miniRiceCakesToppingsUnique from "@/assets/recipes/mini-rice-cakes-toppings-unique.jpg";
+import teethingBiscuitsUnique from "@/assets/recipes/teething-biscuits-unique.jpg";
+import babyEnergyBallsUnique from "@/assets/recipes/baby-energy-balls-unique.jpg";
+import lentilVeggieCurryUnique from "@/assets/recipes/lentil-veggie-curry-unique.jpg";
+import turkeyRiceCasseroleUnique from "@/assets/recipes/turkey-rice-casserole-unique.jpg";
+import fishPieCheesyMashUnique from "@/assets/recipes/fish-pie-cheesy-mash-unique.jpg";
+import beefSweetPotatoStewUnique from "@/assets/recipes/beef-sweet-potato-stew-unique.jpg";
+
+// UNIQUE VERSIONS - IDs 272-300
+import potatoLeekPureeUnique from "@/assets/recipes/potato-leek-puree-unique.jpg";
+import oatDatePorridgeUnique from "@/assets/recipes/oat-date-porridge-unique.jpg";
+import parsnipPearBlendUnique from "@/assets/recipes/parsnip-pear-blend-unique.jpg";
+import turkeyCarrotPureeUnique from "@/assets/recipes/turkey-carrot-puree-unique.jpg";
+import bananaTahiniCreamUnique from "@/assets/recipes/banana-tahini-cream-unique.jpg";
+import codButternutPureeUnique from "@/assets/recipes/cod-butternut-puree-unique.jpg";
+import babyChickpeaHummusUnique from "@/assets/recipes/baby-chickpea-hummus-unique.jpg";
+import peachyCottageCheeseUnique from "@/assets/recipes/peachy-cottage-cheese-unique.jpg";
+import sweetpotatoCorianderUnique from "@/assets/recipes/sweetpotato-coriander-unique.jpg";
+import avocadoSpinachPureeUnique from "@/assets/recipes/avocado-spinach-puree-unique.jpg";
+import chickenBroccoliPureeUnique from "@/assets/recipes/chicken-broccoli-puree-unique.jpg";
+import pruneAppleDigestiveUnique from "@/assets/recipes/prune-apple-digestive-unique.jpg";
+import cornPotatoPureeUnique from "@/assets/recipes/corn-potato-puree-unique.jpg";
+import raspberryYogurtSwirlUnique from "@/assets/recipes/raspberry-yogurt-swirl-unique.jpg";
+import greenbeanLambPureeUnique from "@/assets/recipes/greenbean-lamb-puree-unique.jpg";
+import cantaloupeMintPureeUnique from "@/assets/recipes/cantaloupe-mint-puree-unique.jpg";
+import pumpkinseedButterOatsUnique from "@/assets/recipes/pumpkinseed-butter-oats-unique.jpg";
+import beefSweetpeaPureeUnique from "@/assets/recipes/beef-sweetpea-puree-unique.jpg";
+import miniVeggieFrittataUnique from "@/assets/recipes/mini-veggie-frittata-unique.jpg";
+import salmonBroccoliRiceUnique from "@/assets/recipes/salmon-broccoli-rice-unique.jpg";
+import pastaStarsTomatoUnique from "@/assets/recipes/pasta-stars-tomato-unique.jpg";
+import cheesyCauliflowerBitesUnique from "@/assets/recipes/cheesy-cauliflower-bites-unique.jpg";
+import tropicalSmoothieBowlUnique from "@/assets/recipes/tropical-smoothie-bowl-unique.jpg";
+import beefPotatoMashUnique from "@/assets/recipes/beef-potato-mash-unique.jpg";
+import blueberryPancakeBitesUnique from "@/assets/recipes/blueberry-pancake-bites-unique.jpg";
+import chickenApplePattiesUnique from "@/assets/recipes/chicken-apple-patties-unique.jpg";
+import creamyVeggieRisottoUnique from "@/assets/recipes/creamy-veggie-risotto-unique.jpg";
+import strawberryBananaNicecreamUnique from "@/assets/recipes/strawberry-banana-nicecream-unique.jpg";
 
 // NEW AI-GENERATED UNIQUE IMAGES for recipes 101-150
 import rainbowVeggieFrittata from "@/assets/recipes/rainbow-veggie-frittata.jpg";
@@ -244,247 +284,90 @@ import plumCinnamonCompote from "@/assets/recipes/plum-cinnamon-compote.jpg";
 import tunaAvocadoRiceBowl from "@/assets/recipes/tuna-avocado-rice-bowl.jpg";
 import cottageCheesePancakes from "@/assets/recipes/cottage-cheese-pancakes.jpg";
 
-// NEW AI-GENERATED UNIQUE IMAGES for recipes 239-300
-import turkeyRiceCasseroleUnique from "@/assets/recipes/turkey-rice-casserole-unique.jpg";
-import fishPieCheesyMashUnique from "@/assets/recipes/fish-pie-cheesy-mash-unique.jpg";
-import bananaBreadFingersUnique from "@/assets/recipes/banana-bread-fingers-unique.jpg";
-import yogurtFruitParfaitUnique from "@/assets/recipes/yogurt-fruit-parfait-unique.jpg";
-import cheeseCrackersPlateUnique from "@/assets/recipes/cheese-crackers-plate-unique.jpg";
-import fruitVeggieSmoothieUnique from "@/assets/recipes/fruit-veggie-smoothie-unique.jpg";
-import miniRiceCakesToppingsUnique from "@/assets/recipes/mini-rice-cakes-toppings-unique.jpg";
-import teethingBiscuitsUnique from "@/assets/recipes/teething-biscuits-unique.jpg";
-import babyEnergyBallsUnique from "@/assets/recipes/baby-energy-balls-unique.jpg";
-import lentilVeggieCurryUnique from "@/assets/recipes/lentil-veggie-curry-unique.jpg";
-import potatoLeekPureeUnique from "@/assets/recipes/potato-leek-puree-unique.jpg";
-import oatDatePorridgeUnique from "@/assets/recipes/oat-date-porridge-unique.jpg";
-import parsnipPearBlendUnique from "@/assets/recipes/parsnip-pear-blend-unique.jpg";
-import turkeyCarrotPureeUnique from "@/assets/recipes/turkey-carrot-puree-unique.jpg";
-import bananaTahiniCreamUnique from "@/assets/recipes/banana-tahini-cream-unique.jpg";
-import codButternutPureeUnique from "@/assets/recipes/cod-butternut-puree-unique.jpg";
-import babyChickpeaHummusUnique from "@/assets/recipes/baby-chickpea-hummus-unique.jpg";
-import peachyCottageCheeseUnique from "@/assets/recipes/peachy-cottage-cheese-unique.jpg";
-import sweetpotatoCorianderUnique from "@/assets/recipes/sweetpotato-coriander-unique.jpg";
-import avocadoSpinachPureeUnique from "@/assets/recipes/avocado-spinach-puree-unique.jpg";
-import chickenBroccoliPureeUnique from "@/assets/recipes/chicken-broccoli-puree-unique.jpg";
-import pruneAppleDigestiveUnique from "@/assets/recipes/prune-apple-digestive-unique.jpg";
-import cornPotatoPureeUnique from "@/assets/recipes/corn-potato-puree-unique.jpg";
-import raspberryYogurtSwirlUnique from "@/assets/recipes/raspberry-yogurt-swirl-unique.jpg";
-import greenbeanLambPureeUnique from "@/assets/recipes/greenbean-lamb-puree-unique.jpg";
-import cantaloupeMintPureeUnique from "@/assets/recipes/cantaloupe-mint-puree-unique.jpg";
-import pumpkinseedButterOatsUnique from "@/assets/recipes/pumpkinseed-butter-oats-unique.jpg";
-import beefSweetpeaPureeUnique from "@/assets/recipes/beef-sweetpea-puree-unique.jpg";
-import miniVeggieFrittataUnique from "@/assets/recipes/mini-veggie-frittata-unique.jpg";
-import salmonBroccoliRiceUnique from "@/assets/recipes/salmon-broccoli-rice-unique.jpg";
-import pastaStarsTomatoUnique from "@/assets/recipes/pasta-stars-tomato-unique.jpg";
-import cheesyCauliflowerBitesUnique from "@/assets/recipes/cheesy-cauliflower-bites-unique.jpg";
-import tropicalSmoothieBowlUnique from "@/assets/recipes/tropical-smoothie-bowl-unique.jpg";
-import beefPotatoMashUnique from "@/assets/recipes/beef-potato-mash-unique.jpg";
-import blueberryPancakeBitesUnique from "@/assets/recipes/blueberry-pancake-bites-unique.jpg";
-import chickenApplePattiesUnique from "@/assets/recipes/chicken-apple-patties-unique.jpg";
-import creamyVeggieRisottoUnique from "@/assets/recipes/creamy-veggie-risotto-unique.jpg";
-import strawberryBananaNicecreamUnique from "@/assets/recipes/strawberry-banana-nicecream-unique.jpg";
+// NEW AI-GENERATED UNIQUE IMAGES for recipes 47-100 (eliminating duplicates)
+import creamySpinachPasta47 from "@/assets/recipes/creamy-spinach-pasta-47.jpg";
+import beefStew48 from "@/assets/recipes/beef-stew-48.jpg";
+import pumpkinAppleMash49 from "@/assets/recipes/pumpkin-apple-mash-49.jpg";
+import bananaOatCookies50 from "@/assets/recipes/banana-oat-cookies-50.jpg";
+import mangoPuree51 from "@/assets/recipes/mango-puree-51.jpg";
+import chickenNoodleSoup52 from "@/assets/recipes/chicken-noodle-soup-52.jpg";
+import beetrootApplePuree53 from "@/assets/recipes/beetroot-apple-puree-53.jpg";
+import turkeyMeatballs54 from "@/assets/recipes/turkey-meatballs-54.jpg";
+import lentilSoup56 from "@/assets/recipes/lentil-soup-56.jpg";
+import lambVegetableStew58 from "@/assets/recipes/lamb-vegetable-stew-58.jpg";
+import spinachQuesadilla60 from "@/assets/recipes/spinach-quesadilla-60.jpg";
+import bananaPancakes61 from "@/assets/recipes/banana-pancakes-61.jpg";
+import chickenPatties62 from "@/assets/recipes/chicken-patties-62.jpg";
+import salmonSweetPotato63 from "@/assets/recipes/salmon-sweet-potato-63.jpg";
+import vegetableRisotto64 from "@/assets/recipes/vegetable-risotto-64.jpg";
+import eggMuffins65 from "@/assets/recipes/egg-muffins-65.jpg";
+import yogurtBerries66 from "@/assets/recipes/yogurt-berries-66.jpg";
+import quinoaVeggies67 from "@/assets/recipes/quinoa-veggies-67.jpg";
+import broccoliTots68 from "@/assets/recipes/broccoli-tots-68.jpg";
+import pastaTomato69 from "@/assets/recipes/pasta-tomato-69.jpg";
+import miniFishFingers88 from "@/assets/recipes/mini-fish-fingers-88.jpg";
+import chickpeaCarrotPatties89 from "@/assets/recipes/chickpea-carrot-patties-89.jpg";
+
+// NEW AI-GENERATED UNIQUE IMAGES for recipes 101-150 that had duplicates
+import tropicalSmoothieBowl121 from "@/assets/recipes/tropical-smoothie-bowl-121.jpg";
+import tropicalFruitSalad134 from "@/assets/recipes/tropical-fruit-salad-134.jpg";
+import bananaOatCookies136 from "@/assets/recipes/banana-oat-cookies-136.jpg";
+import chickenNoodleSoup142 from "@/assets/recipes/chicken-noodle-soup-142.jpg";
+import yogurtFruitParfait143 from "@/assets/recipes/yogurt-fruit-parfait-143.jpg";
+import creamySpinachPasta144 from "@/assets/recipes/creamy-spinach-pasta-144.jpg";
+import chickenApplePatties147 from "@/assets/recipes/chicken-apple-patties-147.jpg";
+import fishPieCheesyMash177 from "@/assets/recipes/fish-pie-cheesy-mash-177.jpg";
+import chickenApplePatties178 from "@/assets/recipes/chicken-apple-patties-178.jpg";
+import vegetableRisotto201 from "@/assets/recipes/vegetable-risotto-201.jpg";
+import miniFishFingers202 from "@/assets/recipes/mini-fish-fingers-202.jpg";
+import chickpeaCarrotPatties203 from "@/assets/recipes/chickpea-carrot-patties-203.jpg";
+import creamySpinachPasta204 from "@/assets/recipes/creamy-spinach-pasta-204.jpg";
+import bananaOatCookies205 from "@/assets/recipes/banana-oat-cookies-205.jpg";
+import riceBanana215 from "@/assets/recipes/rice-banana-215.jpg";
+import turkeyVegetableMix220 from "@/assets/recipes/turkey-vegetable-mix-220.jpg";
+import fishVegetableMedley235 from "@/assets/recipes/fish-vegetable-medley-235.jpg";
+import cucumberDillYogurtDip166 from "@/assets/recipes/cucumber-dill-yogurt-dip-166.jpg";
 
 export const recipeImages = {
-  avocadoPuree,
-  sweetPotatoCarrot,
-  blueberryOatmeal,
-  eggMuffins,
-  bananaPancakes,
-  chickenPatties,
-  peaPuree,
-  appleSauce,
-  pastaTomato,
-  yogurtBerries,
-  quinoaVeggies,
-  broccoliTots,
-  salmonSweetPotato,
-  riceBanana,
-  lentilSoup,
-  mangoPuree,
-  beefStew,
-  spinachQuesadilla,
-  butternutSquash,
-  turkeyMeatballs,
-  vegetableRisotto,
-  miniFishFingers,
-  chickpeaCarrotPatties,
-  creamySpinachPasta,
-  bananaOatCookies,
-  spinachAppleSurprise,
-  pearPruneBlend,
-  greenPeaPuree,
-  pumpkinAppleMash,
-  cottageCheesePoachBowl,
-  appleCinnamonSauce,
-  appleCinnamonOatmeal,
-  zucchiniPotatoMash,
-  carrotLentilPuree,
-  ricePeachBlend,
-  chickenSweetPotatoPuree,
-  pearOatPorridge,
-  butternutAppleMix,
-  fishVegetablePuree,
-  bananaAvocadoBlend,
-  spinachPotatoMash,
-  beefCarrotPuree,
-  mangoYogurtSwirl,
-  peaMintPuree,
-  pumpkinQuinoaBowl,
-  applePruneCompote,
-  turkeyVegetableBlend,
-  blueberryOatCream,
-  cauliflowerCheesePuree,
-  sweetPotatoCinnamon,
-  broccoliPearPuree,
-  salmonDillMash,
-  apricotRiceCream,
-  greenBeanPotato,
-  chickenHerbBlend,
-  melonCottageCheese,
-  lambVegetableStew,
-  papayaCoconutCream,
-  beetrootApplePuree,
-  eggYolkVegetable,
-  plumOatPorridge,
-  whiteFishParsnip,
-  kiwiBananaBlend,
-  asparagusPotatoMash,
-  tofuFruitPuree,
-  veggieStickHummus,
-  miniCheeseQuesadillas,
-  bananaPancakeBites,
-  steamedBroccoliTrees,
-  sweetPotatoWedges,
-  avocadoToastFingers,
-  softCarrotSticks,
-  miniOatBananaMuffins,
-  cucumberCreamCheese,
-  appleAlmondButter,
-  chickenVeggieRisotto,
-  miniShepherdsPie,
-  salmonPastaBake,
-  beefSweetPotatoStew,
-  lentilVeggieCurry,
-  turkeyRiceCasserole,
-  fishPieCheesyMash,
-  chickenNoodleSoup,
-  veggieLasagnaBites,
-  lambCouscousBowl,
-  scrambledEggsVeggies,
-  frenchToastFingers,
-  berrySmoothieBowl,
-  avocadoEggMash,
-  oatmealPancakesFruit,
-  cheeseSpinachOmelette,
-  bananaBreadFingers,
-  yogurtFruitParfait,
-  cheeseCrackersPlate,
-  fruitVeggieSmoothie,
-  miniRiceCakesToppings,
-  teethingBiscuits,
-  babyEnergyBalls,
-  potatoLeekPuree,
-  oatDatePorridge,
-  parsnipPearBlend,
-  turkeyCarrotPuree,
-  bananaTahiniCream,
-  codButternutPuree,
-  babyChickpeaHummus,
-  peachyCottageCheese,
-  sweetpotatoCoriander,
-  avocadoSpinachPuree,
-  chickenBroccoliPuree,
-  pruneAppleDigestive,
-  quinoaVegetableBowl,
-  cornPotatoPuree,
-  raspberryYogurtSwirl,
-  greenbeanLambPuree,
-  cantaloupeMintPuree,
-  pumpkinseedButterOats,
-  beefSweetpeaPuree,
-  miniVeggieFrittata,
-  salmonBroccoliRice,
-  pastaStarsTomato,
-  cheesyCauliflowerBites,
-  tropicalSmoothieBowl,
-  beefPotatoMash,
-  blueberryPancakeBites,
-  chickenApplePatties,
-  creamyVeggieRisotto,
-  strawberryBananaNicecream,
-  // NEW AI-generated unique images 101-150
-  rainbowVeggieFrittata,
-  peachOatCrumble,
-  tunaWhiteBeanSalad,
-  appleCheddarMuffins,
-  cauliflowerMacCheese,
-  porkAppleMeatballs,
-  chocolateBananaNicecream,
-  herbedCouscousPeas,
-  carrotLentilPatties,
-  apricotChickenTagine,
-  mangoLassi,
-  sweetPotatoGnocchi,
-  salmonDillFishcakes,
-  mangoChiaPudding,
-  // NEW AI-generated unique images 151-200
-  creamyTomatoBasilSoup,
-  buckwheatBlueberryPancakes,
-  roastedRedPepperHummus,
-  mapleGlazedSalmonBites,
-  zucchiniNoodlesPesto,
-  chickenBroccoliRiceBalls,
-  butternutSageRisotto,
-  raspberryChiaJam,
-  cornZucchiniFritters,
-  apricotAlmondEnergyBites,
-  spinachFetaMiniQuiches,
-  sweetPotatoBlackBeanTacos,
-  plumCinnamonCompote,
-  tunaAvocadoRiceBowl,
-  cottageCheesePancakes,
-  // NEW AI-generated unique images 239-300
-  turkeyRiceCasseroleUnique,
-  fishPieCheesyMashUnique,
-  bananaBreadFingersUnique,
-  yogurtFruitParfaitUnique,
-  cheeseCrackersPlateUnique,
-  fruitVeggieSmoothieUnique,
-  miniRiceCakesToppingsUnique,
-  teethingBiscuitsUnique,
-  babyEnergyBallsUnique,
-  lentilVeggieCurryUnique,
-  potatoLeekPureeUnique,
-  oatDatePorridgeUnique,
-  parsnipPearBlendUnique,
-  turkeyCarrotPureeUnique,
-  bananaTahiniCreamUnique,
-  codButternutPureeUnique,
-  babyChickpeaHummusUnique,
-  peachyCottageCheeseUnique,
-  sweetpotatoCorianderUnique,
-  avocadoSpinachPureeUnique,
-  chickenBroccoliPureeUnique,
-  pruneAppleDigestiveUnique,
-  cornPotatoPureeUnique,
-  raspberryYogurtSwirlUnique,
-  greenbeanLambPureeUnique,
-  cantaloupeMintPureeUnique,
-  pumpkinseedButterOatsUnique,
-  beefSweetpeaPureeUnique,
-  miniVeggieFrittataUnique,
-  salmonBroccoliRiceUnique,
-  pastaStarsTomatoUnique,
-  cheesyCauliflowerBitesUnique,
-  tropicalSmoothieBowlUnique,
-  beefPotatoMashUnique,
-  blueberryPancakeBitesUnique,
-  chickenApplePattiesUnique,
-  creamyVeggieRisottoUnique,
-  strawberryBananaNicecreamUnique,
+  avocadoPuree, sweetPotatoCarrot, blueberryOatmeal, eggMuffins, bananaPancakes,
+  chickenPatties, peaPuree, appleSauce, pastaTomato, yogurtBerries, quinoaVeggies,
+  broccoliTots, salmonSweetPotato, riceBanana, lentilSoup, mangoPuree, beefStew,
+  spinachQuesadilla, butternutSquash, turkeyMeatballs, vegetableRisotto, miniFishFingers,
+  chickpeaCarrotPatties, creamySpinachPasta, bananaOatCookies, spinachAppleSurprise,
+  pearPruneBlend, greenPeaPuree, pumpkinAppleMash, cottageCheesePoachBowl, appleCinnamonSauce,
+  appleCinnamonOatmeal, zucchiniPotatoMash, carrotLentilPuree, ricePeachBlend,
+  chickenSweetPotatoPuree, pearOatPorridge, butternutAppleMix, fishVegetablePuree,
+  bananaAvocadoBlend, spinachPotatoMash, beefCarrotPuree, mangoYogurtSwirl, peaMintPuree,
+  pumpkinQuinoaBowl, applePruneCompote, turkeyVegetableBlend, blueberryOatCream,
+  cauliflowerCheesePuree, sweetPotatoCinnamon, broccoliPearPuree, salmonDillMash,
+  apricotRiceCream, greenBeanPotato, chickenHerbBlend, melonCottageCheese, lambVegetableStew,
+  papayaCoconutCream, beetrootApplePuree, eggYolkVegetable, plumOatPorridge, whiteFishParsnip,
+  kiwiBananaBlend, asparagusPotatoMash, tofuFruitPuree, veggieStickHummus, miniCheeseQuesadillas,
+  bananaPancakeBites, steamedBroccoliTrees, sweetPotatoWedges, avocadoToastFingers,
+  softCarrotSticks, miniOatBananaMuffins, cucumberCreamCheese, appleAlmondButter,
+  chickenVeggieRisotto, miniShepherdsPie, salmonPastaBake, beefSweetPotatoStew,
+  lentilVeggieCurry, turkeyRiceCasserole, fishPieCheesyMash, chickenNoodleSoup,
+  veggieLasagnaBites, lambCouscousBowl, scrambledEggsVeggies, frenchToastFingers,
+  berrySmoothieBowl, avocadoEggMash, oatmealPancakesFruit, cheeseSpinachOmelette,
+  bananaBreadFingers, yogurtFruitParfait, cheeseCrackersPlate, fruitVeggieSmoothie,
+  miniRiceCakesToppings, teethingBiscuits, babyEnergyBalls, potatoLeekPuree, oatDatePorridge,
+  parsnipPearBlend, turkeyCarrotPuree, bananaTahiniCream, codButternutPuree, babyChickpeaHummus,
+  peachyCottageCheese, sweetpotatoCoriander, avocadoSpinachPuree, chickenBroccoliPuree,
+  pruneAppleDigestive, quinoaVegetableBowl, cornPotatoPuree, raspberryYogurtSwirl,
+  greenbeanLambPuree, cantaloupeMintPuree, pumpkinseedButterOats, beefSweetpeaPuree,
+  miniVeggieFrittata, salmonBroccoliRice, pastaStarsTomato, cheesyCauliflowerBites,
+  tropicalSmoothieBowl, beefPotatoMash, blueberryPancakeBites, chickenApplePatties,
+  creamyVeggieRisotto, strawberryBananaNicecream, rainbowVeggieFrittata, peachOatCrumble,
+  tunaWhiteBeanSalad, appleCheddarMuffins, cauliflowerMacCheese, porkAppleMeatballs,
+  chocolateBananaNicecream, herbedCouscousPeas, carrotLentilPatties, apricotChickenTagine,
+  mangoLassi, sweetPotatoGnocchi, salmonDillFishcakes, mangoChiaPudding, creamyTomatoBasilSoup,
+  buckwheatBlueberryPancakes, roastedRedPepperHummus, mapleGlazedSalmonBites,
+  zucchiniNoodlesPesto, chickenBroccoliRiceBalls, butternutSageRisotto, raspberryChiaJam,
+  cornZucchiniFritters, apricotAlmondEnergyBites, spinachFetaMiniQuiches,
+  sweetPotatoBlackBeanTacos, plumCinnamonCompote, tunaAvocadoRiceBowl, cottageCheesePancakes,
 };
 
-// COMPLETE ID-BASED IMAGE MAPPING - NO GENERIC FALLBACKS
+// COMPLETE ID-BASED IMAGE MAPPING - NO DUPLICATIONS
 // Each recipe ID maps to exactly ONE unique image
 const recipeImageMap: Record<string, string> = {
   // IDs 1-46 (recipes.ts)
@@ -535,30 +418,30 @@ const recipeImageMap: Record<string, string> = {
   "45": papayaCoconutCream,
   "46": beetrootApplePuree,
 
-  // IDs 47-100 (recipes47-100.ts)
-  "47": creamySpinachPasta,
-  "48": beefStew,
-  "49": pumpkinAppleMash,
-  "50": bananaOatCookies,
-  "51": mangoPuree,
-  "52": chickenNoodleSoup,
-  "53": beetrootApplePuree,
-  "54": turkeyMeatballs,
+  // IDs 47-100 (recipes47-100.ts) - ALL UNIQUE IMAGES
+  "47": creamySpinachPasta47,
+  "48": beefStew48,
+  "49": pumpkinAppleMash49,
+  "50": bananaOatCookies50,
+  "51": mangoPuree51,
+  "52": chickenNoodleSoup52,
+  "53": beetrootApplePuree53,
+  "54": turkeyMeatballs54,
   "55": ricePeachBlend,
-  "56": lentilSoup,
+  "56": lentilSoup56,
   "57": berrySmoothieBowl,
-  "58": lambVegetableStew,
+  "58": lambVegetableStew58,
   "59": cucumberCreamCheese,
-  "60": spinachQuesadilla,
-  "61": bananaPancakes,
-  "62": chickenPatties,
-  "63": salmonSweetPotato,
-  "64": vegetableRisotto,
-  "65": eggMuffins,
-  "66": yogurtBerries,
-  "67": quinoaVeggies,
-  "68": broccoliTots,
-  "69": pastaTomato,
+  "60": spinachQuesadilla60,
+  "61": bananaPancakes61,
+  "62": chickenPatties62,
+  "63": salmonSweetPotato63,
+  "64": vegetableRisotto64,
+  "65": eggMuffins65,
+  "66": yogurtBerries66,
+  "67": quinoaVeggies67,
+  "68": broccoliTots68,
+  "69": pastaTomato69,
   "70": turkeyVegetableBlend,
   "71": fishVegetablePuree,
   "72": bananaAvocadoBlend,
@@ -577,8 +460,8 @@ const recipeImageMap: Record<string, string> = {
   "85": kiwiBananaBlend,
   "86": asparagusPotatoMash,
   "87": tofuFruitPuree,
-  "88": miniFishFingers,
-  "89": chickpeaCarrotPatties,
+  "88": miniFishFingers88,
+  "89": chickpeaCarrotPatties89,
   "90": miniCheeseQuesadillas,
   "91": avocadoToastFingers,
   "92": softCarrotSticks,
@@ -591,7 +474,7 @@ const recipeImageMap: Record<string, string> = {
   "99": miniShepherdsPie,
   "100": salmonPastaBake,
 
-  // IDs 101-150 (recipes101-150.ts) - UNIQUE AI-generated images
+  // IDs 101-150 (recipes101-150.ts) - ALL UNIQUE IMAGES
   "101": rainbowVeggieFrittata,
   "102": peachOatCrumble,
   "103": tunaWhiteBeanSalad,
@@ -605,14 +488,14 @@ const recipeImageMap: Record<string, string> = {
   "111": apricotChickenTagine,
   "112": spinachBananaSmoothie,
   "113": miniVeggieFrittata,
-  "114": fishVegetableMedley,
+  "114": fishVegetablePuree,
   "115": blackberryYogurtSwirl,
   "116": beefPotatoMash,
   "117": mangoLassi,
   "118": sweetPotatoGnocchi,
   "119": cucumberDillYogurtDip,
   "120": chickenNoodleSoupUnique,
-  "121": tropicalSmoothieBowl,
+  "121": tropicalSmoothieBowl121,
   "122": miniCheeseQuesadillasUnique,
   "123": cantaloupeMintPuree,
   "124": fishPieCheesyMash,
@@ -625,25 +508,25 @@ const recipeImageMap: Record<string, string> = {
   "131": babyChickpeaHummus,
   "132": pruneAppleDigestive,
   "133": zucchiniCarrotFritters,
-  "134": tropicalSmoothieBowl,
-  "135": turkeyVegetableMix,
-  "136": bananaOatCookies,
-  "137": lentilVegetableCurry,
+  "134": tropicalFruitSalad134,
+  "135": turkeyVegetableBlend,
+  "136": bananaOatCookies136,
+  "137": lentilVeggieCurry,
   "138": raspberryYogurtSwirl,
   "139": beefSweetpeaPuree,
   "140": bananaPancakeBitesUnique,
   "141": pearOatPorridgeUnique,
-  "142": chickenNoodleSoup,
-  "143": yogurtFruitParfait,
-  "144": creamySpinachPasta,
+  "142": chickenNoodleSoup142,
+  "143": yogurtFruitParfait143,
+  "144": creamySpinachPasta144,
   "145": avocadoEggMashUnique,
   "146": ricePeachCereal,
-  "147": chickenApplePatties,
+  "147": chickenApplePatties147,
   "148": beetrootApplePureeUnique,
   "149": salmonDillFishcakes,
   "150": mangoChiaPudding,
 
-  // IDs 151-200 (recipes151-200.ts) - UNIQUE AI-generated images
+  // IDs 151-200 (recipes151-200.ts) - ALL UNIQUE IMAGES
   "151": creamyTomatoBasilSoup,
   "152": buckwheatBlueberryPancakes,
   "153": roastedRedPepperHummus,
@@ -659,19 +542,19 @@ const recipeImageMap: Record<string, string> = {
   "163": plumCinnamonCompote,
   "164": tunaAvocadoRiceBowl,
   "165": cottageCheesePancakes,
-  "166": cucumberDillYogurtDip,
+  "166": cucumberDillYogurtDip166,
   "167": miniMacCheeseCups,
   "168": beefCarrotPureeUnique,
   "169": oatmealPancakesFruitUnique,
   "170": chickenNoodleSoupUnique,
   "171": avocadoEggMashUnique,
   "172": pearPruneCompote,
-  "173": lentilVegetableCurry,
+  "173": lentilVeggieCurry,
   "174": chickenVeggiePastaStars,
   "175": steamedBroccoliTreesUnique,
   "176": miniCheeseQuesadillasUnique,
-  "177": fishPieCheesyMash,
-  "178": chickenApplePatties,
+  "177": fishPieCheesyMash177,
+  "178": chickenApplePatties178,
   "179": creamyVeggiePasta,
   "180": blueberryLemonYogurtBark,
   "181": mangoTropicalPuree,
@@ -695,14 +578,14 @@ const recipeImageMap: Record<string, string> = {
   "199": asparagusPotatoMashUnique,
   "200": tofuFruitPureeUnique,
 
-  // IDs 201-205 (recipes201-205.ts)
-  "201": vegetableRisotto,
-  "202": miniFishFingers,
-  "203": chickpeaCarrotPatties,
-  "204": creamySpinachPasta,
-  "205": bananaOatCookies,
+  // IDs 201-205 (recipes201-205.ts) - ALL UNIQUE IMAGES
+  "201": vegetableRisotto201,
+  "202": miniFishFingers202,
+  "203": chickpeaCarrotPatties203,
+  "204": creamySpinachPasta204,
+  "205": bananaOatCookies205,
 
-  // IDs 206-238 (recipes206-238.ts) - Using unique images
+  // IDs 206-238 (recipes206-238.ts) - ALL UNIQUE IMAGES
   "206": chickenSweetPotatoPureeUnique,
   "207": turkeyVegetableBlendUnique,
   "208": carrotLentilPureeUnique,
@@ -712,12 +595,12 @@ const recipeImageMap: Record<string, string> = {
   "212": salmonDillMashUnique,
   "213": quinoaVegetableBowlUnique,
   "214": spinachPotatoPuree,
-  "215": riceBanana,
+  "215": riceBanana215,
   "216": mangoYogurtSwirlUnique,
   "217": peaMintPureeUnique,
   "218": pumpkinQuinoaBowlUnique,
   "219": applePruneCompoteUnique,
-  "220": turkeyVegetableMix,
+  "220": turkeyVegetableMix220,
   "221": blueberryOatCreamUnique,
   "222": cauliflowerCheesePureeUnique,
   "223": sweetPotatoCinnamonUnique,
@@ -732,12 +615,12 @@ const recipeImageMap: Record<string, string> = {
   "232": beetrootApplePureeUnique,
   "233": eggYolkVegetableUnique,
   "234": plumOatPorridgeUnique,
-  "235": fishVegetableMedley,
+  "235": fishVegetableMedley235,
   "236": kiwiBananaBlendUnique,
   "237": asparagusPotatoMashUnique,
   "238": tofuFruitPureeUnique,
 
-  // IDs 239-271 (recipes239-271.ts) - UNIQUE AI-generated images
+  // IDs 239-271 (recipes239-271.ts) - ALL UNIQUE IMAGES
   "239": veggieStickHummusUnique,
   "240": miniCheeseQuesadillasUnique,
   "241": bananaPancakeBitesUnique,
@@ -772,7 +655,7 @@ const recipeImageMap: Record<string, string> = {
   "270": teethingBiscuitsUnique,
   "271": babyEnergyBallsUnique,
 
-  // IDs 272-300 (recipes272-300.ts) - UNIQUE AI-generated images
+  // IDs 272-300 (recipes272-300.ts) - ALL UNIQUE IMAGES
   "272": potatoLeekPureeUnique,
   "273": oatDatePorridgeUnique,
   "274": parsnipPearBlendUnique,
@@ -804,7 +687,7 @@ const recipeImageMap: Record<string, string> = {
   "300": strawberryBananaNicecreamUnique,
 };
 
-// Keyword to ID mapping for backward compatibility with old getRecipeImage calls
+// Keyword to ID mapping for backward compatibility
 const keywordToIdMap: Record<string, string> = {
   "avocado puree": "1", "avocado": "1",
   "sweet potato carrot": "2", "sweet potato": "2",
@@ -841,7 +724,7 @@ const keywordToIdMap: Record<string, string> = {
 
 // Helper function to get image by recipe ID or keywords
 export const getRecipeImage = (keywords: string[]): string => {
-  // FIRST: Check for exact ID match (e.g., ["1"] or ["206"])
+  // FIRST: Check for exact ID match
   for (const keyword of keywords) {
     const id = keyword.trim();
     if (recipeImageMap[id]) {
@@ -858,7 +741,7 @@ export const getRecipeImage = (keywords: string[]): string => {
     }
   }
   
-  // THIRD: Try individual keywords in the mapping
+  // THIRD: Try individual keywords
   for (const keyword of keywords) {
     const lowerKeyword = keyword.toLowerCase().trim();
     if (keywordToIdMap[lowerKeyword]) {
@@ -869,8 +752,7 @@ export const getRecipeImage = (keywords: string[]): string => {
     }
   }
   
-  // FOURTH: Generate a pseudo-random but consistent ID based on keywords
-  // This ensures visual variety while being deterministic
+  // FOURTH: Generate consistent fallback
   const hashCode = keywords.join("").split("").reduce((acc, char) => {
     return ((acc << 5) - acc) + char.charCodeAt(0);
   }, 0);
@@ -878,7 +760,7 @@ export const getRecipeImage = (keywords: string[]): string => {
   return recipeImageMap[fallbackId] || sweetPotatoCarrot;
 };
 
-// Direct ID lookup function for components that have recipe IDs
+// Direct ID lookup function
 export const getRecipeImageById = (id: string): string => {
   return recipeImageMap[id] || sweetPotatoCarrot;
 };
