@@ -328,6 +328,22 @@ import turkeyVegetableMix220 from "@/assets/recipes/turkey-vegetable-mix-220.jpg
 import fishVegetableMedley235 from "@/assets/recipes/fish-vegetable-medley-235.jpg";
 import cucumberDillYogurtDip166 from "@/assets/recipes/cucumber-dill-yogurt-dip-166.jpg";
 
+// NEW UNIQUE IMAGES - Final batch eliminating all remaining duplications
+import miniCheeseQuesadillas122 from "@/assets/recipes/mini-cheese-quesadillas-122.jpg";
+import cheesyQuesadillaWedges176 from "@/assets/recipes/cheesy-quesadilla-wedges-176.jpg";
+import avocadoEggMash145 from "@/assets/recipes/avocado-egg-mash-145.jpg";
+import avocadoScrambledEggs171 from "@/assets/recipes/avocado-scrambled-eggs-171.jpg";
+import eggAvocadoBreakfast209 from "@/assets/recipes/egg-avocado-breakfast-209.jpg";
+import chickenNoodleSoup120 from "@/assets/recipes/chicken-noodle-soup-120.jpg";
+import homemadeChickenSoup170 from "@/assets/recipes/homemade-chicken-soup-170.jpg";
+import broccoliTrees175 from "@/assets/recipes/broccoli-trees-175.jpg";
+import bananaPancakeBites140 from "@/assets/recipes/banana-pancake-bites-140.jpg";
+import papayaCoconutCream128 from "@/assets/recipes/papaya-coconut-cream-128.jpg";
+import miniShepherdsPie129 from "@/assets/recipes/mini-shepherds-pie-129.jpg";
+import scrambledEggsVeggies107 from "@/assets/recipes/scrambled-eggs-veggies-107.jpg";
+import lentilVeggieCurry173 from "@/assets/recipes/lentil-veggie-curry-173.jpg";
+import turkeyVegetableBlend135 from "@/assets/recipes/turkey-vegetable-blend-135.jpg";
+
 export const recipeImages = {
   avocadoPuree, sweetPotatoCarrot, blueberryOatmeal, eggMuffins, bananaPancakes,
   chickenPatties, peaPuree, appleSauce, pastaTomato, yogurtBerries, quinoaVeggies,
@@ -481,7 +497,7 @@ const recipeImageMap: Record<string, string> = {
   "104": appleCheddarMuffins,
   "105": cauliflowerMacCheese,
   "106": porkAppleMeatballs,
-  "107": scrambledEggsVeggiesUnique,
+  "107": scrambledEggsVeggies107,
   "108": chocolateBananaNicecream,
   "109": herbedCouscousPeas,
   "110": carrotLentilPatties,
@@ -494,32 +510,32 @@ const recipeImageMap: Record<string, string> = {
   "117": mangoLassi,
   "118": sweetPotatoGnocchi,
   "119": cucumberDillYogurtDip,
-  "120": chickenNoodleSoupUnique,
+  "120": chickenNoodleSoup120,
   "121": tropicalSmoothieBowl121,
-  "122": miniCheeseQuesadillasUnique,
+  "122": miniCheeseQuesadillas122,
   "123": cantaloupeMintPuree,
   "124": fishPieCheesyMash,
   "125": cheesyCauliflowerBites,
   "126": pumpkinSpiceQuinoa,
   "127": turkeyCarrotPuree,
-  "128": papayaCoconutCreamUnique,
-  "129": miniShepherdsPieUnique,
+  "128": papayaCoconutCream128,
+  "129": miniShepherdsPie129,
   "130": blueberryLemonYogurtBark,
   "131": babyChickpeaHummus,
   "132": pruneAppleDigestive,
   "133": zucchiniCarrotFritters,
   "134": tropicalFruitSalad134,
-  "135": turkeyVegetableBlend,
+  "135": turkeyVegetableBlend135,
   "136": bananaOatCookies136,
   "137": lentilVeggieCurry,
   "138": raspberryYogurtSwirl,
   "139": beefSweetpeaPuree,
-  "140": bananaPancakeBitesUnique,
+  "140": bananaPancakeBites140,
   "141": pearOatPorridgeUnique,
   "142": chickenNoodleSoup142,
   "143": yogurtFruitParfait143,
   "144": creamySpinachPasta144,
-  "145": avocadoEggMashUnique,
+  "145": avocadoEggMash145,
   "146": ricePeachCereal,
   "147": chickenApplePatties147,
   "148": beetrootApplePureeUnique,
@@ -546,13 +562,13 @@ const recipeImageMap: Record<string, string> = {
   "167": miniMacCheeseCups,
   "168": beefCarrotPureeUnique,
   "169": oatmealPancakesFruitUnique,
-  "170": chickenNoodleSoupUnique,
-  "171": avocadoEggMashUnique,
+  "170": homemadeChickenSoup170,
+  "171": avocadoScrambledEggs171,
   "172": pearPruneCompote,
-  "173": lentilVeggieCurry,
+  "173": lentilVeggieCurry173,
   "174": chickenVeggiePastaStars,
-  "175": steamedBroccoliTreesUnique,
-  "176": miniCheeseQuesadillasUnique,
+  "175": broccoliTrees175,
+  "176": cheesyQuesadillaWedges176,
   "177": fishPieCheesyMash177,
   "178": chickenApplePatties178,
   "179": creamyVeggiePasta,
@@ -569,7 +585,7 @@ const recipeImageMap: Record<string, string> = {
   "190": chickenHerbBlendUnique,
   "191": melonCottageCheeseUnique,
   "192": lambVegetableStewUnique,
-  "193": papayaCoconutCreamUnique,
+  "193": papayaCoconutCream,
   "194": beetrootApplePureeUnique,
   "195": eggYolkVegetableUnique,
   "196": spinachBananaSmoothie,
@@ -589,7 +605,7 @@ const recipeImageMap: Record<string, string> = {
   "206": chickenSweetPotatoPureeUnique,
   "207": turkeyVegetableBlendUnique,
   "208": carrotLentilPureeUnique,
-  "209": avocadoEggMashUnique,
+  "209": eggAvocadoBreakfast209,
   "210": whiteFishParsnipUnique,
   "211": beefCarrotPureeUnique,
   "212": salmonDillMashUnique,
@@ -622,9 +638,9 @@ const recipeImageMap: Record<string, string> = {
 
   // IDs 239-271 (recipes239-271.ts) - ALL UNIQUE IMAGES
   "239": veggieStickHummusUnique,
-  "240": miniCheeseQuesadillasUnique,
-  "241": bananaPancakeBitesUnique,
-  "242": steamedBroccoliTreesUnique,
+  "240": miniCheeseQuesadillas,
+  "241": bananaPancakeBites,
+  "242": steamedBroccoliTrees,
   "243": sweetPotatoWedgesUnique,
   "244": avocadoToastFingersUnique,
   "245": softCarrotSticksUnique,
@@ -632,19 +648,19 @@ const recipeImageMap: Record<string, string> = {
   "247": cucumberCreamCheeseUnique,
   "248": appleAlmondButterUnique,
   "249": chickenVeggieRisottoUnique,
-  "250": miniShepherdsPieUnique,
+  "250": miniShepherdsPie,
   "251": salmonPastaBakeUnique,
   "252": beefSweetPotatoStewUnique,
   "253": lentilVeggieCurryUnique,
   "254": turkeyRiceCasseroleUnique,
   "255": fishPieCheesyMashUnique,
-  "256": chickenNoodleSoupUnique,
+  "256": chickenNoodleSoup,
   "257": veggieLasagnaBitesUnique,
   "258": lambCouscousBowlUnique,
-  "259": scrambledEggsVeggiesUnique,
+  "259": scrambledEggsVeggies,
   "260": frenchToastFingersUnique,
   "261": berrySmoothieBowlUnique,
-  "262": avocadoEggMashUnique,
+  "262": avocadoEggMash,
   "263": oatmealPancakesFruitUnique,
   "264": cheeseSpinachOmeletteUnique,
   "265": bananaBreadFingersUnique,
