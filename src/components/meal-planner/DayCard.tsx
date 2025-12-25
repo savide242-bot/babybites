@@ -192,7 +192,7 @@ export const DayCard = ({
                   onRemove={() => onRemoveMeal(mealType)}
                   onEdit={() => onEditMeal(mealType)}
                   onAdd={() => onAddMeal(mealType)}
-                  onRecipeClick={recipe ? () => navigate(`/recipe/${recipe.id}`) : undefined}
+                  onRecipeClick={recipe ? () => navigate(`/recipe/${recipe.id}`, { state: { from: 'planner' } }) : undefined}
                 />
               );
             })}

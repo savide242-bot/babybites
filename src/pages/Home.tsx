@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Flame, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,30 @@ interface TodayMeal {
   recipeId: string;
   prepared: boolean;
 }
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.1, 0.25, 1] as const
+    }
+  }
+};
 
 const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
@@ -194,83 +219,114 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
+      <motion.div 
+        className="max-w-lg mx-auto px-4 py-6 space-y-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header */}
-        {isLoading ? (
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div>
-              <Skeleton className="h-6 w-40 mb-2" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between">
+        <motion.div variants={itemVariants}>
+          {isLoading ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-peach text-2xl shadow-soft">
-                {emoji}
-              </div>
+              <Skeleton className="h-12 w-12 rounded-full" />
               <div>
-                <h1 className="text-lg font-semibold text-foreground">
-                  {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
-                </h1>
-                <p className="text-muted-foreground text-sm flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-accent" />
-                  {emotionalMessage}
-                </p>
+                <Skeleton className="h-6 w-40 mb-2" />
+                <Skeleton className="h-4 w-32" />
               </div>
             </div>
-            
-            {/* Streak & Points */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-accent/20 px-3 py-1.5 rounded-full">
-                <Flame className="w-4 h-4 text-accent" />
-                <span className="text-sm font-bold text-foreground">{streak?.current_streak || 0}</span>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-peach text-2xl shadow-soft">
+                  {emoji}
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-foreground">
+                    {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
+                  </h1>
+                  <p className="text-muted-foreground text-sm flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-accent" />
+                    {emotionalMessage}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 bg-sunshine/30 px-3 py-1.5 rounded-full">
-                <Star className="w-4 h-4 text-sunshine-foreground" />
-                <span className="text-sm font-bold text-foreground">{streak?.total_points || 0}</span>
+              
+              {/* Streak & Points */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-accent/20 px-3 py-1.5 rounded-full">
+                  <Flame className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-bold text-foreground">{streak?.current_streak || 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-sunshine/30 px-3 py-1.5 rounded-full">
+                  <Star className="w-4 h-4 text-sunshine-foreground" />
+                  <span className="text-sm font-bold text-foreground">{streak?.total_points || 0}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </motion.div>
 
         {/* Quick Check-in - 1 Tap */}
         {!isLoading && (
-          <QuickCheckinWidget 
-            todayCheckin={todayCheckin} 
-            onSubmit={submitCheckin}
-            babyName={babyName}
-          />
+          <motion.div variants={itemVariants}>
+            <QuickCheckinWidget 
+              todayCheckin={todayCheckin} 
+              onSubmit={submitCheckin}
+              babyName={babyName}
+            />
+          </motion.div>
         )}
 
         {/* 7-Day Challenge for New Users */}
-        {!isLoading && <SevenDayChallengeCard babyName={babyName} />}
+        {!isLoading && (
+          <motion.div variants={itemVariants}>
+            <SevenDayChallengeCard babyName={babyName} />
+          </motion.div>
+        )}
 
         {/* Daily Poll */}
-        {!isLoading && <DailyPollWidget babyName={babyName} />}
+        {!isLoading && (
+          <motion.div variants={itemVariants}>
+            <DailyPollWidget babyName={babyName} />
+          </motion.div>
+        )}
 
         {/* Recipe of the Day - Hero */}
         {!isLoading && recipeOfTheDay && (
-          <RecipeOfTheDay recipe={recipeOfTheDay} babyName={babyName} />
+          <motion.div variants={itemVariants}>
+            <RecipeOfTheDay recipe={recipeOfTheDay} babyName={babyName} />
+          </motion.div>
         )}
 
         {/* Today's Meals */}
-        <TodaysMealsPreview meals={todayMeals} />
+        <motion.div variants={itemVariants}>
+          <TodaysMealsPreview meals={todayMeals} />
+        </motion.div>
 
         {/* Food Journey Timeline */}
-        {!isLoading && <FoodJourneyTimeline compact babyName={babyName} />}
+        {!isLoading && (
+          <motion.div variants={itemVariants}>
+            <FoodJourneyTimeline compact babyName={babyName} />
+          </motion.div>
+        )}
 
         {/* Referral Widget */}
-        {!isLoading && <ReferralWidget />}
+        {!isLoading && (
+          <motion.div variants={itemVariants}>
+            <ReferralWidget />
+          </motion.div>
+        )}
 
         {/* Motivational Message */}
-        <div className="bg-peach/30 rounded-2xl p-5 border border-peach/50">
-          <p className="text-base font-medium text-center text-foreground">
-            💕 Every meal is a moment of love for {babyName || "your baby"}
-          </p>
-        </div>
-      </div>
+        <motion.div variants={itemVariants}>
+          <div className="bg-peach/30 rounded-2xl p-5 border border-peach/50">
+            <p className="text-base font-medium text-center text-foreground">
+              💕 Every meal is a moment of love for {babyName || "your baby"}
+            </p>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
