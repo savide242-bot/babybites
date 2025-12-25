@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X, Heart } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X, Heart, CheckCircle2 } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -14,13 +14,16 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
+import { useTodaysMealStatus } from "@/hooks/useTodaysMealStatus";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
   const { id } = useParams();
+  const navigate = useNavigate();
   const recipe = recipes.find((r) => r.id === id);
   const { toggleFavorite, isFavorite } = useFavorites();
   const { trackRecipeView } = useRecipeHistory();
+  const { isInTodaysPlan, isPrepared, mealType, markAsPrepared, isLoading: mealStatusLoading, getRemainingMealsMessage } = useTodaysMealStatus(id);
   
   // State management
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -550,6 +553,31 @@ const RecipeDetail = () => {
                 <ChefHat className="mr-2 h-5 w-5" />
                 Cook Mode
               </Button>
+
+              {/* Mark as Prepared - Only show if in today's plan and not yet prepared */}
+              {isInTodaysPlan && !isPrepared && !mealStatusLoading && (
+                <Button 
+                  onClick={async () => {
+                    const success = await markAsPrepared();
+                    if (success) {
+                      // Optionally navigate back to planner
+                    }
+                  }}
+                  size="lg"
+                  className="w-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 text-base font-semibold shadow-md hover:shadow-lg transition-all animate-pulse"
+                >
+                  <CheckCircle2 className="mr-2 h-5 w-5" />
+                  ✅ Marcar como Preparado
+                </Button>
+              )}
+
+              {/* Already Prepared Badge */}
+              {isInTodaysPlan && isPrepared && (
+                <div className="w-full rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 py-3 text-center font-medium flex items-center justify-center gap-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                  ✓ Refeição já preparada!
+                </div>
+              )}
             </div>
           </div>
         </div>

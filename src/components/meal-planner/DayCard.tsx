@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -42,6 +43,7 @@ export const DayCard = ({
   onCopyDay,
   onClearDay
 }: DayCardProps) => {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
 
   const getRecipe = (recipeId: string) => recipes.find(r => r.id === recipeId);
@@ -190,6 +192,7 @@ export const DayCard = ({
                   onRemove={() => onRemoveMeal(mealType)}
                   onEdit={() => onEditMeal(mealType)}
                   onAdd={() => onAddMeal(mealType)}
+                  onRecipeClick={recipe ? () => navigate(`/recipe/${recipe.id}`) : undefined}
                 />
               );
             })}
