@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X, Heart, CheckCircle2 } from "lucide-react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X, Heart, CheckCircle2, UtensilsCrossed } from "lucide-react";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -20,6 +20,8 @@ const RecipeDetail = () => {
   const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const cameFromPlanner = location.state?.from === 'planner';
   const recipe = recipes.find((r) => r.id === id);
   const { toggleFavorite, isFavorite } = useFavorites();
   const { trackRecipeView } = useRecipeHistory();
@@ -453,13 +455,25 @@ const RecipeDetail = () => {
   return (
     <div className="min-h-screen py-12">
       <div className="container max-w-5xl">
-        {/* Back Button */}
-        <Button asChild variant="outline" className="mb-6 rounded-full">
-          <Link to="/recipes">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('recipes.backToRecipes')}
-          </Link>
-        </Button>
+        {/* Back Buttons */}
+        <div className="flex items-center gap-3 mb-6">
+          {cameFromPlanner && (
+            <Button 
+              onClick={() => navigate('/meal-planner')} 
+              variant="default" 
+              className="rounded-full bg-gradient-to-r from-primary to-secondary"
+            >
+              <UtensilsCrossed className="mr-2 h-4 w-4" />
+              Voltar ao Planner
+            </Button>
+          )}
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/recipes">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('recipes.backToRecipes')}
+            </Link>
+          </Button>
+        </div>
 
         {/* Recipe Header */}
         <div className="grid gap-8 lg:grid-cols-2 mb-12">
@@ -559,8 +573,15 @@ const RecipeDetail = () => {
                 <Button 
                   onClick={async () => {
                     const success = await markAsPrepared();
-                    if (success) {
-                      // Optionally navigate back to planner
+                    if (success && cameFromPlanner) {
+                      toast.success("🎉 Refeição preparada!", {
+                        description: "Voltar ao planner?",
+                        action: {
+                          label: "Voltar ao Planner",
+                          onClick: () => navigate('/meal-planner'),
+                        },
+                        duration: 5000,
+                      });
                     }
                   }}
                   size="lg"
@@ -571,11 +592,24 @@ const RecipeDetail = () => {
                 </Button>
               )}
 
-              {/* Already Prepared Badge */}
+              {/* Already Prepared Badge with Back to Planner option */}
               {isInTodaysPlan && isPrepared && (
-                <div className="w-full rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 py-3 text-center font-medium flex items-center justify-center gap-2">
-                  <CheckCircle2 className="h-5 w-5" />
-                  ✓ Refeição já preparada!
+                <div className="space-y-3">
+                  <div className="w-full rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 py-3 text-center font-medium flex items-center justify-center gap-2">
+                    <CheckCircle2 className="h-5 w-5" />
+                    ✓ Refeição já preparada!
+                  </div>
+                  {cameFromPlanner && (
+                    <Button 
+                      onClick={() => navigate('/meal-planner')}
+                      variant="outline"
+                      size="lg"
+                      className="w-full rounded-full"
+                    >
+                      <UtensilsCrossed className="mr-2 h-4 w-4" />
+                      Voltar ao Planner
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
