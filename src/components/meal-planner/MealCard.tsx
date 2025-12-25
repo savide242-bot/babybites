@@ -20,6 +20,7 @@ interface MealCardProps {
   onRemove: () => void;
   onEdit: () => void;
   onAdd: () => void;
+  onRecipeClick?: () => void;
 }
 
 const mealTypeConfig = {
@@ -56,7 +57,8 @@ export const MealCard = ({
   onTogglePrepared,
   onRemove,
   onEdit,
-  onAdd
+  onAdd,
+  onRecipeClick
 }: MealCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const config = mealTypeConfig[mealType];
@@ -88,10 +90,21 @@ export const MealCard = ({
 
   const recipeImage = getRecipeImage([recipe.id, recipe.title]);
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on action buttons
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) return;
+    
+    if (onRecipeClick) {
+      onRecipeClick();
+    }
+  };
+
   return (
     <div
+      onClick={handleCardClick}
       className={cn(
-        "relative w-full h-32 rounded-xl overflow-hidden transition-all duration-300",
+        "relative w-full h-32 rounded-xl overflow-hidden transition-all duration-300 cursor-pointer",
         "hover:scale-[1.02] hover:shadow-xl group",
         prepared && "ring-2 ring-green-500 ring-offset-2 ring-offset-background"
       )}

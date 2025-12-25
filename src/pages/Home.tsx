@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Flame, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,8 @@ import SevenDayChallengeCard from "@/components/engagement/SevenDayChallengeCard
 import ReferralWidget from "@/components/referral/ReferralWidget";
 import FoodJourneyTimeline from "@/components/journey/FoodJourneyTimeline";
 import { useEngagement } from "@/hooks/useEngagement";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
 
 interface TodayMeal {
   mealType: string;
@@ -27,8 +29,12 @@ const Home = () => {
   const [todayMeals, setTodayMeals] = useState<TodayMeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const { todayCheckin, submitCheckin } = useEngagement();
+
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const todayDayName = dayNames[new Date().getDay()];
 
   const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
@@ -64,6 +70,20 @@ const Home = () => {
     return ageAppropriateRecipes[index] || recipes[0];
   }, [babyAgeMonths]);
 
+  // Process meal plan data into TodayMeal format
+  const processMealPlanData = useCallback((mealPlanData: any[]): TodayMeal[] => {
+    return mealPlanData.map(item => {
+      const recipe = recipes.find(r => r.id === item.recipe_id);
+      return {
+        mealType: item.meal_type,
+        recipeTitle: recipe?.title || "Unknown recipe",
+        recipeId: item.recipe_id,
+        prepared: item.prepared || false
+      };
+    });
+  }, []);
+
+  // Fetch all data in parallel
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -73,14 +93,13 @@ const Home = () => {
           return;
         }
 
-        const userId = session.user.id;
-        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const todayDayName = dayNames[new Date().getDay()];
+        const currentUserId = session.user.id;
+        setUserId(currentUserId);
 
         const [profileResult, mealPlanResult, streakResult] = await Promise.all([
-          supabase.from('profiles').select('mother_name, baby_name, baby_birth_date').eq('id', userId).single(),
-          supabase.from('meal_plans').select('meal_type, recipe_id, prepared').eq('user_id', userId).eq('day_of_week', todayDayName),
-          supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', userId).single()
+          supabase.from('profiles').select('mother_name, baby_name, baby_birth_date').eq('id', currentUserId).single(),
+          supabase.from('meal_plans').select('meal_type, recipe_id, prepared').eq('user_id', currentUserId).eq('day_of_week', todayDayName),
+          supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', currentUserId).single()
         ]);
 
         if (profileResult.data) {
@@ -98,16 +117,7 @@ const Home = () => {
 
         // Process today's meals
         if (mealPlanResult.data && mealPlanResult.data.length > 0) {
-          const meals: TodayMeal[] = mealPlanResult.data.map(item => {
-            const recipe = recipes.find(r => r.id === item.recipe_id);
-            return {
-              mealType: item.meal_type,
-              recipeTitle: recipe?.title || "Unknown recipe",
-              recipeId: item.recipe_id,
-              prepared: item.prepared || false
-            };
-          });
-          setTodayMeals(meals);
+          setTodayMeals(processMealPlanData(mealPlanResult.data));
         }
 
         setIsLoading(false);
@@ -118,7 +128,69 @@ const Home = () => {
     };
 
     fetchAllData();
-  }, []);
+  }, [todayDayName, processMealPlanData]);
+
+  // Real-time subscription for meal_plans updates
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('home-meal-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'meal_plans',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          const updatedMeal = payload.new as any;
+          
+          // Only update if it's for today
+          if (updatedMeal.day_of_week !== todayDayName) return;
+          
+          setTodayMeals(prev => {
+            const updated = prev.map(meal => 
+              meal.recipeId === updatedMeal.recipe_id && meal.mealType === updatedMeal.meal_type
+                ? { ...meal, prepared: updatedMeal.prepared }
+                : meal
+            );
+            
+            // Check if all meals are now prepared
+            const allPrepared = updated.every(m => m.prepared);
+            const wasPreviouslyNotAllPrepared = !prev.every(m => m.prepared);
+            
+            if (allPrepared && wasPreviouslyNotAllPrepared && updated.length > 0) {
+              setTimeout(() => {
+                confetti({
+                  particleCount: 100,
+                  spread: 70,
+                  origin: { y: 0.6 }
+                });
+                toast.success("🎉 Parabéns! Todas as refeições de hoje concluídas!", {
+                  duration: 5000,
+                });
+              }, 100);
+            } else if (updatedMeal.prepared) {
+              const remainingCount = updated.filter(m => !m.prepared).length;
+              if (remainingCount > 0) {
+                toast.success(`✅ Refeição concluída! Faltam ${remainingCount} refeições.`, {
+                  duration: 3000,
+                });
+              }
+            }
+            
+            return updated;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, todayDayName]);
 
   return (
     <div className="min-h-screen bg-background">
