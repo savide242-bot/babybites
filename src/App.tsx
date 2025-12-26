@@ -39,6 +39,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { NotificationPromptModal } from "@/components/NotificationPromptModal";
 import BirthdayCelebrationModal from "@/components/BirthdayCelebrationModal";
+import BottomNavigation from "@/components/BottomNavigation";
 
 const AppContent = () => {
   // Activate PWA install detection and welcome notifications
@@ -70,6 +71,7 @@ const AppContent = () => {
               <WhatsAppButton />
               <NotificationPromptModal />
               <BirthdayCelebrationModal />
+              <BottomNavigation />
               <Routes>
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/first-day" element={<FirstDay />} />
