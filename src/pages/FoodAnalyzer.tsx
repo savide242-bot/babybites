@@ -258,8 +258,20 @@ const FoodAnalyzer = () => {
     if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
+  // Calculate scan streak and badges
+  const scanCount = history.length;
+  const getScanBadge = () => {
+    if (scanCount >= 50) return { label: "Food Expert 🏆", color: "bg-accent" };
+    if (scanCount >= 25) return { label: "Food Explorer 🌟", color: "bg-primary" };
+    if (scanCount >= 10) return { label: "Curious Mom 💫", color: "bg-secondary" };
+    if (scanCount >= 5) return { label: "Getting Started 🌱", color: "bg-mint" };
+    return null;
+  };
+  
+  const scanBadge = getScanBadge();
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5 pt-20 pb-8">
+    <main className="min-h-screen bg-gradient-to-br from-background via-secondary/5 to-primary/5 pt-20 pb-24 lg:pb-8">
       <div className="container max-w-5xl mx-auto px-3 sm:px-4">
         {/* Hero Header - Mobile Optimized */}
         <div className="text-center mb-6 sm:mb-10">
@@ -528,16 +540,24 @@ const FoodAnalyzer = () => {
                 </h3>
               </div>
               <CardContent className="p-4">
+                {/* Scan Badge - Gamification */}
+                {scanBadge && (
+                  <div className={`${scanBadge.color} text-white text-center py-2 px-3 rounded-xl mb-4`}>
+                    <p className="text-xs font-bold">{scanBadge.label}</p>
+                    <p className="text-[10px] opacity-90">{scanCount} foods analyzed</p>
+                  </div>
+                )}
+                
                 {history.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">
                     No analyses yet. Start by analyzing a food!
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {history.map((item) => (
+                    {history.map((item, index) => (
                       <div 
                         key={item.id} 
-                        className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+                        className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted cursor-pointer transition-colors group"
                         onClick={() => fetchFullAnalysis(item.id)}
                       >
                         <div className={`p-2 rounded-lg ${item.is_recommended ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
@@ -548,7 +568,7 @@ const FoodAnalyzer = () => {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{item.identified_food}</p>
+                          <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">{item.identified_food}</p>
                           <p className="text-xs text-muted-foreground">
                             {item.baby_age_months}mo • {new Date(item.created_at).toLocaleDateString()}
                           </p>
@@ -556,10 +576,19 @@ const FoodAnalyzer = () => {
                         {loadingDetail === item.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <Eye className="w-4 h-4 text-muted-foreground" />
+                          <Eye className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+                
+                {/* Encouragement Message */}
+                {history.length > 0 && history.length < 10 && (
+                  <div className="mt-4 p-3 rounded-xl bg-primary/10 border border-primary/20">
+                    <p className="text-xs text-center text-primary font-medium">
+                      🎯 Scan {10 - history.length} more foods to earn "Curious Mom" badge!
+                    </p>
                   </div>
                 )}
               </CardContent>
