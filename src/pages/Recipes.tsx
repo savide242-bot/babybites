@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Clock, Heart, History, Eye, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -19,10 +19,23 @@ const Recipes = () => {
   const { toggleFavorite, isFavorite } = useFavorites();
   const { recentlyViewed, loading: historyLoading, getRecentRecipes, getMostViewed } = useRecipeHistory();
   const { preferences, isRecipeCompatible } = useDietaryPreferences();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState("All Ages");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dietaryFilters, setDietaryFilters] = useState<DietaryTag[]>([]);
+
+  // Read age filter from URL parameter (e.g., /recipes?age=6-8%20months)
+  useEffect(() => {
+    const ageParam = searchParams.get('age');
+    if (ageParam) {
+      // Decode and set the age filter
+      const decodedAge = decodeURIComponent(ageParam);
+      if (ageGroups.includes(decodedAge)) {
+        setSelectedAge(decodedAge);
+      }
+    }
+  }, [searchParams]);
 
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
