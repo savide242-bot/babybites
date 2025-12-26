@@ -256,16 +256,26 @@ const GrowthTracker = () => {
     height: record.height_cm,
   }));
 
+  // Emotional message based on growth
+  const getEmotionalMessage = () => {
+    if (growthRecords.length === 0) return "Start tracking to celebrate every milestone! 🌟";
+    if (parseFloat(weightGain) > 0) return `${babyProfile?.baby_name || "Your baby"} is growing beautifully! 💕`;
+    return `Every day is a new adventure for ${babyProfile?.baby_name || "your little one"}! ✨`;
+  };
+
   return (
-    <main className="min-h-screen bg-background pt-20 pb-8">
+    <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8">
       <div className="container max-w-4xl mx-auto px-4">
-        {/* Clean Header */}
+        {/* Clean Header with Emotional Message */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-1">
             Growth Tracker
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-2">
             Record {babyProfile?.baby_name || "your baby"}'s growth milestones
+          </p>
+          <p className="text-sm font-medium text-primary">
+            {getEmotionalMessage()}
           </p>
         </div>
 

@@ -1,17 +1,16 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Flame, Star, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
-import { differenceInMonths } from "date-fns";
-import RecipeOfTheDay from "@/components/home/RecipeOfTheDay";
-import TodaysMealsPreview from "@/components/home/TodaysMealsPreview";
+import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import QuickCheckinWidget from "@/components/engagement/QuickCheckinWidget";
-import DailyPollWidget from "@/components/engagement/DailyPollWidget";
-import SevenDayChallengeCard from "@/components/engagement/SevenDayChallengeCard";
-import ReferralWidget from "@/components/referral/ReferralWidget";
-import FoodJourneyTimeline from "@/components/journey/FoodJourneyTimeline";
+import BabyPhaseCard from "@/components/home/BabyPhaseCard";
+import DailyActionCard from "@/components/home/DailyActionCard";
+import WeeklyProgressCard from "@/components/home/WeeklyProgressCard";
+import TiredMomMode from "@/components/home/TiredMomMode";
 import { useEngagement } from "@/hooks/useEngagement";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -29,19 +28,19 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
+      staggerChildren: 0.08,
+      delayChildren: 0.05
     }
   }
 };
 
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 15, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
-      duration: 0.4,
+      duration: 0.35,
       ease: [0.25, 0.1, 0.25, 1] as const
     }
   }
@@ -55,6 +54,8 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showTiredMode, setShowTiredMode] = useState(false);
+  const [mealsThisWeek, setMealsThisWeek] = useState(0);
 
   const { todayCheckin, submitCheckin } = useEngagement();
 
@@ -121,10 +122,16 @@ const Home = () => {
         const currentUserId = session.user.id;
         setUserId(currentUserId);
 
-        const [profileResult, mealPlanResult, streakResult] = await Promise.all([
+        // Get week boundaries
+        const now = new Date();
+        const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+
+        const [profileResult, mealPlanResult, streakResult, weekMealsResult] = await Promise.all([
           supabase.from('profiles').select('mother_name, baby_name, baby_birth_date').eq('id', currentUserId).single(),
           supabase.from('meal_plans').select('meal_type, recipe_id, prepared').eq('user_id', currentUserId).eq('day_of_week', todayDayName),
-          supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', currentUserId).single()
+          supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', currentUserId).single(),
+          supabase.from('meal_plans').select('prepared, created_at').eq('user_id', currentUserId).eq('prepared', true)
         ]);
 
         if (profileResult.data) {
@@ -138,6 +145,16 @@ const Home = () => {
 
         if (streakResult.data) {
           setStreak(streakResult.data);
+        }
+
+        // Count meals prepared this week
+        if (weekMealsResult.data) {
+          const weekMeals = weekMealsResult.data.filter(meal => {
+            if (!meal.created_at) return false;
+            const mealDate = new Date(meal.created_at);
+            return isWithinInterval(mealDate, { start: weekStart, end: weekEnd });
+          });
+          setMealsThisWeek(weekMeals.length);
         }
 
         // Process today's meals
@@ -193,14 +210,14 @@ const Home = () => {
                   spread: 70,
                   origin: { y: 0.6 }
                 });
-                toast.success("🎉 Parabéns! Todas as refeições de hoje concluídas!", {
+                toast.success("🎉 All meals done today!", {
                   duration: 5000,
                 });
               }, 100);
             } else if (updatedMeal.prepared) {
               const remainingCount = updated.filter(m => !m.prepared).length;
               if (remainingCount > 0) {
-                toast.success(`✅ Refeição concluída! Faltam ${remainingCount} refeições.`, {
+                toast.success(`✅ Meal done! ${remainingCount} left.`, {
                   duration: 3000,
                 });
               }
@@ -208,6 +225,11 @@ const Home = () => {
             
             return updated;
           });
+
+          // Update weekly count
+          if (updatedMeal.prepared) {
+            setMealsThisWeek(prev => prev + 1);
+          }
         }
       )
       .subscribe();
@@ -218,56 +240,65 @@ const Home = () => {
   }, [userId, todayDayName]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 lg:pb-8">
+      {/* Tired Mom Mode Modal */}
+      <AnimatePresence>
+        {showTiredMode && (
+          <TiredMomMode 
+            babyName={babyName}
+            babyAgeMonths={babyAgeMonths}
+            onClose={() => setShowTiredMode(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <motion.div 
-        className="max-w-lg mx-auto px-4 py-6 space-y-4"
+        className="max-w-lg mx-auto px-4 py-5 space-y-4"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Header */}
+        {/* Compact Header */}
         <motion.div variants={itemVariants}>
           {isLoading ? (
             <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
+              <Skeleton className="h-11 w-11 rounded-2xl" />
               <div>
-                <Skeleton className="h-6 w-40 mb-2" />
-                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-5 w-36 mb-1.5" />
+                <Skeleton className="h-3.5 w-28" />
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-peach text-2xl shadow-soft">
+                <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-peach/50 text-xl shadow-soft">
                   {emoji}
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-foreground">
+                  <h1 className="text-base font-semibold text-foreground">
                     {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
                   </h1>
-                  <p className="text-muted-foreground text-sm flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-accent" />
-                    {emotionalMessage}
+                  <p className="text-muted-foreground text-xs">
+                    {emotionalMessage} ✨
                   </p>
                 </div>
               </div>
               
-              {/* Streak & Points */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 bg-accent/20 px-3 py-1.5 rounded-full">
-                  <Flame className="w-4 h-4 text-accent" />
-                  <span className="text-sm font-bold text-foreground">{streak?.current_streak || 0}</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-sunshine/30 px-3 py-1.5 rounded-full">
-                  <Star className="w-4 h-4 text-sunshine-foreground" />
-                  <span className="text-sm font-bold text-foreground">{streak?.total_points || 0}</span>
-                </div>
-              </div>
+              {/* Tired Mom Mode Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowTiredMode(true)}
+                className="rounded-xl h-9 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-soft-blue/20 gap-1.5"
+              >
+                <Moon className="w-4 h-4" />
+                <span className="hidden sm:inline">Rest Mode</span>
+              </Button>
             </div>
           )}
         </motion.div>
 
-        {/* Quick Check-in - 1 Tap */}
+        {/* Quick Check-in - Priority 1 */}
         {!isLoading && (
           <motion.div variants={itemVariants}>
             <QuickCheckinWidget 
@@ -278,50 +309,40 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* 7-Day Challenge for New Users */}
+        {/* Baby Phase Card - Shows current development stage */}
         {!isLoading && (
           <motion.div variants={itemVariants}>
-            <SevenDayChallengeCard babyName={babyName} />
+            <BabyPhaseCard 
+              babyName={babyName} 
+              babyAgeMonths={babyAgeMonths}
+            />
           </motion.div>
         )}
 
-        {/* Daily Poll */}
-        {!isLoading && (
-          <motion.div variants={itemVariants}>
-            <DailyPollWidget babyName={babyName} />
-          </motion.div>
-        )}
-
-        {/* Recipe of the Day - Hero */}
+        {/* Daily Action Card - Next meal or recipe of the day */}
         {!isLoading && recipeOfTheDay && (
           <motion.div variants={itemVariants}>
-            <RecipeOfTheDay recipe={recipeOfTheDay} babyName={babyName} />
+            <DailyActionCard
+              recipeOfTheDay={recipeOfTheDay}
+              todayMeals={todayMeals}
+              babyName={babyName}
+            />
           </motion.div>
         )}
 
-        {/* Today's Meals */}
+        {/* Weekly Progress Card - Streak and points */}
         <motion.div variants={itemVariants}>
-          <TodaysMealsPreview meals={todayMeals} />
+          <WeeklyProgressCard
+            streak={streak}
+            mealsThisWeek={mealsThisWeek}
+            babyName={babyName}
+          />
         </motion.div>
-
-        {/* Food Journey Timeline */}
-        {!isLoading && (
-          <motion.div variants={itemVariants}>
-            <FoodJourneyTimeline compact babyName={babyName} />
-          </motion.div>
-        )}
-
-        {/* Referral Widget */}
-        {!isLoading && (
-          <motion.div variants={itemVariants}>
-            <ReferralWidget />
-          </motion.div>
-        )}
 
         {/* Motivational Message */}
         <motion.div variants={itemVariants}>
-          <div className="bg-peach/30 rounded-2xl p-5 border border-peach/50">
-            <p className="text-base font-medium text-center text-foreground">
+          <div className="bg-gradient-to-r from-peach/30 via-card to-soft-blue/20 rounded-2xl p-4 border border-peach/30">
+            <p className="text-sm font-medium text-center text-foreground">
               💕 Every meal is a moment of love for {babyName || "your baby"}
             </p>
           </div>
