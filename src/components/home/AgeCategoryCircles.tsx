@@ -37,7 +37,7 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
     return (
       <div ref={ref} className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Recipes by Age</h2>
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex items-center gap-3 overflow-x-auto overflow-y-visible py-2 scrollbar-hide">
           {ageCategories.map((category, index) => {
             const isActive = category.ageGroup === activeAgeGroup;
             return (
@@ -52,17 +52,23 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
                 }`}
               >
                 <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-soft overflow-hidden ${
+                  className={`rounded-full p-1 transition-all ${
                     isActive
-                      ? "bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background"
-                      : "bg-muted/50 group-hover:bg-muted group-hover:scale-105"
+                      ? "ring-2 ring-destructive ring-offset-2 ring-offset-background"
+                      : "group-hover:scale-105"
                   }`}
                 >
-                  <span className="text-xl leading-none">{category.emoji}</span>
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-soft overflow-hidden ${
+                      isActive ? "bg-destructive/10" : "bg-muted/50 group-hover:bg-muted"
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{category.emoji}</span>
+                  </div>
                 </div>
                 <span
                   className={`text-xs font-medium transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    isActive ? "text-destructive" : "text-muted-foreground group-hover:text-foreground"
                   }`}
                 >
                   {category.label}
