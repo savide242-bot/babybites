@@ -52,16 +52,12 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
                 }`}
               >
                 <div
-                  className={`rounded-full p-1 transition-all ring-2 ring-offset-2 ring-offset-background group-hover:scale-105 ${
-                    isActive
-                      ? "ring-destructive"
-                      : "ring-destructive/40"
+                  className={`rounded-full p-1 transition-all ring-2 ring-destructive ring-offset-2 ring-offset-background group-hover:scale-105 ${
+                    isActive ? "scale-105" : ""
                   }`}
                 >
                   <div
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-soft overflow-hidden ${
-                      isActive ? "bg-destructive/10" : "bg-destructive/5 group-hover:bg-destructive/10"
-                    }`}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-soft overflow-hidden bg-destructive/10`}
                   >
                     <span className="text-xl leading-none">{category.emoji}</span>
                   </div>
