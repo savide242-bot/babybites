@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Check, X, Sparkles } from "lucide-react";
+import { Check, X, Sparkles, Heart } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import { Card } from "@/components/ui/card";
 
 interface QuickCheckinWidgetProps {
   todayCheckin: {
@@ -14,6 +15,59 @@ interface QuickCheckinWidgetProps {
 const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWidgetProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Empathetic messages for each status
+  const empatheticMessages = {
+    ate_well: [
+      `What a wonderful meal! ${babyName || "Baby"} is thriving! 🌟`,
+      `Amazing! Those little tummy is happy today! 💚`,
+      `You're doing such a great job, mama! 🎉`,
+    ],
+    rejected: [
+      `That's completely normal! It takes 10-15 tries for babies to accept new foods. 💪`,
+      `Don't worry! Tomorrow is a new day. You're doing amazing! 🤍`,
+      `This is part of the journey. ${babyName || "Baby"} is learning, and so are you! 🌱`,
+      `Even rejections are progress. Stay patient, mama! 💕`,
+    ],
+    tried_new: [
+      `How exciting! ${babyName || "Baby"} is becoming a little food explorer! 🌟`,
+      `Every new food is a new adventure! You're amazing! 🎊`,
+      `Building a healthy palate, one taste at a time! ✨`,
+    ],
+  };
+
+  const getRandomMessage = (status: 'ate_well' | 'rejected' | 'tried_new') => {
+    const messages = empatheticMessages[status];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
+  // Extended status info for completed check-ins
+  const statusInfo = {
+    ate_well: {
+      emoji: "🎉",
+      label: "Ate well!",
+      supportMessage: "Great job! Keep offering variety.",
+      bgColor: "bg-mint/10",
+      borderColor: "border-mint/30",
+      textColor: "text-mint"
+    },
+    rejected: {
+      emoji: "💪",
+      label: "Tried again",
+      supportMessage: "That's okay! Persistence is key.",
+      bgColor: "bg-accent/10",
+      borderColor: "border-accent/30",
+      textColor: "text-accent"
+    },
+    tried_new: {
+      emoji: "🌟",
+      label: "New food!",
+      supportMessage: "Amazing! Keep exploring!",
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/30",
+      textColor: "text-primary"
+    }
+  };
+
   const handleQuickCheckin = async (status: 'ate_well' | 'rejected' | 'tried_new') => {
     if (isSubmitting || todayCheckin) return;
     
@@ -22,6 +76,8 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
     setIsSubmitting(false);
 
     if (success) {
+      const message = getRandomMessage(status);
+      
       // Celebration based on status
       if (status === 'tried_new') {
         confetti({
@@ -30,7 +86,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
           origin: { y: 0.6 },
           colors: ['#FF6B9D', '#FFD93D', '#6BCB77', '#4D96FF']
         });
-        toast.success(`🌟 Amazing! ${babyName || "Baby"} is exploring new flavors!`, { duration: 4000 });
+        toast.success(message, { duration: 5000 });
       } else if (status === 'ate_well') {
         confetti({
           particleCount: 50,
@@ -38,75 +94,74 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
           origin: { y: 0.6 },
           colors: ['#6BCB77', '#98D8C8']
         });
-        toast.success(`🎉 Great job! ${babyName || "Baby"} ate well today!`, { duration: 3000 });
+        toast.success(message, { duration: 4000 });
       } else {
-        toast.info("💪 That's okay! Babies need 10-15 tries for new foods.", { duration: 4000 });
+        // Special empathetic toast for rejection
+        toast(message, { 
+          duration: 6000,
+          icon: <Heart className="w-5 h-5 text-primary" />,
+        });
       }
     }
   };
 
   if (todayCheckin) {
-    const statusEmojis = {
-      ate_well: "🎉",
-      rejected: "💪",
-      tried_new: "🌟"
-    };
-    const statusLabels = {
-      ate_well: "Ate well!",
-      rejected: "Tried again",
-      tried_new: "New food!"
-    };
+    const info = statusInfo[todayCheckin.status];
     return (
-      <div className="bg-card rounded-2xl p-4 shadow-card border border-border/50">
+      <Card className={`${info.bgColor} rounded-2xl p-4 border ${info.borderColor}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{statusEmojis[todayCheckin.status]}</span>
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 rounded-2xl ${info.bgColor} flex items-center justify-center`}>
+              <span className="text-2xl">{info.emoji}</span>
+            </div>
             <div>
               <p className="text-xs text-muted-foreground">Today's check-in</p>
-              <p className="text-sm font-medium text-foreground">{statusLabels[todayCheckin.status]}</p>
+              <p className="text-sm font-semibold text-foreground">{info.label}</p>
+              <p className={`text-xs ${info.textColor} font-medium mt-0.5`}>{info.supportMessage}</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-mint">
+          <div className={`flex items-center gap-1.5 ${info.textColor}`}>
             <Check className="w-5 h-5" />
-            <span className="text-xs font-medium">Done</span>
+            <span className="text-xs font-semibold">Done</span>
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-card rounded-2xl p-4 shadow-card border border-border/50">
-      <p className="text-sm font-medium text-foreground mb-3">
-        How did {babyName || "baby"} eat today?
+    <Card className="bg-card rounded-2xl p-4 shadow-card border border-border/50">
+      <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+        <span>How did {babyName || "baby"} eat today?</span>
+        <Heart className="w-4 h-4 text-primary/50" />
       </p>
       <div className="flex gap-2">
         <button
           onClick={() => handleQuickCheckin('ate_well')}
           disabled={isSubmitting}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-mint/10 hover:bg-mint/20 border border-mint/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-mint/10 hover:bg-mint/20 border border-mint/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
         >
           <Check className="w-5 h-5 text-mint" />
-          <span className="text-sm font-medium text-foreground">Ate well</span>
+          <span className="text-xs font-medium text-foreground">Ate well</span>
         </button>
         <button
           onClick={() => handleQuickCheckin('rejected')}
           disabled={isSubmitting}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
         >
           <X className="w-5 h-5 text-accent" />
-          <span className="text-sm font-medium text-foreground">Rejected</span>
+          <span className="text-xs font-medium text-foreground">Rejected</span>
         </button>
         <button
           onClick={() => handleQuickCheckin('tried_new')}
           disabled={isSubmitting}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
         >
           <Sparkles className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium text-foreground">New!</span>
+          <span className="text-xs font-medium text-foreground">New food!</span>
         </button>
       </div>
-    </div>
+    </Card>
   );
 };
 
