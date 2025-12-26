@@ -1140,6 +1140,7 @@ export type Database = {
       user_preferences: {
         Row: {
           created_at: string | null
+          has_completed_tour: boolean | null
           has_seen_welcome: boolean | null
           id: string
           language: string
@@ -1148,6 +1149,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          has_completed_tour?: boolean | null
           has_seen_welcome?: boolean | null
           id?: string
           language?: string
@@ -1156,6 +1158,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          has_completed_tour?: boolean | null
           has_seen_welcome?: boolean | null
           id?: string
           language?: string

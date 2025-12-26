@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { updateLastVisit } from "@/hooks/useNotifications";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useMealReminders } from "@/hooks/useMealReminders";
@@ -54,9 +54,21 @@ const AppContent = () => {
   // Track user sessions
   useSessionTracking();
   
+  // Navigation refs for app tour
+  const recipesNavRef = useRef<HTMLAnchorElement>(null);
+  const plannerNavRef = useRef<HTMLAnchorElement>(null);
+  const chatNavRef = useRef<HTMLAnchorElement>(null);
+
   useEffect(() => {
     // Update last visit timestamp on app load
     updateLastVisit().catch(console.error);
+    
+    // Store nav refs on window for tour access
+    (window as any).__tourNavRefs = {
+      recipes: recipesNavRef,
+      planner: plannerNavRef,
+      chat: chatNavRef
+    };
   }, []);
 
   return (
@@ -71,7 +83,11 @@ const AppContent = () => {
               <WhatsAppButton />
               <NotificationPromptModal />
               <BirthdayCelebrationModal />
-              <BottomNavigation />
+              <BottomNavigation navRefs={{ 
+                recipes: recipesNavRef, 
+                planner: plannerNavRef, 
+                chat: chatNavRef 
+              }} />
               <Routes>
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/first-day" element={<FirstDay />} />
