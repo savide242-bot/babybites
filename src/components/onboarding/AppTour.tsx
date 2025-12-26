@@ -1,6 +1,6 @@
 import { RefObject, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, Sparkles, Heart, BookOpen, Calendar, MessageCircle, ChefHat } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Sparkles, Heart, BookOpen, Calendar, ChefHat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TourSpotlight from './TourSpotlight';
 import { cn } from '@/lib/utils';
@@ -8,9 +8,9 @@ import { cn } from '@/lib/utils';
 interface TourRefs {
   recipeOfDay?: RefObject<HTMLElement>;
   checkinWidget?: RefObject<HTMLElement>;
+  ageCategoriesRef?: RefObject<HTMLElement>;
   recipesNav?: RefObject<HTMLElement>;
   plannerNav?: RefObject<HTMLElement>;
-  chatNav?: RefObject<HTMLElement>;
 }
 
 interface AppTourProps {
@@ -25,7 +25,7 @@ interface AppTourProps {
   onComplete: () => void;
 }
 
-const TOTAL_STEPS = 7; // 0: Welcome, 1-5: Feature spotlights, 6: Conclusion
+const TOTAL_STEPS = 6; // 0: Welcome, 1-4: Features, 5: Conclusion
 
 const AppTour = ({
   isActive,
@@ -43,11 +43,10 @@ const AppTour = ({
     if (!isActive) return;
     
     const stepRefs: Record<number, RefObject<HTMLElement> | undefined> = {
-      1: refs.recipeOfDay,
-      2: refs.checkinWidget,
+      1: refs.ageCategoriesRef,
+      2: refs.recipeOfDay,
       3: refs.recipesNav,
       4: refs.plannerNav,
-      5: refs.chatNav
     };
 
     const targetRef = stepRefs[currentStep];
@@ -114,24 +113,14 @@ const AppTour = ({
                   className="text-muted-foreground leading-relaxed"
                 >
                   We know how much you care about {babyDisplayName}'s health and nutrition. 
-                  Every spoon, every choice, every meal – it all comes from love.
-                </motion.p>
-
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="text-muted-foreground leading-relaxed"
-                >
-                  You're not alone on this journey. We're here to make feeding your little one 
-                  easier, safer, and even joyful.
+                  Let me show you around in 30 seconds!
                 </motion.p>
               </div>
 
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.6 }}
                 className="pt-4 space-y-3"
               >
                 <Button
@@ -139,14 +128,14 @@ const AppTour = ({
                   className="w-full h-12 rounded-2xl text-base font-semibold gap-2"
                 >
                   <Sparkles className="w-5 h-5" />
-                  Let's Go!
+                  Show Me Around
                 </Button>
                 
                 <button
                   onClick={onSkip}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Skip tour (30 seconds)
+                  Skip tour
                 </button>
               </motion.div>
             </div>
@@ -156,7 +145,7 @@ const AppTour = ({
     );
   }
 
-  // Conclusion Modal (Step 6)
+  // Conclusion Modal (Step 5)
   if (currentStep === TOTAL_STEPS - 1) {
     return (
       <AnimatePresence>
@@ -199,23 +188,15 @@ const AppTour = ({
                   transition={{ delay: 0.4 }}
                   className="text-muted-foreground leading-relaxed"
                 >
-                  Remember: Start small, be patient, and celebrate every little win.
-                </motion.p>
-
-                <motion.p
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-lg font-medium text-primary"
-                >
-                  {babyDisplayName} is lucky to have you! 💕
+                  Start exploring recipes and planning {babyDisplayName}'s meals. 
+                  You've got this! 💪
                 </motion.p>
               </div>
 
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.5 }}
                 className="pt-4"
               >
                 <Button
@@ -233,7 +214,7 @@ const AppTour = ({
     );
   }
 
-  // Feature spotlight steps (1-5)
+  // Feature spotlight steps (1-4)
   const stepConfigs: Record<number, { 
     ref?: RefObject<HTMLElement>; 
     title: string; 
@@ -242,43 +223,37 @@ const AppTour = ({
     position?: 'top' | 'bottom';
   }> = {
     1: {
-      ref: refs.recipeOfDay,
-      title: "Your Daily Recipe 🍳",
-      description: `Every day, we pick the perfect recipe for ${babyDisplayName}'s age. Just tap to see ingredients and instructions!`,
+      ref: refs.ageCategoriesRef,
+      title: "Recipes by Age",
+      description: `Here you find recipes perfect for ${babyDisplayName}'s age. Tap a circle to explore!`,
       icon: <ChefHat className="w-5 h-5" />,
       position: 'bottom'
     },
     2: {
-      ref: refs.checkinWidget,
-      title: "Quick Check-in 📝",
-      description: `Tell us how ${babyDisplayName}'s meal went – it takes 2 seconds and helps us personalize your experience!`,
+      ref: refs.recipeOfDay,
+      title: "Today's Recipe",
+      description: `Every day we pick a perfect recipe for ${babyDisplayName}. Tap to see ingredients!`,
       icon: <Heart className="w-5 h-5" />,
       position: 'bottom'
     },
     3: {
       ref: refs.recipesNav,
-      title: "300+ Recipes 📚",
-      description: `Tap here to explore all our recipes. Filter by age, ingredients, prep time, and dietary needs!`,
+      title: "All Recipes",
+      description: "Here you find 300+ recipes! Filter by age, ingredients, and prep time.",
       icon: <BookOpen className="w-5 h-5" />,
       position: 'top'
     },
     4: {
       ref: refs.plannerNav,
-      title: "Weekly Planner 📅",
-      description: "We've already created your first week! View and customize your meal plan here.",
+      title: "Meal Planner",
+      description: "Here you can plan the whole week! We've already created your first plan.",
       icon: <Calendar className="w-5 h-5" />,
       position: 'top'
     },
-    5: {
-      ref: refs.chatNav,
-      title: "Meet Bibi 💬",
-      description: `Your AI assistant! Ask anything about baby nutrition, allergies, or recipes. Available 24/7!`,
-      icon: <MessageCircle className="w-5 h-5" />,
-      position: 'top'
-    }
   };
 
   const currentConfig = stepConfigs[currentStep];
+  const totalFeatureSteps = TOTAL_STEPS - 2; // Exclude welcome and conclusion
 
   return (
     <TourSpotlight
@@ -287,21 +262,21 @@ const AppTour = ({
       position={currentConfig?.position || 'bottom'}
     >
       <div className="bg-card rounded-2xl p-5 shadow-xl border border-border">
-        {/* Progress indicator */}
+        {/* Header with step indicator */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               {currentConfig?.icon}
             </div>
             <span className="text-xs text-muted-foreground font-medium">
-              {currentStep}/{TOTAL_STEPS - 2}
+              Step {currentStep} of {totalFeatureSteps}
             </span>
           </div>
           <button
             onClick={onSkip}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
           >
-            Skip
+            Skip tour
           </button>
         </div>
 
@@ -317,7 +292,7 @@ const AppTour = ({
 
         {/* Progress dots */}
         <div className="flex items-center justify-center gap-1.5 mb-4">
-          {[1, 2, 3, 4, 5].map((step) => (
+          {Array.from({ length: totalFeatureSteps }, (_, i) => i + 1).map((step) => (
             <div
               key={step}
               className={cn(
@@ -347,13 +322,13 @@ const AppTour = ({
           )}
           <Button
             size="sm"
-            onClick={currentStep === TOTAL_STEPS - 2 ? () => onNext() : onNext}
+            onClick={onNext}
             className={cn(
               "rounded-xl gap-1",
               currentStep === 1 ? "w-full" : "flex-1"
             )}
           >
-            {currentStep === TOTAL_STEPS - 2 ? "Finish" : "Next"}
+            {currentStep === totalFeatureSteps ? "Finish" : "Got it!"}
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

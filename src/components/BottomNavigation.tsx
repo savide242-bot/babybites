@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calendar, MessageCircle, User } from "lucide-react";
+import { Home, BookOpen, Calendar, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef, RefObject } from "react";
 
@@ -13,7 +13,6 @@ const navItems: NavItem[] = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/recipes", icon: BookOpen, label: "Recipes" },
   { to: "/planner", icon: Calendar, label: "Planner" },
-  { to: "/chat", icon: MessageCircle, label: "Bibi" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
 
@@ -21,7 +20,6 @@ interface BottomNavigationProps {
   navRefs?: {
     recipes?: RefObject<HTMLAnchorElement>;
     planner?: RefObject<HTMLAnchorElement>;
-    chat?: RefObject<HTMLAnchorElement>;
   };
 }
 
@@ -40,8 +38,6 @@ const BottomNavigation = forwardRef<HTMLElement, BottomNavigationProps>(
           return navRefs?.recipes;
         case "/planner":
           return navRefs?.planner;
-        case "/chat":
-          return navRefs?.chat;
         default:
           return undefined;
       }

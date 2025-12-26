@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Heart, Calendar, BookOpen, Home, Bot, Users, TrendingUp, Scan, Settings, FileText, ShoppingCart, LogOut, Baby, UserCircle } from "lucide-react";
+import { Menu, Heart, Calendar, BookOpen, Home, Users, TrendingUp, Scan, Settings, FileText, ShoppingCart, LogOut, Baby, UserCircle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +30,6 @@ const Header = () => {
     { to: "/shopping", label: t('nav.shoppingList'), icon: ShoppingCart },
     { to: "/community", label: t('nav.community'), icon: Users },
     { to: "/advice", label: t('nav.advice'), icon: Heart },
-    { to: "/chat", label: t('nav.chat'), icon: Bot },
     { to: "/profile", label: "Profile", icon: UserCircle },
     { to: "/settings", label: t('nav.settings'), icon: Settings },
   ];

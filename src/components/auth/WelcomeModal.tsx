@@ -79,7 +79,6 @@ const WelcomeModal = ({ userId, userName }: WelcomeModalProps) => {
               <li>• Explore 200+ nutritious recipes</li>
               <li>• Plan your weekly meals</li>
               <li>• Track your baby's growth</li>
-              <li>• Chat with Bibi AI for instant help</li>
               <li>• Connect with 10,000+ moms</li>
             </ul>
           </div>
