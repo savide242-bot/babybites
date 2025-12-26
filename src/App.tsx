@@ -19,7 +19,6 @@ import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import MealPlanner from "./pages/MealPlanner";
 import Advice from "./pages/Advice";
-import Chat from "./pages/Chat";
 import Community from "./pages/Community";
 import GrowthTracker from "./pages/GrowthTracker";
 import FoodAnalyzer from "./pages/FoodAnalyzer";
@@ -57,7 +56,6 @@ const AppContent = () => {
   // Navigation refs for app tour
   const recipesNavRef = useRef<HTMLAnchorElement>(null);
   const plannerNavRef = useRef<HTMLAnchorElement>(null);
-  const chatNavRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     // Update last visit timestamp on app load
@@ -67,7 +65,6 @@ const AppContent = () => {
     (window as any).__tourNavRefs = {
       recipes: recipesNavRef,
       planner: plannerNavRef,
-      chat: chatNavRef
     };
   }, []);
 
@@ -86,7 +83,6 @@ const AppContent = () => {
               <BottomNavigation navRefs={{ 
                 recipes: recipesNavRef, 
                 planner: plannerNavRef, 
-                chat: chatNavRef 
               }} />
               <Routes>
                 <Route path="/onboarding" element={<Onboarding />} />
@@ -97,7 +93,6 @@ const AppContent = () => {
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/planner" element={<MealPlanner />} />
                 <Route path="/advice" element={<Advice />} />
-                <Route path="/chat" element={<Chat />} />
                 <Route path="/community" element={<Community />} />
                 <Route path="/growth" element={<GrowthTracker />} />
                 <Route path="/scanner" element={<FoodAnalyzer />} />

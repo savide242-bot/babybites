@@ -1,16 +1,14 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import QuickCheckinWidget from "@/components/engagement/QuickCheckinWidget";
-import BabyPhaseCard from "@/components/home/BabyPhaseCard";
 import DailyActionCard from "@/components/home/DailyActionCard";
 import WeeklyProgressCard from "@/components/home/WeeklyProgressCard";
-import TiredMomMode from "@/components/home/TiredMomMode";
+import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
+import PlanMealsPrompt from "@/components/home/PlanMealsPrompt";
 import AppTour from "@/components/onboarding/AppTour";
 import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
@@ -56,12 +54,12 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [showTiredMode, setShowTiredMode] = useState(false);
   const [mealsThisWeek, setMealsThisWeek] = useState(0);
 
   // Tour refs
   const recipeOfDayRef = useRef<HTMLDivElement>(null);
   const checkinWidgetRef = useRef<HTMLDivElement>(null);
+  const ageCategoriesRef = useRef<HTMLDivElement>(null);
 
   const { todayCheckin, submitCheckin } = useEngagement();
   const tour = useAppTour();
@@ -92,7 +90,6 @@ const Home = () => {
   const recipeOfTheDay = useMemo(() => {
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     
-    // Filter by age group
     let ageGroup = "6-9 months";
     if (babyAgeMonths >= 9 && babyAgeMonths < 12) ageGroup = "9-12 months";
     else if (babyAgeMonths >= 12 && babyAgeMonths < 18) ageGroup = "12-18 months";
@@ -129,7 +126,6 @@ const Home = () => {
         const currentUserId = session.user.id;
         setUserId(currentUserId);
 
-        // Get week boundaries
         const now = new Date();
         const weekStart = startOfWeek(now, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
@@ -154,7 +150,6 @@ const Home = () => {
           setStreak(streakResult.data);
         }
 
-        // Count meals prepared this week
         if (weekMealsResult.data) {
           const weekMeals = weekMealsResult.data.filter(meal => {
             if (!meal.created_at) return false;
@@ -164,7 +159,6 @@ const Home = () => {
           setMealsThisWeek(weekMeals.length);
         }
 
-        // Process today's meals
         if (mealPlanResult.data && mealPlanResult.data.length > 0) {
           setTodayMeals(processMealPlanData(mealPlanResult.data));
         }
@@ -196,7 +190,6 @@ const Home = () => {
         (payload) => {
           const updatedMeal = payload.new as any;
           
-          // Only update if it's for today
           if (updatedMeal.day_of_week !== todayDayName) return;
           
           setTodayMeals(prev => {
@@ -206,7 +199,6 @@ const Home = () => {
                 : meal
             );
             
-            // Check if all meals are now prepared
             const allPrepared = updated.every(m => m.prepared);
             const wasPreviouslyNotAllPrepared = !prev.every(m => m.prepared);
             
@@ -233,7 +225,6 @@ const Home = () => {
             return updated;
           });
 
-          // Update weekly count
           if (updatedMeal.prepared) {
             setMealsThisWeek(prev => prev + 1);
           }
@@ -261,9 +252,9 @@ const Home = () => {
           refs={{
             recipeOfDay: recipeOfDayRef,
             checkinWidget: checkinWidgetRef,
+            ageCategoriesRef: ageCategoriesRef,
             recipesNav: navRefs?.recipes,
             plannerNav: navRefs?.planner,
-            chatNav: navRefs?.chat
           }}
           onNext={tour.nextStep}
           onPrev={tour.prevStep}
@@ -272,85 +263,67 @@ const Home = () => {
         />
       )}
 
-      {/* Tired Mom Mode Modal */}
-      <AnimatePresence>
-        {showTiredMode && (
-          <TiredMomMode 
-            babyName={babyName}
-            babyAgeMonths={babyAgeMonths}
-            onClose={() => setShowTiredMode(false)}
-          />
-        )}
-      </AnimatePresence>
-
       <motion.div 
-        className="max-w-lg mx-auto px-4 py-5 space-y-4"
+        className="max-w-lg mx-auto px-4 py-5 space-y-5"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Compact Header */}
+        {/* Greeting Header */}
         <motion.div variants={itemVariants}>
           {isLoading ? (
             <div className="flex items-center gap-3">
-              <Skeleton className="h-11 w-11 rounded-2xl" />
+              <Skeleton className="h-12 w-12 rounded-2xl" />
               <div>
-                <Skeleton className="h-5 w-36 mb-1.5" />
-                <Skeleton className="h-3.5 w-28" />
+                <Skeleton className="h-6 w-40 mb-1.5" />
+                <Skeleton className="h-4 w-28" />
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-peach/50 text-xl shadow-soft">
-                  {emoji}
-                </div>
-                <div>
-                  <h1 className="text-base font-semibold text-foreground">
-                    {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
-                  </h1>
-                  <p className="text-muted-foreground text-xs">
-                    {emotionalMessage} ✨
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-peach/50 text-2xl shadow-soft">
+                {emoji}
               </div>
-              
-              {/* Tired Mom Mode Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowTiredMode(true)}
-                className="rounded-xl h-9 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-soft-blue/20 gap-1.5"
-              >
-                <Moon className="w-4 h-4" />
-                <span className="hidden sm:inline">Rest Mode</span>
-              </Button>
+              <div>
+                <h1 className="text-lg font-bold text-foreground">
+                  {greeting}, <span className="text-primary">{motherName || "Mom"}</span>!
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {emotionalMessage} ✨
+                </p>
+              </div>
             </div>
           )}
         </motion.div>
 
-        {/* Quick Check-in - Priority 1 */}
-        {!isLoading && (
-          <motion.div variants={itemVariants} ref={checkinWidgetRef}>
-            <QuickCheckinWidget 
-              todayCheckin={todayCheckin} 
-              onSubmit={submitCheckin}
-              babyName={babyName}
-            />
+        {/* Streak Badge */}
+        {!isLoading && streak && streak.current_streak > 0 && (
+          <motion.div variants={itemVariants}>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
+              <span className="text-lg">🔥</span>
+              <span className="text-sm font-semibold text-amber-600">{streak.current_streak} day streak</span>
+            </div>
           </motion.div>
         )}
 
-        {/* Baby Phase Card - Shows current development stage */}
+        {/* Plan Meals Prompt */}
         {!isLoading && (
           <motion.div variants={itemVariants}>
-            <BabyPhaseCard 
-              babyName={babyName} 
-              babyAgeMonths={babyAgeMonths}
+            <PlanMealsPrompt hasMealsPlanned={todayMeals.length > 0} />
+          </motion.div>
+        )}
+
+        {/* Age Category Circles */}
+        {!isLoading && (
+          <motion.div variants={itemVariants}>
+            <AgeCategoryCircles 
+              ref={ageCategoriesRef}
+              babyAgeMonths={babyAgeMonths} 
             />
           </motion.div>
         )}
 
-        {/* Daily Action Card - Next meal or recipe of the day */}
+        {/* Recipe of the Day */}
         {!isLoading && recipeOfTheDay && (
           <motion.div variants={itemVariants} ref={recipeOfDayRef}>
             <DailyActionCard
@@ -361,22 +334,24 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* Weekly Progress Card - Streak and points */}
+        {/* Quick Check-in */}
+        {!isLoading && (
+          <motion.div variants={itemVariants} ref={checkinWidgetRef}>
+            <QuickCheckinWidget 
+              todayCheckin={todayCheckin} 
+              onSubmit={submitCheckin}
+              babyName={babyName}
+            />
+          </motion.div>
+        )}
+
+        {/* Weekly Progress */}
         <motion.div variants={itemVariants}>
           <WeeklyProgressCard
             streak={streak}
             mealsThisWeek={mealsThisWeek}
             babyName={babyName}
           />
-        </motion.div>
-
-        {/* Motivational Message */}
-        <motion.div variants={itemVariants}>
-          <div className="bg-gradient-to-r from-peach/30 via-card to-soft-blue/20 rounded-2xl p-4 border border-peach/30">
-            <p className="text-sm font-medium text-center text-foreground">
-              💕 Every meal is a moment of love for {babyName || "your baby"}
-            </p>
-          </div>
         </motion.div>
       </motion.div>
     </div>

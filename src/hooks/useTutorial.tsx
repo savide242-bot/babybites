@@ -26,12 +26,6 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     title: 'Scan Any Food',
     description: 'Use AI to check if any food is safe for your baby. Just scan or take a photo!',
     targetPath: '/scanner'
-  },
-  {
-    id: 'chat',
-    title: 'Ask Bibi',
-    description: 'Have questions? Our AI assistant Bibi is here to help with nutrition advice!',
-    targetPath: '/chat'
   }
 ];
 
