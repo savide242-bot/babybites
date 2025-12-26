@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import BabyPhaseCard from "@/components/home/BabyPhaseCard";
 import DailyActionCard from "@/components/home/DailyActionCard";
 import WeeklyProgressCard from "@/components/home/WeeklyProgressCard";
 import TiredMomMode from "@/components/home/TiredMomMode";
+import AppTour from "@/components/onboarding/AppTour";
 import { useEngagement } from "@/hooks/useEngagement";
+import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 
@@ -57,7 +59,12 @@ const Home = () => {
   const [showTiredMode, setShowTiredMode] = useState(false);
   const [mealsThisWeek, setMealsThisWeek] = useState(0);
 
+  // Tour refs
+  const recipeOfDayRef = useRef<HTMLDivElement>(null);
+  const checkinWidgetRef = useRef<HTMLDivElement>(null);
+
   const { todayCheckin, submitCheckin } = useEngagement();
+  const tour = useAppTour();
 
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const todayDayName = dayNames[new Date().getDay()];
@@ -239,8 +246,32 @@ const Home = () => {
     };
   }, [userId, todayDayName]);
 
+  // Get nav refs from window for tour (set by App.tsx)
+  const navRefs = (window as any).__tourNavRefs;
+
   return (
     <div className="min-h-screen bg-background pb-20 lg:pb-8">
+      {/* App Tour for new users */}
+      {!tour.isLoading && (
+        <AppTour
+          isActive={tour.isActive}
+          currentStep={tour.currentStep}
+          motherName={tour.motherName}
+          babyName={tour.babyName}
+          refs={{
+            recipeOfDay: recipeOfDayRef,
+            checkinWidget: checkinWidgetRef,
+            recipesNav: navRefs?.recipes,
+            plannerNav: navRefs?.planner,
+            chatNav: navRefs?.chat
+          }}
+          onNext={tour.nextStep}
+          onPrev={tour.prevStep}
+          onSkip={tour.skipTour}
+          onComplete={tour.completeTour}
+        />
+      )}
+
       {/* Tired Mom Mode Modal */}
       <AnimatePresence>
         {showTiredMode && (
@@ -300,7 +331,7 @@ const Home = () => {
 
         {/* Quick Check-in - Priority 1 */}
         {!isLoading && (
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} ref={checkinWidgetRef}>
             <QuickCheckinWidget 
               todayCheckin={todayCheckin} 
               onSubmit={submitCheckin}
@@ -321,7 +352,7 @@ const Home = () => {
 
         {/* Daily Action Card - Next meal or recipe of the day */}
         {!isLoading && recipeOfTheDay && (
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} ref={recipeOfDayRef}>
             <DailyActionCard
               recipeOfTheDay={recipeOfTheDay}
               todayMeals={todayMeals}
