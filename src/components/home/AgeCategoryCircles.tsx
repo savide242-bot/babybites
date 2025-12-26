@@ -52,13 +52,13 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
                 }`}
               >
                 <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl transition-all shadow-soft ${
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-soft overflow-hidden ${
                     isActive
                       ? "bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background"
                       : "bg-muted/50 group-hover:bg-muted group-hover:scale-105"
                   }`}
                 >
-                  {category.emoji}
+                  <span className="text-xl leading-none">{category.emoji}</span>
                 </div>
                 <span
                   className={`text-xs font-medium transition-colors ${
