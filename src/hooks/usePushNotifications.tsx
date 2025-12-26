@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
+// Default meal times to create when enabling notifications
+const DEFAULT_MEAL_TIMES = [
+  { meal_type: 'breakfast', preferred_hour: 8, preferred_minute: 0, enabled: true },
+  { meal_type: 'lunch', preferred_hour: 12, preferred_minute: 30, enabled: true },
+  { meal_type: 'snack', preferred_hour: 16, preferred_minute: 0, enabled: true },
+  { meal_type: 'dinner', preferred_hour: 19, preferred_minute: 0, enabled: true },
+];
+
 // Fetch VAPID public key from edge function
 const fetchVapidPublicKey = async (): Promise<string | null> => {
   try {
@@ -150,6 +158,14 @@ export const usePushNotifications = () => {
         return false;
       }
 
+      // Step 7: Create default meal times if none exist
+      console.log('🍽️ Checking for existing meal times...');
+      await ensureDefaultMealTimes();
+
+      // Step 8: Update user timezone
+      console.log('🌍 Updating user timezone...');
+      await updateUserTimezone();
+
       console.log('🎉 Push notification subscription complete!');
       toast({
         title: "Notifications Enabled",
@@ -229,6 +245,67 @@ export const usePushNotifications = () => {
     } catch (error) {
       console.error('💥 Error in saveSubscription:', error);
       return false;
+    }
+  };
+
+  const ensureDefaultMealTimes = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user already has meal times
+      const { data: existingMealTimes } = await supabase
+        .from('baby_meal_times')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (existingMealTimes && existingMealTimes.length > 0) {
+        console.log('✅ User already has meal times configured');
+        return;
+      }
+
+      // Create default meal times
+      console.log('📝 Creating default meal times...');
+      const mealTimesToInsert = DEFAULT_MEAL_TIMES.map(mt => ({
+        ...mt,
+        user_id: user.id
+      }));
+
+      const { error } = await supabase
+        .from('baby_meal_times')
+        .insert(mealTimesToInsert);
+
+      if (error) {
+        console.error('❌ Error creating default meal times:', error);
+      } else {
+        console.log('✅ Default meal times created successfully');
+      }
+    } catch (error) {
+      console.error('💥 Error in ensureDefaultMealTimes:', error);
+    }
+  };
+
+  const updateUserTimezone = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      console.log('🌍 Detected timezone:', timezone);
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ timezone })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('❌ Error updating timezone:', error);
+      } else {
+        console.log('✅ Timezone updated to:', timezone);
+      }
+    } catch (error) {
+      console.error('💥 Error in updateUserTimezone:', error);
     }
   };
 

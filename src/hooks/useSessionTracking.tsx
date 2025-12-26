@@ -35,6 +35,22 @@ export const useSessionTracking = () => {
       const deviceInfo = getDeviceInfo();
 
       try {
+        // Auto-detect and update user's timezone
+        const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        // Update timezone in profiles (silently, non-blocking)
+        supabase
+          .from('profiles')
+          .update({ timezone: detectedTimezone })
+          .eq('id', user.id)
+          .then(({ error }) => {
+            if (error) {
+              console.warn('Could not update timezone:', error);
+            } else {
+              console.log('🌍 Timezone updated to:', detectedTimezone);
+            }
+          });
+
         // Check if session record exists
         const { data: existingSession } = await supabase
           .from('user_sessions')
