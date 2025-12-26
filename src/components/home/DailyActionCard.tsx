@@ -28,39 +28,54 @@ const DailyActionCard = ({ recipeOfTheDay, todayMeals, babyName }: DailyActionCa
 
   // If there's a next meal to prepare, show that
   if (nextMeal) {
+    const nextMealImage = getRecipeImageById(nextMeal.recipeId);
+    
     return (
       <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-card to-accent/5">
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
-              <ChefHat className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Next meal to prepare
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {preparedCount}/{mealCount} done today
-              </p>
-            </div>
+        <div className="flex">
+          {/* Recipe Image */}
+          <div className="w-24 h-28 flex-shrink-0 relative overflow-hidden">
+            <img 
+              src={nextMealImage} 
+              alt={nextMeal.recipeTitle}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/20" />
           </div>
-
-          <Link to={`/recipe/${nextMeal.recipeId}`}>
-            <div className="group cursor-pointer">
-              <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
-                {nextMeal.recipeTitle}
-              </h3>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="px-2.5 py-1 bg-accent/20 rounded-full text-xs font-medium text-accent-foreground capitalize">
-                  {nextMeal.mealType}
-                </span>
+          
+          {/* Content */}
+          <div className="flex-1 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-lg bg-primary/15 flex items-center justify-center">
+                <ChefHat className="w-3 h-3 text-primary" />
               </div>
-              <Button className="w-full rounded-xl gap-2 group-hover:bg-primary/90">
-                Start Cooking
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Button>
+              <div>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Next meal to prepare
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {preparedCount}/{mealCount} done today
+                </p>
+              </div>
             </div>
-          </Link>
+
+            <Link to={`/recipe/${nextMeal.recipeId}`}>
+              <div className="group cursor-pointer">
+                <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1">
+                  {nextMeal.recipeTitle}
+                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2 py-0.5 bg-accent/20 rounded-full text-[10px] font-medium text-accent-foreground capitalize">
+                    {nextMeal.mealType}
+                  </span>
+                </div>
+                <Button size="sm" className="w-full rounded-lg gap-1.5 text-xs h-8 group-hover:bg-primary/90">
+                  Start Cooking
+                  <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </div>
+            </Link>
+          </div>
         </div>
       </Card>
     );
