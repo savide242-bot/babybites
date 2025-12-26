@@ -7,10 +7,10 @@ interface AgeCategoryCirclesProps {
 }
 
 const ageCategories = [
-  { label: "6-9 mo", ageGroup: "6-9 months", emoji: "🥣", minAge: 6, maxAge: 9 },
-  { label: "9-12 mo", ageGroup: "9-12 months", emoji: "🥕", minAge: 9, maxAge: 12 },
-  { label: "12-18 mo", ageGroup: "12-18 months", emoji: "🍝", minAge: 12, maxAge: 18 },
-  { label: "18-24 mo", ageGroup: "18-24 months", emoji: "🥗", minAge: 18, maxAge: 24 },
+  { label: "6-9 months", ageGroup: "6-9 months", emoji: "🥣", minAge: 6, maxAge: 9 },
+  { label: "9-12 months", ageGroup: "9-12 months", emoji: "🥕", minAge: 9, maxAge: 12 },
+  { label: "12-18 months", ageGroup: "12-18 months", emoji: "🍝", minAge: 12, maxAge: 18 },
+  { label: "18-24 months", ageGroup: "18-24 months", emoji: "🥗", minAge: 18, maxAge: 24 },
 ];
 
 const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
@@ -63,7 +63,7 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
                   </div>
                 </div>
                 <span
-                  className={`text-xs font-medium transition-colors ${
+                  className={`text-[10px] font-medium transition-colors text-center leading-tight ${
                     isActive ? "text-destructive" : "text-muted-foreground group-hover:text-foreground"
                   }`}
                 >
