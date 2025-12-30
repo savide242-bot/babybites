@@ -50,7 +50,10 @@ const Onboarding = () => {
         return;
       }
 
-      // Update profile with all onboarding data
+      // Detect user timezone
+      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // Update profile with all onboarding data including timezone
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -58,39 +61,35 @@ const Onboarding = () => {
           baby_name: babyName.trim(),
           baby_birth_date: birthDate?.toISOString().split('T')[0],
           dietary_preferences: dietaryPreferences,
+          timezone: detectedTimezone,
         })
         .eq('id', session.user.id);
 
       if (profileError) throw profileError;
 
-      // Save notification preferences
-      const enabledReminders = reminders.filter(r => r.enabled);
-      
-      if (enabledReminders.length > 0) {
-        // First delete existing preferences
-        await supabase
-          .from('notification_preferences')
-          .delete()
-          .eq('user_id', session.user.id);
+      // Save meal times to baby_meal_times (source of truth for server-side push)
+      const mealTimesToInsert = reminders.map(reminder => ({
+        user_id: session.user.id,
+        meal_type: reminder.id,
+        enabled: reminder.enabled,
+        preferred_hour: reminder.hour,
+        preferred_minute: reminder.minute,
+      }));
 
-        // Insert new preferences
-        const preferencesToInsert = reminders.map(reminder => ({
-          user_id: session.user.id,
-          meal_type: reminder.id,
-          enabled: reminder.enabled,
-          hour: reminder.hour,
-          minute: reminder.minute,
-        }));
+      // Upsert each meal time
+      for (const mealTime of mealTimesToInsert) {
+        const { error: mealTimeError } = await supabase
+          .from('baby_meal_times')
+          .upsert(mealTime, {
+            onConflict: 'user_id,meal_type'
+          });
 
-        const { error: notifError } = await supabase
-          .from('notification_preferences')
-          .insert(preferencesToInsert);
-
-        if (notifError) {
-          console.error('Error saving notification preferences:', notifError);
-          // Don't throw, just log - notifications are optional
+        if (mealTimeError) {
+          console.error('Error saving meal time:', mealTimeError);
         }
       }
+
+      console.log(`✅ Saved ${mealTimesToInsert.length} meal times to baby_meal_times`);
 
       // Generate initial weekly meal plan based on baby's age and dietary preferences
       await generateInitialMealPlan(session.user.id, birthDate, dietaryPreferences);
