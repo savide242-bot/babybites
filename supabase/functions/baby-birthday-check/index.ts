@@ -8,30 +8,30 @@ const corsHeaders = {
 // Development insights based on age
 const getDevelopmentInsights = (months: number): string => {
   const insights: { [key: number]: string } = {
-    1: "Com 1 mês, o bebé começa a focar objetos a 20-30cm de distância e reconhece a voz da mãe.",
-    2: "Aos 2 meses, o bebé já sorri socialmente e começa a seguir objetos com os olhos.",
-    3: "Com 3 meses, o bebé sustenta melhor a cabeça e adora olhar para as próprias mãos.",
-    4: "Aos 4 meses, muitos bebés começam a rolar e a rir alto.",
-    5: "Com 5 meses, o bebé pode começar a sentar-se com apoio e demonstra interesse em brinquedos.",
-    6: "🎉 6 meses! Marco importante! O bebé pode começar a introdução alimentar e mostrar interesse em comida sólida.",
-    7: "Aos 7 meses, o bebé pode começar a gatinhar e adora explorar texturas.",
-    8: "Com 8 meses, muitos bebés já gatinham bem e começam a pegar objetos com o movimento de pinça.",
-    9: "Aos 9 meses, o bebé pode começar a ficar de pé com apoio e comer alimentos mais texturizados.",
-    10: "Com 10 meses, o bebé adora imitar sons e gestos.",
-    11: "Aos 11 meses, o bebé pode dar os primeiros passos com apoio.",
-    12: "🎂 1 ANINHO! Parabéns! O bebé já pode comer a maioria dos alimentos da família.",
-    18: "Aos 18 meses, a criança já tem vocabulário de 10-20 palavras e come de forma mais independente.",
-    24: "🎂 2 ANINHOS! A criança já fala frases curtas e come praticamente tudo!",
-    36: "🎂 3 ANINHOS! A criança já é muito independente e tem opiniões fortes sobre comida.",
+    1: "At 1 month, your baby starts focusing on objects 20-30cm away and recognizes mom's voice.",
+    2: "At 2 months, your baby smiles socially and starts following objects with their eyes.",
+    3: "At 3 months, your baby holds their head up better and loves looking at their own hands.",
+    4: "At 4 months, many babies start rolling and laughing out loud.",
+    5: "At 5 months, your baby may start sitting with support and shows interest in toys.",
+    6: "🎉 6 months! Important milestone! Your baby can start solid foods and shows interest in food.",
+    7: "At 7 months, your baby may start crawling and loves exploring textures.",
+    8: "At 8 months, many babies crawl well and start picking up objects with the pincer grasp.",
+    9: "At 9 months, your baby may start standing with support and can eat more textured foods.",
+    10: "At 10 months, your baby loves imitating sounds and gestures.",
+    11: "At 11 months, your baby may take first steps with support.",
+    12: "🎂 1 YEAR! Happy Birthday! Your baby can eat most family foods now.",
+    18: "At 18 months, your child has a vocabulary of 10-20 words and eats more independently.",
+    24: "🎂 2 YEARS! Your child speaks short sentences and eats practically everything!",
+    36: "🎂 3 YEARS! Your child is very independent and has strong opinions about food.",
   };
 
   if (insights[months]) return insights[months];
   
   const years = Math.floor(months / 12);
   if (years >= 1) {
-    return `Com ${years} ano${years > 1 ? 's' : ''}, a criança continua a desenvolver-se rapidamente!`;
+    return `At ${years} year${years > 1 ? 's' : ''}, your child continues to develop rapidly!`;
   }
-  return `Com ${months} meses, o bebé está numa fase de grande desenvolvimento!`;
+  return `At ${months} months, your baby is in a phase of great development!`;
 };
 
 Deno.serve(async (req) => {
@@ -125,16 +125,16 @@ Deno.serve(async (req) => {
             let ageText = '';
             
             if (years === 0) {
-              ageText = `${ageMonths} ${ageMonths === 1 ? 'mês' : 'meses'}`;
+              ageText = `${ageMonths} ${ageMonths === 1 ? 'month' : 'months'}`;
             } else if (remainingMonths === 0) {
-              ageText = `${years} ${years === 1 ? 'ano' : 'anos'}`;
+              ageText = `${years} ${years === 1 ? 'year' : 'years'}`;
             } else {
-              ageText = `${years} ano${years > 1 ? 's' : ''} e ${remainingMonths} ${remainingMonths === 1 ? 'mês' : 'meses'}`;
+              ageText = `${years} year${years > 1 ? 's' : ''} and ${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
             }
 
             const notificationPayload = {
-              title: `🎂 Parabéns, ${profile.baby_name || 'Bebé'}!`,
-              body: `Hoje faz ${ageText}! Abre a app para ver os marcos de desenvolvimento desta fase. 🎉`,
+              title: `🎂 Happy Birthday, ${profile.baby_name || 'Baby'}!`,
+              body: `Today marks ${ageText}! Open the app to see the developmental milestones for this stage. 🎉`,
               icon: '/favicon.ico',
               data: {
                 url: '/profile'

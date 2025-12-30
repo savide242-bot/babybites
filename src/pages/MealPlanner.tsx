@@ -334,7 +334,7 @@ const MealPlanner = () => {
     setHasShownCompletionModal(false);
     
     confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
-    toast.success("🎉 Nova semana gerada! Bom apetite!");
+    toast.success("🎉 New week generated! Enjoy your meals!");
     updateShoppingList();
   };
 

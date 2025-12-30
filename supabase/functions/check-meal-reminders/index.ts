@@ -34,33 +34,33 @@ interface UserProfile {
 // Support all meal types including morning-snack and afternoon-snack
 const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string }> = {
   'breakfast': {
-    title: '🌅 Hora do Café da Manhã!',
-    body: 'Em 30 minutos é hora do café! Que tal preparar algo especial para {baby}?',
+    title: '🌅 Breakfast Time!',
+    body: 'In 30 minutes it\'s breakfast time! How about preparing something special for {baby}?',
     emoji: '🌅'
   },
   'morning-snack': {
-    title: '🍎 Hora do Lanche da Manhã!',
-    body: 'Em 30 minutos é hora do lanche da manhã de {baby}! Uma fruta fresquinha?',
+    title: '🍎 Morning Snack Time!',
+    body: 'In 30 minutes it\'s morning snack time for {baby}! A fresh fruit perhaps?',
     emoji: '🍎'
   },
   'lunch': {
-    title: '☀️ Hora do Almoço!',
-    body: 'Em 30 minutos é hora do almoço de {baby}! Vamos preparar uma refeição nutritiva?',
+    title: '☀️ Lunch Time!',
+    body: 'In 30 minutes it\'s lunch time for {baby}! Let\'s prepare a nutritious meal?',
     emoji: '☀️'
   },
   'afternoon-snack': {
-    title: '🍌 Hora do Lanche da Tarde!',
-    body: 'Em 30 minutos é hora do lanche da tarde de {baby}! Algo leve e saudável?',
+    title: '🍌 Afternoon Snack Time!',
+    body: 'In 30 minutes it\'s afternoon snack time for {baby}! Something light and healthy?',
     emoji: '🍌'
   },
   'snack': {
-    title: '🍎 Hora do Lanche!',
-    body: 'Em 30 minutos é hora do lanche de {baby}! Uma fruta ou algo leve?',
+    title: '🍎 Snack Time!',
+    body: 'In 30 minutes it\'s snack time for {baby}! A fruit or something light?',
     emoji: '🍎'
   },
   'dinner': {
-    title: '🌙 Hora do Jantar!',
-    body: 'Em 30 minutos é hora do jantar! Vamos preparar a última refeição do dia para {baby}?',
+    title: '🌙 Dinner Time!',
+    body: 'In 30 minutes it\'s dinner time! Let\'s prepare the last meal of the day for {baby}?',
     emoji: '🌙'
   }
 };
@@ -487,7 +487,7 @@ Deno.serve(async (req) => {
     for (const mealTime of allMealTimes as MealTime[]) {
       const profile = profileMap.get(mealTime.user_id);
       const userTimezone = profile?.timezone || 'America/Sao_Paulo';
-      const babyName = profile?.baby_name || 'bebê';
+      const babyName = profile?.baby_name || 'baby';
 
       const userLocalTime = getUserLocalTime(now, userTimezone);
       const reminderTime = getReminderTime(mealTime.preferred_hour, mealTime.preferred_minute);

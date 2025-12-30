@@ -70,14 +70,14 @@ export const WeekCompletionModal = ({
             </div>
           </div>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            🎉 Semana Completa!
+            🎉 Week Complete!
           </DialogTitle>
           <DialogDescription className="text-base mt-4 space-y-3">
             <p>
-              Parabéns! Você preparou todas as <strong>{completedMeals} refeições</strong> da semana {weekNumber}!
+              Congratulations! You prepared all <strong>{completedMeals} meals</strong> for week {weekNumber}!
             </p>
             <p className="text-muted-foreground">
-              Seu bebé está a ter uma alimentação equilibrada e nutritiva graças ao seu esforço! 💪
+              Your baby is getting a balanced and nutritious diet thanks to your effort! 💪
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -88,9 +88,9 @@ export const WeekCompletionModal = ({
               <Calendar className="h-5 w-5 text-primary" />
             </div>
             <div className="text-left">
-              <h4 className="font-semibold text-sm">Nova Semana, Novas Receitas!</h4>
+              <h4 className="font-semibold text-sm">New Week, New Recipes!</h4>
               <p className="text-xs text-muted-foreground">
-                Vamos gerar um plano fresco com receitas diferentes para a próxima semana?
+                Shall we generate a fresh plan with different recipes for next week?
               </p>
             </div>
           </div>
@@ -99,10 +99,10 @@ export const WeekCompletionModal = ({
         <div className="flex flex-col gap-3 mt-6">
           <Button onClick={handleGenerateNew} className="w-full gap-2">
             <ChefHat className="h-4 w-4" />
-            Gerar Novo Plano Semanal
+            Generate New Weekly Plan
           </Button>
           <Button variant="outline" onClick={onClose} className="w-full">
-            Continuar com o Plano Atual
+            Continue with Current Plan
           </Button>
         </div>
       </DialogContent>

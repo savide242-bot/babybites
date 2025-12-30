@@ -83,15 +83,15 @@ export const useTodaysMealStatus = (recipeId: string | undefined) => {
       const remainingMeals = totalMeals - preparedCount;
 
       if (remainingMeals === 0) {
-        toast.success("🎉 Parabéns! Todas as refeições de hoje concluídas!", {
+        toast.success("🎉 Congratulations! All of today's meals completed!", {
           duration: 5000,
         });
       } else {
         const mealTypeLabels: { [key: string]: string } = {
-          breakfast: "café da manhã",
-          lunch: "almoço",
-          dinner: "jantar",
-          snack: "lanche"
+          breakfast: "breakfast",
+          lunch: "lunch",
+          dinner: "dinner",
+          snack: "snack"
         };
         
         const remaining = updatedMeals
@@ -99,10 +99,10 @@ export const useTodaysMealStatus = (recipeId: string | undefined) => {
           .map(m => mealTypeLabels[m.meal_type] || m.meal_type);
         
         const message = remainingMeals === 1 
-          ? `Falta apenas o ${remaining[0]}! 💪`
-          : `Faltam ${remainingMeals} refeições: ${remaining.join(", ")} 💪`;
+          ? `Just ${remaining[0]} left! 💪`
+          : `${remainingMeals} meals left: ${remaining.join(", ")} 💪`;
         
-        toast.success(`Refeição preparada! ${message}`, {
+        toast.success(`Meal prepared! ${message}`, {
           duration: 4000,
         });
       }
@@ -110,7 +110,7 @@ export const useTodaysMealStatus = (recipeId: string | undefined) => {
       return true;
     } catch (error) {
       console.error('Error marking meal as prepared:', error);
-      toast.error("Erro ao atualizar. Tente novamente.");
+      toast.error("Error updating. Please try again.");
       return false;
     }
   }, [mealPlanEntry, todayMeals]);
@@ -121,18 +121,18 @@ export const useTodaysMealStatus = (recipeId: string | undefined) => {
     const remainingMeals = totalMeals - preparedCount;
 
     if (totalMeals === 0) return null;
-    if (remainingMeals === 0) return "Todas as refeições concluídas! 🎉";
+    if (remainingMeals === 0) return "All meals completed! 🎉";
     if (remainingMeals === 1) {
       const remaining = todayMeals.find(m => !m.prepared);
       const mealTypeLabels: { [key: string]: string } = {
-        breakfast: "café da manhã",
-        lunch: "almoço", 
-        dinner: "jantar",
-        snack: "lanche"
+        breakfast: "breakfast",
+        lunch: "lunch", 
+        dinner: "dinner",
+        snack: "snack"
       };
-      return `Falta apenas o ${mealTypeLabels[remaining?.meal_type || ''] || 'refeição'}!`;
+      return `Just ${mealTypeLabels[remaining?.meal_type || ''] || 'meal'} left!`;
     }
-    return `${preparedCount}/${totalMeals} refeições preparadas`;
+    return `${preparedCount}/${totalMeals} meals prepared`;
   }, [todayMeals]);
 
   return {
