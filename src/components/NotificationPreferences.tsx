@@ -5,21 +5,21 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Clock, Save, Globe, Bell, Loader2 } from 'lucide-react';
+import { Clock, Save, Globe, Bell, Loader2, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 
-interface NotificationPref {
+interface MealTimePref {
   meal_type: string;
-  hour: number;
-  minute: number;
+  preferred_hour: number;
+  preferred_minute: number;
   enabled: boolean;
 }
 
-const DEFAULT_PREFS: NotificationPref[] = [
-  { meal_type: 'breakfast', hour: 7, minute: 30, enabled: true },
-  { meal_type: 'morning-snack', hour: 10, minute: 0, enabled: true },
-  { meal_type: 'lunch', hour: 12, minute: 30, enabled: true },
-  { meal_type: 'afternoon-snack', hour: 15, minute: 30, enabled: true },
-  { meal_type: 'dinner', hour: 18, minute: 0, enabled: true },
+const DEFAULT_PREFS: MealTimePref[] = [
+  { meal_type: 'breakfast', preferred_hour: 7, preferred_minute: 30, enabled: true },
+  { meal_type: 'morning-snack', preferred_hour: 10, preferred_minute: 0, enabled: true },
+  { meal_type: 'lunch', preferred_hour: 12, preferred_minute: 30, enabled: true },
+  { meal_type: 'afternoon-snack', preferred_hour: 15, preferred_minute: 30, enabled: true },
+  { meal_type: 'dinner', preferred_hour: 18, preferred_minute: 0, enabled: true },
 ];
 
 const MEAL_LABELS: Record<string, string> = {
@@ -58,8 +58,8 @@ const COMMON_TIMEZONES = [
 ];
 
 export function NotificationPreferences() {
-  const [prefs, setPrefs] = useState<NotificationPref[]>(DEFAULT_PREFS);
-  const [initialPrefs, setInitialPrefs] = useState<NotificationPref[]>(DEFAULT_PREFS);
+  const [prefs, setPrefs] = useState<MealTimePref[]>(DEFAULT_PREFS);
+  const [initialPrefs, setInitialPrefs] = useState<MealTimePref[]>(DEFAULT_PREFS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -67,12 +67,24 @@ export function NotificationPreferences() {
   const [userTimezone, setUserTimezone] = useState<string>('UTC');
   const [initialTimezone, setInitialTimezone] = useState<string>('UTC');
   const [testingNotification, setTestingNotification] = useState(false);
+  const [sendingMealReminder, setSendingMealReminder] = useState(false);
+  
+  // Diagnostics state
+  const [diagnostics, setDiagnostics] = useState<{
+    permissionStatus: string;
+    hasSubscription: boolean;
+    subscriptionCount: number;
+    mealTimesCount: number;
+  } | null>(null);
+  const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
+  
   const { toast } = useToast();
   const { subscribeToPushNotifications, isSupported } = usePushNotifications();
 
   useEffect(() => {
     loadPreferences();
     detectAndSaveTimezone();
+    loadDiagnostics();
   }, []);
 
   const detectAndSaveTimezone = async () => {
@@ -114,8 +126,9 @@ export function NotificationPreferences() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Load from baby_meal_times (the source of truth for push notifications)
       const { data, error } = await supabase
-        .from('notification_preferences')
+        .from('baby_meal_times')
         .select('*')
         .eq('user_id', user.id);
 
@@ -124,12 +137,19 @@ export function NotificationPreferences() {
       if (data && data.length > 0) {
         const loadedPrefs = data.map(d => ({
           meal_type: d.meal_type,
-          hour: d.hour,
-          minute: d.minute,
-          enabled: d.enabled,
+          preferred_hour: d.preferred_hour,
+          preferred_minute: d.preferred_minute,
+          enabled: d.enabled ?? true,
         }));
-        setPrefs(loadedPrefs);
-        setInitialPrefs(loadedPrefs);
+        
+        // Merge with defaults to ensure all meal types are present
+        const mergedPrefs = DEFAULT_PREFS.map(defaultPref => {
+          const existing = loadedPrefs.find(p => p.meal_type === defaultPref.meal_type);
+          return existing || defaultPref;
+        });
+        
+        setPrefs(mergedPrefs);
+        setInitialPrefs(mergedPrefs);
         setIsSaved(true);
       } else {
         setIsEditing(true);
@@ -141,7 +161,54 @@ export function NotificationPreferences() {
     }
   };
 
-  const handleTimeChange = (mealType: string, field: 'hour' | 'minute', value: string) => {
+  const loadDiagnostics = async () => {
+    setLoadingDiagnostics(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get permission status
+      const permissionStatus = 'Notification' in window ? Notification.permission : 'unsupported';
+
+      // Check browser subscription
+      let hasSubscription = false;
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+          hasSubscription = !!subscription;
+        } catch (e) {
+          console.error('Error checking subscription:', e);
+        }
+      }
+
+      // Count subscriptions in backend
+      const { count: subscriptionCount } = await supabase
+        .from('push_subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      // Count meal times in backend
+      const { count: mealTimesCount } = await supabase
+        .from('baby_meal_times')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('enabled', true);
+
+      setDiagnostics({
+        permissionStatus,
+        hasSubscription,
+        subscriptionCount: subscriptionCount || 0,
+        mealTimesCount: mealTimesCount || 0,
+      });
+    } catch (error) {
+      console.error('Error loading diagnostics:', error);
+    } finally {
+      setLoadingDiagnostics(false);
+    }
+  };
+
+  const handleTimeChange = (mealType: string, field: 'preferred_hour' | 'preferred_minute', value: string) => {
     const numValue = parseInt(value) || 0;
     setPrefs(prev => prev.map(p => 
       p.meal_type === mealType 
@@ -225,6 +292,9 @@ export function NotificationPreferences() {
           variant: "destructive",
         });
       }
+      
+      // Refresh diagnostics
+      await loadDiagnostics();
     } catch (error: any) {
       console.error('Test notification error:', error);
       toast({
@@ -234,6 +304,53 @@ export function NotificationPreferences() {
       });
     } finally {
       setTestingNotification(false);
+    }
+  };
+
+  const handleSendMealReminderNow = async () => {
+    setSendingMealReminder(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "❌ Error",
+          description: "You must be logged in",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call send-meal-reminder edge function (public, no JWT needed)
+      const { data, error } = await supabase.functions.invoke('send-meal-reminder', {
+        body: { user_id: user.id, meal_type: 'lunch' },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "✅ Meal Reminder Sent!",
+          description: "A real push notification was sent. Check your device (even with app closed).",
+        });
+      } else {
+        toast({
+          title: "⚠️ Result",
+          description: data?.message || "Notification may not have been delivered",
+          variant: "destructive",
+        });
+      }
+      
+      // Refresh diagnostics
+      await loadDiagnostics();
+    } catch (error: any) {
+      console.error('Send meal reminder error:', error);
+      toast({
+        title: "❌ Error",
+        description: error.message || "Failed to send meal reminder",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingMealReminder(false);
     }
   };
 
@@ -249,26 +366,21 @@ export function NotificationPreferences() {
         .update({ timezone: userTimezone })
         .eq('id', user.id);
 
-      // Delete existing preferences
-      await supabase
-        .from('notification_preferences')
-        .delete()
-        .eq('user_id', user.id);
-
-      // Insert new preferences
-      const { error } = await supabase
-        .from('notification_preferences')
-        .insert(
-          prefs.map(p => ({
+      // Save to baby_meal_times (the source of truth for server-side push)
+      for (const pref of prefs) {
+        await supabase
+          .from('baby_meal_times')
+          .upsert({
             user_id: user.id,
-            meal_type: p.meal_type,
-            hour: p.hour,
-            minute: p.minute,
-            enabled: p.enabled,
-          }))
-        );
-
-      if (error) throw error;
+            meal_type: pref.meal_type,
+            preferred_hour: pref.preferred_hour,
+            preferred_minute: pref.preferred_minute,
+            enabled: pref.enabled,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id,meal_type'
+          });
+      }
 
       // Auto-subscribe to push notifications if supported
       console.log('🔔 Notification permission:', Notification.permission, 'Supported:', isSupported);
@@ -333,6 +445,9 @@ export function NotificationPreferences() {
         title: "✅ Preferences Saved",
         description: `Your notification times have been updated for timezone ${userTimezone}!`,
       });
+      
+      // Refresh diagnostics
+      await loadDiagnostics();
     } catch (error) {
       console.error('Error saving preferences:', error);
       toast({
@@ -408,8 +523,8 @@ export function NotificationPreferences() {
                 type="number"
                 min="0"
                 max="23"
-                value={pref.hour}
-                onChange={(e) => handleTimeChange(pref.meal_type, 'hour', e.target.value)}
+                value={pref.preferred_hour}
+                onChange={(e) => handleTimeChange(pref.meal_type, 'preferred_hour', e.target.value)}
                 disabled={!pref.enabled || !isEditing}
                 className="w-16 px-2 py-1 text-center border rounded bg-background disabled:opacity-50"
               />
@@ -418,8 +533,8 @@ export function NotificationPreferences() {
                 type="number"
                 min="0"
                 max="59"
-                value={pref.minute.toString().padStart(2, '0')}
-                onChange={(e) => handleTimeChange(pref.meal_type, 'minute', e.target.value)}
+                value={pref.preferred_minute.toString().padStart(2, '0')}
+                onChange={(e) => handleTimeChange(pref.meal_type, 'preferred_minute', e.target.value)}
                 disabled={!pref.enabled || !isEditing}
                 className="w-16 px-2 py-1 text-center border rounded bg-background disabled:opacity-50"
               />
@@ -453,29 +568,98 @@ export function NotificationPreferences() {
         </Button>
       )}
 
-      {/* Test Notification Button */}
+      {/* Diagnostics Section */}
       {isSaved && !isEditing && (
-        <div className="pt-4 border-t border-border/50">
-          <Button 
-            onClick={handleTestNotification}
-            disabled={testingNotification}
-            variant="outline"
-            className="w-full"
-          >
-            {testingNotification ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Sending Test...
-              </>
-            ) : (
-              <>
-                <Bell className="h-4 w-4 mr-2" />
-                Test Notification Now
-              </>
-            )}
-          </Button>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Send a test notification to verify your setup works
+        <div className="pt-4 border-t border-border/50 space-y-4">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <AlertCircle className="h-4 w-4" />
+            Push Notification Diagnostics
+          </div>
+          
+          {loadingDiagnostics ? (
+            <div className="text-sm text-muted-foreground">Loading diagnostics...</div>
+          ) : diagnostics && (
+            <div className="grid gap-2 text-sm">
+              <div className="flex items-center gap-2">
+                {diagnostics.permissionStatus === 'granted' ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-yellow-500" />
+                )}
+                <span>Permission: <strong>{diagnostics.permissionStatus}</strong></span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {diagnostics.hasSubscription ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                )}
+                <span>Browser subscription: <strong>{diagnostics.hasSubscription ? 'Active' : 'None'}</strong></span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {diagnostics.subscriptionCount > 0 ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                )}
+                <span>Backend subscriptions: <strong>{diagnostics.subscriptionCount}</strong></span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {diagnostics.mealTimesCount > 0 ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                )}
+                <span>Enabled meal times: <strong>{diagnostics.mealTimesCount}</strong></span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={handleTestNotification}
+              disabled={testingNotification}
+              variant="outline"
+              className="w-full"
+            >
+              {testingNotification ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending Test...
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4 mr-2" />
+                  Test Notification Now
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              onClick={handleSendMealReminderNow}
+              disabled={sendingMealReminder}
+              variant="default"
+              className="w-full"
+            >
+              {sendingMealReminder ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending Meal Reminder...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Meal Reminder Now (Real Push)
+                </>
+              )}
+            </Button>
+          </div>
+          
+          <p className="text-xs text-muted-foreground text-center">
+            "Send Meal Reminder Now" sends a real server push notification - works even with app closed!
           </p>
         </div>
       )}

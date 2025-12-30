@@ -31,16 +31,27 @@ interface UserProfile {
   timezone: string | null;
 }
 
+// Support all meal types including morning-snack and afternoon-snack
 const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string }> = {
   'breakfast': {
     title: '🌅 Hora do Café da Manhã!',
     body: 'Em 30 minutos é hora do café! Que tal preparar algo especial para {baby}?',
     emoji: '🌅'
   },
+  'morning-snack': {
+    title: '🍎 Hora do Lanche da Manhã!',
+    body: 'Em 30 minutos é hora do lanche da manhã de {baby}! Uma fruta fresquinha?',
+    emoji: '🍎'
+  },
   'lunch': {
     title: '☀️ Hora do Almoço!',
     body: 'Em 30 minutos é hora do almoço de {baby}! Vamos preparar uma refeição nutritiva?',
     emoji: '☀️'
+  },
+  'afternoon-snack': {
+    title: '🍌 Hora do Lanche da Tarde!',
+    body: 'Em 30 minutos é hora do lanche da tarde de {baby}! Algo leve e saudável?',
+    emoji: '🍌'
   },
   'snack': {
     title: '🍎 Hora do Lanche!',
@@ -517,6 +528,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Get the message for this meal type (fallback to snack if not found)
       const message = MEAL_MESSAGES[mealTime.meal_type] || MEAL_MESSAGES['snack'];
       const personalizedBody = message.body.replace('{baby}', babyName);
 

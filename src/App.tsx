@@ -44,8 +44,9 @@ const AppContent = () => {
   // Activate PWA install detection and welcome notifications
   usePWAInstall();
   
-  // Activate meal time reminders
-  useMealReminders();
+  // NOTE: Local meal reminders (useMealReminders) are DISABLED
+  // Server-side push notifications via check-meal-reminders scheduler are the source of truth
+  // This ensures notifications work even when the app is closed
   
   // Activate service worker auto-update
   useServiceWorkerUpdate();
