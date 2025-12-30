@@ -172,13 +172,13 @@ const Profile = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error("Por favor, selecione uma imagem");
+      toast.error("Please select an image");
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 2MB");
+      toast.error("Image must be 2MB or less");
       return;
     }
 
@@ -216,10 +216,10 @@ const Profile = () => {
       if (updateError) throw updateError;
 
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
-      toast.success("Avatar atualizado com sucesso!");
+      toast.success("Avatar updated successfully!");
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      toast.error("Falha ao atualizar avatar");
+      toast.error("Failed to update avatar");
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -249,10 +249,10 @@ const Profile = () => {
         .eq('id', userId);
 
       setProfile(prev => prev ? { ...prev, avatar_url: null } : null);
-      toast.success("Avatar removido");
+      toast.success("Avatar removed");
     } catch (error) {
       console.error('Error removing avatar:', error);
-      toast.error("Falha ao remover avatar");
+      toast.error("Failed to remove avatar");
     }
   };
 
