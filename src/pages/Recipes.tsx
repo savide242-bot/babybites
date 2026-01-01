@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Heart, History, Eye, Sparkles } from "lucide-react";
+import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -13,6 +13,7 @@ import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 import { useDietaryPreferences, DietaryTag } from "@/hooks/useDietaryPreferences";
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
+import { motion } from "framer-motion";
 
 const Recipes = () => {
   const { t } = useLanguage();
@@ -58,72 +59,122 @@ const Recipes = () => {
     return isRecipeCompatible(recipeTags);
   };
 
-  // Compact Recipe Card Component
-  const RecipeCard = ({ recipe, showViewCount = false, viewCount = 0 }: { recipe: typeof recipes[0], showViewCount?: boolean, viewCount?: number }) => {
+  // Check if recipe is new (added in last 30 days based on ID pattern)
+  const isNewRecipe = (recipeId: string) => {
+    // Recipes with higher IDs are newer
+    const numericId = parseInt(recipeId.replace(/\D/g, '')) || 0;
+    return numericId > 45; // Recipes 46+ are "new"
+  };
+
+  // Check if recipe is popular (more than 5 views)
+  const isPopularRecipe = (recipeId: string) => {
+    const viewData = recentlyViewed.find(v => v.recipe_id === recipeId);
+    return viewData && viewData.view_count >= 3;
+  };
+
+  // Compact Recipe Card Component with badges
+  const RecipeCard = ({ recipe, showViewCount = false, viewCount = 0, index = 0 }: { recipe: typeof recipes[0], showViewCount?: boolean, viewCount?: number, index?: number }) => {
     const isCompatible = isCompatibleWithUserPrefs(recipe.id);
+    const isNew = isNewRecipe(recipe.id);
+    const isPopular = isPopularRecipe(recipe.id);
+    const prepTimeNum = parseInt(recipe.prepTime);
+    const isQuick = prepTimeNum <= 15;
     
     return (
-      <Link to={`/recipe/${recipe.id}`} className="group">
-        <Card className={`overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 ${
-          isCompatible && preferences.length > 0 ? 'ring-2 ring-green-500/50' : ''
-        }`}>
-          <div className="aspect-square relative overflow-hidden">
-            <img
-              src={recipe.image}
-              alt={recipe.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            
-            {/* Top badges */}
-            <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
-              <Badge className="bg-white/90 text-gray-700 text-[10px] px-2 py-0.5">
-                {recipe.ageGroup}
-              </Badge>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 bg-white/80 hover:bg-white rounded-full"
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleFavorite(recipe.id);
-                }}
-              >
-                <Heart className={`h-3.5 w-3.5 ${isFavorite(recipe.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-              </Button>
-            </div>
-
-            {/* Perfect match indicator */}
-            {isCompatible && preferences.length > 0 && (
-              <div className="absolute top-2 left-1/2 -translate-x-1/2">
-                <Badge className="bg-green-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5">
-                  <Sparkles className="h-2.5 w-2.5" />
-                  Match
-                </Badge>
-              </div>
-            )}
-            
-            {/* Bottom content */}
-            <div className="absolute bottom-0 left-0 right-0 p-2">
-              <h3 className="text-white font-semibold text-sm line-clamp-2 leading-tight mb-1">
-                {recipe.title}
-              </h3>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1 text-[10px] text-white/80">
-                  <Clock className="h-3 w-3" />
-                  <span>{recipe.prepTime}</span>
-                </div>
-                {showViewCount && viewCount > 1 && (
-                  <div className="flex items-center gap-1 text-[10px] text-white/80">
-                    <Eye className="h-3 w-3" />
-                    <span>{viewCount}x</span>
-                  </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.03, duration: 0.3 }}
+      >
+        <Link to={`/recipe/${recipe.id}`} className="group block">
+          <Card className={`overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
+            isCompatible && preferences.length > 0 ? 'ring-2 ring-mint/60' : ''
+          }`}>
+            <div className="aspect-square relative overflow-hidden">
+              <img
+                src={recipe.image}
+                alt={recipe.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              
+              {/* Top left badges stack */}
+              <div className="absolute top-2 left-2 flex flex-col gap-1">
+                {isNew && (
+                  <Badge className="bg-accent text-accent-foreground text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-md">
+                    <Zap className="h-2.5 w-2.5" />
+                    New
+                  </Badge>
+                )}
+                {isPopular && !isNew && (
+                  <Badge className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-md">
+                    <TrendingUp className="h-2.5 w-2.5" />
+                    Popular
+                  </Badge>
+                )}
+                {isQuick && (
+                  <Badge className="bg-mint text-mint-foreground text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-md">
+                    <Clock className="h-2.5 w-2.5" />
+                    Quick
+                  </Badge>
                 )}
               </div>
+              
+              {/* Age badge - top right */}
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <Badge className="bg-white/90 text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-sm">
+                  {recipe.ageGroup}
+                </Badge>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 bg-white/80 hover:bg-white rounded-full shadow-sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    toggleFavorite(recipe.id);
+                  }}
+                >
+                  <Heart className={`h-3.5 w-3.5 transition-all ${isFavorite(recipe.id) ? 'fill-primary text-primary scale-110' : 'text-muted-foreground'}`} />
+                </Button>
+              </div>
+
+              {/* Perfect match indicator - center top */}
+              {isCompatible && preferences.length > 0 && (
+                <motion.div 
+                  className="absolute top-10 left-1/2 -translate-x-1/2"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                >
+                  <Badge className="bg-mint text-mint-foreground text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-lg">
+                    <Sparkles className="h-2.5 w-2.5" />
+                    Perfect Match
+                  </Badge>
+                </motion.div>
+              )}
+              
+              {/* Bottom content */}
+              <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                <h3 className="text-white font-semibold text-sm line-clamp-2 leading-tight mb-1.5 drop-shadow-md">
+                  {recipe.title}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-[10px] text-white/90 bg-black/20 px-1.5 py-0.5 rounded-full">
+                    <Clock className="h-3 w-3" />
+                    <span>{recipe.prepTime}</span>
+                  </div>
+                  {showViewCount && viewCount > 1 && (
+                    <div className="flex items-center gap-1 text-[10px] text-white/90 bg-black/20 px-1.5 py-0.5 rounded-full">
+                      <Eye className="h-3 w-3" />
+                      <span>{viewCount}x</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </Card>
-      </Link>
+          </Card>
+        </Link>
+      </motion.div>
     );
   };
 

@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Mail, User, Lock, Sparkles, Loader2, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, User, Lock, Loader2, Calendar, Heart, Star, Users } from "lucide-react";
 import { z } from "zod";
 import GoogleLogo from "@/components/auth/GoogleLogo";
 import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
 import FormInput from "@/components/auth/FormInput";
 import WelcomeModal from "@/components/auth/WelcomeModal";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import BabyIllustration from "@/components/auth/BabyIllustration";
 
 const emailSchema = z.object({
   email: z.string().email("Invalid email format").max(255),
@@ -221,39 +222,62 @@ const Auth = () => {
         onClose={() => setShowForgotModal(false)}
       />
       
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/10 via-mint/10 to-background flex items-center justify-center p-4">
-      {/* Animated Background Particles */}
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/15 via-peach/20 to-mint/15 flex items-center justify-center p-4">
+      {/* Enhanced Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/30 rounded-full animate-particle-float" style={{ animationDelay: '0s' }} />
-        <div className="absolute top-1/3 right-1/3 w-3 h-3 bg-mint/40 rounded-full animate-particle-float" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-primary-glow/30 rounded-full animate-particle-float" style={{ animationDelay: '4s' }} />
-        <div className="absolute top-1/2 right-1/4 w-3 h-3 bg-mint-glow/30 rounded-full animate-particle-float" style={{ animationDelay: '6s' }} />
-        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-primary/20 rounded-full animate-particle-float" style={{ animationDelay: '8s' }} />
+        {/* Gradient orbs */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/30 to-mint/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-peach/40 to-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        {/* Floating particles */}
+        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-primary/40 rounded-full animate-particle-float" style={{ animationDelay: '0s' }} />
+        <div className="absolute top-1/3 right-1/3 w-4 h-4 bg-mint/50 rounded-full animate-particle-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-accent/40 rounded-full animate-particle-float" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-1/2 right-1/4 w-3 h-3 bg-peach/50 rounded-full animate-particle-float" style={{ animationDelay: '6s' }} />
+        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-primary/30 rounded-full animate-particle-float" style={{ animationDelay: '8s' }} />
+        <div className="absolute top-20 left-20 w-2 h-2 bg-mint/30 rounded-full animate-particle-float" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 right-20 w-3 h-3 bg-accent/30 rounded-full animate-particle-float" style={{ animationDelay: '3s' }} />
       </div>
 
       {/* Main Auth Card */}
       <div className="w-full max-w-md relative z-10 animate-fade-in-up">
         <div 
-          className="backdrop-blur-xl bg-[var(--glass-bg)] rounded-[32px] p-8 md:p-10 border border-border/50"
-          style={{ boxShadow: 'var(--shadow-glass)' }}
+          className="backdrop-blur-xl bg-[var(--glass-bg)] rounded-[32px] p-8 md:p-10 border border-border/50 shadow-2xl"
+          style={{ boxShadow: 'var(--shadow-glass), 0 0 60px hsla(var(--primary), 0.1)' }}
         >
-          {/* Logo/Icon with Animation */}
-          <div className="flex justify-center mb-6 animate-bounce-soft">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-mint flex items-center justify-center shadow-lg">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
+          {/* Baby Illustration */}
+          <div className="mb-4">
+            <BabyIllustration />
           </div>
 
           {/* Title Section */}
-          <div className="text-center space-y-2 mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-mint to-primary bg-clip-text text-transparent">
-              {step === 'email' ? 'Welcome to BabyBites' : step === 'signup' ? 'Create Account' : 'Welcome Back'}
+          <div className="text-center space-y-3 mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-mint to-primary bg-clip-text text-transparent animate-fade-in">
+              {step === 'email' ? 'BabyBites' : step === 'signup' ? 'Join BabyBites' : 'Welcome Back'}
             </h1>
             <p className="text-muted-foreground text-base md:text-lg">
-              {step === 'email' ? "Your baby's nutrition journey starts here 💕" : 
-               step === 'signup' ? 'Join 10,000+ caring mothers 🌸' : 
-               'Great to see you again! 💕'}
+              {step === 'email' ? "Your baby's nutrition journey starts here" : 
+               step === 'signup' ? 'Create your free account' : 
+               'Great to see you again!'}
             </p>
+            
+            {/* Social proof for email step */}
+            {step === 'email' && (
+              <div className="flex items-center justify-center gap-4 pt-2">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Users className="w-3.5 h-3.5 text-primary" />
+                  <span>10,000+ moms</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Star className="w-3.5 h-3.5 text-accent fill-accent" />
+                  <span>4.9 rating</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Heart className="w-3.5 h-3.5 text-primary fill-primary/50" />
+                  <span>500+ recipes</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* STEP 1: Email Input */}
