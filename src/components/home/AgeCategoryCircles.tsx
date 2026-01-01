@@ -7,10 +7,46 @@ interface AgeCategoryCirclesProps {
 }
 
 const ageCategories = [
-  { label: "6-9 months", ageGroup: "6-9 months", emoji: "🥣", minAge: 6, maxAge: 9 },
-  { label: "9-12 months", ageGroup: "9-12 months", emoji: "🥕", minAge: 9, maxAge: 12 },
-  { label: "12-18 months", ageGroup: "12-18 months", emoji: "🍝", minAge: 12, maxAge: 18 },
-  { label: "18-24 months", ageGroup: "18-24 months", emoji: "🥗", minAge: 18, maxAge: 24 },
+  { 
+    label: "6-9 months", 
+    ageGroup: "6-9 months", 
+    emoji: "🥣", 
+    minAge: 6, 
+    maxAge: 9,
+    color: "from-peach to-peach/70",
+    ringColor: "ring-peach",
+    textColor: "text-peach-foreground"
+  },
+  { 
+    label: "9-12 months", 
+    ageGroup: "9-12 months", 
+    emoji: "🥕", 
+    minAge: 9, 
+    maxAge: 12,
+    color: "from-accent to-accent/70",
+    ringColor: "ring-accent",
+    textColor: "text-accent-foreground"
+  },
+  { 
+    label: "12-18 months", 
+    ageGroup: "12-18 months", 
+    emoji: "🍝", 
+    minAge: 12, 
+    maxAge: 18,
+    color: "from-mint to-mint/70",
+    ringColor: "ring-mint",
+    textColor: "text-mint-foreground"
+  },
+  { 
+    label: "18-24 months", 
+    ageGroup: "18-24 months", 
+    emoji: "🥗", 
+    minAge: 18, 
+    maxAge: 24,
+    color: "from-primary to-primary/70",
+    ringColor: "ring-primary",
+    textColor: "text-primary"
+  },
 ];
 
 const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
@@ -37,34 +73,57 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
     return (
       <div ref={ref} className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Recipes by Age</h2>
-        <div className="flex items-center gap-3 overflow-x-auto overflow-y-visible py-2 scrollbar-hide">
+        <div className="flex items-center gap-4 overflow-x-auto overflow-y-visible py-3 scrollbar-hide">
           {ageCategories.map((category, index) => {
             const isActive = category.ageGroup === activeAgeGroup;
             return (
               <motion.button
                 key={category.ageGroup}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
+                whileHover={{ scale: 1.08, y: -4 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleCategoryClick(category.ageGroup)}
-                className={`flex flex-col items-center gap-1.5 min-w-[72px] group transition-all ${
+                className={`flex flex-col items-center gap-2 min-w-[80px] group transition-all ${
                   isActive ? "scale-105" : ""
                 }`}
               >
-                <div
-                  className={`rounded-full p-1 transition-all ring-2 ring-destructive ring-offset-2 ring-offset-background group-hover:scale-105 ${
-                    isActive ? "scale-105" : ""
-                  }`}
-                >
+                {/* Circle container with ring */}
+                <div className="relative">
+                  {/* Active pulse animation */}
+                  {isActive && (
+                    <motion.div
+                      className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.color} opacity-40`}
+                      animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0, 0.4] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                  
+                  {/* Ring */}
                   <div
-                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-soft overflow-hidden bg-destructive/10`}
+                    className={`rounded-full p-1 transition-all ring-2 ${category.ringColor} ring-offset-2 ring-offset-background ${
+                      isActive ? "ring-offset-4" : ""
+                    }`}
                   >
-                    <span className="text-xl leading-none">{category.emoji}</span>
+                    {/* Inner circle with gradient */}
+                    <motion.div
+                      className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg overflow-hidden bg-gradient-to-br ${category.color}`}
+                      whileHover={{ 
+                        boxShadow: "0 8px 24px -4px hsla(var(--primary), 0.3)"
+                      }}
+                    >
+                      <span className="text-2xl leading-none drop-shadow-sm">{category.emoji}</span>
+                    </motion.div>
                   </div>
                 </div>
+                
+                {/* Label */}
                 <span
-                  className={`text-[10px] font-medium transition-colors text-center leading-tight ${
-                    isActive ? "text-destructive" : "text-muted-foreground group-hover:text-foreground"
+                  className={`text-[11px] font-semibold transition-colors text-center leading-tight ${
+                    isActive 
+                      ? category.textColor 
+                      : "text-muted-foreground group-hover:text-foreground"
                   }`}
                 >
                   {category.label}
