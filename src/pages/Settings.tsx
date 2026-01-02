@@ -7,7 +7,7 @@ import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useAdminRole } from '@/hooks/useAdminRole';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Send, Clock, Shield, Flame, Trophy, CalendarCheck, PartyPopper } from 'lucide-react';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Clock, Shield, Flame, Trophy, CalendarCheck, PartyPopper, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
@@ -123,79 +123,6 @@ const Settings = () => {
     }
   };
 
-  const [testingServerPush, setTestingServerPush] = useState(false);
-
-  const handleTestNotification = async () => {
-    if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification('🎉 Test Notification', {
-          body: 'Push notifications are working correctly!',
-          icon: '/icon-192x192.png',
-          badge: '/icon-192x192.png',
-          tag: 'test-notification'
-        });
-        
-        toast({
-          title: "✅ Test Sent!",
-          description: "Check your device notification bar",
-        });
-      } catch (error) {
-        console.error('Error sending test notification:', error);
-        toast({
-          title: "❌ Error",
-          description: "Could not send test notification",
-          variant: "destructive"
-        });
-      }
-    } else {
-      toast({
-        title: "⚠️ Permission Required",
-        description: "Please enable notifications first",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleTestServerPush = async () => {
-    setTestingServerPush(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('test-push-notification');
-      
-      if (error) {
-        console.error('Server push test error:', error);
-        toast({
-          title: "❌ Server Push Failed",
-          description: error.message || "Could not send server push notification",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      if (data?.error) {
-        toast({
-          title: "⚠️ " + (data.needsResubscribe ? "Re-subscribe Required" : "Push Issue"),
-          description: data.message || data.error,
-          variant: data.needsResubscribe ? "default" : "destructive"
-        });
-        return;
-      }
-      
-      toast({
-        title: "✅ Server Push Sent!",
-        description: data?.message || "Check your device notification bar (even with app closed)",
-      });
-    } catch (error) {
-      console.error('Server push test error:', error);
-      toast({
-        title: "❌ Error",
-        description: "Failed to test server push",
-        variant: "destructive"
-      });
-    } finally {
-      setTestingServerPush(false);
-    }
-  };
 
   const handleNotifyUpdate = async () => {
     try {
@@ -218,7 +145,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen pt-12 pb-24 lg:pb-8">
       <div className="container max-w-4xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
@@ -515,30 +442,6 @@ const Settings = () => {
                   {checking ? 'Checking...' : 'Check for Updates'}
                 </Button>
                 
-                {updateNotifications && (
-                  <>
-                    <Button 
-                      onClick={handleTestNotification} 
-                      variant="secondary" 
-                      className="w-full"
-                    >
-                      <Bell className="w-4 h-4 mr-2" />
-                      Test Local Notification
-                    </Button>
-                    <Button 
-                      onClick={handleTestServerPush} 
-                      variant="outline" 
-                      className="w-full border-primary/50 hover:bg-primary/10"
-                      disabled={testingServerPush}
-                    >
-                      <Send className={`w-4 h-4 mr-2 ${testingServerPush ? 'animate-pulse' : ''}`} />
-                      {testingServerPush ? 'Testing...' : 'Test Server Push (Works Outside App)'}
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Server push works even when the app is closed - this is what meal reminders use
-                    </p>
-                  </>
-                )}
                 
                 {isAdmin && updateNotifications && (
                   <Button 

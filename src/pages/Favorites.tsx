@@ -28,7 +28,7 @@ const Favorites = () => {
   }
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-24 lg:pb-8">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

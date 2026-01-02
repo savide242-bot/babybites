@@ -66,7 +66,6 @@ export function NotificationPreferences() {
   const [isEditing, setIsEditing] = useState(false);
   const [userTimezone, setUserTimezone] = useState<string>('UTC');
   const [initialTimezone, setInitialTimezone] = useState<string>('UTC');
-  const [testingNotification, setTestingNotification] = useState(false);
   const [sendingMealReminder, setSendingMealReminder] = useState(false);
   
   // Diagnostics state
@@ -244,67 +243,6 @@ export function NotificationPreferences() {
     setUserTimezone(initialTimezone);
     setIsEditing(false);
     setIsSaved(true);
-  };
-
-  const handleTestNotification = async () => {
-    setTestingNotification(true);
-    try {
-      if (!isSupported) {
-        toast({
-          title: "❌ Not Supported",
-          description: "Push notifications are not supported in this browser.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Ensure we have a fresh subscription saved on the backend
-      const subscribed = await subscribeToPushNotifications();
-      if (!subscribed) return;
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "❌ Error",
-          description: "You must be logged in to test notifications",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('test-push-notification', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast({
-          title: "✅ Test Sent!",
-          description: "If you don't see it within ~15s, your device/browser is blocking push delivery.",
-        });
-      } else {
-        toast({
-          title: "⚠️ Test Result",
-          description: data?.message || "Notification may not have been delivered",
-          variant: "destructive",
-        });
-      }
-      
-      // Refresh diagnostics
-      await loadDiagnostics();
-    } catch (error: any) {
-      console.error('Test notification error:', error);
-      toast({
-        title: "❌ Error",
-        description: error.message || "Failed to send test notification",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingNotification(false);
-    }
   };
 
   const handleSendMealReminderNow = async () => {
@@ -573,94 +511,101 @@ export function NotificationPreferences() {
         <div className="pt-4 border-t border-border/50 space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium">
             <AlertCircle className="h-4 w-4" />
-            Push Notification Diagnostics
+            Push Notification Status
           </div>
           
           {loadingDiagnostics ? (
-            <div className="text-sm text-muted-foreground">Loading diagnostics...</div>
+            <div className="text-sm text-muted-foreground">Loading status...</div>
           ) : diagnostics && (
-            <div className="grid gap-2 text-sm">
-              <div className="flex items-center gap-2">
-                {diagnostics.permissionStatus === 'granted' ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-yellow-500" />
-                )}
-                <span>Permission: <strong>{diagnostics.permissionStatus}</strong></span>
+            <div className="space-y-3">
+              {/* iOS Detection Warning */}
+              {!isSupported && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-medium text-amber-700 dark:text-amber-400">Push Not Available</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {/iPhone|iPad/.test(navigator.userAgent) ? (
+                          <>
+                            <strong>iOS Requirements:</strong><br/>
+                            • iOS 16.4 or later<br/>
+                            • App must be installed on Home Screen (PWA)<br/>
+                            • Go to Settings → Safari → Advanced → Web Push (enable)<br/>
+                            • Not in Private/Incognito mode
+                          </>
+                        ) : (
+                          "Your browser doesn't support push notifications."
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Status Grid */}
+              <div className="grid gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  {diagnostics.permissionStatus === 'granted' ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  )}
+                  <span>Permission: <strong>{diagnostics.permissionStatus}</strong></span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {diagnostics.hasSubscription ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                  )}
+                  <span>Browser subscription: <strong>{diagnostics.hasSubscription ? 'Active' : 'None'}</strong></span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {diagnostics.subscriptionCount > 0 ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                  )}
+                  <span>Server subscriptions: <strong>{diagnostics.subscriptionCount}</strong></span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {diagnostics.mealTimesCount > 0 ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-yellow-500" />
+                  )}
+                  <span>Enabled meal times: <strong>{diagnostics.mealTimesCount}</strong></span>
+                </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                {diagnostics.hasSubscription ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span>Browser subscription: <strong>{diagnostics.hasSubscription ? 'Active' : 'None'}</strong></span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {diagnostics.subscriptionCount > 0 ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span>Backend subscriptions: <strong>{diagnostics.subscriptionCount}</strong></span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {diagnostics.mealTimesCount > 0 ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span>Enabled meal times: <strong>{diagnostics.mealTimesCount}</strong></span>
-              </div>
+
+              {/* Single Test Button */}
+              {isSupported && diagnostics.permissionStatus === 'granted' && diagnostics.subscriptionCount > 0 && (
+                <Button 
+                  onClick={handleSendMealReminderNow}
+                  disabled={sendingMealReminder}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  {sendingMealReminder ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Test Push Notification
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           )}
-
-          <div className="flex flex-col gap-2">
-            <Button 
-              onClick={handleTestNotification}
-              disabled={testingNotification}
-              variant="outline"
-              className="w-full"
-            >
-              {testingNotification ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sending Test...
-                </>
-              ) : (
-                <>
-                  <Bell className="h-4 w-4 mr-2" />
-                  Test Notification Now
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              onClick={handleSendMealReminderNow}
-              disabled={sendingMealReminder}
-              variant="default"
-              className="w-full"
-            >
-              {sendingMealReminder ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sending Meal Reminder...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Meal Reminder Now (Real Push)
-                </>
-              )}
-            </Button>
-          </div>
-          
-          <p className="text-xs text-muted-foreground text-center">
-            "Send Meal Reminder Now" sends a real server push notification - works even with app closed!
-          </p>
         </div>
       )}
 

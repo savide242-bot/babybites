@@ -342,7 +342,7 @@ const ProgressReports = () => {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background pt-20 pb-8">
+      <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8">
         <div className="container max-w-5xl mx-auto px-4">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
@@ -353,7 +353,7 @@ const ProgressReports = () => {
   }
 
   return (
-    <main className="min-h-screen bg-background pt-20 pb-8">
+    <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8">
       <div className="container max-w-5xl mx-auto px-4">
         {/* Header with Score */}
         <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 gap-4">
