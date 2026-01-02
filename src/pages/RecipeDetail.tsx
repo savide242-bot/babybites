@@ -309,7 +309,7 @@ const RecipeDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-24 lg:pb-8">
       {/* Hero Section */}
       <div className="relative h-[45vh] min-h-[350px] overflow-hidden">
         <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover" />

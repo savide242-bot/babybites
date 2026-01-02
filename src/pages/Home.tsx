@@ -241,7 +241,7 @@ const Home = () => {
   const navRefs = (window as any).__tourNavRefs;
 
   return (
-    <div className="min-h-screen bg-background pb-20 lg:pb-8">
+    <div className="min-h-screen bg-background pb-24 lg:pb-8">
       {/* App Tour for new users */}
       {!tour.isLoading && (
         <AppTour

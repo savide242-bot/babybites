@@ -12,7 +12,7 @@ const FoodDiary = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background pt-20 pb-8">
+    <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8">
       <div className="container max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="mb-6">

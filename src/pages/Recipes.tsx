@@ -179,7 +179,7 @@ const Recipes = () => {
   };
 
   return (
-    <div className="min-h-screen py-16">
+    <div className="min-h-screen pt-16 pb-24 lg:pb-8">
       <div className="container px-4">
         {/* Header */}
         <div className="mb-8">

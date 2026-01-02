@@ -6,7 +6,7 @@ const Community = () => {
   const whatsappLink = "https://chat.whatsapp.com/INkLCwAKV3zDpg5z5xJZDs?mode=hqrt3";
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 pt-20 pb-8">
+    <main className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 pt-20 pb-24 lg:pb-8">
       <div className="container max-w-2xl mx-auto px-4">
         {/* Hero Section */}
         <div className="text-center mb-8">

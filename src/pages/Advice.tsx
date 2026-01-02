@@ -479,7 +479,7 @@ const adviceArticles = [
 
 const Advice = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 py-12 pt-24">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-24 pb-24 lg:pb-8">
       <div className="container max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="mb-10">
