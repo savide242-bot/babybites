@@ -3,6 +3,8 @@ import { Check, X, Sparkles, Heart } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { Card } from "@/components/ui/card";
+import { motion, AnimatePresence } from "framer-motion";
+import { hapticFeedback } from "@/utils/haptic";
 
 interface QuickCheckinWidgetProps {
   todayCheckin: {
@@ -71,6 +73,9 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
   const handleQuickCheckin = async (status: 'ate_well' | 'rejected' | 'tried_new') => {
     if (isSubmitting || todayCheckin) return;
     
+    // Haptic feedback on tap
+    hapticFeedback('medium');
+    
     setIsSubmitting(true);
     const success = await onSubmit(status);
     setIsSubmitting(false);
@@ -80,22 +85,25 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
       
       // Celebration based on status
       if (status === 'tried_new') {
+        hapticFeedback('success');
         confetti({
-          particleCount: 100,
-          spread: 70,
+          particleCount: 120,
+          spread: 80,
           origin: { y: 0.6 },
-          colors: ['#FF6B9D', '#FFD93D', '#6BCB77', '#4D96FF']
+          colors: ['#FF6B9D', '#FFD93D', '#6BCB77', '#4D96FF', '#9B5DE5']
         });
         toast.success(message, { duration: 5000 });
       } else if (status === 'ate_well') {
+        hapticFeedback('success');
         confetti({
-          particleCount: 50,
-          spread: 45,
+          particleCount: 60,
+          spread: 50,
           origin: { y: 0.6 },
-          colors: ['#6BCB77', '#98D8C8']
+          colors: ['#6BCB77', '#98D8C8', '#A8E6CF']
         });
         toast.success(message, { duration: 4000 });
       } else {
+        hapticFeedback('light');
         // Special empathetic toast for rejection
         toast(message, { 
           duration: 6000,
@@ -108,60 +116,91 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
   if (todayCheckin) {
     const info = statusInfo[todayCheckin.status];
     return (
-      <Card className={`${info.bgColor} rounded-2xl p-4 border ${info.borderColor}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-2xl ${info.bgColor} flex items-center justify-center`}>
-              <span className="text-2xl">{info.emoji}</span>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300 }}
+      >
+        <Card className={`${info.bgColor} rounded-2xl p-4 border ${info.borderColor}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <motion.div 
+                className={`w-12 h-12 rounded-2xl ${info.bgColor} flex items-center justify-center`}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <span className="text-2xl">{info.emoji}</span>
+              </motion.div>
+              <div>
+                <p className="text-xs text-muted-foreground">Check-in de hoje</p>
+                <p className="text-sm font-semibold text-foreground">{info.label}</p>
+                <p className={`text-xs ${info.textColor} font-medium mt-0.5`}>{info.supportMessage}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Today's check-in</p>
-              <p className="text-sm font-semibold text-foreground">{info.label}</p>
-              <p className={`text-xs ${info.textColor} font-medium mt-0.5`}>{info.supportMessage}</p>
-            </div>
+            <motion.div 
+              className={`flex items-center gap-1.5 ${info.textColor}`}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: 'spring' }}
+            >
+              <Check className="w-5 h-5" />
+              <span className="text-xs font-semibold">Feito</span>
+            </motion.div>
           </div>
-          <div className={`flex items-center gap-1.5 ${info.textColor}`}>
-            <Check className="w-5 h-5" />
-            <span className="text-xs font-semibold">Done</span>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      </motion.div>
     );
   }
 
   return (
-    <Card className="bg-card rounded-2xl p-4 shadow-card border border-border/50">
-      <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-        <span>How did {babyName || "baby"} eat today?</span>
-        <Heart className="w-4 h-4 text-primary/50" />
-      </p>
-      <div className="flex gap-2">
-        <button
-          onClick={() => handleQuickCheckin('ate_well')}
-          disabled={isSubmitting}
-          className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-mint/10 hover:bg-mint/20 border border-mint/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-        >
-          <Check className="w-5 h-5 text-mint" />
-          <span className="text-xs font-medium text-foreground">Ate well</span>
-        </button>
-        <button
-          onClick={() => handleQuickCheckin('rejected')}
-          disabled={isSubmitting}
-          className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-        >
-          <X className="w-5 h-5 text-accent" />
-          <span className="text-xs font-medium text-foreground">Rejected</span>
-        </button>
-        <button
-          onClick={() => handleQuickCheckin('tried_new')}
-          disabled={isSubmitting}
-          className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-        >
-          <Sparkles className="w-5 h-5 text-primary" />
-          <span className="text-xs font-medium text-foreground">New food!</span>
-        </button>
-      </div>
-    </Card>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <Card className="bg-card rounded-2xl p-4 shadow-card border border-border/50">
+        <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+          <span>Como o {babyName || "bebé"} comeu hoje?</span>
+          <motion.span
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            <Heart className="w-4 h-4 text-primary/50" />
+          </motion.span>
+        </p>
+        <div className="flex gap-2">
+          <motion.button
+            onClick={() => handleQuickCheckin('ate_well')}
+            disabled={isSubmitting}
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-mint/10 hover:bg-mint/20 border border-mint/30 transition-all disabled:opacity-50"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Check className="w-5 h-5 text-mint" />
+            <span className="text-xs font-medium text-foreground">Comeu bem</span>
+          </motion.button>
+          <motion.button
+            onClick={() => handleQuickCheckin('rejected')}
+            disabled={isSubmitting}
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-all disabled:opacity-50"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <X className="w-5 h-5 text-accent" />
+            <span className="text-xs font-medium text-foreground">Rejeitou</span>
+          </motion.button>
+          <motion.button
+            onClick={() => handleQuickCheckin('tried_new')}
+            disabled={isSubmitting}
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all disabled:opacity-50"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Sparkles className="w-5 h-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Novo!</span>
+          </motion.button>
+        </div>
+      </Card>
+    </motion.div>
   );
 };
 
