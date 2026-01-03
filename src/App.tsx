@@ -34,6 +34,7 @@ import Admin from "./pages/Admin";
 import Achievements from "./pages/Achievements";
 import Profile from "./pages/Profile";
 import FoodDiary from "./pages/FoodDiary";
+import IOSPushSetup from "./pages/IOSPushSetup";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { NotificationPromptModal } from "@/components/NotificationPromptModal";
@@ -105,6 +106,7 @@ const AppContent = () => {
                 <Route path="/achievements" element={<Achievements />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/food-diary" element={<FoodDiary />} />
+                <Route path="/ios-push-setup" element={<IOSPushSetup />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Clock, Users, Heart, ArrowLeft } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useLanguage } from "@/hooks/useLanguage";
+import { supabase } from "@/integrations/supabase/client";
+import { EmptyFavorites } from "@/components/empty-states";
 
 const Favorites = () => {
   const { t } = useLanguage();
@@ -50,23 +52,8 @@ const Favorites = () => {
 
         {/* Empty State */}
         {favoriteRecipes.length === 0 && (
-          <Card className="text-center py-20 border-dashed border-2 animate-fade-in">
-            <CardContent className="space-y-6">
-              <div className="text-8xl animate-bounce">💕</div>
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  No Favorites Yet!
-                </h2>
-                <p className="text-muted-foreground text-lg max-w-md mx-auto">
-                  Start exploring our 200+ delicious recipes and save your favorites by clicking the heart icon ❤️
-                </p>
-              </div>
-              <Button asChild className="rounded-full px-8 py-6 text-lg shadow-elegant hover:shadow-glow transition-all">
-                <Link to="/recipes">
-                  🍳 Explore Recipes
-                </Link>
-              </Button>
-            </CardContent>
+          <Card className="border-dashed border-2 animate-fade-in">
+            <EmptyFavorites />
           </Card>
         )}
 

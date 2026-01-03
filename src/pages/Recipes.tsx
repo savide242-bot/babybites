@@ -13,7 +13,9 @@ import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 import { useDietaryPreferences, DietaryTag } from "@/hooks/useDietaryPreferences";
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
+import { EmptyRecipes } from "@/components/empty-states";
 import { motion } from "framer-motion";
+import { hapticFeedback } from "@/utils/haptic";
 
 const Recipes = () => {
   const { t } = useLanguage();
@@ -298,25 +300,15 @@ const Recipes = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold mb-2">{t('recipes.noResults')}</h3>
-            <p className="text-muted-foreground mb-6">
-              {t('recipes.noResultsDesc')}
-            </p>
-            <Button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedAge("All Ages");
-                setSelectedCategory("All Categories");
-                setDietaryFilters([]);
-              }}
-              variant="outline"
-              className="rounded-full"
-            >
-              {t('recipes.clearFilters')}
-            </Button>
-          </div>
+          <EmptyRecipes 
+            onClearFilters={() => {
+              hapticFeedback('light');
+              setSearchQuery("");
+              setSelectedAge("All Ages");
+              setSelectedCategory("All Categories");
+              setDietaryFilters([]);
+            }}
+          />
         )}
       </div>
     </div>

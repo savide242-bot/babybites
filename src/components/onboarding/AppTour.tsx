@@ -103,7 +103,7 @@ const AppTour = ({
                   transition={{ delay: 0.4 }}
                   className="text-2xl font-bold text-foreground"
                 >
-                  Welcome, {displayName}! 💕
+                  Bem-vinda, {displayName}! 💕
                 </motion.h1>
 
                 <motion.p
@@ -112,8 +112,8 @@ const AppTour = ({
                   transition={{ delay: 0.5 }}
                   className="text-muted-foreground leading-relaxed"
                 >
-                  We know how much you care about {babyDisplayName}'s health and nutrition. 
-                  Let me show you around in 30 seconds!
+                  Sabemos o quanto se preocupa com a saúde e nutrição de {babyDisplayName}. 
+                  Deixe-me mostrar-lhe a app em 30 segundos!
                 </motion.p>
               </div>
 
@@ -128,14 +128,14 @@ const AppTour = ({
                   className="w-full h-12 rounded-2xl text-base font-semibold gap-2"
                 >
                   <Sparkles className="w-5 h-5" />
-                  Show Me Around
+                  Mostrar a App
                 </Button>
                 
                 <button
                   onClick={onSkip}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Skip tour
+                  Saltar tour
                 </button>
               </motion.div>
             </div>
@@ -179,7 +179,7 @@ const AppTour = ({
                   transition={{ delay: 0.3 }}
                   className="text-2xl font-bold text-foreground"
                 >
-                  You're all set!
+                  Está tudo pronto!
                 </motion.h1>
 
                 <motion.p
@@ -188,8 +188,8 @@ const AppTour = ({
                   transition={{ delay: 0.4 }}
                   className="text-muted-foreground leading-relaxed"
                 >
-                  Start exploring recipes and planning {babyDisplayName}'s meals. 
-                  You've got this! 💪
+                  Comece a explorar receitas e a planear as refeições de {babyDisplayName}. 
+                  Vai conseguir! 💪
                 </motion.p>
               </div>
 
@@ -203,7 +203,7 @@ const AppTour = ({
                   onClick={onComplete}
                   className="w-full h-12 rounded-2xl text-base font-semibold gap-2"
                 >
-                  Start Exploring
+                  Começar a Explorar
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </motion.div>
@@ -221,34 +221,39 @@ const AppTour = ({
     description: string; 
     icon: React.ReactNode;
     position?: 'top' | 'bottom';
+    tip?: string;
   }> = {
     1: {
       ref: refs.ageCategoriesRef,
-      title: "Recipes by Age",
-      description: `Here you find recipes perfect for ${babyDisplayName}'s age. Tap a circle to explore!`,
+      title: "Receitas por Idade",
+      description: `Aqui encontra receitas perfeitas para a idade de ${babyDisplayName}. Toque num círculo para explorar!`,
       icon: <ChefHat className="w-5 h-5" />,
-      position: 'bottom'
+      position: 'bottom',
+      tip: "💡 As receitas adaptam-se ao crescimento!"
     },
     2: {
       ref: refs.recipeOfDay,
-      title: "Today's Recipe",
-      description: `Every day we pick a perfect recipe for ${babyDisplayName}. Tap to see ingredients!`,
+      title: "Receita do Dia",
+      description: `Todos os dias escolhemos uma receita perfeita para ${babyDisplayName}. Toque para ver os ingredientes!`,
       icon: <Heart className="w-5 h-5" />,
-      position: 'bottom'
+      position: 'bottom',
+      tip: "💡 Nova receita todos os dias!"
     },
     3: {
       ref: refs.recipesNav,
-      title: "All Recipes",
-      description: "Here you find 300+ recipes! Filter by age, ingredients, and prep time.",
+      title: "Todas as Receitas",
+      description: "Aqui encontra 300+ receitas! Filtre por idade, ingredientes e tempo de preparação.",
       icon: <BookOpen className="w-5 h-5" />,
-      position: 'top'
+      position: 'top',
+      tip: "💡 Use os filtros para encontrar rapidamente!"
     },
     4: {
       ref: refs.plannerNav,
-      title: "Meal Planner",
-      description: "Here you can plan the whole week! We've already created your first plan.",
+      title: "Planeador de Refeições",
+      description: "Aqui pode planear a semana toda! Já criámos o seu primeiro plano.",
       icon: <Calendar className="w-5 h-5" />,
-      position: 'top'
+      position: 'top',
+      tip: "💡 Receba lembretes para cada refeição!"
     },
   };
 
@@ -281,13 +286,23 @@ const AppTour = ({
         </div>
 
         {/* Content */}
-        <div className="space-y-2 mb-5">
+        <div className="space-y-2 mb-4">
           <h3 className="text-lg font-semibold text-foreground">
             {currentConfig?.title}
           </h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {currentConfig?.description}
           </p>
+          {currentConfig?.tip && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-lg inline-block"
+            >
+              {currentConfig.tip}
+            </motion.p>
+          )}
         </div>
 
         {/* Progress dots */}
