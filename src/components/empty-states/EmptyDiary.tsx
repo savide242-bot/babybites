@@ -126,12 +126,12 @@ const EmptyDiary = ({ babyName, onAddEntry }: EmptyDiaryProps) => {
         className="space-y-3"
       >
         <h2 className="text-xl font-bold text-foreground">
-          Diário Alimentar Vazio
+          Empty Food Diary
         </h2>
         <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-          Comece a registar as reacções de {babyName || 'bebé'} aos alimentos.
+          Start recording {babyName || 'baby'}'s reactions to foods.
           <br />
-          <span className="text-primary/70">É uma óptima forma de detectar alergias!</span>
+          <span className="text-primary/70">It's a great way to detect allergies!</span>
         </p>
       </motion.div>
 
@@ -148,7 +148,7 @@ const EmptyDiary = ({ babyName, onAddEntry }: EmptyDiaryProps) => {
             className="rounded-xl gap-2"
           >
             <Plus className="w-4 h-4" />
-            Adicionar Primeiro Registo
+            Add First Entry
           </Button>
         </motion.div>
       )}
@@ -160,8 +160,8 @@ const EmptyDiary = ({ babyName, onAddEntry }: EmptyDiaryProps) => {
         transition={{ delay: 0.8 }}
         className="mt-6 p-4 bg-primary/5 rounded-xl text-xs text-muted-foreground max-w-xs mx-auto"
       >
-        <p className="font-medium text-foreground mb-1">💡 Dica</p>
-        <p>Registe cada novo alimento e observe por 3-5 dias antes de introduzir outro.</p>
+        <p className="font-medium text-foreground mb-1">💡 Tip</p>
+        <p>Record each new food and wait 3-5 days before introducing another.</p>
       </motion.div>
     </motion.div>
   );

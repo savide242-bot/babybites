@@ -63,10 +63,10 @@ const IOSPushSetup = () => {
     // Check 1: iOS Detection
     newChecklist.push({
       id: 'ios-device',
-      title: 'Dispositivo iOS',
-      description: isIOSDevice ? 'iPhone/iPad detectado' : 'Não é um dispositivo iOS',
+      title: 'iOS Device',
+      description: isIOSDevice ? 'iPhone/iPad detected' : 'Not an iOS device',
       status: isIOSDevice ? 'success' : 'error',
-      helpText: !isIOSDevice ? 'Push notifications funcionam melhor em iOS. Em Android, basta aceitar a permissão.' : undefined
+      helpText: !isIOSDevice ? 'Push notifications work best on iOS. On Android, just accept the permission prompt.' : undefined
     });
 
     // Check 2: iOS Version
@@ -74,34 +74,34 @@ const IOSPushSetup = () => {
       const hasValidVersion = version !== null && version >= 16;
       newChecklist.push({
         id: 'ios-version',
-        title: 'Versão do iOS',
-        description: version ? `iOS ${version} detectado` : 'Versão não detectada',
+        title: 'iOS Version',
+        description: version ? `iOS ${version} detected` : 'Version not detected',
         status: hasValidVersion ? 'success' : 'error',
-        helpText: !hasValidVersion ? 'Push notifications requerem iOS 16.4 ou superior. Vá a Definições > Geral > Actualização de Software.' : undefined
+        helpText: !hasValidVersion ? 'Push notifications require iOS 16.4 or later. Go to Settings > General > Software Update.' : undefined
       });
     }
 
     // Check 3: PWA Mode
     newChecklist.push({
       id: 'pwa-mode',
-      title: 'Instalado no Ecrã Inicial',
-      description: pwaMode ? 'App instalada como PWA ✓' : 'App a correr no navegador',
+      title: 'Added to Home Screen',
+      description: pwaMode ? 'App installed as PWA ✓' : 'Running in browser',
       status: pwaMode ? 'success' : 'error',
-      helpText: !pwaMode ? 'Para receber notificações, adicione a app ao Ecrã Inicial.' : undefined,
+      helpText: !pwaMode ? 'To receive notifications, add the app to your Home Screen.' : undefined,
       action: !pwaMode ? () => {
-        alert('No Safari:\n1. Toque no botão Partilhar (ícone quadrado com seta)\n2. Role para baixo\n3. Toque em "Adicionar ao Ecrã Inicial"\n4. Confirme');
+        alert('In Safari:\n1. Tap the Share button (square with arrow)\n2. Scroll down\n3. Tap "Add to Home Screen"\n4. Confirm');
       } : undefined,
-      actionLabel: 'Ver instruções'
+      actionLabel: 'View Instructions'
     });
 
     // Check 4: Notification API
     const hasNotificationAPI = 'Notification' in window;
     newChecklist.push({
       id: 'notification-api',
-      title: 'API de Notificações',
-      description: hasNotificationAPI ? 'Suportada pelo navegador' : 'Não suportada',
+      title: 'Notification API',
+      description: hasNotificationAPI ? 'Supported by browser' : 'Not supported',
       status: hasNotificationAPI ? 'success' : 'error',
-      helpText: !hasNotificationAPI ? 'O seu navegador não suporta notificações. Tente usar o Safari.' : undefined
+      helpText: !hasNotificationAPI ? 'Your browser does not support notifications. Try using Safari.' : undefined
     });
 
     // Check 5: Permission Status
@@ -109,16 +109,16 @@ const IOSPushSetup = () => {
       const permission = Notification.permission;
       newChecklist.push({
         id: 'permission',
-        title: 'Permissão de Notificações',
-        description: permission === 'granted' ? 'Permitido ✓' : permission === 'denied' ? 'Bloqueado' : 'Não solicitado',
+        title: 'Notification Permission',
+        description: permission === 'granted' ? 'Allowed ✓' : permission === 'denied' ? 'Blocked' : 'Not requested',
         status: permission === 'granted' ? 'success' : permission === 'denied' ? 'error' : 'pending',
-        helpText: permission === 'denied' ? 'Vá a Definições > Safari > Notificações e permita este site.' : 
-                  permission === 'default' ? 'Clique no botão abaixo para activar notificações.' : undefined,
+        helpText: permission === 'denied' ? 'Go to Settings > Safari > Notifications and allow this site.' : 
+                  permission === 'default' ? 'Click the button below to enable notifications.' : undefined,
         action: permission === 'default' ? async () => {
           await Notification.requestPermission();
           runDiagnostics();
         } : undefined,
-        actionLabel: permission === 'default' ? 'Pedir Permissão' : undefined
+        actionLabel: permission === 'default' ? 'Request Permission' : undefined
       });
     }
 
@@ -136,7 +136,7 @@ const IOSPushSetup = () => {
     newChecklist.push({
       id: 'service-worker',
       title: 'Service Worker',
-      description: swRegistered ? 'Registado e activo' : hasServiceWorker ? 'Não registado' : 'Não suportado',
+      description: swRegistered ? 'Registered and active' : hasServiceWorker ? 'Not registered' : 'Not supported',
       status: swRegistered ? 'success' : 'error'
     });
 
@@ -153,14 +153,14 @@ const IOSPushSetup = () => {
     }
     newChecklist.push({
       id: 'push-subscription',
-      title: 'Subscrição Push',
-      description: hasPushSubscription ? 'Activa e sincronizada' : 'Não existe',
+      title: 'Push Subscription',
+      description: hasPushSubscription ? 'Active and synced' : 'Not active',
       status: hasPushSubscription ? 'success' : 'pending',
       action: !hasPushSubscription && isSupported ? async () => {
         await subscribeToPushNotifications();
         runDiagnostics();
       } : undefined,
-      actionLabel: !hasPushSubscription && isSupported ? 'Activar Agora' : undefined
+      actionLabel: !hasPushSubscription && isSupported ? 'Activate Now' : undefined
     });
 
     setChecklist(newChecklist);
@@ -197,7 +197,7 @@ const IOSPushSetup = () => {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Voltar às Definições
+            Back to Settings
           </Link>
           
           <motion.div
@@ -208,9 +208,9 @@ const IOSPushSetup = () => {
             <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
               <Bell className="w-10 h-10 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Configurar Notificações iOS</h1>
+            <h1 className="text-2xl font-bold mb-2">iOS Notification Setup</h1>
             <p className="text-muted-foreground">
-              Siga os passos abaixo para activar lembretes de refeições no seu iPhone/iPad
+              Follow the steps below to enable meal reminders on your iPhone/iPad
             </p>
           </motion.div>
         </div>
@@ -230,9 +230,9 @@ const IOSPushSetup = () => {
                   <Check className="w-6 h-6 text-mint" />
                 </div>
                 <div>
-                  <p className="font-semibold text-mint-foreground">Tudo Configurado!</p>
+                  <p className="font-semibold text-mint-foreground">All Set!</p>
                   <p className="text-sm text-muted-foreground">
-                    As notificações push estão a funcionar correctamente.
+                    Push notifications are working correctly.
                   </p>
                 </div>
               </div>
@@ -250,9 +250,9 @@ const IOSPushSetup = () => {
                   <X className="w-6 h-6 text-destructive" />
                 </div>
                 <div>
-                  <p className="font-semibold text-destructive">{criticalErrors.length} Problema(s) Encontrado(s)</p>
+                  <p className="font-semibold text-destructive">{criticalErrors.length} Issue(s) Found</p>
                   <p className="text-sm text-muted-foreground">
-                    Resolva os problemas abaixo para activar notificações.
+                    Resolve the issues below to enable notifications.
                   </p>
                 </div>
               </div>
@@ -323,7 +323,7 @@ const IOSPushSetup = () => {
             className="gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
-            {isChecking ? 'A verificar...' : 'Verificar Novamente'}
+            {isChecking ? 'Checking...' : 'Check Again'}
           </Button>
         </div>
 
@@ -339,7 +339,7 @@ const IOSPushSetup = () => {
               <CardContent className="p-6">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                   <Download className="w-5 h-5 text-primary" />
-                  Como Adicionar ao Ecrã Inicial
+                  How to Add to Home Screen
                 </h3>
                 
                 <ol className="space-y-4">
@@ -348,9 +348,9 @@ const IOSPushSetup = () => {
                       1
                     </div>
                     <div>
-                      <p className="font-medium">Abra no Safari</p>
+                      <p className="font-medium">Open in Safari</p>
                       <p className="text-sm text-muted-foreground">
-                        Certifique-se que está a usar o Safari, não o Chrome ou outro navegador.
+                        Make sure you're using Safari, not Chrome or another browser.
                       </p>
                     </div>
                   </li>
@@ -360,9 +360,9 @@ const IOSPushSetup = () => {
                       2
                     </div>
                     <div>
-                      <p className="font-medium">Toque no Botão Partilhar</p>
+                      <p className="font-medium">Tap the Share Button</p>
                       <p className="text-sm text-muted-foreground">
-                        O ícone quadrado com uma seta para cima, na barra de ferramentas.
+                        The square icon with an arrow pointing up, in the toolbar.
                       </p>
                     </div>
                   </li>
@@ -372,9 +372,9 @@ const IOSPushSetup = () => {
                       3
                     </div>
                     <div>
-                      <p className="font-medium">Role e Toque "Adicionar ao Ecrã Inicial"</p>
+                      <p className="font-medium">Scroll and Tap "Add to Home Screen"</p>
                       <p className="text-sm text-muted-foreground">
-                        Pode estar mais abaixo na lista de opções.
+                        It may be further down in the list of options.
                       </p>
                     </div>
                   </li>
@@ -384,9 +384,9 @@ const IOSPushSetup = () => {
                       4
                     </div>
                     <div>
-                      <p className="font-medium">Abra a App do Ecrã Inicial</p>
+                      <p className="font-medium">Open the App from Home Screen</p>
                       <p className="text-sm text-muted-foreground">
-                        Agora pode configurar notificações push!
+                        Now you can set up push notifications!
                       </p>
                     </div>
                   </li>
@@ -400,20 +400,20 @@ const IOSPushSetup = () => {
         <div className="mt-8 p-4 bg-muted/30 rounded-2xl">
           <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
             <Zap className="w-4 h-4 text-accent" />
-            Dicas Rápidas
+            Quick Tips
           </h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              Modo Privado do Safari não suporta notificações push.
+              Safari Private Mode doesn't support push notifications.
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              Verifique se o "Modo de Foco" não está a bloquear notificações.
+              Check if Focus Mode isn't blocking notifications.
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              As notificações funcionam mesmo com a app fechada.
+              Notifications work even when the app is closed.
             </li>
           </ul>
         </div>

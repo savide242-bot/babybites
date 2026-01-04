@@ -102,13 +102,13 @@ const EmptyFavorites = ({ babyName }: EmptyFavoritesProps) => {
         className="space-y-3"
       >
         <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Ainda Sem Favoritos
+          No Favorites Yet
         </h2>
         <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">
-          Explore as nossas 200+ receitas e guarde as suas favoritas tocando no coração ❤️
+          Browse our 200+ recipes and save your favorites by tapping the heart ❤️
           {babyName && (
             <span className="block mt-2 text-sm">
-              Perfeitas para o crescimento saudável de {babyName}!
+              Perfect for {babyName}'s healthy growth!
             </span>
           )}
         </p>
@@ -123,7 +123,7 @@ const EmptyFavorites = ({ babyName }: EmptyFavoritesProps) => {
       >
         <Button asChild className="rounded-full px-8 py-6 text-lg shadow-elegant hover:shadow-glow transition-all">
           <Link to="/recipes">
-            🍳 Explorar Receitas
+            🍳 Browse Recipes
           </Link>
         </Button>
       </motion.div>

@@ -103,7 +103,7 @@ const AppTour = ({
                   transition={{ delay: 0.4 }}
                   className="text-2xl font-bold text-foreground"
                 >
-                  Bem-vinda, {displayName}! 💕
+                  Welcome, {displayName}! 💕
                 </motion.h1>
 
                 <motion.p
@@ -112,8 +112,8 @@ const AppTour = ({
                   transition={{ delay: 0.5 }}
                   className="text-muted-foreground leading-relaxed"
                 >
-                  Sabemos o quanto se preocupa com a saúde e nutrição de {babyDisplayName}. 
-                  Deixe-me mostrar-lhe a app em 30 segundos!
+                  We know how much you care about {babyDisplayName}'s health and nutrition. 
+                  Let me show you around the app in 30 seconds!
                 </motion.p>
               </div>
 
@@ -128,14 +128,14 @@ const AppTour = ({
                   className="w-full h-12 rounded-2xl text-base font-semibold gap-2"
                 >
                   <Sparkles className="w-5 h-5" />
-                  Mostrar a App
+                  Show Me Around
                 </Button>
                 
                 <button
                   onClick={onSkip}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Saltar tour
+                  Skip tour
                 </button>
               </motion.div>
             </div>
@@ -179,7 +179,7 @@ const AppTour = ({
                   transition={{ delay: 0.3 }}
                   className="text-2xl font-bold text-foreground"
                 >
-                  Está tudo pronto!
+                  You're All Set!
                 </motion.h1>
 
                 <motion.p
@@ -188,8 +188,8 @@ const AppTour = ({
                   transition={{ delay: 0.4 }}
                   className="text-muted-foreground leading-relaxed"
                 >
-                  Comece a explorar receitas e a planear as refeições de {babyDisplayName}. 
-                  Vai conseguir! 💪
+                  Start exploring recipes and planning {babyDisplayName}'s meals. 
+                  You've got this! 💪
                 </motion.p>
               </div>
 
@@ -203,7 +203,7 @@ const AppTour = ({
                   onClick={onComplete}
                   className="w-full h-12 rounded-2xl text-base font-semibold gap-2"
                 >
-                  Começar a Explorar
+                  Start Exploring
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </motion.div>
@@ -225,35 +225,35 @@ const AppTour = ({
   }> = {
     1: {
       ref: refs.ageCategoriesRef,
-      title: "Receitas por Idade",
-      description: `Aqui encontra receitas perfeitas para a idade de ${babyDisplayName}. Toque num círculo para explorar!`,
+      title: "Recipes by Age",
+      description: `Find perfect recipes for ${babyDisplayName}'s age. Tap a circle to explore!`,
       icon: <ChefHat className="w-5 h-5" />,
       position: 'bottom',
-      tip: "💡 As receitas adaptam-se ao crescimento!"
+      tip: "💡 Recipes adapt as your baby grows!"
     },
     2: {
       ref: refs.recipeOfDay,
-      title: "Receita do Dia",
-      description: `Todos os dias escolhemos uma receita perfeita para ${babyDisplayName}. Toque para ver os ingredientes!`,
+      title: "Recipe of the Day",
+      description: `Every day we pick a perfect recipe for ${babyDisplayName}. Tap to see ingredients!`,
       icon: <Heart className="w-5 h-5" />,
       position: 'bottom',
-      tip: "💡 Nova receita todos os dias!"
+      tip: "💡 New recipe every day!"
     },
     3: {
       ref: refs.recipesNav,
-      title: "Todas as Receitas",
-      description: "Aqui encontra 300+ receitas! Filtre por idade, ingredientes e tempo de preparação.",
+      title: "All Recipes",
+      description: "Browse 300+ recipes! Filter by age, ingredients and prep time.",
       icon: <BookOpen className="w-5 h-5" />,
       position: 'top',
-      tip: "💡 Use os filtros para encontrar rapidamente!"
+      tip: "💡 Use filters to find recipes quickly!"
     },
     4: {
       ref: refs.plannerNav,
-      title: "Planeador de Refeições",
-      description: "Aqui pode planear a semana toda! Já criámos o seu primeiro plano.",
+      title: "Meal Planner",
+      description: "Plan the whole week here! We've already created your first meal plan.",
       icon: <Calendar className="w-5 h-5" />,
       position: 'top',
-      tip: "💡 Receba lembretes para cada refeição!"
+      tip: "💡 Get reminders for each meal!"
     },
   };
 

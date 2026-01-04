@@ -113,10 +113,10 @@ const EmptyRecipes = ({ onClearFilters }: EmptyRecipesProps) => {
         className="space-y-3"
       >
         <h2 className="text-xl font-bold text-foreground">
-          Nenhuma Receita Encontrada
+          No Recipes Found
         </h2>
         <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-          Não encontrámos receitas com os filtros actuais. Tente ajustar a pesquisa ou limpar os filtros.
+          We couldn't find recipes with the current filters. Try adjusting your search or clearing filters.
         </p>
       </motion.div>
 
@@ -134,7 +134,7 @@ const EmptyRecipes = ({ onClearFilters }: EmptyRecipesProps) => {
             className="rounded-full gap-2"
           >
             <Filter className="w-4 h-4" />
-            Limpar Filtros
+            Clear Filters
           </Button>
         </motion.div>
       )}
@@ -146,7 +146,7 @@ const EmptyRecipes = ({ onClearFilters }: EmptyRecipesProps) => {
         transition={{ delay: 0.8 }}
         className="mt-6 text-xs text-muted-foreground"
       >
-        <p>💡 Sugestões: Tente "banana", "puré" ou filtre por idade</p>
+        <p>💡 Try: "banana", "puree" or filter by age</p>
       </motion.div>
     </motion.div>
   );

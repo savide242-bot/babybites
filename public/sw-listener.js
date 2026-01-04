@@ -12,6 +12,40 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Offline fallback for failed requests
+self.addEventListener('fetch', (event) => {
+  // Only handle requests that fail
+  if (event.request.method !== 'GET') return;
+  
+  // Handle API/Supabase requests that fail when offline
+  if (event.request.url.includes('supabase') || 
+      event.request.url.includes('/api/') ||
+      event.request.url.includes('/functions/')) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Return cached response if available
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          
+          // Return offline JSON response
+          return new Response(
+            JSON.stringify({ 
+              offline: true, 
+              message: 'You are offline. This data is not available.',
+              cached: false 
+            }),
+            {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: { 'Content-Type': 'application/json' }
+            }
+          );
+        });
+      })
+    );
+  }
+});
+
 // Push event - receive push notifications from server
 self.addEventListener('push', (event) => {
   console.log('📬 Push notification received:', event);
