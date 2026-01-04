@@ -132,7 +132,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
                 <span className="text-2xl">{info.emoji}</span>
               </motion.div>
               <div>
-                <p className="text-xs text-muted-foreground">Check-in de hoje</p>
+              <p className="text-xs text-muted-foreground">Today's check-in</p>
                 <p className="text-sm font-semibold text-foreground">{info.label}</p>
                 <p className={`text-xs ${info.textColor} font-medium mt-0.5`}>{info.supportMessage}</p>
               </div>
@@ -144,7 +144,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
               transition={{ delay: 0.3, type: 'spring' }}
             >
               <Check className="w-5 h-5" />
-              <span className="text-xs font-semibold">Feito</span>
+              <span className="text-xs font-semibold">Done</span>
             </motion.div>
           </div>
         </Card>
@@ -159,7 +159,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
     >
       <Card className="bg-card rounded-2xl p-4 shadow-card border border-border/50">
         <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-          <span>Como o {babyName || "bebé"} comeu hoje?</span>
+          <span>How did {babyName || "baby"} eat today?</span>
           <motion.span
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
@@ -176,7 +176,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
             whileTap={{ scale: 0.95 }}
           >
             <Check className="w-5 h-5 text-mint" />
-            <span className="text-xs font-medium text-foreground">Comeu bem</span>
+            <span className="text-xs font-medium text-foreground">Ate well</span>
           </motion.button>
           <motion.button
             onClick={() => handleQuickCheckin('rejected')}
@@ -186,7 +186,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
             whileTap={{ scale: 0.95 }}
           >
             <X className="w-5 h-5 text-accent" />
-            <span className="text-xs font-medium text-foreground">Rejeitou</span>
+            <span className="text-xs font-medium text-foreground">Rejected</span>
           </motion.button>
           <motion.button
             onClick={() => handleQuickCheckin('tried_new')}
@@ -196,7 +196,7 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
             whileTap={{ scale: 0.95 }}
           >
             <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Novo!</span>
+            <span className="text-xs font-medium text-foreground">New!</span>
           </motion.button>
         </div>
       </Card>

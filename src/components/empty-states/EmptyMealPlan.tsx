@@ -122,10 +122,10 @@ const EmptyMealPlan = ({ babyName }: EmptyMealPlanProps) => {
         className="space-y-3"
       >
         <h2 className="text-xl font-bold text-foreground">
-          Plano de Refeições Vazio
+          Empty Meal Plan
         </h2>
         <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-          Planeie as refeições da semana para {babyName || 'o bebé'} e nós lembramos quando é hora de cozinhar! 🍳
+          Plan {babyName || 'baby'}'s meals for the week and we'll remind you when it's time to cook! 🍳
         </p>
       </motion.div>
 
@@ -139,7 +139,7 @@ const EmptyMealPlan = ({ babyName }: EmptyMealPlanProps) => {
         <Button asChild className="rounded-xl gap-2 bg-gradient-to-r from-primary to-secondary text-white">
           <Link to="/planner">
             <Calendar className="w-4 h-4" />
-            Começar a Planear
+            Start Planning
             <ArrowRight className="w-4 h-4" />
           </Link>
         </Button>
