@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useServiceWorkerUpdate = () => {
   const [needRefresh, setNeedRefresh] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+
+  const activateUpdate = useCallback((worker: ServiceWorker) => {
+    console.log('🔄 Activating update...');
+    worker.postMessage({ type: 'SKIP_WAITING' });
+  }, []);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) {
@@ -13,32 +17,47 @@ export const useServiceWorkerUpdate = () => {
     }
 
     let updateCheckInterval: NodeJS.Timeout;
+    let isInitialInstall = false;
 
     const setupServiceWorker = async () => {
       try {
-        // Get the existing VitePWA service worker registration
-        const reg = await navigator.serviceWorker.getRegistration();
-        
-        if (!reg) {
-          console.log('No service worker registered yet, waiting...');
-          return;
-        }
+        // Wait for service worker to be ready (not just registered)
+        const reg = await navigator.serviceWorker.ready;
         
         setRegistration(reg);
-        console.log('✅ Service Worker registered:', reg);
+        console.log('✅ Service Worker ready:', reg);
 
-        // Check for updates immediately
-        await reg.update();
+        // Check if this is the initial installation
+        isInitialInstall = !navigator.serviceWorker.controller;
+        
+        if (isInitialInstall) {
+          console.log('📦 Initial SW installation - skipping aggressive update checks');
+          return; // Don't do anything aggressive on first install
+        }
 
-        // Check for updates every 10 seconds (aggressive)
-        updateCheckInterval = setInterval(async () => {
+        // Only check for updates after a delay and with safeguards
+        const safeUpdateCheck = async () => {
           try {
-            console.log('🔍 Checking for updates...');
-            await reg.update();
-          } catch (error) {
-            console.error('Error checking for updates:', error);
+            // Only update if SW is active and we have a controller
+            if (reg.active && navigator.serviceWorker.controller) {
+              console.log('🔍 Checking for updates...');
+              await reg.update();
+            }
+          } catch (error: any) {
+            // Silently handle InvalidStateError
+            if (error?.name === 'InvalidStateError') {
+              console.log('⚠️ SW not ready for update check yet');
+            } else {
+              console.error('Error checking for updates:', error);
+            }
           }
-        }, 10000);
+        };
+
+        // Check for updates after 30 seconds (give app time to load)
+        setTimeout(safeUpdateCheck, 30000);
+
+        // Check for updates every 5 minutes (not every 10 seconds!)
+        updateCheckInterval = setInterval(safeUpdateCheck, 5 * 60 * 1000);
 
         // Listen for new service worker installation
         reg.addEventListener('updatefound', () => {
@@ -47,42 +66,53 @@ export const useServiceWorkerUpdate = () => {
 
           console.log('📦 New service worker found, installing...');
 
-          newWorker.addEventListener('statechange', async () => {
+          newWorker.addEventListener('statechange', () => {
             console.log(`SW state: ${newWorker.state}`);
             
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log('🎉 New version available!');
               setNeedRefresh(true);
               
-              // Try to show native notification first
-              if (Notification.permission === 'granted') {
-                await showNativeUpdateNotification(newWorker);
-              } else {
-                // Fallback to in-app toast
-                toast({
-                  title: "🎉 Update Available!",
-                  description: "A new version is ready. Click 'Update Now' to install.",
-                  duration: 0,
-                });
-                
-                // Auto-activate after 3 seconds
-                setTimeout(() => activateUpdate(newWorker), 3000);
-              }
+              // Show toast notification - let user decide when to update
+              toast({
+                title: "Update Available",
+                description: "A new version is ready. Refresh to update.",
+                duration: 10000,
+              });
+              
+              // Auto-activate after 10 seconds for smoother experience
+              setTimeout(() => {
+                if (newWorker.state === 'installed') {
+                  activateUpdate(newWorker);
+                }
+              }, 10000);
             }
           });
         });
 
-        // Listen for controller change
+        // Listen for controller change (new SW took over)
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           console.log('🔄 Controller changed, reloading...');
           window.location.reload();
         });
 
-        // Check if there's already a waiting SW
-        if (reg.waiting) {
-          console.log('⚠️ SW already waiting, activating now...');
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-          window.location.reload();
+        // Handle waiting SW - but only if we're not in initial install
+        if (reg.waiting && !isInitialInstall) {
+          console.log('⚠️ SW already waiting');
+          setNeedRefresh(true);
+          
+          // Give user a chance to see the app before reloading
+          toast({
+            title: "Update Ready",
+            description: "Click refresh or wait 10 seconds to update.",
+            duration: 10000,
+          });
+          
+          setTimeout(() => {
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+          }, 10000);
         }
 
       } catch (error) {
@@ -90,75 +120,35 @@ export const useServiceWorkerUpdate = () => {
       }
     };
 
-    setupServiceWorker();
+    // Delay setup slightly to ensure page is fully loaded
+    const timeoutId = setTimeout(setupServiceWorker, 1000);
 
     return () => {
+      clearTimeout(timeoutId);
       if (updateCheckInterval) {
         clearInterval(updateCheckInterval);
       }
     };
-  }, []);
+  }, [activateUpdate]);
 
-  const showNativeUpdateNotification = async (newWorker: ServiceWorker) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = user ? await supabase
-        .from('profiles')
-        .select('mother_name')
-        .eq('id', user.id)
-        .single() : { data: null };
-
-      const motherName = profile?.mother_name || 'there';
-
-      // Use Service Worker for persistent notifications
-      const registration = await navigator.serviceWorker.ready;
-      
-      await registration.showNotification("🎉 BabyBites Update Available!", {
-        body: `Hi ${motherName}! A new version is ready. Click to update now.`,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
-        tag: 'app-update',
-        requireInteraction: true,
-        data: { 
-          url: '/',
-          action: 'update',
-          worker: 'pending'
-        }
-      } as any);
-    } catch (error) {
-      console.error('Error showing native notification:', error);
-      // Fallback to toast
-      toast({
-        title: "🎉 Update Available!",
-        description: "A new version is ready. Reloading in 3 seconds...",
-      });
-      setTimeout(() => activateUpdate(newWorker), 3000);
-    }
-  };
-
-  const activateUpdate = (worker: ServiceWorker) => {
-    console.log('🔄 Activating update...');
-    worker.postMessage({ type: 'SKIP_WAITING' });
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
-  };
-
-  const forceUpdate = async () => {
+  const forceUpdate = useCallback(async () => {
     if (registration) {
       const newWorker = registration.waiting || registration.installing;
       if (newWorker) {
         activateUpdate(newWorker);
       } else {
-        // Force check for updates
-        await registration.update();
-        toast({
-          title: "Checking for Updates",
-          description: "Looking for new version...",
-        });
+        try {
+          await registration.update();
+          toast({
+            title: "Checking for Updates",
+            description: "Looking for new version...",
+          });
+        } catch (error) {
+          console.error('Update check failed:', error);
+        }
       }
     }
-  };
+  }, [registration, activateUpdate]);
 
   return {
     needRefresh,
