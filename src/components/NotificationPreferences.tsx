@@ -524,17 +524,17 @@ export function NotificationPreferences() {
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-medium text-amber-700 dark:text-amber-400">Push Não Disponível</p>
+                      <p className="font-medium text-amber-700 dark:text-amber-400">Push Not Available</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {/iPhone|iPad/.test(navigator.userAgent) ? (
                           <>
-                            <strong>Requisitos iOS:</strong><br/>
-                            • iOS 16.4 ou superior<br/>
-                            • App instalada no Ecrã Inicial (PWA)<br/>
-                            • Safari → Definições → Web Push (activar)
+                            <strong>iOS Requirements:</strong><br/>
+                            • iOS 16.4 or later<br/>
+                            • App installed on Home Screen (PWA)<br/>
+                            • Safari → Settings → Web Push (enable)
                           </>
                         ) : (
-                          "O seu navegador não suporta notificações push."
+                          "Your browser does not support push notifications."
                         )}
                       </p>
                       {/iPhone|iPad/.test(navigator.userAgent) && (
@@ -542,7 +542,7 @@ export function NotificationPreferences() {
                           href="/ios-push-setup" 
                           className="inline-block mt-2 text-xs font-medium text-primary hover:underline"
                         >
-                          Ver guia de configuração →
+                          See setup guide →
                         </a>
                       )}
                     </div>

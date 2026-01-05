@@ -20,12 +20,12 @@ const WeeklyProgressCard = ({ streak, mealsThisWeek, babyName }: WeeklyProgressC
   const getMilestoneMessage = () => {
     if (currentStreak >= 100) return { emoji: "👑", message: "Legendary Parent!", color: "text-sunshine" };
     if (currentStreak >= 60) return { emoji: "💎", message: "Diamond streak!", color: "text-primary" };
-    if (currentStreak >= 30) return { emoji: "🏆", message: "Streak de campeã!", color: "text-accent" };
-    if (currentStreak >= 14) return { emoji: "⭐", message: "Duas semanas fortes!", color: "text-mint" };
-    if (currentStreak >= 7) return { emoji: "🔥", message: "Uma semana de fogo!", color: "text-accent" };
-    if (currentStreak >= 3) return { emoji: "💪", message: "A ganhar ritmo!", color: "text-primary" };
-    if (currentStreak >= 1) return { emoji: "🌱", message: "Ótimo começo!", color: "text-mint" };
-    return { emoji: "✨", message: "Comece hoje!", color: "text-muted-foreground" };
+    if (currentStreak >= 30) return { emoji: "🏆", message: "Champion streak!", color: "text-accent" };
+    if (currentStreak >= 14) return { emoji: "⭐", message: "Two strong weeks!", color: "text-mint" };
+    if (currentStreak >= 7) return { emoji: "🔥", message: "One week on fire!", color: "text-accent" };
+    if (currentStreak >= 3) return { emoji: "💪", message: "Building momentum!", color: "text-primary" };
+    if (currentStreak >= 1) return { emoji: "🌱", message: "Great start!", color: "text-mint" };
+    return { emoji: "✨", message: "Start today!", color: "text-muted-foreground" };
   };
 
   const milestone = getMilestoneMessage();
@@ -89,7 +89,7 @@ const WeeklyProgressCard = ({ streak, mealsThisWeek, babyName }: WeeklyProgressC
               <div>
                 <p className="text-xl font-bold text-foreground">{currentStreak}</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                  {currentStreak === 1 ? 'Dia' : 'Dias'}
+                  {currentStreak === 1 ? 'Day' : 'Days'}
                 </p>
               </div>
             </motion.div>
@@ -105,7 +105,7 @@ const WeeklyProgressCard = ({ streak, mealsThisWeek, babyName }: WeeklyProgressC
               </div>
               <div>
                 <p className="text-xl font-bold text-foreground">{totalPoints}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pontos</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Points</p>
               </div>
             </motion.div>
           </div>
@@ -114,7 +114,7 @@ const WeeklyProgressCard = ({ streak, mealsThisWeek, babyName }: WeeklyProgressC
             to="/achievements" 
             className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
           >
-            Ver Tudo
+            View All
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -155,15 +155,15 @@ const WeeklyProgressCard = ({ streak, mealsThisWeek, babyName }: WeeklyProgressC
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <Target className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Refeições da Semana</span>
+                <span className="text-sm font-medium text-foreground">Weekly Meals</span>
               </div>
               <p className="text-xs text-muted-foreground mb-1">
-                <span className="text-foreground font-semibold">{mealsThisWeek}</span> de {weeklyGoal} refeições
+                <span className="text-foreground font-semibold">{mealsThisWeek}</span> of {weeklyGoal} meals
               </p>
               <p className="text-[10px] text-muted-foreground">
                 {progress === 100 
-                  ? <span className="text-mint font-medium">🎉 Meta semanal atingida!</span>
-                  : `Faltam ${weeklyGoal - mealsThisWeek} para a meta`
+                  ? <span className="text-mint font-medium">🎉 Weekly goal reached!</span>
+                  : `${weeklyGoal - mealsThisWeek} left to goal`
                 }
               </p>
             </div>
