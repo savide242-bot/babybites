@@ -16,8 +16,7 @@ export const useServiceWorkerUpdate = () => {
       return;
     }
 
-    let updateCheckInterval: NodeJS.Timeout;
-    let isInitialInstall = false;
+    let updateCheckInterval: ReturnType<typeof setInterval>;
 
     const setupServiceWorker = async () => {
       try {
@@ -28,11 +27,13 @@ export const useServiceWorkerUpdate = () => {
         console.log('✅ Service Worker ready:', reg);
 
         // Check if this is the initial installation
-        isInitialInstall = !navigator.serviceWorker.controller;
+        const isInitialInstall = !navigator.serviceWorker.controller;
         
         if (isInitialInstall) {
-          console.log('📦 Initial SW installation - skipping aggressive update checks');
-          return; // Don't do anything aggressive on first install
+          console.log('📦 Initial SW installation - app will work normally');
+          // On initial install, just let Workbox do its thing
+          // Don't try to force any updates or reloads
+          return;
         }
 
         // Only check for updates after a delay and with safeguards
@@ -43,9 +44,10 @@ export const useServiceWorkerUpdate = () => {
               console.log('🔍 Checking for updates...');
               await reg.update();
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
             // Silently handle InvalidStateError
-            if (error?.name === 'InvalidStateError') {
+            const err = error as { name?: string };
+            if (err?.name === 'InvalidStateError') {
               console.log('⚠️ SW not ready for update check yet');
             } else {
               console.error('Error checking for updates:', error);
@@ -53,11 +55,11 @@ export const useServiceWorkerUpdate = () => {
           }
         };
 
-        // Check for updates after 30 seconds (give app time to load)
-        setTimeout(safeUpdateCheck, 30000);
+        // Check for updates after 60 seconds (give app plenty of time to load)
+        setTimeout(safeUpdateCheck, 60000);
 
-        // Check for updates every 5 minutes (not every 10 seconds!)
-        updateCheckInterval = setInterval(safeUpdateCheck, 5 * 60 * 1000);
+        // Check for updates every 10 minutes
+        updateCheckInterval = setInterval(safeUpdateCheck, 10 * 60 * 1000);
 
         // Listen for new service worker installation
         reg.addEventListener('updatefound', () => {
@@ -77,42 +79,29 @@ export const useServiceWorkerUpdate = () => {
               toast({
                 title: "Update Available",
                 description: "A new version is ready. Refresh to update.",
-                duration: 10000,
+                duration: 15000,
               });
               
-              // Auto-activate after 10 seconds for smoother experience
-              setTimeout(() => {
-                if (newWorker.state === 'installed') {
-                  activateUpdate(newWorker);
-                }
-              }, 10000);
+              // DO NOT auto-activate - let user choose when to update
+              // This prevents white screen issues during critical moments
             }
           });
         });
 
-        // Listen for controller change (new SW took over)
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          console.log('🔄 Controller changed, reloading...');
-          window.location.reload();
-        });
+        // DO NOT auto-reload on controllerchange
+        // This was causing white screens when cache was in inconsistent state
+        // Let the user manually refresh when they're ready
 
-        // Handle waiting SW - but only if we're not in initial install
-        if (reg.waiting && !isInitialInstall) {
+        // Handle waiting SW - show notification only, no auto-activate
+        if (reg.waiting) {
           console.log('⚠️ SW already waiting');
           setNeedRefresh(true);
           
-          // Give user a chance to see the app before reloading
           toast({
             title: "Update Ready",
-            description: "Click refresh or wait 10 seconds to update.",
-            duration: 10000,
+            description: "Refresh the page when you're ready to update.",
+            duration: 15000,
           });
-          
-          setTimeout(() => {
-            if (reg.waiting) {
-              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
-          }, 10000);
         }
 
       } catch (error) {
@@ -120,8 +109,8 @@ export const useServiceWorkerUpdate = () => {
       }
     };
 
-    // Delay setup slightly to ensure page is fully loaded
-    const timeoutId = setTimeout(setupServiceWorker, 1000);
+    // Delay setup to ensure page is fully loaded and stable
+    const timeoutId = setTimeout(setupServiceWorker, 2000);
 
     return () => {
       clearTimeout(timeoutId);
@@ -136,6 +125,10 @@ export const useServiceWorkerUpdate = () => {
       const newWorker = registration.waiting || registration.installing;
       if (newWorker) {
         activateUpdate(newWorker);
+        // Reload after a brief delay to let SW activate
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         try {
           await registration.update();

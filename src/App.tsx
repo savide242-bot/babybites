@@ -11,6 +11,7 @@ import { useMealReminders } from "@/hooks/useMealReminders";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import AppErrorBoundary from "./components/AppErrorBoundary";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Onboarding from "./pages/Onboarding";
@@ -122,17 +123,19 @@ const AppContent = () => {
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
+  <AppErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
+  </AppErrorBoundary>
 );
 
 export default App;
