@@ -14,7 +14,8 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      registerType: "autoUpdate",
+      // Use "prompt" to avoid automatic updates that can cause white screen
+      registerType: "prompt",
       injectRegister: 'auto',
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
@@ -44,15 +45,16 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,jpg,jpeg,webp,svg,gif}"],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB for larger bundles
-        // Don't auto-skip waiting - let the app control this for smoother updates
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB
+        // CRITICAL: Don't skip waiting automatically - prevents white screen on new installs
         skipWaiting: false,
-        clientsClaim: true,
+        clientsClaim: false, // Don't claim clients immediately either
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/],
-        sourcemap: true,
+        navigateFallbackDenylist: [/^\/api/, /^\/auth/],
+        sourcemap: false, // Disable for production
         runtimeCaching: [
+          // Google Fonts - safe to cache aggressively
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
@@ -81,81 +83,53 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
+          // Images - safe to cache
           {
-            // Cache local images (recipes, assets)
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "images-cache",
               expiration: {
-                maxEntries: 500,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30
               },
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
           },
+          // Supabase storage - safe to cache
           {
-            // Cache external images (Supabase storage, etc)
-            urlPattern: /^https:\/\/.*\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "external-images-cache",
-              expiration: {
-                maxEntries: 300,
-                maxAgeSeconds: 60 * 60 * 24 * 14 // 14 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            // Cache Supabase storage files
             urlPattern: /^https:\/\/.*supabase.*\/storage\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "supabase-storage-cache",
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 14
               },
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
           },
+          // Google storage (icons) - safe to cache
           {
-            // Cache Google storage images (icons)
             urlPattern: /^https:\/\/storage\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "google-storage-cache",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/.*\.lovableproject\.com\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "app-shell-cache",
-              networkTimeoutSeconds: 10,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24
+                maxAgeSeconds: 60 * 60 * 24 * 30
               },
               cacheableResponse: {
                 statuses: [0, 200]
               }
             }
           }
+          // REMOVED: The dangerous "app-shell-cache" for *.lovableproject.com
+          // This was causing white screens by caching HTML/JS inconsistently
         ],
         importScripts: ['sw-listener.js']
       },
