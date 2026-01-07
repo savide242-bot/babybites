@@ -7,6 +7,8 @@
 
 const RECOVERY_COOLDOWN_KEY = 'pwa_recovery_timestamp';
 const RECOVERY_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+const RECOVERY_COUNT_KEY = 'pwa_recovery_count';
+const MAX_RECOVERY_ATTEMPTS = 3;
 
 const CHUNK_ERROR_PATTERNS = [
   'Loading chunk',
@@ -15,6 +17,11 @@ const CHUNK_ERROR_PATTERNS = [
   'ChunkLoadError',
   'Loading CSS chunk',
   'error loading dynamically imported module',
+  'Failed to fetch',
+  'NetworkError',
+  'Load failed',
+  'Unexpected token',
+  'is not valid JSON',
 ];
 
 function isChunkLoadError(message: string): boolean {
@@ -36,6 +43,23 @@ function isInCooldown(): boolean {
   }
 }
 
+function getRecoveryCount(): number {
+  try {
+    return parseInt(sessionStorage.getItem(RECOVERY_COUNT_KEY) || '0', 10);
+  } catch {
+    return 0;
+  }
+}
+
+function incrementRecoveryCount(): void {
+  try {
+    const count = getRecoveryCount() + 1;
+    sessionStorage.setItem(RECOVERY_COUNT_KEY, count.toString());
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 function setCooldown(): void {
   try {
     sessionStorage.setItem(RECOVERY_COOLDOWN_KEY, Date.now().toString());
@@ -46,6 +70,14 @@ function setCooldown(): void {
 
 export async function performPWARecovery(): Promise<void> {
   console.log('🔧 PWA Recovery: Starting cache cleanup...');
+  
+  // Check if we've exceeded max attempts
+  if (getRecoveryCount() >= MAX_RECOVERY_ATTEMPTS) {
+    console.log('🔧 PWA Recovery: Max attempts exceeded, not retrying');
+    return;
+  }
+  
+  incrementRecoveryCount();
   
   try {
     // Unregister all service workers
@@ -75,7 +107,7 @@ export async function performPWARecovery(): Promise<void> {
     // Set cooldown before reload
     setCooldown();
     
-    // Force reload from network
+    // Force reload from network (true = bypass cache)
     window.location.reload();
   } catch (error) {
     console.error('🔧 PWA Recovery failed:', error);
@@ -106,6 +138,11 @@ function handleError(event: ErrorEvent | PromiseRejectionEvent): void {
       return;
     }
     
+    if (getRecoveryCount() >= MAX_RECOVERY_ATTEMPTS) {
+      console.log('🔧 PWA Recovery: Max attempts exceeded');
+      return;
+    }
+    
     performPWARecovery();
   }
 }
@@ -114,6 +151,15 @@ export function initPWARecovery(): void {
   if (typeof window === 'undefined') return;
   
   console.log('🔧 PWA Recovery: Initializing error listeners');
+  
+  // Reset recovery count on successful page load (after a delay)
+  setTimeout(() => {
+    try {
+      sessionStorage.removeItem(RECOVERY_COUNT_KEY);
+    } catch {
+      // Ignore
+    }
+  }, 5000);
   
   window.addEventListener('error', handleError);
   window.addEventListener('unhandledrejection', handleError);
