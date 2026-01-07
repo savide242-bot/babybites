@@ -165,7 +165,14 @@ const Onboarding = () => {
           />
         );
       default:
-        return null;
+        // Never return null to avoid blank screens if state gets out of sync
+        return (
+          <StepMotherName
+            value={motherName}
+            onChange={setMotherName}
+            onNext={nextStep}
+          />
+        );
     }
   };
 
