@@ -17,6 +17,8 @@ import { NutritionBalanceWidget } from "@/components/meal-planner/NutritionBalan
 import { WeekTemplatesModal, WeekTemplate } from "@/components/meal-planner/WeekTemplatesModal";
 import { WeekCompletionModal } from "@/components/meal-planner/WeekCompletionModal";
 import { MealPlanSkeleton } from "@/components/skeletons/MealPlanSkeleton";
+import { getWeekStartDate } from "@/utils/mealPlanGenerator";
+import { startOfWeek, format } from "date-fns";
 import confetti from "canvas-confetti";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -87,16 +89,6 @@ const getRecipesByMealType = (mealType: string, ageMonths: number) => {
       return { recipe, score };
     })
     .sort((a, b) => b.score - a.score);
-};
-
-// Get the start of the current week (Monday)
-const getWeekStartDate = (date: Date = new Date()): string => {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString().split('T')[0];
 };
 
 // Get current week number of the year
@@ -172,6 +164,7 @@ const MealPlanner = () => {
   const [autoPlan, setAutoPlan] = useState<MealPlan>({});
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerContext, setPickerContext] = useState<{ day: string; mealType: string } | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -254,139 +247,142 @@ const MealPlanner = () => {
 
   // Generate new week plan after completing the current week
   const generateNewWeekPlan = async () => {
-    if (!userId) return;
+    if (!userId || isSaving) return;
     
-    // Collect all recipe IDs from current plan to avoid repeating
-    const currentRecipeIds: string[] = [];
-    Object.values(mealPlan).forEach(dayMeals => {
-      Object.values(dayMeals).forEach(slot => {
-        if (slot.recipeId) currentRecipeIds.push(slot.recipeId);
+    setIsSaving(true);
+    try {
+      // Collect all recipe IDs from current plan to avoid repeating
+      const currentRecipeIds: string[] = [];
+      Object.values(mealPlan).forEach(dayMeals => {
+        Object.values(dayMeals).forEach(slot => {
+          if (slot.recipeId) currentRecipeIds.push(slot.recipeId);
+        });
       });
-    });
-    
-    // Update recently used recipes (keep last 2 weeks worth)
-    const newRecentlyUsed = [...recentlyUsedRecipes, ...currentRecipeIds].slice(-56);
-    setRecentlyUsedRecipes(newRecentlyUsed);
-    
-    // Clear current week's plan from database
-    await supabase
-      .from('meal_plans')
-      .delete()
-      .eq('user_id', userId)
-      .eq('week_start_date', currentWeekStart);
-    
-    // Generate new plan avoiding recently used recipes
-    const newPlan = generateAutoPlan(babyAgeMonths, dietaryPrefs, newRecentlyUsed);
-    
-    // Insert new plan into database
-    const inserts: any[] = [];
-    const newWeekStart = getWeekStartDate();
-    
-    Object.entries(newPlan).forEach(([day, meals]) => {
-      Object.entries(meals).forEach(([mealType, slot]) => {
-        if (slot.recipeId) {
-          inserts.push({
-            user_id: userId,
-            day_of_week: day,
-            meal_type: mealType,
-            recipe_id: slot.recipeId,
-            prepared: false,
-            week_start_date: newWeekStart,
-          });
-        }
+      
+      // Update recently used recipes (keep last 2 weeks worth)
+      const newRecentlyUsed = [...recentlyUsedRecipes, ...currentRecipeIds].slice(-56);
+      setRecentlyUsedRecipes(newRecentlyUsed);
+      
+      // Generate new plan avoiding recently used recipes
+      const newPlan = generateAutoPlan(babyAgeMonths, dietaryPrefs, newRecentlyUsed);
+      const newWeekStart = getWeekStartDate();
+      
+      // Build upserts
+      const upserts: any[] = [];
+      Object.entries(newPlan).forEach(([day, meals]) => {
+        Object.entries(meals).forEach(([mealType, slot]) => {
+          if (slot.recipeId) {
+            upserts.push({
+              user_id: userId,
+              day_of_week: day,
+              meal_type: mealType,
+              recipe_id: slot.recipeId,
+              prepared: false,
+              week_start_date: newWeekStart,
+            });
+          }
+        });
       });
-    });
 
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .insert(inserts)
-      .select();
+      // Use upsert for safe save
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .upsert(upserts, { 
+          onConflict: 'user_id,week_start_date,day_of_week,meal_type' 
+        })
+        .select();
 
-    if (error) {
-      toast.error("Failed to generate new plan");
-      return;
-    }
-
-    // Rebuild local state
-    const rebuiltPlan: MealPlan = {};
-    data?.forEach(item => {
-      if (!rebuiltPlan[item.day_of_week]) {
-        rebuiltPlan[item.day_of_week] = {};
+      if (error) {
+        console.error('Failed to generate new plan:', error);
+        toast.error(`Failed to generate new plan: ${error.message}`);
+        return;
       }
-      rebuiltPlan[item.day_of_week][item.meal_type] = {
-        recipeId: item.recipe_id,
-        prepared: false,
-        dbId: item.id,
-      };
-    });
 
-    setMealPlan(rebuiltPlan);
-    setAutoPlan(newPlan);
-    setCurrentWeekStart(newWeekStart);
-    setHasShownCompletionModal(false);
-    setHasSavedPlan(true);
-    
-    confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
-    toast.success("🎉 New week generated! Enjoy your meals!");
-    updateShoppingList();
+      // Rebuild local state
+      const rebuiltPlan: MealPlan = {};
+      data?.forEach(item => {
+        if (!rebuiltPlan[item.day_of_week]) {
+          rebuiltPlan[item.day_of_week] = {};
+        }
+        rebuiltPlan[item.day_of_week][item.meal_type] = {
+          recipeId: item.recipe_id,
+          prepared: item.prepared || false,
+          dbId: item.id,
+        };
+      });
+
+      setMealPlan(rebuiltPlan);
+      setAutoPlan(newPlan);
+      setCurrentWeekStart(newWeekStart);
+      setHasShownCompletionModal(false);
+      setHasSavedPlan(true);
+      
+      confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+      toast.success("🎉 New week generated! Enjoy your meals!");
+      updateShoppingList();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const applyAutoPlanToManual = async () => {
-    if (!userId) return;
+    if (!userId || isSaving) return;
     
-    // Clear existing plan for current week
-    await supabase
-      .from('meal_plans')
-      .delete()
-      .eq('user_id', userId)
-      .eq('week_start_date', currentWeekStart);
-    
-    // Insert auto plan with week_start_date
-    const inserts: any[] = [];
-    Object.entries(autoPlan).forEach(([day, meals]) => {
-      Object.entries(meals).forEach(([mealType, slot]) => {
-        if (slot.recipeId) {
-          inserts.push({
-            user_id: userId,
-            day_of_week: day,
-            meal_type: mealType,
-            recipe_id: slot.recipeId,
-            prepared: false,
-            week_start_date: currentWeekStart,
-          });
-        }
+    setIsSaving(true);
+    try {
+      // Build upsert data for the auto plan
+      const upserts: any[] = [];
+      Object.entries(autoPlan).forEach(([day, meals]) => {
+        Object.entries(meals).forEach(([mealType, slot]) => {
+          if (slot.recipeId) {
+            upserts.push({
+              user_id: userId,
+              day_of_week: day,
+              meal_type: mealType,
+              recipe_id: slot.recipeId,
+              prepared: false,
+              week_start_date: currentWeekStart,
+            });
+          }
+        });
       });
-    });
 
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .insert(inserts)
-      .select();
+      // Use upsert with unique constraint - no data loss on conflict
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .upsert(upserts, { 
+          onConflict: 'user_id,week_start_date,day_of_week,meal_type' 
+        })
+        .select();
 
-    if (error) {
-      toast.error("Failed to apply plan");
-      return;
-    }
-
-    // Rebuild local state
-    const newPlan: MealPlan = {};
-    data?.forEach(item => {
-      if (!newPlan[item.day_of_week]) {
-        newPlan[item.day_of_week] = {};
+      if (error) {
+        console.error('Failed to apply plan:', error);
+        toast.error(`Failed to apply plan: ${error.message}`);
+        return;
       }
-      newPlan[item.day_of_week][item.meal_type] = {
-        recipeId: item.recipe_id,
-        prepared: false,
-        dbId: item.id,
-      };
-    });
 
-    setMealPlan(newPlan);
-    setActiveTab("manual");
-    setHasSavedPlan(true);
-    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-    toast.success("🎉 Plan applied! Now you can customize it.");
-    updateShoppingList();
+      // Rebuild local state
+      const newPlan: MealPlan = {};
+      data?.forEach(item => {
+        if (!newPlan[item.day_of_week]) {
+          newPlan[item.day_of_week] = {};
+        }
+        newPlan[item.day_of_week][item.meal_type] = {
+          recipeId: item.recipe_id,
+          prepared: item.prepared || false,
+          dbId: item.id,
+        };
+      });
+
+      setMealPlan(newPlan);
+      setActiveTab("manual");
+      setHasSavedPlan(true);
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+      toast.success("🎉 Plan applied! Now you can customize it.");
+      updateShoppingList();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const loadMealPlan = async (uid: string) => {
@@ -466,44 +462,48 @@ const MealPlanner = () => {
   }, [mealPlan, autoPlan, activeTab]);
 
   const addMeal = async (day: string, mealType: string, recipeId: string) => {
-    if (!userId) return;
+    if (!userId || isSaving) return;
 
-    const existingSlot = mealPlan[day]?.[mealType];
-    if (existingSlot?.dbId) {
-      await supabase.from('meal_plans').delete().eq('id', existingSlot.dbId);
+    setIsSaving(true);
+    try {
+      // Use upsert to add or update meal
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .upsert({
+          user_id: userId,
+          day_of_week: day,
+          meal_type: mealType,
+          recipe_id: recipeId,
+          prepared: false,
+          week_start_date: currentWeekStart,
+        }, { 
+          onConflict: 'user_id,week_start_date,day_of_week,meal_type' 
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Failed to add meal:', error);
+        toast.error(`Failed to add meal: ${error.message}`);
+        return;
+      }
+
+      setMealPlan((prev) => ({
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [mealType]: { recipeId, prepared: false, dbId: data.id },
+        },
+      }));
+      
+      setHasSavedPlan(true);
+
+      const recipe = recipes.find(r => r.id === recipeId);
+      toast.success(`Added ${recipe?.title || 'recipe'} to ${day}!`);
+      updateShoppingList();
+    } finally {
+      setIsSaving(false);
     }
-
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .insert({
-        user_id: userId,
-        day_of_week: day,
-        meal_type: mealType,
-        recipe_id: recipeId,
-        prepared: false,
-        week_start_date: currentWeekStart,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast.error("Failed to add meal");
-      return;
-    }
-
-    setMealPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: { recipeId, prepared: false, dbId: data.id },
-      },
-    }));
-    
-    setHasSavedPlan(true);
-
-    const recipe = recipes.find(r => r.id === recipeId);
-    toast.success(`Added ${recipe?.title || 'recipe'} to ${day}!`);
-    updateShoppingList();
   };
 
   const removeMeal = async (day: string, mealType: string) => {
@@ -585,59 +585,62 @@ const MealPlanner = () => {
   };
 
   const applyTemplate = async (template: WeekTemplate) => {
-    if (!userId) return;
+    if (!userId || isSaving) return;
 
-    // Clear current week's plan
-    await supabase
-      .from('meal_plans')
-      .delete()
-      .eq('user_id', userId)
-      .eq('week_start_date', currentWeekStart);
-
-    const inserts: any[] = [];
-    Object.entries(template.meals).forEach(([day, meals]) => {
-      Object.entries(meals).forEach(([mealType, recipeId]) => {
-        if (recipeId) {
-          inserts.push({
-            user_id: userId,
-            day_of_week: day,
-            meal_type: mealType,
-            recipe_id: recipeId,
-            prepared: false,
-            week_start_date: currentWeekStart,
-          });
-        }
+    setIsSaving(true);
+    try {
+      // Build upserts from template
+      const upserts: any[] = [];
+      Object.entries(template.meals).forEach(([day, meals]) => {
+        Object.entries(meals).forEach(([mealType, recipeId]) => {
+          if (recipeId) {
+            upserts.push({
+              user_id: userId,
+              day_of_week: day,
+              meal_type: mealType,
+              recipe_id: recipeId,
+              prepared: false,
+              week_start_date: currentWeekStart,
+            });
+          }
+        });
       });
-    });
 
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .insert(inserts)
-      .select();
+      // Use upsert for safe save
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .upsert(upserts, { 
+          onConflict: 'user_id,week_start_date,day_of_week,meal_type' 
+        })
+        .select();
 
-    if (error) {
-      toast.error("Failed to apply template");
-      return;
-    }
-
-    const newPlan: MealPlan = {};
-    data?.forEach(item => {
-      if (!newPlan[item.day_of_week]) {
-        newPlan[item.day_of_week] = {};
+      if (error) {
+        console.error('Failed to apply template:', error);
+        toast.error(`Failed to apply template: ${error.message}`);
+        return;
       }
-      newPlan[item.day_of_week][item.meal_type] = {
-        recipeId: item.recipe_id,
-        prepared: false,
-        dbId: item.id,
-      };
-    });
 
-    setMealPlan(newPlan);
-    setHasSavedPlan(true);
-    
-    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-    toast.success(`🎉 Applied "${template.name}" template!`);
-    updateShoppingList();
+      const newPlan: MealPlan = {};
+      data?.forEach(item => {
+        if (!newPlan[item.day_of_week]) {
+          newPlan[item.day_of_week] = {};
+        }
+        newPlan[item.day_of_week][item.meal_type] = {
+          recipeId: item.recipe_id,
+          prepared: item.prepared || false,
+          dbId: item.id,
+        };
+      });
+
+      setMealPlan(newPlan);
+      setHasSavedPlan(true);
+      
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+      toast.success(`🎉 Applied "${template.name}" template!`);
+      updateShoppingList();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Extract ingredient name without quantity

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -9,6 +9,40 @@ interface PrivateRouteProps {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Ensures a profile row exists for the user. If not, creates one with defaults.
+ * This prevents onboarding loops when the trigger fails or is delayed.
+ */
+const ensureUserProfile = async (user: User): Promise<void> => {
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (existing) return; // Profile exists
+
+  // Create profile with defaults from user metadata
+  const fullName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0] ||
+    "User";
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      full_name: fullName,
+      mother_name: fullName,
+      dietary_preferences: [],
+      timezone,
+    },
+    { onConflict: "id" }
+  );
+};
 
 const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
   // New accounts can briefly have no profile row yet (trigger delay)
@@ -66,6 +100,7 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   // Defer profile checks to a separate effect (avoid deadlocks)
   useEffect(() => {
     const isOnOnboardingPage = location.pathname === "/onboarding";
+    const isOnFirstDayPage = location.pathname === "/first-day";
 
     if (!authReady) return;
     if (!session?.user) {
@@ -74,8 +109,8 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
       return;
     }
 
-    if (isOnOnboardingPage) {
-      // Never block rendering the onboarding page.
+    // Never block rendering onboarding or first-day pages
+    if (isOnOnboardingPage || isOnFirstDayPage) {
       setNeedsOnboarding(false);
       setProfileChecking(false);
       return;
@@ -84,10 +119,13 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     let cancelled = false;
     setProfileChecking(true);
 
-    fetchNeedsOnboarding(session.user.id)
-      .then((needs) => {
-        if (!cancelled) setNeedsOnboarding(needs);
-      })
+    (async () => {
+      // Ensure profile exists before checking if onboarding is needed
+      await ensureUserProfile(session.user);
+      
+      const needs = await fetchNeedsOnboarding(session.user.id);
+      if (!cancelled) setNeedsOnboarding(needs);
+    })()
       .finally(() => {
         if (!cancelled) setProfileChecking(false);
       });
