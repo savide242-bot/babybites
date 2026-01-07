@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -7,103 +8,96 @@ interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
-const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const location = useLocation();
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-  const checkProfile = async (userId: string, retryCount = 0): Promise<boolean> => {
+const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
+  // New accounts can briefly have no profile row yet (trigger delay)
+  const delays = [0, 200, 400, 800];
+
+  for (const delay of delays) {
+    if (delay) await sleep(delay);
+
     const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('mother_name, baby_name')
-      .eq('id', userId)
-      .single();
+      .from("profiles")
+      .select("mother_name, baby_name")
+      .eq("id", userId)
+      .maybeSingle();
 
-    // If profile doesn't exist and we haven't retried too much, wait and retry
-    // (The profile might still be creating via trigger)
-    if (error && retryCount < 3) {
-      await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1)));
-      return checkProfile(userId, retryCount + 1);
-    }
+    if (error) continue;
+    if (!profile) continue;
 
-    const hasIncompleteProfile = 
-      !profile?.mother_name || 
-      !profile?.baby_name || 
-      profile.mother_name === 'User' ||
+    const hasIncompleteProfile =
+      !profile.mother_name ||
+      !profile.baby_name ||
+      profile.mother_name === "User" ||
       profile.baby_name === null;
 
     return hasIncompleteProfile;
-  };
+  }
 
+  // If we still can't read a profile, force onboarding rather than showing a blank app.
+  return true;
+};
+
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  const location = useLocation();
+
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [profileChecking, setProfileChecking] = useState(false);
+
+  // IMPORTANT: listener first, then getSession (prevents missing events)
   useEffect(() => {
-    let mounted = true;
-
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-        
-        if (!session) {
-          setIsAuthenticated(false);
-          setIsLoading(false);
-          return;
-        }
-
-        setIsAuthenticated(true);
-
-        // Check if user needs onboarding (skip if already on onboarding page)
-        const isOnOnboardingPage = location.pathname === '/onboarding';
-        
-        if (!isOnOnboardingPage) {
-          const needsOnboard = await checkProfile(session.user.id);
-          if (mounted) {
-            setNeedsOnboarding(needsOnboard);
-          }
-        }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        if (mounted) {
-          setIsAuthenticated(false);
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      setIsAuthenticated(!!session);
-      
-      if (session?.user) {
-        // Re-check profile on auth change
-        const isOnOnboardingPage = location.pathname === '/onboarding';
-        if (!isOnOnboardingPage) {
-          const needsOnboard = await checkProfile(session.user.id);
-          if (mounted) {
-            setNeedsOnboarding(needsOnboard);
-          }
-        }
-      } else {
-        setNeedsOnboarding(false);
-      }
-      
-      setIsLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      // Synchronous state updates only (no Supabase calls here)
+      setSession(newSession);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [location.pathname]);
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => setSession(session))
+      .finally(() => setAuthReady(true));
 
-  if (isLoading) {
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Defer profile checks to a separate effect (avoid deadlocks)
+  useEffect(() => {
+    const isOnOnboardingPage = location.pathname === "/onboarding";
+
+    if (!authReady) return;
+    if (!session?.user) {
+      setNeedsOnboarding(false);
+      setProfileChecking(false);
+      return;
+    }
+
+    if (isOnOnboardingPage) {
+      // Never block rendering the onboarding page.
+      setNeedsOnboarding(false);
+      setProfileChecking(false);
+      return;
+    }
+
+    let cancelled = false;
+    setProfileChecking(true);
+
+    fetchNeedsOnboarding(session.user.id)
+      .then((needs) => {
+        if (!cancelled) setNeedsOnboarding(needs);
+      })
+      .finally(() => {
+        if (!cancelled) setProfileChecking(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, session?.user?.id, location.pathname]);
+
+  if (!authReady || profileChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-full max-w-md space-y-4 p-4">
@@ -115,7 +109,7 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!session) {
     return <Navigate to="/auth" replace />;
   }
 

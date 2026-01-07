@@ -35,11 +35,15 @@ const FirstDay = () => {
         }
 
         // Check if user has already seen the welcome/first-day page
-        const { data: preferences } = await supabase
+        const { data: preferences, error: prefsError } = await supabase
           .from('user_preferences')
           .select('has_seen_welcome')
           .eq('user_id', session.user.id)
-          .single();
+          .maybeSingle();
+
+        if (prefsError) {
+          console.warn('Could not read user preferences:', prefsError);
+        }
 
         // If user has already seen welcome, redirect to home
         if (preferences?.has_seen_welcome) {
@@ -50,11 +54,15 @@ const FirstDay = () => {
         // User hasn't seen welcome yet, show the page
         setShouldShow(true);
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('baby_name, baby_birth_date')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
+
+        if (profileError) {
+          console.warn('Could not read profile during first-day:', profileError);
+        }
 
         let calculatedAge = 6;
         if (profile) {
