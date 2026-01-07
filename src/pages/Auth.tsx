@@ -8,7 +8,6 @@ import { z } from "zod";
 import GoogleLogo from "@/components/auth/GoogleLogo";
 import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
 import FormInput from "@/components/auth/FormInput";
-import WelcomeModal from "@/components/auth/WelcomeModal";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import BabyIllustration from "@/components/auth/BabyIllustration";
 
@@ -55,22 +54,37 @@ const Auth = () => {
   const [babyName, setBabyName] = useState('');
   const [babyBirthDate, setBabyBirthDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string } | null>(null);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const userName = session.user.user_metadata?.full_name || 
-                        session.user.user_metadata?.name || 
-                        session.user.email?.split('@')[0] || 
-                        'Mom';
-        setCurrentUser({ id: session.user.id, name: userName });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // User is already authenticated, redirect to home
+          navigate("/", { replace: true });
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
+    
     checkAuth();
+
+    // Listen for auth changes (e.g., after signup with auto-confirm)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Navigate to home on successful sign in
+        navigate("/", { replace: true });
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const checkEmailExists = async (email: string): Promise<boolean> => {
@@ -138,7 +152,11 @@ const Auth = () => {
       
       if (data.user) {
         toast.success("Account created successfully! Welcome! 🎉");
-        setCurrentUser({ id: data.user.id, name: fullName });
+        // The onAuthStateChange listener will handle navigation
+        // If auto-confirm is enabled, session will be created immediately
+        if (data.session) {
+          navigate("/", { replace: true });
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to create account');
@@ -179,7 +197,7 @@ const Auth = () => {
 
       if (data.user) {
         toast.success("Welcome back! 💕");
-        navigate("/");
+        navigate("/", { replace: true });
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in');
@@ -210,8 +228,16 @@ const Auth = () => {
     setErrors({});
   };
 
-  if (currentUser) {
-    return <WelcomeModal userId={currentUser.id} userName={currentUser.name} />;
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/15 via-peach/20 to-mint/15">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -480,7 +506,7 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+                  className="text-sm text-primary hover:underline"
                 >
                   Forgot password?
                 </button>
@@ -524,29 +550,14 @@ const Auth = () => {
               </Button>
             </div>
           )}
-
-          {/* Trust Indicator */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-              ⭐ Trusted by 10,000+ moms worldwide
-            </p>
-          </div>
-
-          {/* Footer Links */}
-          <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-            <button className="hover:text-foreground transition-colors">
-              Privacy Policy
-            </button>
-            <span>•</span>
-            <button className="hover:text-foreground transition-colors">
-              Terms of Service
-            </button>
-          </div>
         </div>
 
-        {/* Bottom Decorative Text */}
-        <p className="text-center mt-6 text-sm text-muted-foreground">
-          Join our community of caring mothers 🌸
+        {/* Footer */}
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          By continuing, you agree to our{" "}
+          <a href="#" className="text-primary hover:underline">Terms</a>
+          {" "}and{" "}
+          <a href="#" className="text-primary hover:underline">Privacy Policy</a>
         </p>
       </div>
     </div>

@@ -176,13 +176,14 @@ const MealPlanner = () => {
   const [pickerContext, setPickerContext] = useState<{ day: string; mealType: string } | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [copySource, setCopySource] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("auto");
+  const [activeTab, setActiveTab] = useState<string>("manual"); // Default to manual when plan exists
   const [babyAgeMonths, setBabyAgeMonths] = useState(9);
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>([]);
   const [showWeekCompletionModal, setShowWeekCompletionModal] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>(getWeekStartDate());
   const [hasShownCompletionModal, setHasShownCompletionModal] = useState(false);
   const [recentlyUsedRecipes, setRecentlyUsedRecipes] = useState<string[]>([]);
+  const [hasSavedPlan, setHasSavedPlan] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -193,8 +194,8 @@ const MealPlanner = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
-      await loadMealPlan(user.id);
       await loadUserProfile(user.id);
+      await loadMealPlan(user.id);
     }
     setIsLoading(false);
   };
@@ -216,10 +217,6 @@ const MealPlanner = () => {
     if (profile?.dietary_preferences) {
       setDietaryPrefs(profile.dietary_preferences);
     }
-    
-    // Generate initial auto plan
-    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
-    setAutoPlan(generated);
   };
 
   // Check if the current week is complete (all meals prepared)
@@ -271,17 +268,12 @@ const MealPlanner = () => {
     const newRecentlyUsed = [...recentlyUsedRecipes, ...currentRecipeIds].slice(-56);
     setRecentlyUsedRecipes(newRecentlyUsed);
     
-    // Clear current plan from database
-    const allDbIds: string[] = [];
-    Object.values(mealPlan).forEach(dayMeals => {
-      Object.values(dayMeals).forEach(slot => {
-        if (slot.dbId) allDbIds.push(slot.dbId);
-      });
-    });
-
-    if (allDbIds.length > 0) {
-      await supabase.from('meal_plans').delete().in('id', allDbIds);
-    }
+    // Clear current week's plan from database
+    await supabase
+      .from('meal_plans')
+      .delete()
+      .eq('user_id', userId)
+      .eq('week_start_date', currentWeekStart);
     
     // Generate new plan avoiding recently used recipes
     const newPlan = generateAutoPlan(babyAgeMonths, dietaryPrefs, newRecentlyUsed);
@@ -332,6 +324,7 @@ const MealPlanner = () => {
     setAutoPlan(newPlan);
     setCurrentWeekStart(newWeekStart);
     setHasShownCompletionModal(false);
+    setHasSavedPlan(true);
     
     confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
     toast.success("🎉 New week generated! Enjoy your meals!");
@@ -341,19 +334,14 @@ const MealPlanner = () => {
   const applyAutoPlanToManual = async () => {
     if (!userId) return;
     
-    // Clear existing manual plan
-    const allDbIds: string[] = [];
-    Object.values(mealPlan).forEach(dayMeals => {
-      Object.values(dayMeals).forEach(slot => {
-        if (slot.dbId) allDbIds.push(slot.dbId);
-      });
-    });
-
-    if (allDbIds.length > 0) {
-      await supabase.from('meal_plans').delete().in('id', allDbIds);
-    }
+    // Clear existing plan for current week
+    await supabase
+      .from('meal_plans')
+      .delete()
+      .eq('user_id', userId)
+      .eq('week_start_date', currentWeekStart);
     
-    // Insert auto plan
+    // Insert auto plan with week_start_date
     const inserts: any[] = [];
     Object.entries(autoPlan).forEach(([day, meals]) => {
       Object.entries(meals).forEach(([mealType, slot]) => {
@@ -364,6 +352,7 @@ const MealPlanner = () => {
             meal_type: mealType,
             recipe_id: slot.recipeId,
             prepared: false,
+            week_start_date: currentWeekStart,
           });
         }
       });
@@ -394,23 +383,29 @@ const MealPlanner = () => {
 
     setMealPlan(newPlan);
     setActiveTab("manual");
+    setHasSavedPlan(true);
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
     toast.success("🎉 Plan applied! Now you can customize it.");
     updateShoppingList();
   };
 
   const loadMealPlan = async (uid: string) => {
+    const weekStart = getWeekStartDate();
+    setCurrentWeekStart(weekStart);
+    
+    // Load only current week's plan
     const { data, error } = await supabase
       .from('meal_plans')
       .select('*')
-      .eq('user_id', uid);
+      .eq('user_id', uid)
+      .eq('week_start_date', weekStart);
 
     if (error) {
       console.error('Error loading meal plan:', error);
       return;
     }
 
-    if (data) {
+    if (data && data.length > 0) {
       const plan: MealPlan = {};
       data.forEach((item) => {
         if (!plan[item.day_of_week]) {
@@ -423,6 +418,14 @@ const MealPlanner = () => {
         };
       });
       setMealPlan(plan);
+      setHasSavedPlan(true);
+      setActiveTab("manual"); // Show saved plan by default
+    } else {
+      // No saved plan - generate auto suggestions
+      const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
+      setAutoPlan(generated);
+      setHasSavedPlan(false);
+      setActiveTab("auto"); // Show auto suggestions for new users
     }
   };
 
@@ -478,6 +481,7 @@ const MealPlanner = () => {
         meal_type: mealType,
         recipe_id: recipeId,
         prepared: false,
+        week_start_date: currentWeekStart,
       })
       .select()
       .single();
@@ -494,6 +498,8 @@ const MealPlanner = () => {
         [mealType]: { recipeId, prepared: false, dbId: data.id },
       },
     }));
+    
+    setHasSavedPlan(true);
 
     const recipe = recipes.find(r => r.id === recipeId);
     toast.success(`Added ${recipe?.title || 'recipe'} to ${day}!`);
@@ -581,16 +587,12 @@ const MealPlanner = () => {
   const applyTemplate = async (template: WeekTemplate) => {
     if (!userId) return;
 
-    const allDbIds: string[] = [];
-    Object.values(mealPlan).forEach(dayMeals => {
-      Object.values(dayMeals).forEach(slot => {
-        if (slot.dbId) allDbIds.push(slot.dbId);
-      });
-    });
-
-    if (allDbIds.length > 0) {
-      await supabase.from('meal_plans').delete().in('id', allDbIds);
-    }
+    // Clear current week's plan
+    await supabase
+      .from('meal_plans')
+      .delete()
+      .eq('user_id', userId)
+      .eq('week_start_date', currentWeekStart);
 
     const inserts: any[] = [];
     Object.entries(template.meals).forEach(([day, meals]) => {
@@ -602,6 +604,7 @@ const MealPlanner = () => {
             meal_type: mealType,
             recipe_id: recipeId,
             prepared: false,
+            week_start_date: currentWeekStart,
           });
         }
       });
@@ -630,6 +633,7 @@ const MealPlanner = () => {
     });
 
     setMealPlan(newPlan);
+    setHasSavedPlan(true);
     
     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
     toast.success(`🎉 Applied "${template.name}" template!`);
@@ -790,7 +794,7 @@ const MealPlanner = () => {
             </TabsTrigger>
             <TabsTrigger value="manual" className="flex items-center gap-2 text-sm">
               <Hand className="h-4 w-4" />
-              Manual Planning
+              My Plan
             </TabsTrigger>
           </TabsList>
 
@@ -973,7 +977,7 @@ const MealPlanner = () => {
           }
           setPickerOpen(false);
         }}
-        mealType={pickerContext?.mealType || "breakfast"}
+        mealType={pickerContext?.mealType || ""}
         day={pickerContext?.day || ""}
         usedRecipeIds={usedRecipeIds}
       />
@@ -989,7 +993,7 @@ const MealPlanner = () => {
         onClose={() => setShowWeekCompletionModal(false)}
         onGenerateNewWeek={generateNewWeekPlan}
         completedMeals={stats.preparedMeals}
-        weekNumber={getWeekNumber()}
+        weekNumber={Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}
       />
     </div>
   );

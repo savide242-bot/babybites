@@ -30,7 +30,7 @@ const FirstDay = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.user) {
-          navigate('/auth');
+          navigate('/auth', { replace: true });
           return;
         }
 
@@ -159,7 +159,7 @@ const FirstDay = () => {
       console.error('Error marking welcome as seen:', error);
     }
     
-    navigate(path);
+    navigate(path, { replace: true });
   };
 
   const getAgeAppropriateRecipes = (ageMonths: number): Recipe[] => {
@@ -229,9 +229,18 @@ const FirstDay = () => {
     );
   }
 
-  // Don't render if user shouldn't see this page
+  // Redirect if user shouldn't see this page
   if (!shouldShow) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-300 via-pink-200 to-cyan-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center space-y-4">
+            <Sparkles className="w-12 h-12 mx-auto text-primary animate-pulse" />
+            <p className="text-muted-foreground">Redirecting...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

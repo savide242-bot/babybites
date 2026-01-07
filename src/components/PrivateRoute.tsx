@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,47 +11,97 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const location = useLocation();
+
+  const checkProfile = async (userId: string, retryCount = 0): Promise<boolean> => {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('mother_name, baby_name')
+      .eq('id', userId)
+      .single();
+
+    // If profile doesn't exist and we haven't retried too much, wait and retry
+    // (The profile might still be creating via trigger)
+    if (error && retryCount < 3) {
+      await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1)));
+      return checkProfile(userId, retryCount + 1);
+    }
+
+    const hasIncompleteProfile = 
+      !profile?.mother_name || 
+      !profile?.baby_name || 
+      profile.mother_name === 'User' ||
+      profile.baby_name === null;
+
+    return hasIncompleteProfile;
+  };
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
+        
+        if (!mounted) return;
+        
+        if (!session) {
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          return;
+        }
 
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('mother_name, baby_name')
-            .eq('id', session.user.id)
-            .single();
+        setIsAuthenticated(true);
 
-          const hasIncompleteProfile = 
-            !profile?.mother_name || 
-            !profile?.baby_name || 
-            profile.mother_name === 'User' ||
-            profile.baby_name === null;
-
-          const isOnOnboardingPage = window.location.pathname === '/onboarding';
-          
-          setNeedsOnboarding(hasIncompleteProfile && !isOnOnboardingPage);
+        // Check if user needs onboarding (skip if already on onboarding page)
+        const isOnOnboardingPage = location.pathname === '/onboarding';
+        
+        if (!isOnOnboardingPage) {
+          const needsOnboard = await checkProfile(session.user.id);
+          if (mounted) {
+            setNeedsOnboarding(needsOnboard);
+          }
         }
       } catch (error) {
         console.error("Error checking auth:", error);
-        setIsAuthenticated(false);
+        if (mounted) {
+          setIsAuthenticated(false);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       setIsAuthenticated(!!session);
+      
+      if (session?.user) {
+        // Re-check profile on auth change
+        const isOnOnboardingPage = location.pathname === '/onboarding';
+        if (!isOnOnboardingPage) {
+          const needsOnboard = await checkProfile(session.user.id);
+          if (mounted) {
+            setNeedsOnboarding(needsOnboard);
+          }
+        }
+      } else {
+        setNeedsOnboarding(false);
+      }
+      
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [location.pathname]);
 
   if (isLoading) {
     return (
