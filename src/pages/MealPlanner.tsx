@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ShoppingCart, ChefHat, Sparkles, RefreshCw,
-  Calendar, TrendingUp, Utensils, Wand2, Hand
+  Calendar, TrendingUp, Utensils, Wand2, Hand, Check, PencilLine
 } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
@@ -325,7 +325,8 @@ const MealPlanner = () => {
     }
   };
 
-  const applyAutoPlanToManual = async () => {
+  // Accept AI plan - saves to database, generates shopping list, switches to My Plan
+  const acceptAIPlan = async () => {
     if (!userId || isSaving) return;
     
     setIsSaving(true);
@@ -356,8 +357,8 @@ const MealPlanner = () => {
         .select();
 
       if (error) {
-        console.error('Failed to apply plan:', error);
-        toast.error(`Failed to apply plan: ${error.message}`);
+        console.error('Failed to accept plan:', error);
+        toast.error(`Failed to accept plan: ${error.message}`);
         return;
       }
 
@@ -377,17 +378,70 @@ const MealPlanner = () => {
       setMealPlan(newPlan);
       setActiveTab("manual");
       setHasSavedPlan(true);
+      
+      // Update shopping list automatically
+      await updateShoppingListFromPlan(newPlan);
+      
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-      toast.success("🎉 Plan applied! Now you can customize it.");
-      updateShoppingList();
+      toast.success("🎉 Plan accepted! Shopping list updated.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Helper to update shopping list from a specific plan (used when accepting AI plan)
+  const updateShoppingListFromPlan = async (plan: MealPlan) => {
+    if (!userId) return;
+
+    const ingredientsMap = new Map<string, { ingredient: string; category: string; fromRecipes: string[] }>();
+
+    Object.entries(plan).forEach(([day, meals]) => {
+      Object.entries(meals).forEach(([mealType, slot]) => {
+        const recipe = recipes.find((r) => r.id === slot.recipeId);
+        if (recipe) {
+          recipe.ingredients.forEach((ing) => {
+            const cleanName = extractIngredientName(ing);
+            const category = categorizeIngredient(cleanName);
+            
+            if (ingredientsMap.has(cleanName.toLowerCase())) {
+              const existing = ingredientsMap.get(cleanName.toLowerCase())!;
+              if (!existing.fromRecipes.includes(recipe.title)) {
+                existing.fromRecipes.push(recipe.title);
+              }
+            } else {
+              ingredientsMap.set(cleanName.toLowerCase(), {
+                ingredient: cleanName,
+                category,
+                fromRecipes: [recipe.title],
+              });
+            }
+          });
+        }
+      });
+    });
+
+    await supabase.from('shopping_list_items').delete().eq('user_id', userId);
+
+    if (ingredientsMap.size > 0) {
+      const items = Array.from(ingredientsMap.values()).map(item => ({
+        user_id: userId,
+        ingredient: item.ingredient,
+        category: item.category,
+        from_recipe: item.fromRecipes.join(", "),
+        checked: false,
+      }));
+      
+      await supabase.from('shopping_list_items').insert(items);
     }
   };
 
   const loadMealPlan = async (uid: string) => {
     const weekStart = getWeekStartDate();
     setCurrentWeekStart(weekStart);
+    
+    // Always generate AI suggestions for the AI tab
+    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
+    setAutoPlan(generated);
     
     // Load only current week's plan
     const { data, error } = await supabase
@@ -417,11 +471,10 @@ const MealPlanner = () => {
       setHasSavedPlan(true);
       setActiveTab("manual"); // Show saved plan by default
     } else {
-      // No saved plan - generate auto suggestions
-      const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
-      setAutoPlan(generated);
+      // No saved plan - start with empty manual plan, show AI tab first
+      setMealPlan({});
       setHasSavedPlan(false);
-      setActiveTab("auto"); // Show auto suggestions for new users
+      setActiveTab("auto"); // Show AI suggestions for new users
     }
   };
 
@@ -792,16 +845,16 @@ const MealPlanner = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12">
             <TabsTrigger value="auto" className="flex items-center gap-2 text-sm">
-              <Wand2 className="h-4 w-4" />
-              Auto-Generated
+              <Sparkles className="h-4 w-4" />
+              AI Recommended
             </TabsTrigger>
             <TabsTrigger value="manual" className="flex items-center gap-2 text-sm">
-              <Hand className="h-4 w-4" />
-              My Plan
+              <PencilLine className="h-4 w-4" />
+              My Custom Plan
             </TabsTrigger>
           </TabsList>
 
-          {/* Auto-Generated Tab */}
+          {/* AI Recommended Tab */}
           <TabsContent value="auto" className="mt-6">
             {/* Explanatory Note */}
             <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20">
@@ -814,8 +867,8 @@ const MealPlanner = () => {
                     Personalized Plan for Your {babyAgeMonths}-Month-Old
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Based on your baby's age, we've generated a nutritious meal plan rich in proteins, vitamins, and essential nutrients for healthy growth and development. 
-                    You can customize at any moment by clicking "Apply & Customize" to adjust recipes according to your preferences!
+                    We've created a nutritious meal plan optimized for your baby's age. 
+                    Accept the plan to save it and generate your shopping list, or see another suggestion!
                   </p>
                 </div>
               </div>
@@ -827,20 +880,28 @@ const MealPlanner = () => {
                   <div>
                     <h2 className="text-xl font-bold flex items-center gap-2">
                       <Wand2 className="h-5 w-5 text-primary" />
-                      AI-Generated Meal Plan
+                      AI-Suggested Meal Plan
                     </h2>
                     <p className="text-muted-foreground mt-1">
-                      Optimized for {babyAgeMonths}-month-old babies • Nutritionally balanced • No repeated meals
+                      Optimized for {babyAgeMonths}-month-old • Nutritionally balanced • Ready to use
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button onClick={regenerateAutoPlan} variant="outline" className="gap-2">
-                      <RefreshCw className="h-4 w-4" />
-                      Regenerate
+                  <div className="flex gap-2 flex-wrap">
+                    <Button 
+                      onClick={acceptAIPlan} 
+                      className="gap-2"
+                      disabled={isSaving}
+                    >
+                      <Check className="h-4 w-4" />
+                      Accept Plan
                     </Button>
-                    <Button onClick={applyAutoPlanToManual} className="gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Apply & Customize
+                    <Button 
+                      onClick={regenerateAutoPlan} 
+                      variant="outline" 
+                      className="gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      See Another Plan
                     </Button>
                   </div>
                 </div>
@@ -887,42 +948,51 @@ const MealPlanner = () => {
               </Card>
             )}
 
-            <div className="flex gap-2 mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setTemplatesOpen(true)}
-              >
-                <Sparkles className="h-4 w-4 mr-1" />
-                Use Template
-              </Button>
-            </div>
+            {/* Empty State Banner */}
+            {Object.keys(mealPlan).length === 0 && (
+              <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-secondary/10 via-accent/10 to-primary/10 border border-secondary/20">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-secondary/20">
+                    <PencilLine className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">
+                      Build Your Own Plan
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Add meals one by one by clicking the "+" buttons below, or check out the AI suggestions for inspiration!
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                      <Button onClick={() => setActiveTab("auto")} variant="outline" size="sm">
+                        <Sparkles className="h-4 w-4 mr-1" />
+                        View AI Suggestions
+                      </Button>
+                      <Button onClick={() => setTemplatesOpen(true)} size="sm" variant="secondary">
+                        <Wand2 className="h-4 w-4 mr-1" />
+                        Use Template
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show template button when plan has meals */}
+            {Object.keys(mealPlan).length > 0 && (
+              <div className="flex gap-2 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTemplatesOpen(true)}
+                >
+                  <Sparkles className="h-4 w-4 mr-1" />
+                  Use Template
+                </Button>
+              </div>
+            )}
 
             <div className="grid lg:grid-cols-4 gap-6">
               <div className="lg:col-span-3 space-y-4">
-                {Object.keys(mealPlan).length === 0 && (
-                  <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-secondary/5">
-                    <CardContent className="py-12 text-center space-y-4">
-                      <div className="text-6xl animate-bounce">🍽️</div>
-                      <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        Start Planning Your Week!
-                      </h2>
-                      <p className="text-muted-foreground max-w-md mx-auto">
-                        Add meals to each day or use a template to get started.
-                      </p>
-                      <div className="flex gap-2 justify-center">
-                        <Button onClick={() => setActiveTab("auto")} variant="outline">
-                          <Wand2 className="h-4 w-4 mr-2" />
-                          View Auto-Generated Plan
-                        </Button>
-                        <Button onClick={() => setTemplatesOpen(true)}>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Use a Template
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
 
                 {daysOfWeek.map((day, index) => (
                   <DayCard
