@@ -73,19 +73,21 @@ const Auth = () => {
         setIsCheckingAuth(false);
       }
     };
-    
+
     checkAuth();
 
-    // Listen for auth changes (e.g., after signup with auto-confirm)
+    // Listen for auth changes (sync only)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Navigate to home on successful sign in
-        navigate("/", { replace: true });
+        // IMPORTANT: new users should land on onboarding (avoids blank screens while
+        // profile-dependent data is still being created).
+        const target = step === 'signup' ? '/onboarding' : '/';
+        navigate(target, { replace: true });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, step]);
 
   const checkEmailExists = async (email: string): Promise<boolean> => {
     try {
@@ -152,10 +154,12 @@ const Auth = () => {
       
       if (data.user) {
         toast.success("Account created successfully! Welcome! 🎉");
-        // The onAuthStateChange listener will handle navigation
-        // If auto-confirm is enabled, session will be created immediately
+
+        // If auto-confirm is enabled, session will be created immediately.
+        // Send new users straight to onboarding to avoid any race conditions
+        // with profile-dependent pages.
         if (data.session) {
-          navigate("/", { replace: true });
+          navigate("/onboarding", { replace: true });
         }
       }
     } catch (error: any) {
