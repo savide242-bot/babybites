@@ -53,17 +53,25 @@ const Onboarding = () => {
       // Detect user timezone
       const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-      // Update profile with all onboarding data including timezone
+      // Get full_name from metadata or use mother_name
+      const fullName =
+        session.user.user_metadata?.full_name ||
+        session.user.user_metadata?.name ||
+        motherName.trim() ||
+        "User";
+
+      // Use upsert to reliably create or update the profile (prevents loop when profile is missing)
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: session.user.id,
+          full_name: fullName,
           mother_name: motherName.trim(),
           baby_name: babyName.trim(),
           baby_birth_date: birthDate?.toISOString().split('T')[0],
           dietary_preferences: dietaryPreferences,
           timezone: detectedTimezone,
-        })
-        .eq('id', session.user.id);
+        }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 

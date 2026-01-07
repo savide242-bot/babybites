@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
-import { differenceInMonths } from "date-fns";
+import { differenceInMonths, startOfWeek, format } from "date-fns";
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
@@ -78,14 +78,13 @@ const getRecipesByMealType = (mealType: string, ageMonths: number) => {
     .sort((a, b) => b.score - a.score);
 };
 
-// Get the start of the current week (Monday)
-const getWeekStartDate = (date: Date = new Date()): string => {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString().split('T')[0];
+/**
+ * Get the start of the current week (Monday) in a timezone-safe way.
+ * Uses local date formatting to avoid UTC conversion issues.
+ */
+export const getWeekStartDate = (date: Date = new Date()): string => {
+  const weekStart = startOfWeek(date, { weekStartsOn: 1 }); // Monday
+  return format(weekStart, 'yyyy-MM-dd');
 };
 
 // Generate an automatic meal plan
