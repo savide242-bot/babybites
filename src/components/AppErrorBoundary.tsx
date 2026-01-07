@@ -10,36 +10,20 @@ interface State {
   hasError: boolean;
   error: Error | null;
   isRecovering: boolean;
-  errorInfo: string | null;
 }
 
 class AppErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null, isRecovering: false, errorInfo: null };
+    this.state = { hasError: false, error: null, isRecovering: false };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<State> {
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error, isRecovering: false };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('App Error Boundary caught an error:', error, errorInfo);
-    this.setState({ errorInfo: errorInfo.componentStack || null });
-    
-    // Check if this is a chunk loading error - auto-recover
-    const message = error.message?.toLowerCase() || '';
-    const isChunkError = 
-      message.includes('loading chunk') ||
-      message.includes('failed to fetch dynamically imported module') ||
-      message.includes('importing a module script failed') ||
-      message.includes('load failed');
-    
-    if (isChunkError) {
-      console.log('🔧 Auto-recovering from chunk error...');
-      // Delay slightly to ensure error is logged
-      setTimeout(() => performPWARecovery(), 500);
-    }
   }
 
   handleReload = () => {
@@ -49,17 +33,6 @@ class AppErrorBoundary extends Component<Props, State> {
   handleRepair = async () => {
     this.setState({ isRecovering: true });
     await performPWARecovery();
-  };
-
-  handleClearAndReload = () => {
-    // Clear all storage and reload
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch (e) {
-      console.error('Failed to clear storage:', e);
-    }
-    window.location.href = '/auth';
   };
 
   render() {
@@ -104,13 +77,6 @@ class AppErrorBoundary extends Component<Props, State> {
               >
                 <Wrench className="w-5 h-5" />
                 {this.state.isRecovering ? 'Repairing...' : 'Repair App'}
-              </button>
-              
-              <button
-                onClick={this.handleClearAndReload}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 py-2 underline"
-              >
-                Clear all data & start fresh
               </button>
             </div>
             

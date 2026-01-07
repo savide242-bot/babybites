@@ -176,14 +176,13 @@ const MealPlanner = () => {
   const [pickerContext, setPickerContext] = useState<{ day: string; mealType: string } | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [copySource, setCopySource] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("manual"); // Default to manual (saved) plan
+  const [activeTab, setActiveTab] = useState<string>("auto");
   const [babyAgeMonths, setBabyAgeMonths] = useState(9);
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>([]);
   const [showWeekCompletionModal, setShowWeekCompletionModal] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>(getWeekStartDate());
   const [hasShownCompletionModal, setHasShownCompletionModal] = useState(false);
   const [recentlyUsedRecipes, setRecentlyUsedRecipes] = useState<string[]>([]);
-  const [autoPlanGenerated, setAutoPlanGenerated] = useState(false); // Track if auto plan was generated this session
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -194,57 +193,33 @@ const MealPlanner = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
-      // Load saved plan first
-      const hasSavedPlan = await loadMealPlan(user.id);
-      // Load profile for age/preferences
-      await loadUserProfile(user.id, hasSavedPlan);
+      await loadMealPlan(user.id);
+      await loadUserProfile(user.id);
     }
     setIsLoading(false);
   };
 
-  const loadUserProfile = async (uid: string, hasSavedPlan: boolean) => {
+  const loadUserProfile = async (uid: string) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('baby_birth_date, dietary_preferences')
       .eq('id', uid)
       .maybeSingle();
     
-    let calculatedAge = 9;
-    let prefs: string[] = [];
-    
     if (profile?.baby_birth_date) {
       const birthDate = new Date(profile.baby_birth_date);
       const now = new Date();
       const ageMonths = Math.floor((now.getTime() - birthDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000));
-      calculatedAge = Math.max(6, Math.min(24, ageMonths));
-      setBabyAgeMonths(calculatedAge);
+      setBabyAgeMonths(Math.max(6, Math.min(24, ageMonths)));
     }
     
     if (profile?.dietary_preferences) {
-      prefs = profile.dietary_preferences;
-      setDietaryPrefs(prefs);
+      setDietaryPrefs(profile.dietary_preferences);
     }
     
-    // Only generate auto plan for preview, NOT as default
-    // Auto plan is generated lazily when user switches to "auto" tab
-    if (!hasSavedPlan) {
-      // No saved plan - generate auto plan as suggestion and show auto tab
-      const generated = generateAutoPlan(calculatedAge, prefs, recentlyUsedRecipes);
-      setAutoPlan(generated);
-      setAutoPlanGenerated(true);
-      setActiveTab("auto");
-    }
-  };
-  
-  // Generate auto plan lazily when switching to auto tab
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    
-    if (tab === "auto" && !autoPlanGenerated) {
-      const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
-      setAutoPlan(generated);
-      setAutoPlanGenerated(true);
-    }
+    // Generate initial auto plan
+    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
+    setAutoPlan(generated);
   };
 
   // Check if the current week is complete (all meals prepared)
@@ -424,7 +399,7 @@ const MealPlanner = () => {
     updateShoppingList();
   };
 
-  const loadMealPlan = async (uid: string): Promise<boolean> => {
+  const loadMealPlan = async (uid: string) => {
     const { data, error } = await supabase
       .from('meal_plans')
       .select('*')
@@ -432,10 +407,10 @@ const MealPlanner = () => {
 
     if (error) {
       console.error('Error loading meal plan:', error);
-      return false;
+      return;
     }
 
-    if (data && data.length > 0) {
+    if (data) {
       const plan: MealPlan = {};
       data.forEach((item) => {
         if (!plan[item.day_of_week]) {
@@ -448,10 +423,7 @@ const MealPlanner = () => {
         };
       });
       setMealPlan(plan);
-      return true; // Has saved plan
     }
-    
-    return false; // No saved plan
   };
 
   const usedRecipeIds = useMemo(() => {
@@ -810,7 +782,7 @@ const MealPlanner = () => {
 
       <div className="container mx-auto px-4 py-6">
         {/* Tabs - Auto vs Manual */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12">
             <TabsTrigger value="auto" className="flex items-center gap-2 text-sm">
               <Wand2 className="h-4 w-4" />
