@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Scan, AlertTriangle, CheckCircle2, Camera, X, Loader2, Flashlight, RefreshCw } from "lucide-react";
+import { 
+  Scan, AlertTriangle, CheckCircle2, Camera, X, Loader2, Flashlight, 
+  RefreshCw, ShieldCheck, ShieldX, ShieldAlert, Sparkles, Info,
+  Package, AlertCircle, ChevronDown, ChevronUp
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BrowserMultiFormatReader, BarcodeFormat } from "@zxing/browser";
 import { DecodeHintType } from "@zxing/library";
 import { Html5Qrcode } from "html5-qrcode";
+import { motion, AnimatePresence } from "framer-motion";
 
 type CameraState = 'IDLE' | 'REQUESTING_PERMISSION' | 'INITIALIZING' | 'SCANNING' | 'ERROR';
 type ScanningStatus = 'idle' | 'scanning' | 'confirming' | 'verifying' | 'success' | 'error';
@@ -43,6 +48,17 @@ const validateBarcode = (code: string): { valid: boolean; type: string } => {
   return { valid: true, type: 'UNKNOWN' };
 };
 
+const getNutritionGradeColor = (grade: string) => {
+  const colors: Record<string, { bg: string; text: string; glow: string }> = {
+    a: { bg: 'bg-green-500', text: 'text-green-500', glow: 'shadow-green-500/50' },
+    b: { bg: 'bg-lime-500', text: 'text-lime-500', glow: 'shadow-lime-500/50' },
+    c: { bg: 'bg-yellow-500', text: 'text-yellow-500', glow: 'shadow-yellow-500/50' },
+    d: { bg: 'bg-orange-500', text: 'text-orange-500', glow: 'shadow-orange-500/50' },
+    e: { bg: 'bg-red-500', text: 'text-red-500', glow: 'shadow-red-500/50' },
+  };
+  return colors[grade?.toLowerCase()] || colors.c;
+};
+
 const BarcodeScanner = () => {
   const [barcode, setBarcode] = useState("");
   const [cameraState, setCameraState] = useState<CameraState>('IDLE');
@@ -56,6 +72,7 @@ const BarcodeScanner = () => {
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
   const [retryCount, setRetryCount] = useState(0);
+  const [showSafetyDetails, setShowSafetyDetails] = useState(false);
   
   const { toast } = useToast();
   const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
@@ -116,7 +133,7 @@ const BarcodeScanner = () => {
     setStatusMessage('');
     setScanBuffer(new Map());
     setTorchEnabled(false);
-    setRetryCount(0); // Reset retry count when stopping
+    setRetryCount(0);
   };
 
   const requestCameraPermission = async (): Promise<boolean> => {
@@ -136,7 +153,6 @@ const BarcodeScanner = () => {
       streamRef.current = stream;
       console.log('✅ Camera permission granted');
 
-      // CRITICAL: Connect stream to video element immediately
       await new Promise(resolve => setTimeout(resolve, 100));
       
       if (videoRef.current) {
@@ -149,28 +165,25 @@ const BarcodeScanner = () => {
         } catch (playError) {
           console.warn('⚠️ Video play warning:', playError);
         }
-      } else {
-        console.warn('⚠️ Video element not ready yet');
       }
 
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       setHasMultipleCameras(videoDevices.length > 1);
-      console.log(`📹 Found ${videoDevices.length} camera(s)`);
 
       return true;
     } catch (error: any) {
       console.error('❌ Camera permission error:', error);
       setCameraState('ERROR');
       
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      if (error.name === 'NotAllowedError') {
         setStatusMessage('Camera access denied. Please enable camera in your browser settings.');
         toast({
           title: "Camera Access Denied",
-          description: "Please enable camera permissions in your browser settings and try again.",
+          description: "Please enable camera permissions and try again.",
           variant: "destructive"
         });
-      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+      } else if (error.name === 'NotFoundError') {
         setStatusMessage('No camera found. Please connect a camera device.');
         toast({
           title: "No Camera Found",
@@ -233,13 +246,10 @@ const BarcodeScanner = () => {
       await new Promise(resolve => setTimeout(resolve, 200));
 
       if (!videoRef.current) {
-        console.error('❌ Video element not found');
         throw new Error('Video element not found');
       }
 
-      // CRITICAL: Ensure stream is connected to video
       if (!videoRef.current.srcObject && streamRef.current) {
-        console.log('🔗 Connecting stream to video...');
         videoRef.current.srcObject = streamRef.current;
         await videoRef.current.play();
       }
@@ -248,11 +258,8 @@ const BarcodeScanner = () => {
         throw new Error('Video has no stream source');
       }
 
-      console.log('⏳ Waiting for video to be ready...');
       await waitForVideoReady(videoRef.current, INIT_TIMEOUT);
-      console.log('✅ Video ready:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
 
-      // Configure hints with all barcode formats
       const hints = new Map();
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
         BarcodeFormat.EAN_13,
@@ -265,8 +272,6 @@ const BarcodeScanner = () => {
         BarcodeFormat.DATA_MATRIX
       ]);
       hints.set(DecodeHintType.TRY_HARDER, true);
-      
-      console.log('📋 ZXing hints configured for multiple formats');
 
       const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
@@ -280,10 +285,6 @@ const BarcodeScanner = () => {
       const selectedDevice = videoDevices.find(device => 
         device.label.toLowerCase().includes(cameraFacingMode === 'environment' ? 'back' : 'front')
       ) || videoDevices[0];
-
-      console.log('📹 Selected camera:', selectedDevice.label);
-
-      console.log('🎬 Starting ZXing decode...');
       
       await codeReader.decodeFromVideoDevice(
         selectedDevice.deviceId,
@@ -291,27 +292,14 @@ const BarcodeScanner = () => {
         (result, error) => {
           if (result) {
             const detectedCode = result.getText();
-            const format = result.getBarcodeFormat();
-            console.log('📸 ZXing detected:', detectedCode, 'Format:', BarcodeFormat[format]);
             handleBarcodeDetected(detectedCode);
           }
         }
       );
 
-      console.log('✅ ZXing decode started, setting state to SCANNING');
       setCameraState('SCANNING');
       setScanningStatus('scanning');
       setStatusMessage('Point camera at barcode...');
-      
-      console.log('📊 Scanner State:', {
-        cameraState: 'SCANNING',
-        scanningStatus: 'scanning',
-        videoElement: !!videoRef.current,
-        videoSrcObject: !!videoRef.current?.srcObject,
-        videoPlaying: !videoRef.current?.paused,
-        videoWidth: videoRef.current?.videoWidth,
-        videoHeight: videoRef.current?.videoHeight
-      });
       
       return true;
     } catch (error: any) {
@@ -323,19 +311,17 @@ const BarcodeScanner = () => {
 
   const initializeHtml5QrCodeScanner = async (): Promise<boolean> => {
     try {
-      console.log('🔧 Initializing HTML5-QRCode scanner (fallback)...');
+      console.log('🔧 Initializing HTML5-QRCode scanner...');
       setCameraState('INITIALIZING');
-      setStatusMessage('Initializing fallback scanner...');
+      setStatusMessage('Initializing scanner...');
 
       await new Promise(resolve => setTimeout(resolve, 200));
 
       const readerElement = document.getElementById('barcode-reader');
       if (!readerElement) {
-        console.error('❌ barcode-reader element not found');
-        throw new Error('HTML Element with id=barcode-reader not found');
+        throw new Error('Scanner element not found');
       }
 
-      // Connect stream to video if available
       if (streamRef.current && videoRef.current && !videoRef.current.srcObject) {
         videoRef.current.srcObject = streamRef.current;
         await videoRef.current.play();
@@ -343,8 +329,6 @@ const BarcodeScanner = () => {
 
       const html5QrCode = new Html5Qrcode("barcode-reader");
       html5QrCodeRef.current = html5QrCode;
-
-      console.log('🎬 Starting HTML5-QRCode with enhanced detection...');
       
       const startPromise = html5QrCode.start(
         { facingMode: cameraFacingMode },
@@ -352,19 +336,15 @@ const BarcodeScanner = () => {
           fps: 15,
           qrbox: { width: 300, height: 200 }
         },
-        (decodedText, decodedResult) => {
-          const format = decodedResult.result?.format?.formatName || 'UNKNOWN';
-          console.log('📸 HTML5-QRCode detected:', decodedText, 'Format:', format);
+        (decodedText) => {
           handleBarcodeDetected(decodedText);
         },
-        (errorMessage) => {
-          // Scanning errors are normal, ignore
-        }
+        () => {}
       );
 
       const timeoutPromise = new Promise((_, reject) => {
         initTimeoutRef.current = setTimeout(() => {
-          reject(new Error('HTML5-QRCode initialization timeout'));
+          reject(new Error('Scanner initialization timeout'));
         }, INIT_TIMEOUT);
       });
 
@@ -375,22 +355,14 @@ const BarcodeScanner = () => {
         initTimeoutRef.current = null;
       }
 
-      console.log('✅ HTML5-QRCode started, setting state to SCANNING');
       setCameraState('SCANNING');
       setScanningStatus('scanning');
       setStatusMessage('Point camera at barcode...');
       
-      console.log('📊 Scanner State:', {
-        cameraState: 'SCANNING',
-        scanningStatus: 'scanning',
-        videoElement: !!videoRef.current,
-        videoSrcObject: !!videoRef.current?.srcObject
-      });
-      
       return true;
     } catch (error: any) {
       console.error('❌ HTML5-QRCode initialization error:', error);
-      setStatusMessage(error.message || 'Fallback scanner initialization failed');
+      setStatusMessage(error.message || 'Scanner initialization failed');
       return false;
     }
   };
@@ -399,7 +371,7 @@ const BarcodeScanner = () => {
     const issues: string[] = [];
     
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      issues.push('Camera access not supported in this browser');
+      issues.push('Camera access not supported');
     }
     
     if (!window.MediaStream) {
@@ -408,22 +380,17 @@ const BarcodeScanner = () => {
     
     const isSecureContext = window.isSecureContext || location.protocol === 'https:';
     if (!isSecureContext && location.hostname !== 'localhost') {
-      issues.push('Camera requires HTTPS connection');
+      issues.push('Camera requires HTTPS');
     }
     
-    return {
-      compatible: issues.length === 0,
-      issues
-    };
+    return { compatible: issues.length === 0, issues };
   };
 
   const startCameraScanner = async () => {
     try {
-      console.log('🚀 Starting camera scanner...');
-      
       const compatibility = checkBrowserCompatibility();
       if (!compatibility.compatible) {
-        throw new Error(`Browser incompatibility: ${compatibility.issues.join(', ')}`);
+        throw new Error(`Browser issue: ${compatibility.issues.join(', ')}`);
       }
       
       setCameraState('INITIALIZING');
@@ -433,16 +400,11 @@ const BarcodeScanner = () => {
 
       let success = false;
 
-      // Try ZXing first
       if (scannerMethod === 'zxing') {
         success = await initializeZXingScanner();
         
         if (!success) {
-          console.log('⚠️ ZXing failed, trying HTML5-QRCode...');
-          toast({
-            title: "Switching Scanner",
-            description: "Trying alternative method...",
-          });
+          toast({ title: "Switching Scanner", description: "Trying alternative..." });
           setScannerMethod('html5qrcode');
           success = await initializeHtml5QrCodeScanner();
         }
@@ -450,14 +412,13 @@ const BarcodeScanner = () => {
         success = await initializeHtml5QrCodeScanner();
         
         if (!success) {
-          console.log('⚠️ HTML5-QRCode failed, trying ZXing...');
           setScannerMethod('zxing');
           success = await initializeZXingScanner();
         }
       }
 
       if (!success) {
-        throw new Error('Scanner initialization failed. Please check camera permissions and try again.');
+        throw new Error('Scanner initialization failed');
       } else {
         setRetryCount(0);
         toast({
@@ -468,10 +429,10 @@ const BarcodeScanner = () => {
     } catch (error: any) {
       console.error('❌ Failed to start scanner:', error);
       setCameraState('ERROR');
-      setStatusMessage(error.message || 'Failed to start scanner. Please use manual entry.');
+      setStatusMessage(error.message || 'Failed to start scanner');
       toast({
         title: "Scanner Error",
-        description: error.message || "Failed to initialize camera. Please try manual entry.",
+        description: error.message || "Please try manual entry",
         variant: "destructive"
       });
       setRetryCount(0);
@@ -490,9 +451,7 @@ const BarcodeScanner = () => {
           advanced: [{ torch: !torchEnabled } as any]
         });
         setTorchEnabled(!torchEnabled);
-        toast({
-          title: torchEnabled ? "Flashlight Off" : "Flashlight On",
-        });
+        toast({ title: torchEnabled ? "Flashlight Off" : "Flashlight On" });
       } else {
         toast({
           title: "Not Supported",
@@ -508,43 +467,28 @@ const BarcodeScanner = () => {
   const switchCamera = async () => {
     await stopCameraScanner();
     setCameraFacingMode(prev => prev === 'environment' ? 'user' : 'environment');
-    setTimeout(() => {
-      startCameraScanner();
-    }, 500);
+    setTimeout(() => startCameraScanner(), 500);
   };
 
   const handleBarcodeDetected = (decodedText: string) => {
-    console.log('🔍 Barcode detection triggered:', decodedText);
-    
-    if (scanCooldown) {
-      console.log('⏸️ In cooldown period, ignoring detection');
-      return;
-    }
+    if (scanCooldown) return;
 
     const validation = validateBarcode(decodedText);
-    console.log('📋 Validation result:', validation);
-    
-    if (!validation.valid) {
-      console.log('❌ Invalid barcode format, ignoring');
-      return;
-    }
+    if (!validation.valid) return;
 
     const newBuffer = new Map(scanBuffer);
     const count = (newBuffer.get(decodedText) || 0) + 1;
     newBuffer.set(decodedText, count);
     setScanBuffer(newBuffer);
     
-    console.log(`✅ Scan ${count}/${CONFIRMATION_THRESHOLD} for barcode: ${decodedText}`);
-    setStatusMessage(`Scan ${count}/${CONFIRMATION_THRESHOLD} - Keep steady...`);
+    setStatusMessage(`Scan ${count}/${CONFIRMATION_THRESHOLD} - Hold steady...`);
 
     if (count >= CONFIRMATION_THRESHOLD) {
-      console.log('🎉 Confirmation threshold reached, processing scan...');
       processConfirmedScan(decodedText, validation.type);
     }
   };
 
   const processConfirmedScan = async (confirmedBarcode: string, barcodeType: string) => {
-    console.log('✅ Barcode confirmed:', confirmedBarcode);
     setScanCooldown(true);
     setScanningStatus('verifying');
     setStatusMessage('Verifying product...');
@@ -562,15 +506,15 @@ const BarcodeScanner = () => {
         await saveToDatabase(productData);
         setResult(productData);
         setScanningStatus('success');
-        setStatusMessage('Product verified successfully!');
+        setStatusMessage('Product verified!');
         
         toast({
-          title: "Product Scanned",
-          description: productData.product_name || "Product information retrieved",
+          title: "Product Found",
+          description: productData.product_name || "Product verified",
         });
       } else {
         setScanningStatus('error');
-        setStatusMessage('Product not found in database');
+        setStatusMessage('Product not found');
         toast({
           title: "Product Not Found",
           description: "This product is not in our database yet.",
@@ -582,8 +526,8 @@ const BarcodeScanner = () => {
       setScanningStatus('error');
       
       const errorMessage = error.message === 'Product not found in database'
-        ? 'Product not found. This item may not be in our database yet.'
-        : error.message || 'Failed to process barcode';
+        ? 'Product not found'
+        : error.message || 'Failed to verify';
       
       setStatusMessage(errorMessage);
       
@@ -604,65 +548,36 @@ const BarcodeScanner = () => {
   };
 
   const verifyProduct = async (barcode: string, barcodeType: string): Promise<ScanResult | null> => {
-    try {
-      console.log('🔍 Verifying product:', { barcode, barcodeType });
-      console.log('📡 Calling verify-product edge function...');
-      
-      const { data, error } = await supabase.functions.invoke('verify-product', {
-        body: { barcode, barcodeType }
-      });
+    const { data, error } = await supabase.functions.invoke('verify-product', {
+      body: { barcode, barcodeType }
+    });
 
-      console.log('📦 Edge function response:', { data, error });
+    if (error) throw new Error(error.message || 'Verification failed');
+    if (!data || !data.product) throw new Error('Product not found in database');
 
-      if (error) {
-        console.error('❌ Edge function error:', error);
-        throw new Error(error.message || 'Edge function returned an error');
-      }
-
-      if (!data || !data.product) {
-        console.warn('⚠️ Product not found in Open Food Facts database');
-        throw new Error('Product not found in database');
-      }
-
-      console.log('✅ Product verified successfully:', data);
-      return data as ScanResult;
-    } catch (error: any) {
-      console.error('❌ Product verification error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      throw error;
-    }
+    return data as ScanResult;
   };
 
   const saveToDatabase = async (productData: ScanResult) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase.from('scanned_products').insert({
-        user_id: user.id,
-        barcode: productData.barcode,
-        barcode_type: productData.barcode_type,
-        product_name: productData.product_name,
-        brands: productData.brands,
-        allergens: productData.allergens,
-        nutrition_grade: productData.nutrition_grade,
-        is_baby_safe: productData.is_baby_safe,
-        safety_notes: productData.safety_notes,
-        image_url: productData.image_url,
-        verified: productData.verified,
-        verification_source: productData.verification_source,
-      });
+    const { error } = await supabase.from('scanned_products').insert({
+      user_id: user.id,
+      barcode: productData.barcode,
+      barcode_type: productData.barcode_type,
+      product_name: productData.product_name,
+      brands: productData.brands,
+      allergens: productData.allergens,
+      nutrition_grade: productData.nutrition_grade,
+      is_baby_safe: productData.is_baby_safe,
+      safety_notes: productData.safety_notes,
+      image_url: productData.image_url,
+      verified: productData.verified,
+      verification_source: productData.verification_source,
+    });
 
-      if (error) throw error;
-      console.log('✅ Product saved to database');
-    } catch (error: any) {
-      console.error('Database save error:', error);
-      throw error;
-    }
+    if (error) throw error;
   };
 
   const handleManualScan = async () => {
@@ -695,11 +610,11 @@ const BarcodeScanner = () => {
         await saveToDatabase(productData);
         setResult(productData);
         setScanningStatus('success');
-        setStatusMessage('Product verified successfully!');
+        setStatusMessage('Product verified!');
         
         toast({
           title: "Product Found",
-          description: productData.product_name || "Product information retrieved",
+          description: productData.product_name || "Product verified",
         });
       } else {
         setScanningStatus('error');
@@ -728,279 +643,453 @@ const BarcodeScanner = () => {
     setScanningStatus('idle');
     setStatusMessage('');
     setBarcode('');
-    setRetryCount(0); // Reset retry count
+    setRetryCount(0);
+    setShowSafetyDetails(false);
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto space-y-4">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Barcode Scanner</h1>
-          {cameraState === 'SCANNING' && (
-            <div className="flex gap-2">
-              {hasMultipleCameras && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={switchCamera}
-                  title="Switch Camera"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={toggleTorch}
-                title="Toggle Flashlight"
-              >
-                <Flashlight className={`h-4 w-4 ${torchEnabled ? 'text-yellow-500' : ''}`} />
-              </Button>
-            </div>
-          )}
-        </div>
+    <div className="min-h-screen bg-background overflow-hidden relative">
+      {/* Animated Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-primary/20 to-secondary/10 rounded-full blur-3xl animate-float-orb" />
+        <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-gradient-to-br from-secondary/20 to-accent/10 rounded-full blur-3xl animate-float-orb" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-mint/10 to-primary/10 rounded-full blur-3xl animate-float-orb" style={{ animationDelay: '4s' }} />
+      </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Manual Entry</h2>
-          <div className="space-y-4">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6 pb-24">
+        {/* Premium Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="barcode">Enter Barcode Number</Label>
-              <Input
-                id="barcode"
-                type="text"
-                placeholder="e.g., 7891234567890"
-                value={barcode}
-                onChange={(e) => setBarcode(e.target.value)}
-                disabled={scanningStatus === 'verifying'}
-              />
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                Safety Scanner
+              </h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                Verify products for your baby's safety
+              </p>
             </div>
-            <Button
-              onClick={handleManualScan}
-              disabled={scanningStatus === 'verifying'}
-              className="w-full"
-            >
-              {scanningStatus === 'verifying' ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                <>
-                  <Scan className="mr-2 h-4 w-4" />
-                  Verify Barcode
-                </>
-              )}
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Camera Scanner</h2>
-          
-          {cameraState === 'IDLE' && (
-            <Button onClick={startCameraScanner} className="w-full">
-              <Camera className="mr-2 h-4 w-4" />
-              Start Camera
-            </Button>
-          )}
-
-          {cameraState === 'REQUESTING_PERMISSION' && (
-            <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-              <p className="text-sm text-muted-foreground">{statusMessage}</p>
-            </div>
-          )}
-
-          {(cameraState === 'INITIALIZING' || cameraState === 'SCANNING') && (
-            <div className="space-y-4">
-              <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  playsInline
-                  muted
-                />
-                <div id="barcode-reader" className="absolute inset-0" />
-                
-                {cameraState === 'INITIALIZING' && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-center">
-                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
-                      <p className="text-sm text-white">{statusMessage}</p>
-                    </div>
-                  </div>
+            {cameraState === 'SCANNING' && (
+              <div className="flex gap-2">
+                {hasMultipleCameras && (
+                  <Button variant="outline" size="icon" onClick={switchCamera} className="backdrop-blur-sm bg-background/50">
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
                 )}
-                
-                {cameraState === 'SCANNING' && (
+                <Button variant="outline" size="icon" onClick={toggleTorch} className="backdrop-blur-sm bg-background/50">
+                  <Flashlight className={`h-4 w-4 ${torchEnabled ? 'text-accent' : ''}`} />
+                </Button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Manual Entry Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="p-6 backdrop-blur-xl bg-card/80 border-primary/10 shadow-xl mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Manual Entry</h2>
+                <p className="text-xs text-muted-foreground">Enter barcode number</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="barcode" className="text-muted-foreground text-sm">Barcode Number</Label>
+                <Input
+                  id="barcode"
+                  type="text"
+                  placeholder="e.g., 7891234567890"
+                  value={barcode}
+                  onChange={(e) => setBarcode(e.target.value)}
+                  disabled={scanningStatus === 'verifying'}
+                  className="mt-1.5 bg-muted/50 border-primary/10 focus:border-primary/30"
+                />
+              </div>
+              <Button
+                onClick={handleManualScan}
+                disabled={scanningStatus === 'verifying'}
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg"
+              >
+                {scanningStatus === 'verifying' ? (
                   <>
-                    {/* Scanning Active Indicator */}
-                    <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 shadow-lg z-50">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      Scanning Active
-                    </div>
-
-                    {/* Enhanced Viewfinder */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute inset-0 border-2 border-primary/30" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-48 border-4 border-green-500 rounded-2xl shadow-lg transition-all duration-300">
-                        {/* Animated Corners */}
-                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-400 rounded-tl-xl animate-pulse" />
-                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-400 rounded-tr-xl animate-pulse" />
-                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-400 rounded-bl-xl animate-pulse" />
-                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-400 rounded-bl-xl animate-pulse" />
-                        
-                        {/* Animated Scanning Line */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent animate-scan" />
-                      </div>
-                    </div>
-
-                    {/* Status Message */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-2 rounded-full text-sm backdrop-blur-sm">
-                      {statusMessage}
-                    </div>
-
-                    {scanningStatus === 'confirming' && (
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full text-sm font-medium animate-in zoom-in-50 duration-300 shadow-lg">
-                        ✓ Detected! Confirming...
-                      </div>
-                    )}
-                    
-                    {scanningStatus === 'verifying' && (
-                      <div className="absolute inset-0 bg-green-500/20 animate-pulse backdrop-blur-sm flex items-center justify-center">
-                        <div className="bg-green-500 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl animate-in zoom-in-75 duration-500">
-                          ✓ Verifying Product...
-                        </div>
-                      </div>
-                    )}
-                    
-                    {scanningStatus === 'success' && (
-                      <div className="absolute inset-0 bg-green-500/30 animate-in fade-in duration-300 backdrop-blur-sm flex items-center justify-center">
-                        <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold shadow-2xl animate-in zoom-in-95 duration-700 scale-110">
-                          ✓ Success!
-                        </div>
-                      </div>
-                    )}
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <Scan className="mr-2 h-4 w-4" />
+                    Verify Barcode
                   </>
                 )}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{statusMessage}</p>
-                <Button variant="destructive" size="sm" onClick={stopCameraScanner}>
-                  <X className="mr-2 h-4 w-4" />
-                  Stop
-                </Button>
-              </div>
-              
-              {/* Debug Test Button */}
-              {cameraState === 'SCANNING' && (
-                <Button 
-                  onClick={() => handleBarcodeDetected('5060292302294')} 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full mt-2"
-                >
-                  🧪 Test Detection (Debug)
-                </Button>
-              )}
-            </div>
-          )}
-
-          {cameraState === 'ERROR' && (
-            <div className="text-center py-8 space-y-4">
-              <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
-              <p className="text-sm text-muted-foreground">{statusMessage}</p>
-              <Button onClick={startCameraScanner} variant="outline">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Retry
               </Button>
-            </div>
-          )}
-        </Card>
-
-        {result && scanningStatus === 'success' && (
-          <Card className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <h2 className="text-lg font-semibold">Scan Result</h2>
-              </div>
-              <Button variant="ghost" size="sm" onClick={resetScanner}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {result.image_url && (
-                <img
-                  src={result.image_url}
-                  alt={result.product_name}
-                  className="w-full h-48 object-contain rounded-lg bg-muted"
-                />
-              )}
-
-              <div>
-                <h3 className="font-semibold text-lg">{result.product_name}</h3>
-                {result.brands && (
-                  <p className="text-sm text-muted-foreground">{result.brands}</p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Baby Safe:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  result.is_baby_safe
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
-                }`}>
-                  {result.is_baby_safe ? 'Yes' : 'No'}
-                </span>
-              </div>
-
-              {result.nutrition_grade && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Nutrition Grade:</span>
-                  <span className="px-2 py-1 bg-primary/10 text-primary rounded text-sm font-bold">
-                    {result.nutrition_grade.toUpperCase()}
-                  </span>
-                </div>
-              )}
-
-              {result.allergens && result.allergens.length > 0 && (
-                <div>
-                  <span className="text-sm font-medium block mb-2">Allergens:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {result.allergens.map((allergen, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 rounded text-xs"
-                      >
-                        {allergen}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {result.safety_notes && (
-                <div>
-                  <span className="text-sm font-medium block mb-2">Safety Notes:</span>
-                  <p className="text-sm text-muted-foreground">{result.safety_notes}</p>
-                </div>
-              )}
-
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Barcode: {result.barcode} ({result.barcode_type})
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Source: {result.verification_source}
-                </p>
-              </div>
             </div>
           </Card>
-        )}
+        </motion.div>
+
+        {/* Camera Scanner Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="p-6 backdrop-blur-xl bg-card/80 border-primary/10 shadow-xl mb-6 overflow-hidden">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-secondary/20 to-mint/20">
+                <Camera className="h-5 w-5 text-secondary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Camera Scanner</h2>
+                <p className="text-xs text-muted-foreground">Scan barcodes with your camera</p>
+              </div>
+            </div>
+            
+            {cameraState === 'IDLE' && (
+              <Button 
+                onClick={startCameraScanner} 
+                className="w-full bg-gradient-to-r from-secondary to-mint hover:from-secondary/90 hover:to-mint/90 shadow-lg h-14 text-base"
+              >
+                <Camera className="mr-2 h-5 w-5" />
+                Start Camera Scanner
+              </Button>
+            )}
+
+            {cameraState === 'REQUESTING_PERMISSION' && (
+              <div className="text-center py-12">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-glow-pulse" />
+                  <Loader2 className="h-12 w-12 animate-spin text-primary relative" />
+                </div>
+                <p className="text-muted-foreground mt-4">{statusMessage}</p>
+              </div>
+            )}
+
+            {(cameraState === 'INITIALIZING' || cameraState === 'SCANNING') && (
+              <div className="space-y-4">
+                <div className="relative rounded-2xl overflow-hidden bg-black aspect-video shadow-2xl">
+                  <video
+                    ref={videoRef}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    playsInline
+                    muted
+                  />
+                  <div id="barcode-reader" className="absolute inset-0" />
+                  
+                  {cameraState === 'INITIALIZING' && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="relative inline-block mb-4">
+                          <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl animate-glow-pulse" />
+                          <Loader2 className="h-10 w-10 animate-spin text-white relative" />
+                        </div>
+                        <p className="text-white/90 font-medium">{statusMessage}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {cameraState === 'SCANNING' && (
+                    <>
+                      {/* Scanning Active Badge */}
+                      <div className="absolute top-4 left-4 bg-mint text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg animate-pulse-soft">
+                        <span className="w-2 h-2 bg-white rounded-full" />
+                        Scanning
+                      </div>
+
+                      {/* Premium Viewfinder */}
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <div className="relative w-72 h-44">
+                          {/* Glowing Border */}
+                          <div className="absolute inset-0 rounded-2xl border-4 border-mint/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]" />
+                          
+                          {/* Animated Corners */}
+                          <div className="absolute -top-1 -left-1 w-12 h-12 border-t-4 border-l-4 border-mint rounded-tl-2xl" />
+                          <div className="absolute -top-1 -right-1 w-12 h-12 border-t-4 border-r-4 border-mint rounded-tr-2xl" />
+                          <div className="absolute -bottom-1 -left-1 w-12 h-12 border-b-4 border-l-4 border-mint rounded-bl-2xl" />
+                          <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-4 border-r-4 border-mint rounded-br-2xl" />
+                          
+                          {/* Scanning Beam */}
+                          <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-mint to-transparent shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-scan-beam" />
+                        </div>
+                      </div>
+
+                      {/* Status Message */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-2.5 rounded-full text-sm backdrop-blur-md font-medium">
+                        {statusMessage}
+                      </div>
+
+                      {/* Verifying Overlay */}
+                      <AnimatePresence>
+                        {scanningStatus === 'verifying' && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-mint/20 backdrop-blur-sm flex items-center justify-center"
+                          >
+                            <motion.div
+                              initial={{ scale: 0.8 }}
+                              animate={{ scale: 1 }}
+                              className="bg-mint text-white px-8 py-4 rounded-2xl text-lg font-bold shadow-2xl flex items-center gap-3"
+                            >
+                              <Loader2 className="h-6 w-6 animate-spin" />
+                              Verifying Product...
+                            </motion.div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Success Flash */}
+                      <AnimatePresence>
+                        {scanningStatus === 'success' && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-mint/30 backdrop-blur-sm flex items-center justify-center"
+                          >
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="bg-mint text-white px-10 py-5 rounded-2xl text-xl font-bold shadow-2xl flex items-center gap-3"
+                            >
+                              <CheckCircle2 className="h-8 w-8" />
+                              Success!
+                            </motion.div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{statusMessage}</p>
+                  <Button variant="destructive" size="sm" onClick={stopCameraScanner} className="shadow-lg">
+                    <X className="mr-2 h-4 w-4" />
+                    Stop
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {cameraState === 'ERROR' && (
+              <div className="text-center py-12 space-y-4">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl" />
+                  <AlertTriangle className="h-16 w-16 text-destructive relative" />
+                </div>
+                <p className="text-muted-foreground">{statusMessage}</p>
+                <Button onClick={startCameraScanner} variant="outline" className="shadow-lg">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+              </div>
+            )}
+          </Card>
+        </motion.div>
+
+        {/* Premium Result Card */}
+        <AnimatePresence>
+          {result && scanningStatus === 'success' && (
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ type: "spring", duration: 0.5 }}
+            >
+              <Card className="overflow-hidden backdrop-blur-xl bg-card/90 border-0 shadow-2xl">
+                {/* Safety Status Header */}
+                <div className={`p-6 ${result.is_baby_safe ? 'bg-gradient-to-r from-mint/20 via-secondary/10 to-mint/20' : 'bg-gradient-to-r from-destructive/20 via-orange-500/10 to-destructive/20'}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", delay: 0.2 }}
+                        className="relative"
+                      >
+                        <div className={`absolute inset-0 rounded-full blur-xl ${result.is_baby_safe ? 'bg-mint/40' : 'bg-destructive/40'} animate-glow-pulse`} />
+                        <div className={`relative w-20 h-20 rounded-full flex items-center justify-center shadow-2xl ${result.is_baby_safe ? 'bg-gradient-to-br from-mint to-secondary' : 'bg-gradient-to-br from-destructive to-orange-500'}`}>
+                          {result.is_baby_safe ? (
+                            <ShieldCheck className="w-10 h-10 text-white" />
+                          ) : (
+                            <ShieldX className="w-10 h-10 text-white" />
+                          )}
+                        </div>
+                      </motion.div>
+                      <div>
+                        <motion.h2 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className={`text-2xl font-bold ${result.is_baby_safe ? 'text-mint' : 'text-destructive'}`}
+                        >
+                          {result.is_baby_safe ? 'Safe for Baby' : 'Not Recommended'}
+                        </motion.h2>
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.4 }}
+                          className="text-muted-foreground"
+                        >
+                          {result.is_baby_safe ? 'This product meets safety guidelines' : 'Review safety notes below'}
+                        </motion.p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={resetScanner} className="hover:bg-background/50">
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Product Info */}
+                <div className="p-6 space-y-6">
+                  {/* Product Header */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex gap-4"
+                  >
+                    {result.image_url && (
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <img
+                          src={result.image_url}
+                          alt={result.product_name}
+                          className="w-24 h-24 object-contain rounded-2xl bg-muted/50 p-2 relative transition-transform group-hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-bold text-xl">{result.product_name}</h3>
+                      {result.brands && (
+                        <p className="text-muted-foreground">{result.brands}</p>
+                      )}
+                      
+                      {/* Nutrition Grade Badge */}
+                      {result.nutrition_grade && (
+                        <div className="mt-3 inline-flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Nutri-Score:</span>
+                          <div className={`w-10 h-10 rounded-xl ${getNutritionGradeColor(result.nutrition_grade).bg} flex items-center justify-center text-white font-bold text-lg shadow-lg ${getNutritionGradeColor(result.nutrition_grade).glow}`}>
+                            {result.nutrition_grade.toUpperCase()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+
+                  {/* Allergens */}
+                  {result.allergens && result.allergens.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertCircle className="h-4 w-4 text-orange-500" />
+                        <span className="font-semibold text-sm">Allergens</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {result.allergens.map((allergen, index) => (
+                          <motion.span
+                            key={index}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.7 + index * 0.1 }}
+                            className="px-3 py-1.5 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/50 dark:to-amber-900/50 text-orange-700 dark:text-orange-300 rounded-full text-sm font-medium shadow-sm"
+                          >
+                            {allergen}
+                          </motion.span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Safety Notes */}
+                  {result.safety_notes && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                    >
+                      <button
+                        onClick={() => setShowSafetyDetails(!showSafetyDetails)}
+                        className="flex items-center justify-between w-full p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Info className="h-4 w-4 text-primary" />
+                          <span className="font-semibold text-sm">Safety Details</span>
+                        </div>
+                        {showSafetyDetails ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </button>
+                      <AnimatePresence>
+                        {showSafetyDetails && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <p className="p-4 text-sm text-muted-foreground leading-relaxed">
+                              {result.safety_notes}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+
+                  {/* Barcode Info Footer */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.9 }}
+                    className="pt-4 border-t border-border/50"
+                  >
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Barcode: {result.barcode} ({result.barcode_type})</span>
+                      <span className="flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        {result.verification_source}
+                      </span>
+                    </div>
+                  </motion.div>
+
+                  {/* Scan Another Button */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1 }}
+                  >
+                    <Button
+                      onClick={resetScanner}
+                      className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg h-12"
+                    >
+                      <Scan className="mr-2 h-5 w-5" />
+                      Scan Another Product
+                    </Button>
+                  </motion.div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -167,6 +167,30 @@ export default {
           "0%, 100%": { opacity: "1", transform: "scale(1)" },
           "50%": { opacity: "0.85", transform: "scale(1.02)" },
         },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
+          "50%": { opacity: "0.8", transform: "scale(1.05)" },
+        },
+        "scan-beam": {
+          "0%": { top: "0%", opacity: "1" },
+          "50%": { opacity: "0.6" },
+          "100%": { top: "100%", opacity: "1" },
+        },
+        "ring-expand": {
+          "0%": { transform: "scale(0.8)", opacity: "1" },
+          "100%": { transform: "scale(2.5)", opacity: "0" },
+        },
+        "float-orb": {
+          "0%, 100%": { transform: "translateY(0) translateX(0) rotate(0deg)" },
+          "25%": { transform: "translateY(-15px) translateX(10px) rotate(2deg)" },
+          "50%": { transform: "translateY(-25px) translateX(-5px) rotate(-2deg)" },
+          "75%": { transform: "translateY(-10px) translateX(-10px) rotate(1deg)" },
+        },
+        "success-pop": {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "50%": { transform: "scale(1.2)", opacity: "1" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -186,6 +210,11 @@ export default {
         "scan": "scan 2s ease-in-out infinite",
         "ripple": "ripple 0.6s ease-out",
         "pulse-soft": "pulse-soft 2.5s ease-in-out infinite",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "scan-beam": "scan-beam 2s ease-in-out infinite",
+        "ring-expand": "ring-expand 0.8s ease-out forwards",
+        "float-orb": "float-orb 8s ease-in-out infinite",
+        "success-pop": "success-pop 0.5s ease-out forwards",
       },
     },
   },
