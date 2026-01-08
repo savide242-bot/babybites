@@ -177,6 +177,7 @@ const MealPlanner = () => {
   const [hasShownCompletionModal, setHasShownCompletionModal] = useState(false);
   const [recentlyUsedRecipes, setRecentlyUsedRecipes] = useState<string[]>([]);
   const [hasSavedPlan, setHasSavedPlan] = useState(false);
+  const [aiPlanAccepted, setAIPlanAccepted] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -376,14 +377,14 @@ const MealPlanner = () => {
       });
 
       setMealPlan(newPlan);
-      setActiveTab("manual");
       setHasSavedPlan(true);
+      setAIPlanAccepted(true);
       
       // Update shopping list automatically
       await updateShoppingListFromPlan(newPlan);
       
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-      toast.success("🎉 Plan accepted! Shopping list updated.");
+      toast.success("🎉 Plan accepted! Your meals are saved and shopping list is ready.");
     } finally {
       setIsSaving(false);
     }
@@ -469,11 +470,13 @@ const MealPlanner = () => {
       });
       setMealPlan(plan);
       setHasSavedPlan(true);
-      setActiveTab("manual"); // Show saved plan by default
+      setAIPlanAccepted(true); // Plan was previously accepted
+      setActiveTab("auto"); // Keep showing AI tab with accepted state
     } else {
       // No saved plan - start with empty manual plan, show AI tab first
       setMealPlan({});
       setHasSavedPlan(false);
+      setAIPlanAccepted(false);
       setActiveTab("auto"); // Show AI suggestions for new users
     }
   };
@@ -856,53 +859,111 @@ const MealPlanner = () => {
 
           {/* AI Recommended Tab */}
           <TabsContent value="auto" className="mt-6">
-            {/* Explanatory Note */}
-            <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">
-                    Personalized Plan for Your {babyAgeMonths}-Month-Old
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    We've created a nutritious meal plan optimized for your baby's age. 
-                    Accept the plan to save it and generate your shopping list, or see another suggestion!
-                  </p>
+            {/* Accepted Plan Banner */}
+            {aiPlanAccepted && (
+              <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-mint/20 via-secondary/10 to-mint/20 border border-mint/30">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-mint/30">
+                    <Check className="h-5 w-5 text-mint" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-0.5">
+                      ✨ Plan Accepted & Active
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Your meal plan is saved for this week. Shopping list is ready!
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => navigate("/shopping")}
+                    size="sm"
+                    className="gap-2 bg-mint hover:bg-mint/90"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    View List
+                  </Button>
                 </div>
               </div>
-            </div>
+            )}
 
-            <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+            {/* Explanatory Note - only show if not accepted */}
+            {!aiPlanAccepted && (
+              <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-primary/20">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">
+                      Personalized Plan for Your {babyAgeMonths}-Month-Old
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      We've created a nutritious meal plan optimized for your baby's age. 
+                      Accept the plan to save it and generate your shopping list, or see another suggestion!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <Card className={`mb-6 border-2 ${aiPlanAccepted ? 'border-mint/30 bg-gradient-to-r from-mint/5 to-secondary/5' : 'border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5'}`}>
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold flex items-center gap-2">
-                      <Wand2 className="h-5 w-5 text-primary" />
-                      AI-Suggested Meal Plan
+                      {aiPlanAccepted ? (
+                        <Check className="h-5 w-5 text-mint" />
+                      ) : (
+                        <Wand2 className="h-5 w-5 text-primary" />
+                      )}
+                      {aiPlanAccepted ? 'Your Active Meal Plan' : 'AI-Suggested Meal Plan'}
                     </h2>
                     <p className="text-muted-foreground mt-1">
-                      Optimized for {babyAgeMonths}-month-old • Nutritionally balanced • Ready to use
+                      Optimized for {babyAgeMonths}-month-old • Nutritionally balanced • {aiPlanAccepted ? 'Saved' : 'Ready to use'}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    <Button 
-                      onClick={acceptAIPlan} 
-                      className="gap-2"
-                      disabled={isSaving}
-                    >
-                      <Check className="h-4 w-4" />
-                      Accept Plan
-                    </Button>
-                    <Button 
-                      onClick={regenerateAutoPlan} 
-                      variant="outline" 
-                      className="gap-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      See Another Plan
-                    </Button>
+                    {aiPlanAccepted ? (
+                      <>
+                        <Button 
+                          disabled
+                          className="gap-2 bg-mint/80 cursor-default"
+                        >
+                          <Check className="h-4 w-4" />
+                          Plan Accepted
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setAIPlanAccepted(false);
+                            regenerateAutoPlan();
+                          }} 
+                          variant="outline" 
+                          className="gap-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Generate New Plan
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button 
+                          onClick={acceptAIPlan} 
+                          className="gap-2"
+                          disabled={isSaving}
+                        >
+                          <Check className="h-4 w-4" />
+                          Accept Plan
+                        </Button>
+                        <Button 
+                          onClick={regenerateAutoPlan} 
+                          variant="outline" 
+                          className="gap-2"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          See Another Plan
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
