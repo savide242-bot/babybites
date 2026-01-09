@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -28,11 +28,9 @@ const Recipes = () => {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dietaryFilters, setDietaryFilters] = useState<DietaryTag[]>([]);
 
-  // Read age filter from URL parameter (e.g., /recipes?age=6-8%20months)
   useEffect(() => {
     const ageParam = searchParams.get('age');
     if (ageParam) {
-      // Decode and set the age filter
       const decodedAge = decodeURIComponent(ageParam);
       if (ageGroups.includes(decodedAge)) {
         setSelectedAge(decodedAge);
@@ -61,20 +59,16 @@ const Recipes = () => {
     return isRecipeCompatible(recipeTags);
   };
 
-  // Check if recipe is new (added in last 30 days based on ID pattern)
   const isNewRecipe = (recipeId: string) => {
-    // Recipes with higher IDs are newer
     const numericId = parseInt(recipeId.replace(/\D/g, '')) || 0;
-    return numericId > 45; // Recipes 46+ are "new"
+    return numericId > 45;
   };
 
-  // Check if recipe is popular (more than 5 views)
   const isPopularRecipe = (recipeId: string) => {
     const viewData = recentlyViewed.find(v => v.recipe_id === recipeId);
     return viewData && viewData.view_count >= 3;
   };
 
-  // Compact Recipe Card Component with badges
   const RecipeCard = ({ recipe, showViewCount = false, viewCount = 0, index = 0 }: { recipe: typeof recipes[0], showViewCount?: boolean, viewCount?: number, index?: number }) => {
     const isCompatible = isCompatibleWithUserPrefs(recipe.id);
     const isNew = isNewRecipe(recipe.id);
@@ -86,69 +80,77 @@ const Recipes = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.03, duration: 0.3 }}
+        transition={{ delay: index * 0.02, duration: 0.3 }}
+        whileHover={{ y: -8 }}
+        className="group"
       >
-        <Link to={`/recipe/${recipe.id}`} className="group block">
-          <Card className={`overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
+        <Link to={`/recipe/${recipe.id}`} className="block">
+          <Card className={`overflow-hidden transition-all duration-500 hover:shadow-2xl border-0 shadow-lg ${
             isCompatible && preferences.length > 0 ? 'ring-2 ring-mint/60' : ''
           }`}>
             <div className="aspect-square relative overflow-hidden">
               <img
                 src={recipe.image}
                 alt={recipe.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               
-              {/* Top left badges stack */}
+              {/* Premium gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
+              
+              {/* Shine effect on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              
+              {/* Top left badges */}
               <div className="absolute top-2 left-2 flex flex-col gap-1">
                 {isNew && (
-                  <Badge className="bg-accent text-accent-foreground text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-md">
+                  <Badge className="bg-gradient-to-r from-accent to-orange-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
                     <Zap className="h-2.5 w-2.5" />
                     New
                   </Badge>
                 )}
                 {isPopular && !isNew && (
-                  <Badge className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-md">
+                  <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
                     <TrendingUp className="h-2.5 w-2.5" />
                     Popular
                   </Badge>
                 )}
                 {isQuick && (
-                  <Badge className="bg-mint text-mint-foreground text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-md">
+                  <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
                     <Clock className="h-2.5 w-2.5" />
                     Quick
                   </Badge>
                 )}
               </div>
               
-              {/* Age badge - top right */}
+              {/* Age badge + Favorite */}
               <div className="absolute top-2 right-2 flex items-center gap-1">
-                <Badge className="bg-white/90 text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-sm">
+                <Badge className="bg-white/90 backdrop-blur-sm text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-lg border-0">
                   {recipe.ageGroup}
                 </Badge>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 bg-white/80 hover:bg-white rounded-full shadow-sm"
+                  className="h-7 w-7 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg"
                   onClick={(e) => {
                     e.preventDefault();
+                    hapticFeedback('light');
                     toggleFavorite(recipe.id);
                   }}
                 >
-                  <Heart className={`h-3.5 w-3.5 transition-all ${isFavorite(recipe.id) ? 'fill-primary text-primary scale-110' : 'text-muted-foreground'}`} />
+                  <Heart className={`h-3.5 w-3.5 transition-all duration-300 ${isFavorite(recipe.id) ? 'fill-primary text-primary scale-110' : 'text-muted-foreground'}`} />
                 </Button>
               </div>
 
-              {/* Perfect match indicator - center top */}
+              {/* Perfect match */}
               {isCompatible && preferences.length > 0 && (
                 <motion.div 
                   className="absolute top-10 left-1/2 -translate-x-1/2"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, type: "spring" }}
                 >
-                  <Badge className="bg-mint text-mint-foreground text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-lg">
+                  <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
                     <Sparkles className="h-2.5 w-2.5" />
                     Perfect Match
                   </Badge>
@@ -156,17 +158,17 @@ const Recipes = () => {
               )}
               
               {/* Bottom content */}
-              <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                <h3 className="text-white font-semibold text-sm line-clamp-2 leading-tight mb-1.5 drop-shadow-md">
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                <h3 className="text-white font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-lg">
                   {recipe.title}
                 </h3>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-[10px] text-white/90 bg-black/20 px-1.5 py-0.5 rounded-full">
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
                     <Clock className="h-3 w-3" />
                     <span>{recipe.prepTime}</span>
                   </div>
                   {showViewCount && viewCount > 1 && (
-                    <div className="flex items-center gap-1 text-[10px] text-white/90 bg-black/20 px-1.5 py-0.5 rounded-full">
+                    <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
                       <Eye className="h-3 w-3" />
                       <span>{viewCount}x</span>
                     </div>
@@ -181,124 +183,184 @@ const Recipes = () => {
   };
 
   return (
-    <div className="min-h-screen pt-16 pb-24 lg:pb-8">
-      <div className="container px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-extrabold mb-4 tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            {t('recipes.title')}
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">
-            {t('recipes.subtitle')}
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="mb-8 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder={t('recipes.search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 rounded-full h-12 text-base shadow-md focus:shadow-lg transition-all duration-300"
-            />
-          </div>
+    <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-primary/5 to-background">
+      <div className="container px-3 sm:px-4">
+        {/* Premium Hero Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-5 sm:p-8 md:p-10 mb-6 sm:mb-8"
+        >
+          {/* Animated floating icons */}
+          <motion.div 
+            animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }} 
+            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            className="absolute top-4 right-8 hidden sm:block"
+          >
+            <Utensils className="text-primary/20 w-10 h-10 sm:w-14 sm:h-14" />
+          </motion.div>
+          <motion.div 
+            animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }} 
+            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 }}
+            className="absolute bottom-4 right-20 hidden sm:block"
+          >
+            <ChefHat className="text-secondary/20 w-8 h-8 sm:w-12 sm:h-12" />
+          </motion.div>
           
-          <div className="grid gap-3 grid-cols-3">
-            <Select value={selectedAge} onValueChange={setSelectedAge}>
-              <SelectTrigger className="rounded-full text-sm">
-                <SelectValue placeholder={t('recipes.selectAge')} />
-              </SelectTrigger>
-              <SelectContent>
-                {ageGroups.map((age) => (
-                  <SelectItem key={age} value={age}>{age}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="rounded-full text-sm">
-                <SelectValue placeholder={t('recipes.selectCategory')} />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <DietaryFilterSelect
-              selectedFilters={dietaryFilters}
-              onFilterChange={setDietaryFilters}
-              userPreferences={preferences}
-            />
-          </div>
-        </div>
-
-        {/* Recently Viewed Section */}
-        {!historyLoading && recentRecipes.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <History className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-bold">Recently Viewed</h2>
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-secondary shadow-lg">
+                <Utensils className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
               </div>
-              <Badge variant="secondary" className="rounded-full text-xs">
+              <Badge className="bg-primary/20 text-primary border-0 text-xs sm:text-sm">
+                {recipes.length}+ Recipes
+              </Badge>
+            </div>
+            
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              {t('recipes.title')}
+            </h1>
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-2 sm:mt-3 max-w-xl leading-relaxed">
+              {t('recipes.subtitle')}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Premium Filters */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="sticky top-16 z-30 backdrop-blur-xl bg-background/80 py-3 sm:py-4 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-border/50 mb-6"
+        >
+          <div className="space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              <Input
+                placeholder={t('recipes.search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 sm:pl-12 rounded-full h-10 sm:h-12 text-sm sm:text-base shadow-lg border-primary/10 focus:border-primary/30 bg-background"
+              />
+            </div>
+            
+            {/* Filter Pills */}
+            <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
+              <Select value={selectedAge} onValueChange={setSelectedAge}>
+                <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm">
+                  <SelectValue placeholder={t('recipes.selectAge')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {ageGroups.map((age) => (
+                    <SelectItem key={age} value={age}>{age}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[120px] sm:min-w-[140px] border-primary/20 bg-background shadow-sm">
+                  <SelectValue placeholder={t('recipes.selectCategory')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <DietaryFilterSelect
+                selectedFilters={dietaryFilters}
+                onFilterChange={setDietaryFilters}
+                userPreferences={preferences}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Recently Viewed */}
+        {!historyLoading && recentRecipes.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6 sm:mb-8"
+          >
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+                  <History className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                </div>
+                <h2 className="text-base sm:text-lg font-bold">Recently Viewed</h2>
+              </div>
+              <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">
                 {recentlyViewed.length} {recentlyViewed.length === 1 ? 'recipe' : 'recipes'}
               </Badge>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {recentRecipes.slice(0, 6).map((recipe) => {
-                if (!recipe) return null;
-                const viewData = recentlyViewed.find(v => v.recipe_id === recipe.id);
-                return (
-                  <RecipeCard 
-                    key={recipe.id} 
-                    recipe={recipe} 
-                    showViewCount={true}
-                    viewCount={viewData?.view_count || 0}
-                  />
-                );
-              })}
+            {/* Horizontal Scroll with fade edges */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+              <div className="flex gap-3 overflow-x-auto scrollbar-hide px-1 py-2">
+                {recentRecipes.slice(0, 8).map((recipe, index) => {
+                  if (!recipe) return null;
+                  const viewData = recentlyViewed.find(v => v.recipe_id === recipe.id);
+                  return (
+                    <div key={recipe.id} className="flex-shrink-0 w-36 sm:w-44">
+                      <RecipeCard 
+                        recipe={recipe} 
+                        showViewCount={true}
+                        viewCount={viewData?.view_count || 0}
+                        index={index}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Most Viewed Info */}
             {mostViewedRecipes.length > 0 && (
-              <div className="mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center gap-2 text-sm">
-                  <Eye className="h-4 w-4 text-primary" />
+              <div className="mt-3 p-3 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
+                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                  <TrendingUp className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground">Most Viewed:</span>
-                  <span className="text-muted-foreground text-xs">
-                    {mostViewedRecipes.map((view, idx) => {
+                  <span className="text-muted-foreground text-[10px] sm:text-xs truncate">
+                    {mostViewedRecipes.slice(0, 3).map((view, idx) => {
                       const recipe = recipes.find(r => r.id === view.recipe_id);
-                      return (
-                        <span key={view.recipe_id}>
-                          {recipe?.title} ({view.view_count}x)
-                          {idx < mostViewedRecipes.length - 1 && ', '}
-                        </span>
-                      );
-                    })}
+                      return recipe?.title;
+                    }).filter(Boolean).join(', ')}
                   </span>
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* Results Count */}
-        <div className="mb-4 text-sm text-muted-foreground">
-          {t('recipes.showing')} {filteredRecipes.length} {filteredRecipes.length !== 1 ? t('recipes.recipes') : t('recipes.recipe')}
-        </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-4 flex items-center justify-between"
+        >
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {t('recipes.showing')} <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? t('recipes.recipes') : t('recipes.recipe')}
+          </p>
+        </motion.div>
 
-        {/* Main Recipe Grid - Uniform compact layout */}
+        {/* Main Recipe Grid */}
         {filteredRecipes.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {filteredRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4"
+          >
+            {filteredRecipes.map((recipe, index) => (
+              <RecipeCard key={recipe.id} recipe={recipe} index={index} />
             ))}
-          </div>
+          </motion.div>
         ) : (
           <EmptyRecipes 
             onClearFilters={() => {

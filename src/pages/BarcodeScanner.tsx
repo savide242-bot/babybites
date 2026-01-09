@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   Scan, AlertTriangle, CheckCircle2, Camera, X, Loader2, Flashlight, 
   RefreshCw, ShieldCheck, ShieldX, ShieldAlert, Sparkles, Info,
-  Package, AlertCircle, ChevronDown, ChevronUp
+  Package, AlertCircle, ChevronDown, ChevronUp, Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BrowserMultiFormatReader, BarcodeFormat } from "@zxing/browser";
@@ -49,12 +50,12 @@ const validateBarcode = (code: string): { valid: boolean; type: string } => {
 };
 
 const getNutritionGradeColor = (grade: string) => {
-  const colors: Record<string, { bg: string; text: string; glow: string }> = {
-    a: { bg: 'bg-green-500', text: 'text-green-500', glow: 'shadow-green-500/50' },
-    b: { bg: 'bg-lime-500', text: 'text-lime-500', glow: 'shadow-lime-500/50' },
-    c: { bg: 'bg-yellow-500', text: 'text-yellow-500', glow: 'shadow-yellow-500/50' },
-    d: { bg: 'bg-orange-500', text: 'text-orange-500', glow: 'shadow-orange-500/50' },
-    e: { bg: 'bg-red-500', text: 'text-red-500', glow: 'shadow-red-500/50' },
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    a: { bg: 'bg-green-500', text: 'text-green-600', border: 'border-green-500' },
+    b: { bg: 'bg-lime-500', text: 'text-lime-600', border: 'border-lime-500' },
+    c: { bg: 'bg-yellow-500', text: 'text-yellow-600', border: 'border-yellow-500' },
+    d: { bg: 'bg-orange-500', text: 'text-orange-600', border: 'border-orange-500' },
+    e: { bg: 'bg-red-500', text: 'text-red-600', border: 'border-red-500' },
   };
   return colors[grade?.toLowerCase()] || colors.c;
 };
@@ -648,38 +649,43 @@ const BarcodeScanner = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden relative">
-      {/* Animated Background Orbs */}
+    <div className="min-h-screen bg-background overflow-hidden relative pt-16 pb-24 lg:pb-8">
+      {/* Animated Background - Responsive */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-primary/20 to-secondary/10 rounded-full blur-3xl animate-float-orb" />
-        <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-gradient-to-br from-secondary/20 to-accent/10 rounded-full blur-3xl animate-float-orb" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-mint/10 to-primary/10 rounded-full blur-3xl animate-float-orb" style={{ animationDelay: '4s' }} />
+        <div className="absolute -top-20 -left-20 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-gradient-to-br from-primary/15 to-secondary/10 rounded-full blur-3xl animate-float-orb" />
+        <div className="absolute -bottom-20 -right-20 w-40 sm:w-64 md:w-80 h-40 sm:h-64 md:h-80 bg-gradient-to-br from-secondary/15 to-accent/10 rounded-full blur-3xl animate-float-orb" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-gradient-to-br from-mint/10 to-primary/10 rounded-full blur-3xl animate-float-orb" style={{ animationDelay: '4s' }} />
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6 pb-24">
-        {/* Premium Header */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+        {/* Premium Header - Responsive */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Safety Scanner
-              </h1>
-              <p className="text-muted-foreground text-sm mt-1">
-                Verify products for your baby's safety
-              </p>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20">
+                <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                  Safety Scanner
+                </h1>
+                <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
+                  Verify products for your baby
+                </p>
+              </div>
             </div>
             {cameraState === 'SCANNING' && (
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 sm:gap-2">
                 {hasMultipleCameras && (
-                  <Button variant="outline" size="icon" onClick={switchCamera} className="backdrop-blur-sm bg-background/50">
+                  <Button variant="outline" size="icon" onClick={switchCamera} className="h-9 w-9 sm:h-10 sm:w-10 backdrop-blur-sm bg-background/50">
                     <RefreshCw className="h-4 w-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="icon" onClick={toggleTorch} className="backdrop-blur-sm bg-background/50">
+                <Button variant="outline" size="icon" onClick={toggleTorch} className="h-9 w-9 sm:h-10 sm:w-10 backdrop-blur-sm bg-background/50">
                   <Flashlight className={`h-4 w-4 ${torchEnabled ? 'text-accent' : ''}`} />
                 </Button>
               </div>
@@ -687,355 +693,321 @@ const BarcodeScanner = () => {
           </div>
         </motion.div>
 
-        {/* Manual Entry Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="p-6 backdrop-blur-xl bg-card/80 border-primary/10 shadow-xl mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                <Package className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">Manual Entry</h2>
-                <p className="text-xs text-muted-foreground">Enter barcode number</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="barcode" className="text-muted-foreground text-sm">Barcode Number</Label>
-                <Input
-                  id="barcode"
-                  type="text"
-                  placeholder="e.g., 7891234567890"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  disabled={scanningStatus === 'verifying'}
-                  className="mt-1.5 bg-muted/50 border-primary/10 focus:border-primary/30"
-                />
-              </div>
-              <Button
-                onClick={handleManualScan}
-                disabled={scanningStatus === 'verifying'}
-                className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg"
-              >
-                {scanningStatus === 'verifying' ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    <Scan className="mr-2 h-4 w-4" />
-                    Verify Barcode
-                  </>
-                )}
-              </Button>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Camera Scanner Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="p-6 backdrop-blur-xl bg-card/80 border-primary/10 shadow-xl mb-6 overflow-hidden">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-secondary/20 to-mint/20">
-                <Camera className="h-5 w-5 text-secondary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">Camera Scanner</h2>
-                <p className="text-xs text-muted-foreground">Scan barcodes with your camera</p>
-              </div>
-            </div>
-            
-            {cameraState === 'IDLE' && (
-              <Button 
-                onClick={startCameraScanner} 
-                className="w-full bg-gradient-to-r from-secondary to-mint hover:from-secondary/90 hover:to-mint/90 shadow-lg h-14 text-base"
-              >
-                <Camera className="mr-2 h-5 w-5" />
-                Start Camera Scanner
-              </Button>
-            )}
-
-            {cameraState === 'REQUESTING_PERMISSION' && (
-              <div className="text-center py-12">
-                <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-glow-pulse" />
-                  <Loader2 className="h-12 w-12 animate-spin text-primary relative" />
+        {/* Main Content - Responsive Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Left Column - Manual Entry */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="p-4 sm:p-6 backdrop-blur-xl bg-card/80 border-primary/10 shadow-xl h-full">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <p className="text-muted-foreground mt-4">{statusMessage}</p>
+                <div>
+                  <h2 className="text-base sm:text-lg font-semibold">Manual Entry</h2>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Enter barcode number</p>
+                </div>
               </div>
-            )}
-
-            {(cameraState === 'INITIALIZING' || cameraState === 'SCANNING') && (
-              <div className="space-y-4">
-                <div className="relative rounded-2xl overflow-hidden bg-black aspect-video shadow-2xl">
-                  <video
-                    ref={videoRef}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    playsInline
-                    muted
+              <div className="space-y-3 sm:space-y-4">
+                <div>
+                  <Label htmlFor="barcode" className="text-muted-foreground text-xs sm:text-sm">Barcode Number</Label>
+                  <Input
+                    id="barcode"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="e.g., 7891234567890"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    disabled={scanningStatus === 'verifying'}
+                    className="mt-1 sm:mt-1.5 bg-muted/50 border-primary/10 focus:border-primary/30 h-10 sm:h-11"
                   />
-                  <div id="barcode-reader" className="absolute inset-0" />
-                  
-                  {cameraState === 'INITIALIZING' && (
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="relative inline-block mb-4">
-                          <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl animate-glow-pulse" />
-                          <Loader2 className="h-10 w-10 animate-spin text-white relative" />
-                        </div>
-                        <p className="text-white/90 font-medium">{statusMessage}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {cameraState === 'SCANNING' && (
+                </div>
+                <Button
+                  onClick={handleManualScan}
+                  disabled={scanningStatus === 'verifying'}
+                  className="w-full h-10 sm:h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg text-sm sm:text-base"
+                >
+                  {scanningStatus === 'verifying' ? (
                     <>
-                      {/* Scanning Active Badge */}
-                      <div className="absolute top-4 left-4 bg-mint text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg animate-pulse-soft">
-                        <span className="w-2 h-2 bg-white rounded-full" />
-                        Scanning
-                      </div>
-
-                      {/* Premium Viewfinder */}
-                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div className="relative w-72 h-44">
-                          {/* Glowing Border */}
-                          <div className="absolute inset-0 rounded-2xl border-4 border-mint/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]" />
-                          
-                          {/* Animated Corners */}
-                          <div className="absolute -top-1 -left-1 w-12 h-12 border-t-4 border-l-4 border-mint rounded-tl-2xl" />
-                          <div className="absolute -top-1 -right-1 w-12 h-12 border-t-4 border-r-4 border-mint rounded-tr-2xl" />
-                          <div className="absolute -bottom-1 -left-1 w-12 h-12 border-b-4 border-l-4 border-mint rounded-bl-2xl" />
-                          <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-4 border-r-4 border-mint rounded-br-2xl" />
-                          
-                          {/* Scanning Beam */}
-                          <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-mint to-transparent shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-scan-beam" />
-                        </div>
-                      </div>
-
-                      {/* Status Message */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-2.5 rounded-full text-sm backdrop-blur-md font-medium">
-                        {statusMessage}
-                      </div>
-
-                      {/* Verifying Overlay */}
-                      <AnimatePresence>
-                        {scanningStatus === 'verifying' && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-mint/20 backdrop-blur-sm flex items-center justify-center"
-                          >
-                            <motion.div
-                              initial={{ scale: 0.8 }}
-                              animate={{ scale: 1 }}
-                              className="bg-mint text-white px-8 py-4 rounded-2xl text-lg font-bold shadow-2xl flex items-center gap-3"
-                            >
-                              <Loader2 className="h-6 w-6 animate-spin" />
-                              Verifying Product...
-                            </motion.div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* Success Flash */}
-                      <AnimatePresence>
-                        {scanningStatus === 'success' && (
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-mint/30 backdrop-blur-sm flex items-center justify-center"
-                          >
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="bg-mint text-white px-10 py-5 rounded-2xl text-xl font-bold shadow-2xl flex items-center gap-3"
-                            >
-                              <CheckCircle2 className="h-8 w-8" />
-                              Success!
-                            </motion.div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Scan className="mr-2 h-4 w-4" />
+                      Verify Barcode
                     </>
                   )}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">{statusMessage}</p>
-                  <Button variant="destructive" size="sm" onClick={stopCameraScanner} className="shadow-lg">
-                    <X className="mr-2 h-4 w-4" />
-                    Stop
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {cameraState === 'ERROR' && (
-              <div className="text-center py-12 space-y-4">
-                <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl" />
-                  <AlertTriangle className="h-16 w-16 text-destructive relative" />
-                </div>
-                <p className="text-muted-foreground">{statusMessage}</p>
-                <Button onClick={startCameraScanner} variant="outline" className="shadow-lg">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Try Again
                 </Button>
               </div>
-            )}
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
 
-        {/* Premium Result Card */}
-        <AnimatePresence>
-          {result && scanningStatus === 'success' && (
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ type: "spring", duration: 0.5 }}
-            >
-              <Card className="overflow-hidden backdrop-blur-xl bg-card/90 border-0 shadow-2xl">
-                {/* Safety Status Header */}
-                <div className={`p-6 ${result.is_baby_safe ? 'bg-gradient-to-r from-mint/20 via-secondary/10 to-mint/20' : 'bg-gradient-to-r from-destructive/20 via-orange-500/10 to-destructive/20'}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                      <motion.div 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", delay: 0.2 }}
-                        className="relative"
-                      >
-                        <div className={`absolute inset-0 rounded-full blur-xl ${result.is_baby_safe ? 'bg-mint/40' : 'bg-destructive/40'} animate-glow-pulse`} />
-                        <div className={`relative w-20 h-20 rounded-full flex items-center justify-center shadow-2xl ${result.is_baby_safe ? 'bg-gradient-to-br from-mint to-secondary' : 'bg-gradient-to-br from-destructive to-orange-500'}`}>
-                          {result.is_baby_safe ? (
-                            <ShieldCheck className="w-10 h-10 text-white" />
-                          ) : (
-                            <ShieldX className="w-10 h-10 text-white" />
-                          )}
+          {/* Right Column - Camera Scanner */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="p-4 sm:p-6 backdrop-blur-xl bg-card/80 border-primary/10 shadow-xl overflow-hidden h-full">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-secondary/20 to-mint/20">
+                  <Camera className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-semibold">Camera Scanner</h2>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Scan with your camera</p>
+                </div>
+              </div>
+              
+              {cameraState === 'IDLE' && (
+                <Button 
+                  onClick={startCameraScanner} 
+                  className="w-full bg-gradient-to-r from-secondary to-mint hover:from-secondary/90 hover:to-mint/90 shadow-lg h-12 sm:h-14 text-sm sm:text-base"
+                >
+                  <Camera className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  Start Camera Scanner
+                </Button>
+              )}
+
+              {cameraState === 'REQUESTING_PERMISSION' && (
+                <div className="text-center py-8 sm:py-12">
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-glow-pulse" />
+                    <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary relative" />
+                  </div>
+                  <p className="text-muted-foreground mt-3 sm:mt-4 text-sm">{statusMessage}</p>
+                </div>
+              )}
+
+              {(cameraState === 'INITIALIZING' || cameraState === 'SCANNING') && (
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden bg-black aspect-[4/3] shadow-2xl">
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                    <div id="barcode-reader" className="absolute inset-0" />
+                    
+                    {cameraState === 'INITIALIZING' && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="relative inline-block mb-3 sm:mb-4">
+                            <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl animate-glow-pulse" />
+                            <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-white relative" />
+                          </div>
+                          <p className="text-white/90 font-medium text-sm sm:text-base">{statusMessage}</p>
                         </div>
-                      </motion.div>
-                      <div>
-                        <motion.h2 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.3 }}
-                          className={`text-2xl font-bold ${result.is_baby_safe ? 'text-mint' : 'text-destructive'}`}
-                        >
-                          {result.is_baby_safe ? 'Safe for Baby' : 'Not Recommended'}
-                        </motion.h2>
-                        <motion.p 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.4 }}
-                          className="text-muted-foreground"
-                        >
-                          {result.is_baby_safe ? 'This product meets safety guidelines' : 'Review safety notes below'}
-                        </motion.p>
                       </div>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={resetScanner} className="hover:bg-background/50">
-                      <X className="h-5 w-5" />
+                    )}
+                    
+                    {cameraState === 'SCANNING' && (
+                      <>
+                        {/* Scanning Badge */}
+                        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-mint text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 sm:gap-2 shadow-lg animate-pulse">
+                          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
+                          Scanning
+                        </div>
+
+                        {/* Viewfinder - Responsive */}
+                        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                          <div className="relative w-[70%] max-w-[280px] aspect-[16/10]">
+                            <div className="absolute inset-0 rounded-xl sm:rounded-2xl border-2 sm:border-4 border-mint/50 shadow-[0_0_20px_rgba(34,197,94,0.3)] sm:shadow-[0_0_30px_rgba(34,197,94,0.3)]" />
+                            
+                            {/* Corners */}
+                            <div className="absolute -top-0.5 -left-0.5 w-8 sm:w-12 h-8 sm:h-12 border-t-2 sm:border-t-4 border-l-2 sm:border-l-4 border-mint rounded-tl-xl sm:rounded-tl-2xl" />
+                            <div className="absolute -top-0.5 -right-0.5 w-8 sm:w-12 h-8 sm:h-12 border-t-2 sm:border-t-4 border-r-2 sm:border-r-4 border-mint rounded-tr-xl sm:rounded-tr-2xl" />
+                            <div className="absolute -bottom-0.5 -left-0.5 w-8 sm:w-12 h-8 sm:h-12 border-b-2 sm:border-b-4 border-l-2 sm:border-l-4 border-mint rounded-bl-xl sm:rounded-bl-2xl" />
+                            <div className="absolute -bottom-0.5 -right-0.5 w-8 sm:w-12 h-8 sm:h-12 border-b-2 sm:border-b-4 border-r-2 sm:border-r-4 border-mint rounded-br-xl sm:rounded-br-2xl" />
+                            
+                            {/* Scan Beam */}
+                            <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-mint to-transparent shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-scan-beam" />
+                          </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm backdrop-blur-md font-medium max-w-[90%] text-center">
+                          {statusMessage}
+                        </div>
+
+                        {/* Verifying Overlay */}
+                        <AnimatePresence>
+                          {scanningStatus === 'verifying' && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="absolute inset-0 bg-mint/20 backdrop-blur-sm flex items-center justify-center"
+                            >
+                              <motion.div
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                className="bg-mint text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-base sm:text-lg font-bold shadow-2xl flex items-center gap-2 sm:gap-3"
+                              >
+                                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                                Verifying...
+                              </motion.div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Success */}
+                        <AnimatePresence>
+                          {scanningStatus === 'success' && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="absolute inset-0 bg-mint/30 backdrop-blur-sm flex items-center justify-center"
+                            >
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="bg-mint text-white px-8 sm:px-10 py-4 sm:py-5 rounded-xl sm:rounded-2xl text-lg sm:text-xl font-bold shadow-2xl flex items-center gap-2 sm:gap-3"
+                              >
+                                <CheckCircle2 className="h-6 w-6 sm:h-8 sm:w-8" />
+                                Success!
+                              </motion.div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate mr-2">{statusMessage}</p>
+                    <Button variant="destructive" size="sm" onClick={stopCameraScanner} className="shadow-lg shrink-0">
+                      <X className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      Stop
                     </Button>
                   </div>
                 </div>
+              )}
 
-                {/* Product Info */}
-                <div className="p-6 space-y-6">
-                  {/* Product Header */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex gap-4"
-                  >
-                    {result.image_url && (
-                      <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <img
-                          src={result.image_url}
-                          alt={result.product_name}
-                          className="w-24 h-24 object-contain rounded-2xl bg-muted/50 p-2 relative transition-transform group-hover:scale-105"
-                        />
+              {cameraState === 'ERROR' && (
+                <div className="text-center py-8 sm:py-12 space-y-3 sm:space-y-4">
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-destructive/20 rounded-full blur-xl" />
+                    <AlertTriangle className="h-12 w-12 sm:h-16 sm:w-16 text-destructive relative" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">{statusMessage}</p>
+                  <Button onClick={startCameraScanner} variant="outline" className="shadow-lg">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Result Card - Full Width Below Grid */}
+        <AnimatePresence>
+          {result && (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
+              transition={{ type: "spring", damping: 20 }}
+              className="mt-4 sm:mt-6"
+            >
+              <Card className="overflow-hidden border-0 shadow-2xl backdrop-blur-xl bg-card/90">
+                {/* Safety Status Header */}
+                <div className={`p-4 sm:p-6 ${
+                  result.is_baby_safe 
+                    ? 'bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-teal-500/20' 
+                    : 'bg-gradient-to-r from-red-500/20 via-rose-500/15 to-pink-500/20'
+                }`}>
+                  <div className="flex items-center gap-4 sm:gap-6">
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", delay: 0.2 }}
+                      className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl ${result.is_baby_safe ? 'bg-green-500' : 'bg-red-500'} shadow-xl`}
+                    >
+                      <div className={`absolute inset-0 rounded-xl sm:rounded-2xl ${result.is_baby_safe ? 'bg-green-500' : 'bg-red-500'} blur-xl opacity-50 animate-glow-pulse`} />
+                      {result.is_baby_safe ? (
+                        <ShieldCheck className="w-8 h-8 sm:w-12 sm:h-12 text-white relative" />
+                      ) : (
+                        <ShieldX className="w-8 h-8 sm:w-12 sm:h-12 text-white relative" />
+                      )}
+                    </motion.div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl sm:text-2xl font-bold truncate">{result.product_name || 'Unknown Product'}</h3>
+                      {result.brands && (
+                        <p className="text-muted-foreground text-sm truncate">{result.brands}</p>
+                      )}
+                      <p className={`text-sm sm:text-base font-semibold mt-1 ${result.is_baby_safe ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {result.is_baby_safe ? '✓ Safe for Your Baby' : '✗ Not Recommended'}
+                      </p>
+                    </div>
+
+                    {result.nutrition_grade && (
+                      <div className="hidden sm:block shrink-0">
+                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${getNutritionGradeColor(result.nutrition_grade).bg} flex items-center justify-center shadow-xl`}>
+                          <span className="text-2xl sm:text-3xl font-black text-white uppercase">{result.nutrition_grade}</span>
+                        </div>
+                        <p className="text-[10px] sm:text-xs text-center text-muted-foreground mt-1">Nutri-Score</p>
                       </div>
                     )}
-                    <div className="flex-1">
-                      <h3 className="font-bold text-xl">{result.product_name}</h3>
-                      {result.brands && (
-                        <p className="text-muted-foreground">{result.brands}</p>
-                      )}
-                      
-                      {/* Nutrition Grade Badge */}
-                      {result.nutrition_grade && (
-                        <div className="mt-3 inline-flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Nutri-Score:</span>
-                          <div className={`w-10 h-10 rounded-xl ${getNutritionGradeColor(result.nutrition_grade).bg} flex items-center justify-center text-white font-bold text-lg shadow-lg ${getNutritionGradeColor(result.nutrition_grade).glow}`}>
-                            {result.nutrition_grade.toUpperCase()}
-                          </div>
-                        </div>
-                      )}
+                  </div>
+                </div>
+
+                {/* Details Section */}
+                <div className="p-4 sm:p-6 space-y-4">
+                  {/* Mobile Nutri-Score */}
+                  {result.nutrition_grade && (
+                    <div className="flex sm:hidden items-center gap-3 p-3 rounded-xl bg-muted/50">
+                      <div className={`w-10 h-10 rounded-lg ${getNutritionGradeColor(result.nutrition_grade).bg} flex items-center justify-center`}>
+                        <span className="text-lg font-black text-white uppercase">{result.nutrition_grade}</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Nutri-Score</p>
+                        <p className="text-xs text-muted-foreground">Nutritional quality rating</p>
+                      </div>
                     </div>
-                  </motion.div>
+                  )}
 
                   {/* Allergens */}
                   {result.allergens && result.allergens.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertCircle className="h-4 w-4 text-orange-500" />
-                        <span className="font-semibold text-sm">Allergens</span>
+                    <div className="p-3 sm:p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                        <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                        <h4 className="font-semibold text-amber-700 dark:text-amber-400 text-sm sm:text-base">Allergens</h4>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {result.allergens.map((allergen, index) => (
-                          <motion.span
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.7 + index * 0.1 }}
-                            className="px-3 py-1.5 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/50 dark:to-amber-900/50 text-orange-700 dark:text-orange-300 rounded-full text-sm font-medium shadow-sm"
-                          >
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        {result.allergens.map((allergen, idx) => (
+                          <Badge key={idx} variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
                             {allergen}
-                          </motion.span>
+                          </Badge>
                         ))}
                       </div>
-                    </motion.div>
+                    </div>
                   )}
 
                   {/* Safety Notes */}
                   {result.safety_notes && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 }}
-                    >
-                      <button
+                    <div className="p-3 sm:p-4 rounded-xl bg-primary/5 border border-primary/10">
+                      <button 
                         onClick={() => setShowSafetyDetails(!showSafetyDetails)}
-                        className="flex items-center justify-between w-full p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors"
+                        className="w-full flex items-center justify-between"
                       >
                         <div className="flex items-center gap-2">
-                          <Info className="h-4 w-4 text-primary" />
-                          <span className="font-semibold text-sm">Safety Details</span>
+                          <Info className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                          <h4 className="font-semibold text-sm sm:text-base">Safety Information</h4>
                         </div>
                         {showSafetyDetails ? (
-                          <ChevronUp className="h-4 w-4" />
+                          <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                         ) : (
-                          <ChevronDown className="h-4 w-4" />
+                          <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                         )}
                       </button>
                       <AnimatePresence>
@@ -1046,45 +1018,39 @@ const BarcodeScanner = () => {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
-                            <p className="p-4 text-sm text-muted-foreground leading-relaxed">
+                            <p className="text-muted-foreground text-xs sm:text-sm mt-3 leading-relaxed">
                               {result.safety_notes}
                             </p>
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </motion.div>
+                    </div>
                   )}
 
-                  {/* Barcode Info Footer */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.9 }}
-                    className="pt-4 border-t border-border/50"
-                  >
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Barcode: {result.barcode} ({result.barcode_type})</span>
-                      <span className="flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
-                        {result.verification_source}
-                      </span>
+                  {/* Verification Badge */}
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-2">
+                      {result.verified ? (
+                        <Badge className="bg-mint/20 text-mint-foreground border-mint/30 text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Unverified
+                        </Badge>
+                      )}
+                      {result.verification_source && (
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">
+                          via {result.verification_source}
+                        </span>
+                      )}
                     </div>
-                  </motion.div>
-
-                  {/* Scan Another Button */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 }}
-                  >
-                    <Button
-                      onClick={resetScanner}
-                      className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg h-12"
-                    >
-                      <Scan className="mr-2 h-5 w-5" />
-                      Scan Another Product
+                    <Button onClick={resetScanner} variant="outline" size="sm" className="text-xs sm:text-sm">
+                      Scan Another
                     </Button>
-                  </motion.div>
+                  </div>
                 </div>
               </Card>
             </motion.div>

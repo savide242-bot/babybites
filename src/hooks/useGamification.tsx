@@ -38,7 +38,7 @@ export const BADGES: Badge[] = [
   { id: 'chef_beginner', name: 'Chef Beginner', description: 'View your first recipe', icon: '👨‍🍳', requirement: 'first_recipe' },
   { id: 'week_perfect', name: 'Perfect Week', description: '7 days streak', icon: '🌟', requirement: 'streak_7' },
   { id: 'flavor_explorer', name: 'Flavor Explorer', description: 'View 10 different recipes', icon: '🍽️', requirement: 'recipes_10' },
-  { id: 'informed_mom', name: 'Informed Mom', description: 'Use AI Analyzer 5 times', icon: '🔬', requirement: 'analyzer_5' },
+  { id: 'informed_mom', name: 'Informed Mom', description: 'Use Food Analyzer 5 times', icon: '🔬', requirement: 'analyzer_5' },
   { id: 'super_mom', name: 'Super Mom', description: '30 days streak', icon: '🦸‍♀️', requirement: 'streak_30' },
   { id: 'meal_planner', name: 'Meal Planner', description: 'Plan 7 meals', icon: '📅', requirement: 'meals_7' },
   { id: 'community_star', name: 'Community Star', description: 'Create 5 community posts', icon: '⭐', requirement: 'posts_5' },

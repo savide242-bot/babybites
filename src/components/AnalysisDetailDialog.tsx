@@ -112,7 +112,7 @@ const AnalysisDetailDialog = ({ analysis, open, onOpenChange }: AnalysisDetailDi
           )}
           {analysis.confidence_score && (
             <p className="mt-2 text-xs text-muted-foreground">
-              AI Confidence: {(analysis.confidence_score * 100).toFixed(0)}%
+              Confidence: {(analysis.confidence_score * 100).toFixed(0)}%
             </p>
           )}
           <p className="text-xs text-muted-foreground mt-1">
