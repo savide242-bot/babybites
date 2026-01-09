@@ -24,7 +24,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'scanner',
     title: 'Scan Any Food',
-    description: 'Use AI to check if any food is safe for your baby. Just scan or take a photo!',
+    description: 'Check if any food is safe for your baby. Just scan or take a photo!',
     targetPath: '/scanner'
   }
 ];

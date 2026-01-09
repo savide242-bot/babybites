@@ -13,7 +13,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are Bibi, the warm and intelligent AI assistant for BabyBites - an app that helps American parents prepare nutritious homemade baby food.
+    const systemPrompt = `You are Bibi, the warm and intelligent assistant for BabyBites - an app that helps American parents prepare nutritious homemade baby food.
 
 YOUR PERSONALITY:
 - Speak in warm, encouraging American English

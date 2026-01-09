@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -5,8 +6,9 @@ import {
   Droplets, Scale, BookOpen, Apple, Brain, ShieldCheck,
   Clock, Leaf, HandHeart, Stethoscope, ThermometerSun,
   Pill, Milk, Wheat, Snowflake, Plane, Users, DollarSign,
-  Calendar, Dumbbell, Eye, Smile
+  Calendar, Dumbbell, Eye, Smile, GraduationCap
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const adviceArticles = [
   {
@@ -249,7 +251,6 @@ const adviceArticles = [
       "Keep emergency healthy options: pouches, frozen veggies, quick oats.",
     ],
   },
-  // NEW ARTICLES
   {
     id: 17,
     title: "Vitamin D: The Sunshine Vitamin",
@@ -477,91 +478,204 @@ const adviceArticles = [
   },
 ];
 
+const categories = ['All', 'Feeding', 'Health', 'Nutrition', 'Development', 'Behavior', 'Tips', 'Sleep'];
+
 const Advice = () => {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const filteredArticles = selectedCategory === 'All' 
+    ? adviceArticles 
+    : adviceArticles.filter(a => a.category === selectedCategory);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-24 pb-24 lg:pb-8">
-      <div className="container max-w-5xl mx-auto px-4">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-secondary">
-              <BookOpen className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Expert Advice & Tips
+    <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pt-20 pb-24 lg:pb-8">
+      <div className="container max-w-6xl mx-auto px-3 sm:px-4">
+        {/* Premium Hero Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 p-6 sm:p-10 md:p-12 mb-8 sm:mb-10"
+        >
+          {/* Animated particles */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-primary/30 rounded-full"
+                animate={{ 
+                  y: [0, -100], 
+                  opacity: [0, 1, 0],
+                  scale: [0.5, 1, 0.5]
+                }}
+                transition={{ 
+                  duration: 3, 
+                  delay: i * 0.5, 
+                  repeat: Infinity,
+                  ease: "easeOut"
+                }}
+                style={{ left: `${15 + i * 15}%`, bottom: 0 }}
+              />
+            ))}
+          </div>
+          
+          <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-8">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.2 }}
+              className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary via-secondary to-accent shadow-2xl"
+            >
+              <GraduationCap className="w-10 h-10 sm:w-14 sm:h-14 text-white" />
+            </motion.div>
+            
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-3">
+                <Badge className="bg-primary/20 text-primary border-0 px-3 py-1">
+                  {adviceArticles.length} Expert Guides
+                </Badge>
+                <Badge className="bg-mint/20 text-mint-foreground border-0 px-3 py-1 hidden sm:inline-flex">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Curated by Experts
+                </Badge>
+              </div>
+              
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent leading-tight">
+                Knowledge Hub
               </h1>
-              <p className="text-muted-foreground">
-                {adviceArticles.length} essential guides for your baby's nutrition journey
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-2 sm:mt-3 max-w-xl leading-relaxed">
+                Expert guidance from pediatric nutritionists to support your parenting journey with confidence
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Category Filter Pills */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {['All', 'Feeding', 'Health', 'Nutrition', 'Development', 'Behavior', 'Tips'].map(cat => (
-            <Badge 
-              key={cat} 
-              variant="secondary" 
-              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-4 py-1.5"
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex flex-wrap gap-2 sm:gap-3 mb-8 sm:mb-10"
+        >
+          {categories.map((cat, index) => (
+            <motion.button
+              key={cat}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${
+                selectedCategory === cat
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25'
+                  : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground'
+              }`}
             >
               {cat}
-            </Badge>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Articles Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {adviceArticles.map((article) => {
+        {/* Results Count */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-sm text-muted-foreground mb-6"
+        >
+          Showing <span className="font-semibold text-foreground">{filteredArticles.length}</span> {filteredArticles.length === 1 ? 'article' : 'articles'}
+        </motion.p>
+
+        {/* Articles Grid - Premium Cards */}
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+          {filteredArticles.map((article, index) => {
             const Icon = article.icon;
             return (
-              <Card 
-                key={article.id} 
-                className="group border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+              <motion.div
+                key={article.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -8 }}
+                className="group"
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${article.color} shrink-0 group-hover:scale-110 transition-transform`}>
-                      <Icon className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="secondary" className="text-xs">
+                <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-card to-card/80 h-full">
+                  {/* Top color bar */}
+                  <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${article.color}`} />
+                  
+                  {/* Corner glow effect */}
+                  <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${article.color} opacity-10 blur-2xl group-hover:opacity-20 transition-opacity duration-500`} />
+                  
+                  <CardHeader className="pb-3 pt-5 sm:pt-6">
+                    <div className="flex items-start gap-4">
+                      {/* Animated Icon */}
+                      <motion.div 
+                        whileHover={{ rotate: 10, scale: 1.1 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br ${article.color} shrink-0 shadow-xl`}
+                      >
+                        <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                      </motion.div>
+                      
+                      <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                        <Badge variant="outline" className="text-[10px] sm:text-xs font-medium bg-background/50">
                           {article.category}
                         </Badge>
+                        <CardTitle className="text-base sm:text-lg leading-snug group-hover:text-primary transition-colors">
+                          {article.title}
+                        </CardTitle>
+                        <CardDescription className="text-xs sm:text-sm line-clamp-2">
+                          {article.description}
+                        </CardDescription>
                       </div>
-                      <CardTitle className="text-lg leading-tight">{article.title}</CardTitle>
-                      <CardDescription className="text-sm mt-1">{article.description}</CardDescription>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2.5 bg-muted/30 rounded-xl p-4">
-                    {article.content.map((point, index) => (
-                      <div key={index} className="flex gap-3">
-                        <span className={`inline-block h-2 w-2 rounded-full bg-gradient-to-br ${article.color} mt-2 flex-shrink-0`} />
-                        <p className="text-sm leading-relaxed text-muted-foreground">{point}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 sm:space-y-3 bg-muted/30 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                      {article.content.map((point, idx) => (
+                        <motion.div 
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 + idx * 0.05 }}
+                          className="flex gap-3"
+                        >
+                          <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br ${article.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                            <span className="text-white text-[10px] sm:text-xs font-bold">{idx + 1}</span>
+                          </div>
+                          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                            {point}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
 
         {/* Disclaimer */}
-        <Card className="mt-10 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <p className="text-sm text-muted-foreground">
-                <strong className="text-foreground">Disclaimer:</strong> This information is for educational purposes only and should not replace professional medical advice. Always consult your pediatrician for personalized guidance about your baby's nutrition and health.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="mt-10 border-2 border-primary/20 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Disclaimer:</strong> This information is for educational purposes only and should not replace professional medical advice. Always consult your pediatrician for personalized guidance about your baby's nutrition and health.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );

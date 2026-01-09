@@ -279,7 +279,7 @@ const FoodAnalyzer = () => {
             <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
           </div>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2 sm:mb-3">
-            AI Food Analyzer
+            Smart Food Analyzer
           </h1>
           <p className="text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto px-2">
             Your baby's personal nutritionist. Take a photo of any food and get expert-level analysis instantly.
@@ -349,7 +349,7 @@ const FoodAnalyzer = () => {
                             <div className="w-16 h-16 border-4 border-primary/30 rounded-full animate-spin border-t-primary" />
                             <Sparkles className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                           </div>
-                          <p className="font-semibold text-primary">Analyzing with AI...</p>
+                          <p className="font-semibold text-primary">Analyzing...</p>
                         </div>
                       </div>
                     )}
@@ -411,7 +411,7 @@ const FoodAnalyzer = () => {
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-6 h-6 animate-spin" />
-                  Analyzing with AI...
+                  Analyzing...
                 </>
               ) : (
                 <>

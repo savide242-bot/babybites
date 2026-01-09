@@ -849,7 +849,7 @@ const MealPlanner = () => {
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12">
             <TabsTrigger value="auto" className="flex items-center gap-2 text-sm">
               <Sparkles className="h-4 w-4" />
-              AI Recommended
+              Personalized Plan
             </TabsTrigger>
             <TabsTrigger value="manual" className="flex items-center gap-2 text-sm">
               <PencilLine className="h-4 w-4" />
@@ -916,7 +916,7 @@ const MealPlanner = () => {
                       ) : (
                         <Wand2 className="h-5 w-5 text-primary" />
                       )}
-                      {aiPlanAccepted ? 'Your Active Meal Plan' : 'AI-Suggested Meal Plan'}
+                      {aiPlanAccepted ? 'Your Active Meal Plan' : 'Suggested Meal Plan'}
                     </h2>
                     <p className="text-muted-foreground mt-1">
                       Optimized for {babyAgeMonths}-month-old • Nutritionally balanced • {aiPlanAccepted ? 'Saved' : 'Ready to use'}
