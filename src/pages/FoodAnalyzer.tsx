@@ -298,38 +298,49 @@ const FoodAnalyzer = () => {
                 </h2>
               </div>
               <CardContent className="p-6">
-                {!image ? (
-                  <div className="border-2 border-dashed border-primary/30 rounded-2xl p-10 text-center bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 hover:border-primary/50 transition-colors">
-                    <div className="flex flex-col items-center gap-5">
+{!image ? (
+                  <div className="border-2 border-dashed border-gold/40 rounded-2xl sm:rounded-3xl p-6 sm:p-10 text-center bg-gradient-to-br from-gold/5 via-transparent to-primary/5 hover:border-gold/60 transition-all duration-300 group/upload">
+                    <div className="flex flex-col items-center gap-4 sm:gap-6">
+                      {/* Animated Camera Icon */}
                       <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-full blur-xl opacity-30 animate-pulse" />
-                        <div className="relative p-5 rounded-full bg-gradient-to-br from-primary to-secondary">
-                          <Camera className="w-10 h-10 text-primary-foreground" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-gold via-primary to-secondary rounded-full blur-2xl opacity-20 group-hover/upload:opacity-40 transition-opacity animate-pulse" />
+                        <div className="relative p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gold via-primary to-secondary shadow-xl group-hover/upload:scale-105 transition-transform duration-300">
+                          <Camera className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
                         </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-xl">Take Photo or Upload</p>
-                        <p className="text-muted-foreground mt-1">
-                          Capture or select a food image for analysis
+                      
+                      {/* Text */}
+                      <div className="space-y-1 sm:space-y-2">
+                        <p className="font-bold text-lg sm:text-2xl bg-gradient-to-r from-gold via-primary to-secondary bg-clip-text text-transparent">
+                          Capture Your Food
+                        </p>
+                        <p className="text-muted-foreground text-sm sm:text-base">
+                          Take a photo or upload an image for instant analysis
                         </p>
                       </div>
-                      <div className="flex gap-3">
+                      
+                      {/* Responsive Buttons - Stack on mobile, side by side on desktop */}
+                      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                         <Button 
                           size="lg"
                           variant="outline" 
-                          className="gap-2 rounded-full"
+                          className="flex-1 gap-3 rounded-xl sm:rounded-2xl py-5 sm:py-6 border-2 border-gold/30 hover:border-gold hover:bg-gold/5 transition-all duration-300 group/btn shadow-sm hover:shadow-md"
                           onClick={() => cameraInputRef.current?.click()}
                         >
-                          <Camera className="w-5 h-5" />
-                          Take Photo
+                          <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gold/10 group-hover/btn:bg-gold/20 transition-colors">
+                            <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                          </div>
+                          <span className="font-semibold text-sm sm:text-base">Take Photo</span>
                         </Button>
                         <Button 
                           size="lg"
-                          className="gap-2 rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                          className="flex-1 gap-3 rounded-xl sm:rounded-2xl py-5 sm:py-6 bg-gradient-to-r from-gold via-primary to-secondary text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group/btn border-0"
                           onClick={() => galleryInputRef.current?.click()}
                         >
-                          <Upload className="w-5 h-5" />
-                          Upload Image
+                          <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-white/20">
+                            <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </div>
+                          <span className="font-semibold text-sm sm:text-base">Upload Image</span>
                         </Button>
                       </div>
                     </div>

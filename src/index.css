@@ -52,6 +52,12 @@
     --sunshine: 45 90% 70%;
     --sunshine-foreground: 45 50% 20%;
 
+    /* Gold Premium */
+    --gold: 42 85% 55%;
+    --gold-light: 45 90% 70%;
+    --gold-dark: 38 80% 45%;
+    --gold-foreground: 0 0% 100%;
+
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
@@ -127,6 +133,12 @@
 
     --sunshine: 45 85% 65%;
     --sunshine-foreground: 45 50% 15%;
+
+    /* Gold Premium (Dark Mode) */
+    --gold: 42 80% 50%;
+    --gold-light: 45 85% 65%;
+    --gold-dark: 38 75% 40%;
+    --gold-foreground: 0 0% 100%;
 
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 98%;
