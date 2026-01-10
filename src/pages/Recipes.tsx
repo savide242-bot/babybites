@@ -185,46 +185,15 @@ const Recipes = () => {
   return (
     <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-primary/5 to-background">
       <div className="container px-3 sm:px-4">
-        {/* Premium Hero Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-5 sm:p-8 md:p-10 mb-6 sm:mb-8"
-        >
-          {/* Animated floating icons */}
-          <motion.div 
-            animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }} 
-            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-            className="absolute top-4 right-8 hidden sm:block"
-          >
-            <Utensils className="text-primary/20 w-10 h-10 sm:w-14 sm:h-14" />
-          </motion.div>
-          <motion.div 
-            animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }} 
-            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 }}
-            className="absolute bottom-4 right-20 hidden sm:block"
-          >
-            <ChefHat className="text-secondary/20 w-8 h-8 sm:w-12 sm:h-12" />
-          </motion.div>
-          
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary to-secondary shadow-lg">
-                <Utensils className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
-              </div>
-              <Badge className="bg-primary/20 text-primary border-0 text-xs sm:text-sm">
-                {recipes.length}+ Recipes
-              </Badge>
-            </div>
-            
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              {t('recipes.title')}
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-2 sm:mt-3 max-w-xl leading-relaxed">
-              {t('recipes.subtitle')}
-            </p>
-          </div>
-        </motion.div>
+        {/* Clean Header */}
+        <div className="mb-6 pt-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            {t('recipes.title')}
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            {filteredRecipes.length}+ nutritious recipes for your little one
+          </p>
+        </div>
 
         {/* Premium Filters */}
         <motion.div 

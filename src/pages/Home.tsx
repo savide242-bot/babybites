@@ -281,12 +281,12 @@ const Home = () => {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-peach/50 text-2xl shadow-soft">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-gold/30 via-peach/50 to-primary/20 text-2xl shadow-lg border border-gold/20">
                 {emoji}
               </div>
               <div>
                 <h1 className="text-lg font-bold text-foreground">
-                  {greeting}, <span className="text-primary">{motherName || "Mom"}</span>!
+                  {greeting}, <span className="bg-gradient-to-r from-gold to-primary bg-clip-text text-transparent">{motherName || "Mom"}</span>!
                 </h1>
                 <p className="text-muted-foreground text-sm">
                   {emotionalMessage} ✨
@@ -299,9 +299,12 @@ const Home = () => {
         {/* Streak Badge */}
         {!isLoading && streak && streak.current_streak > 0 && (
           <motion.div variants={itemVariants}>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-gold/20 via-amber-500/15 to-gold/20 border border-gold/40 shadow-lg backdrop-blur-sm">
               <span className="text-lg">🔥</span>
-              <span className="text-sm font-semibold text-amber-600">{streak.current_streak} day streak</span>
+              <span className="text-sm font-bold bg-gradient-to-r from-gold to-amber-600 bg-clip-text text-transparent">
+                {streak.current_streak} day streak
+              </span>
+              <span className="text-gold text-xs">⭐</span>
             </div>
           </motion.div>
         )}

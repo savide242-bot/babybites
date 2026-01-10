@@ -37,36 +37,39 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-card/95 backdrop-blur-xl">
-      <div className="container flex h-14 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-xl">
+      {/* Gold accent line at top */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold via-gold-light to-gold" />
+      
+      <div className="container flex h-14 items-center justify-between border-b border-border/30">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary shadow-soft group-hover:shadow-glow transition-shadow">
-            <Baby className="w-5 h-5 text-primary-foreground" />
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-gold via-primary to-secondary shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+            <Baby className="w-5 h-5 text-white" />
           </div>
           <span className="text-lg font-bold text-foreground">
-            Baby<span className="text-primary">Bites</span>
+            Baby<span className="bg-gradient-to-r from-gold to-primary bg-clip-text text-transparent">Bites</span>
           </span>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-1">
-          {navLinks.slice(0, 7).map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  isActive(link.to) 
-                    ? "bg-primary/15 text-primary" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
+            {navLinks.slice(0, 7).map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
+                    isActive(link.to) 
+                      ? "bg-gradient-to-r from-gold/20 to-primary/20 text-gold shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive(link.to) ? 'text-gold' : ''}`} />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
         </nav>
 
         {/* Mobile Navigation */}
