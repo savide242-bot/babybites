@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Clock, Save, Globe, Bell, Loader2, AlertCircle, CheckCircle2, Send } from 'lucide-react';
+import { Clock, Save, Globe, Bell, Loader2, AlertCircle, CheckCircle2, Send, Zap } from 'lucide-react';
 
 interface MealTimePref {
   meal_type: string;
@@ -67,6 +67,8 @@ export function NotificationPreferences() {
   const [userTimezone, setUserTimezone] = useState<string>('UTC');
   const [initialTimezone, setInitialTimezone] = useState<string>('UTC');
   const [sendingMealReminder, setSendingMealReminder] = useState(false);
+  const [testingCronJob, setTestingCronJob] = useState(false);
+  const [cronJobStatus, setCronJobStatus] = useState<{ success: boolean; sent: number; checkedAt: string } | null>(null);
   
   // Diagnostics state
   const [diagnostics, setDiagnostics] = useState<{
@@ -289,6 +291,53 @@ export function NotificationPreferences() {
       });
     } finally {
       setSendingMealReminder(false);
+    }
+  };
+
+  const handleTestCronJob = async () => {
+    setTestingCronJob(true);
+    setCronJobStatus(null);
+    try {
+      // Call the check-meal-reminders function directly to test if it works
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-meal-reminders`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setCronJobStatus({
+          success: true,
+          sent: data.sent || 0,
+          checkedAt: data.checkedAt || new Date().toISOString(),
+        });
+        toast({
+          title: "✅ Cron Job Working!",
+          description: `System checked ${data.sent || 0} notifications. Last check: ${new Date(data.checkedAt).toLocaleTimeString()}`,
+        });
+      } else {
+        toast({
+          title: "⚠️ Cron Job Issue",
+          description: data.error || "The scheduler may not be working correctly",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Cron job test error:', error);
+      toast({
+        title: "❌ Connection Error",
+        description: "Could not reach the notification scheduler",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingCronJob(false);
     }
   };
 
@@ -589,27 +638,61 @@ export function NotificationPreferences() {
                 </div>
               </div>
 
-              {/* Single Test Button */}
+              {/* Test Buttons */}
               {isSupported && diagnostics.permissionStatus === 'granted' && diagnostics.subscriptionCount > 0 && (
-                <Button 
-                  onClick={handleSendMealReminderNow}
-                  disabled={sendingMealReminder}
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  {sendingMealReminder ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Test Push Notification
-                    </>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={handleSendMealReminderNow}
+                    disabled={sendingMealReminder}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    {sendingMealReminder ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Test Push Notification
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleTestCronJob}
+                    disabled={testingCronJob}
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-gold/50 hover:bg-gold/10"
+                  >
+                    {testingCronJob ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Testing Scheduler...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-4 w-4 mr-2 text-gold" />
+                        Test Notification Scheduler
+                      </>
+                    )}
+                  </Button>
+                  
+                  {cronJobStatus && (
+                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <span className="font-medium">Scheduler Active</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Last check: {new Date(cronJobStatus.checkedAt).toLocaleString()}
+                      </p>
+                    </div>
                   )}
-                </Button>
+                </div>
               )}
             </div>
           )}
