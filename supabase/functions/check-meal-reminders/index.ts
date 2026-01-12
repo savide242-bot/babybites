@@ -65,7 +65,8 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string
   }
 };
 
-const TIME_TOLERANCE_MINUTES = 3;
+// INCREASED from 3 to 5 minutes to ensure cron job never misses the window
+const TIME_TOLERANCE_MINUTES = 5;
 const REMINDER_MINUTES_BEFORE = 30;
 
 // ==================== WEB PUSH LIBRARY IMPLEMENTATION ====================
@@ -148,6 +149,22 @@ function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minu
   }
 }
 
+// Get current date in user's timezone (for duplicate prevention)
+function getUserLocalDate(utcDate: Date, timezone: string): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    return formatter.format(utcDate); // Returns YYYY-MM-DD format
+  } catch (error) {
+    console.error(`❌ Invalid timezone for date "${timezone}":`, error);
+    return utcDate.toISOString().split('T')[0];
+  }
+}
+
 // Calculate reminder time (30 min before meal)
 function getReminderTime(mealHour: number, mealMinute: number): { hour: number; minute: number } {
   let reminderMinute = mealMinute - REMINDER_MINUTES_BEFORE;
@@ -170,6 +187,52 @@ function timeMatchesWithTolerance(userHour: number, userMinute: number, targetHo
   const diff = Math.abs(userTotalMinutes - targetTotalMinutes);
   const wrappedDiff = Math.min(diff, 24 * 60 - diff);
   return wrappedDiff <= TIME_TOLERANCE_MINUTES;
+}
+
+// Check if notification was already sent today for this user/meal
+async function wasAlreadySentToday(
+  supabase: any,
+  userId: string,
+  mealType: string,
+  userLocalDate: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('notification_logs')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('meal_type', mealType)
+    .eq('sent_date', userLocalDate)
+    .limit(1);
+
+  if (error) {
+    console.error('❌ Error checking notification logs:', error);
+    return false; // If error, allow sending (better to send duplicate than miss)
+  }
+
+  return data && data.length > 0;
+}
+
+// Log sent notification to prevent duplicates
+async function logNotificationSent(
+  supabase: any,
+  userId: string,
+  mealType: string,
+  userLocalDate: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('notification_logs')
+    .insert({
+      user_id: userId,
+      meal_type: mealType,
+      sent_date: userLocalDate,
+    });
+
+  if (error) {
+    // Ignore unique constraint violations (means already logged)
+    if (!error.message?.includes('duplicate') && !error.message?.includes('unique')) {
+      console.error('❌ Error logging notification:', error);
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -204,7 +267,9 @@ Deno.serve(async (req) => {
     console.log(`⏰ CHECK-MEAL-REMINDERS STARTED`);
     console.log(`📅 Server Time (UTC): ${now.toISOString()}`);
     console.log(`🔔 Reminders sent ${REMINDER_MINUTES_BEFORE} min before meal time`);
+    console.log(`📏 Tolerance: ±${TIME_TOLERANCE_MINUTES} minutes`);
     console.log(`🔑 Using web-push library (improved compatibility)`);
+    console.log(`🛡️ Duplicate prevention: notification_logs table`);
     console.log(`========================================\n`);
 
     // Get all enabled meal times from baby_meal_times table
@@ -252,6 +317,7 @@ Deno.serve(async (req) => {
 
     let sentCount = 0;
     let failedCount = 0;
+    let skippedDuplicates = 0;
     const expiredSubscriptions: string[] = [];
     const processedUsers = new Set<string>();
 
@@ -262,6 +328,7 @@ Deno.serve(async (req) => {
       const babyName = profile?.baby_name || 'baby';
 
       const userLocalTime = getUserLocalTime(now, userTimezone);
+      const userLocalDate = getUserLocalDate(now, userTimezone);
       const reminderTime = getReminderTime(mealTime.preferred_hour, mealTime.preferred_minute);
 
       // Calculate time difference for logging
@@ -280,6 +347,7 @@ Deno.serve(async (req) => {
       // Detailed logging for debugging
       console.log(`📋 Checking: ${mealTime.meal_type} | User: ${mealTime.user_id.substring(0, 8)}...`);
       console.log(`   🌍 Timezone: ${userTimezone}`);
+      console.log(`   📅 User Local Date: ${userLocalDate}`);
       console.log(`   ⏰ User Local Time: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
       console.log(`   🍽️ Meal Time: ${mealTime.preferred_hour}:${String(mealTime.preferred_minute).padStart(2, '0')}`);
       console.log(`   🔔 Reminder Time: ${reminderTime.hour}:${String(reminderTime.minute).padStart(2, '0')}`);
@@ -291,6 +359,20 @@ Deno.serve(async (req) => {
       const userMealKey = `${mealTime.user_id}-${mealTime.meal_type}`;
       if (processedUsers.has(userMealKey)) continue;
       processedUsers.add(userMealKey);
+
+      // CHECK FOR DUPLICATES - Don't send if already sent today
+      const alreadySent = await wasAlreadySentToday(
+        supabase,
+        mealTime.user_id,
+        mealTime.meal_type,
+        userLocalDate
+      );
+
+      if (alreadySent) {
+        console.log(`⏭️ SKIPPING: Already sent ${mealTime.meal_type} reminder today`);
+        skippedDuplicates++;
+        continue;
+      }
 
       console.log(`\n🔔 SENDING REMINDER: ${mealTime.meal_type} for user ${mealTime.user_id.substring(0, 8)}...`);
 
@@ -304,6 +386,8 @@ Deno.serve(async (req) => {
       const message = MEAL_MESSAGES[mealTime.meal_type] || MEAL_MESSAGES['snack'];
       const personalizedBody = message.body.replace('{baby}', babyName);
 
+      let sentForThisMeal = false;
+
       for (const sub of subscriptions) {
         const result = await sendWebPushNotification(
           sub,
@@ -316,6 +400,7 @@ Deno.serve(async (req) => {
 
         if (result.success) {
           sentCount++;
+          sentForThisMeal = true;
           console.log(`✅ Notification sent for ${mealTime.meal_type}!`);
         } else if (result.expired) {
           expiredSubscriptions.push(sub.id);
@@ -325,6 +410,12 @@ Deno.serve(async (req) => {
           console.log(`❌ Failed: ${result.error}`);
         }
       }
+
+      // Log this notification to prevent duplicates
+      if (sentForThisMeal) {
+        await logNotificationSent(supabase, mealTime.user_id, mealTime.meal_type, userLocalDate);
+        console.log(`📝 Logged notification to prevent duplicates`);
+      }
     }
 
     // Clean up expired subscriptions
@@ -333,13 +424,14 @@ Deno.serve(async (req) => {
       await supabase.from('push_subscriptions').delete().in('id', expiredSubscriptions);
     }
 
-    console.log(`\n📊 Results: ${sentCount} sent, ${failedCount} failed`);
+    console.log(`\n📊 Results: ${sentCount} sent, ${failedCount} failed, ${skippedDuplicates} skipped (already sent)`);
 
     return new Response(
       JSON.stringify({
         success: true,
         sent: sentCount,
         failed: failedCount,
+        skippedDuplicates,
         expiredCleaned: expiredSubscriptions.length,
         checkedAt: now.toISOString()
       }),

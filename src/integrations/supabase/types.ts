@@ -685,6 +685,30 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          id: string
+          meal_type: string
+          sent_at: string | null
+          sent_date: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          meal_type: string
+          sent_at?: string | null
+          sent_date?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          meal_type?: string
+          sent_at?: string | null
+          sent_date?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           achievement_celebration_enabled: boolean | null
