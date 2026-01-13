@@ -65,9 +65,11 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string
   }
 };
 
-// INCREASED from 3 to 5 minutes to ensure cron job never misses the window
-const TIME_TOLERANCE_MINUTES = 5;
-const REMINDER_MINUTES_BEFORE = 30;
+// FIXED APPROACH: Check if we're within the notification window
+// We want to send notifications when we're between 25-35 minutes BEFORE the meal
+// This gives us a 10-minute window to catch the cron job (which runs every 5 min)
+const MIN_MINUTES_BEFORE_MEAL = 25;
+const MAX_MINUTES_BEFORE_MEAL = 35;
 
 // ==================== WEB PUSH LIBRARY IMPLEMENTATION ====================
 
@@ -165,28 +167,28 @@ function getUserLocalDate(utcDate: Date, timezone: string): string {
   }
 }
 
-// Calculate reminder time (30 min before meal)
-function getReminderTime(mealHour: number, mealMinute: number): { hour: number; minute: number } {
-  let reminderMinute = mealMinute - REMINDER_MINUTES_BEFORE;
-  let reminderHour = mealHour;
+// NEW APPROACH: Calculate minutes until meal time
+function getMinutesUntilMeal(userHour: number, userMinute: number, mealHour: number, mealMinute: number): number {
+  const userTotalMinutes = userHour * 60 + userMinute;
+  const mealTotalMinutes = mealHour * 60 + mealMinute;
   
-  if (reminderMinute < 0) {
-    reminderMinute += 60;
-    reminderHour -= 1;
-    if (reminderHour < 0) {
-      reminderHour = 23;
-    }
+  let diff = mealTotalMinutes - userTotalMinutes;
+  
+  // Handle day wrap-around (if meal is tomorrow)
+  if (diff < -12 * 60) {
+    diff += 24 * 60; // Add 24 hours
   }
   
-  return { hour: reminderHour, minute: reminderMinute };
+  return diff;
 }
 
-function timeMatchesWithTolerance(userHour: number, userMinute: number, targetHour: number, targetMinute: number): boolean {
-  const userTotalMinutes = userHour * 60 + userMinute;
-  const targetTotalMinutes = targetHour * 60 + targetMinute;
-  const diff = Math.abs(userTotalMinutes - targetTotalMinutes);
-  const wrappedDiff = Math.min(diff, 24 * 60 - diff);
-  return wrappedDiff <= TIME_TOLERANCE_MINUTES;
+// Check if we should send a reminder now
+// Returns true if we're between 25-35 minutes before the meal
+function shouldSendReminder(userHour: number, userMinute: number, mealHour: number, mealMinute: number): boolean {
+  const minutesUntilMeal = getMinutesUntilMeal(userHour, userMinute, mealHour, mealMinute);
+  
+  // Send if we're between 25 and 35 minutes before the meal
+  return minutesUntilMeal >= MIN_MINUTES_BEFORE_MEAL && minutesUntilMeal <= MAX_MINUTES_BEFORE_MEAL;
 }
 
 // Check if notification was already sent today for this user/meal
@@ -264,10 +266,10 @@ Deno.serve(async (req) => {
     const now = new Date();
 
     console.log(`\n========================================`);
-    console.log(`⏰ CHECK-MEAL-REMINDERS STARTED`);
+    console.log(`⏰ CHECK-MEAL-REMINDERS v2.1 STARTED`);
     console.log(`📅 Server Time (UTC): ${now.toISOString()}`);
-    console.log(`🔔 Reminders sent ${REMINDER_MINUTES_BEFORE} min before meal time`);
-    console.log(`📏 Tolerance: ±${TIME_TOLERANCE_MINUTES} minutes`);
+    console.log(`🔔 NEW LOGIC: Send when ${MIN_MINUTES_BEFORE_MEAL}-${MAX_MINUTES_BEFORE_MEAL} min before meal`);
+    console.log(`📏 Window: 10 minutes (catches cron every 5 min)`);
     console.log(`🔑 Using web-push library (improved compatibility)`);
     console.log(`🛡️ Duplicate prevention: notification_logs table`);
     console.log(`========================================\n`);
@@ -329,19 +331,20 @@ Deno.serve(async (req) => {
 
       const userLocalTime = getUserLocalTime(now, userTimezone);
       const userLocalDate = getUserLocalDate(now, userTimezone);
-      const reminderTime = getReminderTime(mealTime.preferred_hour, mealTime.preferred_minute);
-
-      // Calculate time difference for logging
-      const userTotalMinutes = userLocalTime.hour * 60 + userLocalTime.minute;
-      const reminderTotalMinutes = reminderTime.hour * 60 + reminderTime.minute;
-      const diff = Math.abs(userTotalMinutes - reminderTotalMinutes);
-      const wrappedDiff = Math.min(diff, 24 * 60 - diff);
-
-      const matches = timeMatchesWithTolerance(
+      
+      // NEW: Calculate minutes until meal
+      const minutesUntilMeal = getMinutesUntilMeal(
+        userLocalTime.hour, 
+        userLocalTime.minute, 
+        mealTime.preferred_hour, 
+        mealTime.preferred_minute
+      );
+      
+      const shouldSend = shouldSendReminder(
         userLocalTime.hour,
         userLocalTime.minute,
-        reminderTime.hour,
-        reminderTime.minute
+        mealTime.preferred_hour,
+        mealTime.preferred_minute
       );
 
       // Detailed logging for debugging
@@ -350,11 +353,11 @@ Deno.serve(async (req) => {
       console.log(`   📅 User Local Date: ${userLocalDate}`);
       console.log(`   ⏰ User Local Time: ${userLocalTime.hour}:${String(userLocalTime.minute).padStart(2, '0')}`);
       console.log(`   🍽️ Meal Time: ${mealTime.preferred_hour}:${String(mealTime.preferred_minute).padStart(2, '0')}`);
-      console.log(`   🔔 Reminder Time: ${reminderTime.hour}:${String(reminderTime.minute).padStart(2, '0')}`);
-      console.log(`   📏 Difference: ${wrappedDiff} min (tolerance: ${TIME_TOLERANCE_MINUTES} min)`);
-      console.log(`   ${matches ? '✅ MATCHES! Time to send reminder!' : '❌ Does not match'}`);
+      console.log(`   ⏳ Minutes until meal: ${minutesUntilMeal}`);
+      console.log(`   📏 Window: ${MIN_MINUTES_BEFORE_MEAL}-${MAX_MINUTES_BEFORE_MEAL} min before meal`);
+      console.log(`   ${shouldSend ? '✅ IN WINDOW! Time to send reminder!' : '❌ Not in notification window'}`);
 
-      if (!matches) continue;
+      if (!shouldSend) continue;
 
       const userMealKey = `${mealTime.user_id}-${mealTime.meal_type}`;
       if (processedUsers.has(userMealKey)) continue;
