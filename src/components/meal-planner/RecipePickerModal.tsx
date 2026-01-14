@@ -19,6 +19,7 @@ interface RecipePickerModalProps {
   mealType: string;
   day: string;
   usedRecipeIds?: string[];
+  babyAgeMonths?: number;
 }
 
 const mealTypeConfig: Record<string, { gradient: string; icon: string }> = {
@@ -41,7 +42,8 @@ export const RecipePickerModal = ({
   onSelect,
   mealType,
   day,
-  usedRecipeIds = []
+  usedRecipeIds = [],
+  babyAgeMonths,
 }: RecipePickerModalProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -49,19 +51,46 @@ export const RecipePickerModal = ({
   const { preferences } = useDietaryPreferences();
   const config = mealTypeConfig[mealType] || mealTypeConfig.snack;
 
+  const isTooYoungForSolids = typeof babyAgeMonths === "number" && babyAgeMonths < 6;
+
+  const allowedRecipes = useMemo(() => {
+    if (isTooYoungForSolids) return [];
+
+    // Same age gating logic as planner: show current group + earlier groups when older
+    const getAgeGroup = (months: number): string => {
+      if (months < 6) return "0-6 months";
+      if (months < 9) return "6-9 months";
+      if (months < 12) return "9-12 months";
+      if (months < 18) return "12-18 months";
+      return "18-24 months";
+    };
+
+    const ageGroup = typeof babyAgeMonths === "number" ? getAgeGroup(babyAgeMonths) : "6-9 months";
+
+    return recipes.filter((r) => {
+      const rAge = (r as any).ageGroup as string | undefined;
+      if (!rAge) return true; // fallback if recipe missing age info
+
+      if (rAge === ageGroup) return true;
+      if ((babyAgeMonths ?? 0) >= 9 && rAge === "6-9 months") return true;
+      if ((babyAgeMonths ?? 0) >= 12 && rAge === "9-12 months") return true;
+      return false;
+    });
+  }, [babyAgeMonths, isTooYoungForSolids]);
+
   const favoriteRecipes = useMemo(() => {
-    return recipes.filter(r => Array.isArray(favorites) ? favorites.includes(r.id) : favorites.has?.(r.id));
-  }, [favorites]);
+    return allowedRecipes.filter(r => Array.isArray(favorites) ? favorites.includes(r.id) : favorites.has?.(r.id));
+  }, [favorites, allowedRecipes]);
 
   const suggestedRecipes = useMemo(() => {
     // Suggest recipes not used this week
-    return recipes
+    return allowedRecipes
       .filter(r => !usedRecipeIds.includes(r.id))
       .slice(0, 5);
-  }, [usedRecipeIds]);
+  }, [usedRecipeIds, allowedRecipes]);
 
   const filteredRecipes = useMemo(() => {
-    let result = [...recipes];
+    let result = [...allowedRecipes];
 
     // Search filter
     if (searchQuery.trim()) {
@@ -81,7 +110,7 @@ export const RecipePickerModal = ({
     });
 
     return result;
-  }, [searchQuery, activeFilters]);
+  }, [searchQuery, activeFilters, allowedRecipes]);
 
   const toggleFilter = (filterId: string) => {
     setActiveFilters(prev =>
