@@ -440,11 +440,7 @@ const MealPlanner = () => {
     const weekStart = getWeekStartDate();
     setCurrentWeekStart(weekStart);
     
-    // Always generate AI suggestions for the AI tab
-    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
-    setAutoPlan(generated);
-    
-    // Load only current week's plan
+    // Load only current week's plan from database FIRST
     const { data, error } = await supabase
       .from('meal_plans')
       .select('*')
@@ -457,6 +453,7 @@ const MealPlanner = () => {
     }
 
     if (data && data.length > 0) {
+      // User has a saved plan - use it for BOTH mealPlan and autoPlan
       const plan: MealPlan = {};
       data.forEach((item) => {
         if (!plan[item.day_of_week]) {
@@ -468,16 +465,25 @@ const MealPlanner = () => {
           dbId: item.id,
         };
       });
+      
+      // Use the SAME saved plan for both - no random regeneration!
       setMealPlan(plan);
+      setAutoPlan(plan); // Show saved plan in AI tab too
       setHasSavedPlan(true);
-      setAIPlanAccepted(true); // Plan was previously accepted
-      setActiveTab("auto"); // Keep showing AI tab with accepted state
+      setAIPlanAccepted(true);
+      setActiveTab("auto");
+      
+      console.log('✅ Loaded saved meal plan from database');
     } else {
-      // No saved plan - start with empty manual plan, show AI tab first
+      // No saved plan - generate AI suggestions ONLY for new users
+      const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
+      setAutoPlan(generated);
       setMealPlan({});
       setHasSavedPlan(false);
       setAIPlanAccepted(false);
-      setActiveTab("auto"); // Show AI suggestions for new users
+      setActiveTab("auto");
+      
+      console.log('🆕 Generated new AI plan for new user');
     }
   };
 
