@@ -18,6 +18,7 @@ interface MealPlan {
 
 // Get baby age group from months
 const getAgeGroup = (months: number): string => {
+  if (months < 6) return "0-6 months";
   if (months < 9) return "6-9 months";
   if (months < 12) return "9-12 months";
   if (months < 18) return "12-18 months";
@@ -26,6 +27,9 @@ const getAgeGroup = (months: number): string => {
 
 // Filter recipes by age group
 const getRecipesForAge = (ageMonths: number) => {
+  // No solids before 6 months
+  if (ageMonths < 6) return [];
+
   const ageGroup = getAgeGroup(ageMonths);
   // Include current age group and simpler recipes for younger ages
   return recipes.filter(r => {
@@ -92,6 +96,9 @@ const generateAutoPlan = (
   ageMonths: number, 
   dietaryPrefs: string[] = []
 ): MealPlan => {
+  // No solids before 6 months
+  if (ageMonths < 6) return {};
+
   const usedRecipeIds = new Set<string>();
   const plan: MealPlan = {};
   
@@ -161,7 +168,10 @@ export const generateInitialMealPlan = async (
     // Calculate baby's age in months
     const ageMonths = birthDate 
       ? Math.max(0, differenceInMonths(new Date(), birthDate))
-      : 6; // Default to 6 months if no birth date
+      : 0;
+
+    // No solids before 6 months: don't generate a plan yet
+    if (ageMonths < 6) return true;
 
     // Generate the meal plan
     const plan = generateAutoPlan(ageMonths, dietaryPreferences);
