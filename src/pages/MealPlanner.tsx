@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ShoppingCart, ChefHat, Sparkles, RefreshCw,
-  Calendar, TrendingUp, Utensils, Wand2, Hand, Check, PencilLine
+  Calendar, TrendingUp, Utensils, Wand2, Hand, Check, PencilLine,
+  AlertTriangle, Baby
 } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
@@ -38,15 +39,26 @@ interface MealPlan {
 
 // Get baby age group from months
 const getAgeGroup = (months: number): string => {
+  if (months < 6) return "0-6 months";
   if (months < 9) return "6-9 months";
   if (months < 12) return "9-12 months";
-  return "12-18 months";
+  if (months < 18) return "12-18 months";
+  return "18-24 months";
 };
 
-// Filter recipes by age group
+// Filter recipes by age group - STRICT age gating
 const getRecipesForAge = (ageMonths: number) => {
+  // No solids before 6 months
+  if (ageMonths < 6) return [];
+  
   const ageGroup = getAgeGroup(ageMonths);
-  return recipes.filter(r => r.ageGroup === ageGroup || r.ageGroup === "6-9 months");
+  return recipes.filter(r => {
+    if (r.ageGroup === ageGroup) return true;
+    // Include simpler recipes for older babies
+    if (ageMonths >= 9 && r.ageGroup === "6-9 months") return true;
+    if (ageMonths >= 12 && r.ageGroup === "9-12 months") return true;
+    return false;
+  });
 };
 
 // Get recipes by meal type preference
@@ -100,14 +112,29 @@ const getWeekNumber = (date: Date = new Date()): number => {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 };
 
-// Generate automatic meal plan based on age and preferences, avoiding recently used recipes
+// Simple seeded random for deterministic plan generation
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+// Generate automatic meal plan - DETERMINISTIC based on week and age
+// Only regenerates when user explicitly clicks "Regenerate"
 const generateAutoPlan = (
   ageMonths: number, 
   dietaryPrefs: string[] = [], 
-  recentlyUsedRecipeIds: string[] = []
+  recentlyUsedRecipeIds: string[] = [],
+  seed?: number // Optional seed for regeneration
 ): MealPlan => {
+  // No solids before 6 months
+  if (ageMonths < 6) return {};
+  
   const usedRecipeIds = new Set<string>([...recentlyUsedRecipeIds]);
   const plan: MealPlan = {};
+  
+  // Use week number as default seed for stability
+  const baseSeed = seed ?? getWeekNumber();
+  let seedCounter = baseSeed;
   
   // Filter by dietary preferences
   const filterByDiet = (recipeList: typeof recipes) => {
@@ -124,10 +151,10 @@ const generateAutoPlan = (
     });
   };
   
-  daysOfWeek.forEach(day => {
+  daysOfWeek.forEach((day, dayIdx) => {
     plan[day] = {};
     
-    mealTypes.forEach(mealType => {
+    mealTypes.forEach((mealType, mealIdx) => {
       const candidates = getRecipesByMealType(mealType, ageMonths);
       const filtered = filterByDiet(candidates.map(c => c.recipe));
       
@@ -135,9 +162,11 @@ const generateAutoPlan = (
       const available = filtered.filter(r => !usedRecipeIds.has(r.id));
       
       if (available.length > 0) {
-        // Pick randomly from top 5 candidates
+        // DETERMINISTIC selection based on seed, day, and meal
+        seedCounter++;
         const topCandidates = available.slice(0, Math.min(5, available.length));
-        const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+        const selectedIdx = Math.floor(seededRandom(seedCounter + dayIdx * 10 + mealIdx) * topCandidates.length);
+        const selected = topCandidates[selectedIdx];
         
         plan[day][mealType] = {
           recipeId: selected.id,
@@ -146,8 +175,10 @@ const generateAutoPlan = (
         
         usedRecipeIds.add(selected.id);
       } else if (filtered.length > 0) {
-        // All used, pick any (reset cycle)
-        const selected = filtered[Math.floor(Math.random() * filtered.length)];
+        // All used, pick deterministically
+        seedCounter++;
+        const selectedIdx = Math.floor(seededRandom(seedCounter) * filtered.length);
+        const selected = filtered[selectedIdx];
         plan[day][mealType] = {
           recipeId: selected.id,
           prepared: false,
@@ -170,7 +201,7 @@ const MealPlanner = () => {
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [copySource, setCopySource] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("manual"); // Default to manual when plan exists
-  const [babyAgeMonths, setBabyAgeMonths] = useState(9);
+  const [babyAgeMonths, setBabyAgeMonths] = useState<number>(0); // Start at 0 for safety
   const [dietaryPrefs, setDietaryPrefs] = useState<string[]>([]);
   const [showWeekCompletionModal, setShowWeekCompletionModal] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState<string>(getWeekStartDate());
@@ -178,7 +209,11 @@ const MealPlanner = () => {
   const [recentlyUsedRecipes, setRecentlyUsedRecipes] = useState<string[]>([]);
   const [hasSavedPlan, setHasSavedPlan] = useState(false);
   const [aiPlanAccepted, setAIPlanAccepted] = useState(false);
+  const [regenerationSeed, setRegenerationSeed] = useState<number | undefined>(undefined);
   const navigate = useNavigate();
+
+  // Check if baby is too young for solid foods
+  const isTooYoungForSolids = babyAgeMonths < 6;
 
   useEffect(() => {
     checkUser();
@@ -205,7 +240,11 @@ const MealPlanner = () => {
       const birthDate = new Date(profile.baby_birth_date);
       const now = new Date();
       const ageMonths = Math.floor((now.getTime() - birthDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000));
-      setBabyAgeMonths(Math.max(6, Math.min(24, ageMonths)));
+      // Store REAL age - including < 6 months for proper gating
+      setBabyAgeMonths(Math.max(0, Math.min(24, ageMonths)));
+    } else {
+      // No birth date - default to 0 (too young) for safety
+      setBabyAgeMonths(0);
     }
     
     if (profile?.dietary_preferences) {
@@ -240,7 +279,12 @@ const MealPlanner = () => {
   }, [mealPlan, checkWeekCompletion]);
 
   const regenerateAutoPlan = () => {
-    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes);
+    if (isTooYoungForSolids) return; // Don't regenerate for babies < 6 months
+    
+    // Use a random seed to generate a different plan
+    const newSeed = Date.now();
+    setRegenerationSeed(newSeed);
+    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, newSeed);
     setAutoPlan(generated);
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
     toast.success("🎉 New meal plan generated!");
@@ -814,7 +858,10 @@ const MealPlanner = () => {
                 Meal Planner
               </h1>
               <p className="text-primary-foreground/80 mt-1">
-                Nutritious meals for your {babyAgeMonths}-month-old
+                {isTooYoungForSolids 
+                  ? `Your baby is ${babyAgeMonths} month${babyAgeMonths !== 1 ? 's' : ''} old - too young for solids`
+                  : `Nutritious meals for your ${babyAgeMonths}-month-old`
+                }
               </p>
             </div>
             <Button
@@ -828,8 +875,8 @@ const MealPlanner = () => {
             </Button>
           </div>
 
-          {/* Stats Bar */}
-          {stats.totalMeals > 0 && (
+          {/* Stats Bar - only show if baby is old enough and has meals */}
+          {!isTooYoungForSolids && stats.totalMeals > 0 && (
             <div className="flex flex-wrap gap-3 mt-4 text-sm">
               <Badge className="bg-background/20 text-primary-foreground border-0">
                 <Utensils className="h-3 w-3 mr-1" />
@@ -850,7 +897,49 @@ const MealPlanner = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        {/* Tabs - Auto vs Manual */}
+        {/* Too Young Warning - Educative Message */}
+        {isTooYoungForSolids && (
+          <Card className="mb-6 border-2 border-amber-400/50 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/50">
+                  <Baby className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Your Baby is {babyAgeMonths} Month{babyAgeMonths !== 1 ? 's' : ''} Old
+                  </h2>
+                  <p className="text-amber-700 dark:text-amber-300 mt-2 leading-relaxed">
+                    <strong>Solid foods are not recommended before 6 months of age.</strong>
+                  </p>
+                  <p className="text-amber-600 dark:text-amber-400 mt-2 text-sm leading-relaxed">
+                    According to health organizations, babies should be exclusively breastfed or formula-fed 
+                    until around 6 months old. Starting solids too early can increase the risk of choking 
+                    and may interfere with your baby's ability to get enough nutrients from breast milk or formula.
+                  </p>
+                  <div className="mt-4 p-3 rounded-lg bg-amber-100/50 dark:bg-amber-900/30">
+                    <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">Signs of Readiness (around 6 months):</h3>
+                    <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+                      <li>• Baby can sit up with minimal support</li>
+                      <li>• Good head and neck control</li>
+                      <li>• Shows interest in food when others eat</li>
+                      <li>• Can bring objects to mouth</li>
+                      <li>• Loss of tongue-thrust reflex</li>
+                    </ul>
+                  </div>
+                  <p className="text-amber-600 dark:text-amber-400 mt-3 text-sm">
+                    🍼 Please consult your pediatrician before starting solid foods. 
+                    The meal planner will be available when your baby reaches 6 months!
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tabs - Auto vs Manual (only show if baby is old enough) */}
+        {!isTooYoungForSolids && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12">
             <TabsTrigger value="auto" className="flex items-center gap-2 text-sm">
@@ -1105,6 +1194,7 @@ const MealPlanner = () => {
             </div>
           </TabsContent>
         </Tabs>
+        )}
       </div>
 
       {/* Modals */}
@@ -1120,6 +1210,7 @@ const MealPlanner = () => {
         mealType={pickerContext?.mealType || ""}
         day={pickerContext?.day || ""}
         usedRecipeIds={usedRecipeIds}
+        babyAgeMonths={babyAgeMonths}
       />
 
       <WeekTemplatesModal
