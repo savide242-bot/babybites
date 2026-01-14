@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Heart, Clock, Flame, Sparkles, Filter, X } from "lucide-react";
+import { Search, Heart, Clock, Flame, Sparkles, Filter, X, AlertTriangle, Baby } from "lucide-react";
 import { recipes } from "@/data/recipes";
 import { getRecipeImage } from "@/data/recipeImages";
 import { cn } from "@/lib/utils";
@@ -183,42 +183,71 @@ export const RecipePickerModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-4 space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search recipes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-            {searchQuery && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+        {/* Too Young Warning */}
+        {isTooYoungForSolids ? (
+          <div className="p-6 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 rounded-full bg-amber-100 dark:bg-amber-900/50">
+                <Baby className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2 flex items-center justify-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Baby Too Young for Solids
+            </h3>
+            <p className="text-amber-700 dark:text-amber-300 text-sm leading-relaxed">
+              Your baby is {babyAgeMonths} month{babyAgeMonths !== 1 ? 's' : ''} old. 
+              Solid foods are not recommended before 6 months of age.
+            </p>
+            <p className="text-amber-600 dark:text-amber-400 text-xs mt-3">
+              Please consult your pediatrician before starting solids.
+            </p>
+            <Button 
+              onClick={onClose}
+              variant="outline"
+              className="mt-4"
+            >
+              Close
+            </Button>
           </div>
+        ) : (
+          <>
+            <div className="p-4 space-y-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search recipes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+                {searchQuery && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-wrap gap-2">
-            {quickFilters.map(filter => (
-              <Badge
-                key={filter.id}
-                variant={activeFilters.includes(filter.id) ? "default" : "outline"}
-                className="cursor-pointer hover:bg-primary/20 transition-colors"
-                onClick={() => toggleFilter(filter.id)}
-              >
-                {filter.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
+              {/* Quick Filters */}
+              <div className="flex flex-wrap gap-2">
+                {quickFilters.map(filter => (
+                  <Badge
+                    key={filter.id}
+                    variant={activeFilters.includes(filter.id) ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-primary/20 transition-colors"
+                    onClick={() => toggleFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
 
         <ScrollArea className="h-[400px] px-4 pb-4">
           <div className="space-y-4">
@@ -296,6 +325,8 @@ export const RecipePickerModal = ({
             </div>
           </div>
         </ScrollArea>
+        </>
+        )}
       </DialogContent>
     </Dialog>
   );
