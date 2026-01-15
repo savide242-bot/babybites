@@ -1,41 +1,39 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { 
+  sendWebPushNotification, 
+  getVapidKeys, 
+  type PushSubscription,
+  type NotificationPayload 
+} from "../_shared/webpush.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface PushSubscription {
-  user_id: string;
-  endpoint: string;
-  keys: string;
-}
-
-interface NotificationPayload {
-  title: string;
-  body: string;
-  icon?: string;
-  badge?: string;
-  tag?: string;
-}
-
-serve(async (req) => {
-  // Handle CORS preflight
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
+    console.log('🔔 notify-update v2.0 - Using unified webpush module');
+    
+    const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Get VAPID keys
+    const vapidKeys = getVapidKeys();
+    if (!vapidKeys) {
+      throw new Error('VAPID keys not configured');
+    }
+
     // Get all push subscriptions
-    const { data: subscriptions, error } = await supabaseClient
+    const { data: subscriptions, error } = await supabase
       .from("push_subscriptions")
-      .select("*");
+      .select("id, user_id, endpoint, keys");
 
     if (error) {
       throw error;
@@ -48,78 +46,75 @@ serve(async (req) => {
       );
     }
 
+    console.log(`📤 Sending update notifications to ${subscriptions.length} users...`);
+
     // Notification payload
     const notification: NotificationPayload = {
       title: "🎉 BabyBites Updated!",
       body: "New features and improvements are now available. Click to update now.",
       icon: "/icon-192x192.png",
       badge: "/icon-192x192.png",
-      tag: "app-update"
+      tag: "app-update",
+      data: { 
+        action: 'update',
+        url: '/' 
+      },
+      actions: [
+        { action: 'update', title: 'Update Now' },
+        { action: 'later', title: 'Later' }
+      ]
     };
 
-    console.log(`📤 Sending update notifications to ${subscriptions.length} users...`);
+    let successCount = 0;
+    let failCount = 0;
+    const expiredIds: string[] = [];
 
-    // Send push notification to all subscriptions
-    const results = await Promise.allSettled(
-      subscriptions.map(async (sub: PushSubscription) => {
-        try {
-          console.log(`📨 Sending to user: ${sub.user_id}`);
-          
-          // Send notification directly to the push service endpoint
-          const response = await fetch(sub.endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "TTL": "86400"
-            },
-            body: JSON.stringify({
-              title: notification.title,
-              body: notification.body,
-              icon: notification.icon,
-              badge: notification.badge,
-              tag: notification.tag,
-              data: { action: 'update' },
-              actions: [
-                { action: 'update', title: 'Update Now' },
-                { action: 'later', title: 'Later' }
-              ]
-            })
-          });
+    // Send to each subscription
+    for (const sub of subscriptions) {
+      const pushSub: PushSubscription = {
+        id: sub.id,
+        user_id: sub.user_id,
+        endpoint: sub.endpoint,
+        keys: sub.keys as { p256dh: string; auth: string },
+      };
 
-          if (!response.ok) {
-            console.error(`❌ Failed to send to ${sub.user_id}: ${response.status} ${response.statusText}`);
-            
-            // If subscription is invalid (410 Gone), delete it
-            if (response.status === 410) {
-              console.log(`🗑️ Deleting expired subscription for ${sub.user_id}`);
-              await supabaseClient
-                .from("push_subscriptions")
-                .delete()
-                .eq("user_id", sub.user_id);
-            }
-            return { success: false, user_id: sub.user_id };
-          }
+      const result = await sendWebPushNotification(
+        pushSub,
+        notification,
+        vapidKeys.publicKey,
+        vapidKeys.privateKey
+      );
 
-          console.log(`✅ Sent successfully to ${sub.user_id}`);
-          return { success: true, user_id: sub.user_id };
-        } catch (error) {
-          console.error(`❌ Error sending to ${sub.user_id}:`, String(error));
-          return { success: false, user_id: sub.user_id };
+      if (result.success) {
+        successCount++;
+        console.log(`✅ Sent successfully to ${sub.user_id}`);
+      } else {
+        failCount++;
+        console.error(`❌ Failed to send to ${sub.user_id}: ${result.error}`);
+        if (result.expired) {
+          expiredIds.push(sub.id);
         }
-      })
-    );
+      }
+    }
 
-    const successful = results.filter(r => r.status === "fulfilled" && r.value.success).length;
-    const failed = results.length - successful;
+    // Clean up expired subscriptions
+    if (expiredIds.length > 0) {
+      console.log(`🧹 Cleaning ${expiredIds.length} expired subscriptions`);
+      await supabase
+        .from("push_subscriptions")
+        .delete()
+        .in("id", expiredIds);
+    }
 
-    console.log(`📊 Results: ${successful} sent successfully, ${failed} failed`);
+    console.log(`📊 Results: ${successCount} sent successfully, ${failCount} failed`);
 
     return new Response(
       JSON.stringify({
         message: "Push notifications sent",
         total: subscriptions.length,
-        successful,
-        failed
+        successful: successCount,
+        failed: failCount,
+        expired: expiredIds.length
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

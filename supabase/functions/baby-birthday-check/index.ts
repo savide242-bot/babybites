@@ -1,4 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { 
+  sendWebPushNotification, 
+  getVapidKeys, 
+  type PushSubscription,
+  type NotificationPayload 
+} from "../_shared/webpush.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,14 +46,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('🎂 baby-birthday-check v2.0 - Using unified webpush module');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Starting daily birthday check...');
+    // Get VAPID keys
+    const vapidKeys = getVapidKeys();
 
     const today = new Date();
     const currentDay = today.getDate();
@@ -66,6 +72,7 @@ Deno.serve(async (req) => {
     console.log(`Found ${profiles?.length || 0} profiles with baby birth dates`);
 
     let notificationsSent = 0;
+    let pushNotificationsSent = 0;
 
     for (const profile of profiles || []) {
       const birthDate = new Date(profile.baby_birth_date);
@@ -111,12 +118,13 @@ Deno.serve(async (req) => {
         }
 
         console.log(`Created birthday notification for user ${profile.id}, baby age: ${ageMonths} months`);
+        notificationsSent++;
 
-        // Try to send push notification
-        if (vapidPublicKey && vapidPrivateKey) {
+        // Send push notification if VAPID keys are available
+        if (vapidKeys) {
           const { data: subscriptions } = await supabase
             .from('push_subscriptions')
-            .select('endpoint, keys')
+            .select('id, user_id, endpoint, keys')
             .eq('user_id', profile.id);
 
           if (subscriptions && subscriptions.length > 0) {
@@ -132,30 +140,61 @@ Deno.serve(async (req) => {
               ageText = `${years} year${years > 1 ? 's' : ''} and ${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
             }
 
-            const notificationPayload = {
+            const notification: NotificationPayload = {
               title: `🎂 Happy Birthday, ${profile.baby_name || 'Baby'}!`,
-              body: `Today marks ${ageText}! Open the app to see the developmental milestones for this stage. 🎉`,
-              icon: '/favicon.ico',
+              body: `Today marks ${ageText}! Open the app to see developmental milestones. 🎉`,
+              icon: '/icon-192x192.png',
+              badge: '/icon-192x192.png',
+              tag: `birthday-${profile.id}-${ageMonths}`,
               data: {
-                url: '/profile'
+                url: '/profile',
+                type: 'birthday',
+                ageMonths
               }
             };
 
-            console.log(`Would send push to ${subscriptions.length} devices for user ${profile.id}`);
-            // Push notification sending would go here if web-push library was available
+            for (const sub of subscriptions) {
+              const pushSub: PushSubscription = {
+                id: sub.id,
+                user_id: sub.user_id,
+                endpoint: sub.endpoint,
+                keys: sub.keys as { p256dh: string; auth: string },
+              };
+
+              const result = await sendWebPushNotification(
+                pushSub,
+                notification,
+                vapidKeys.publicKey,
+                vapidKeys.privateKey
+              );
+
+              if (result.success) {
+                pushNotificationsSent++;
+                console.log(`✅ Push notification sent to ${profile.id}`);
+              } else {
+                console.error(`❌ Failed to send push to ${profile.id}: ${result.error}`);
+                
+                // Clean up expired subscription
+                if (result.expired) {
+                  await supabase
+                    .from('push_subscriptions')
+                    .delete()
+                    .eq('id', sub.id);
+                }
+              }
+            }
           }
         }
-
-        notificationsSent++;
       }
     }
 
-    console.log(`Birthday check complete. Notifications created: ${notificationsSent}`);
+    console.log(`Birthday check complete. DB notifications: ${notificationsSent}, Push notifications: ${pushNotificationsSent}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         notificationsSent,
+        pushNotificationsSent,
         checkedProfiles: profiles?.length || 0
       }),
       { 

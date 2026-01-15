@@ -82,7 +82,7 @@ self.addEventListener('fetch', (event) => {
   // For navigation and other requests, let Workbox handle with its caching strategies
 });
 
-// Handle push notifications
+// Handle push notifications with enhanced iOS support
 self.addEventListener('push', (event) => {
   console.log('SW: Push received:', event);
   
@@ -95,29 +95,54 @@ self.addEventListener('push', (event) => {
 
   try {
     if (event.data) {
-      const payload = event.data.json();
-      data = { ...data, ...payload };
+      // Try to parse as JSON first
+      try {
+        const payload = event.data.json();
+        data = { ...data, ...payload };
+        console.log('SW: Parsed JSON payload:', data.title);
+      } catch (jsonError) {
+        // If JSON fails, try as text
+        const text = event.data.text();
+        console.log('SW: Raw text payload:', text);
+        
+        // Try to parse the text as JSON
+        try {
+          const parsed = JSON.parse(text);
+          data = { ...data, ...parsed };
+        } catch {
+          data.body = text;
+        }
+      }
     }
   } catch (e) {
-    console.error('SW: Error parsing push data:', e);
-    if (event.data) {
-      data.body = event.data.text();
-    }
+    console.error('SW: Error processing push data:', e);
   }
 
+  // iOS-specific: Ensure we have valid notification data
   const options = {
-    body: data.body,
+    body: data.body || 'You have a new notification',
     icon: data.icon || '/icon-192x192.png',
     badge: data.badge || '/icon-192x192.png',
-    data: data.data || {},
-    requireInteraction: data.requireInteraction || false,
+    tag: data.tag || `notification-${Date.now()}`,
+    data: data.data || { url: '/' },
+    requireInteraction: data.requireInteraction !== false, // Default true for iOS visibility
     silent: false,
     vibrate: [200, 100, 200],
-    actions: data.actions || []
+    // iOS requires renotify for updates to same tag
+    renotify: true,
   };
+
+  // Add actions if provided
+  if (data.actions && Array.isArray(data.actions)) {
+    options.actions = data.actions;
+  }
+
+  console.log('SW: Showing notification:', data.title, options);
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)
+      .then(() => console.log('SW: Notification shown successfully'))
+      .catch(err => console.error('SW: Error showing notification:', err))
   );
 });
 
@@ -172,6 +197,7 @@ self.addEventListener('notificationclick', (event) => {
       const urlToOpen = notificationData.url || '/';
       const windowClients = await self.clients.matchAll({ type: 'window' });
 
+      // Try to find and focus an existing window
       for (const client of windowClients) {
         if ('focus' in client) {
           await client.focus();
@@ -182,9 +208,15 @@ self.addEventListener('notificationclick', (event) => {
         }
       }
 
+      // No existing window, open a new one
       await self.clients.openWindow(urlToOpen);
     })()
   );
 });
 
-console.log('SW: Custom listener loaded');
+// Handle notification close
+self.addEventListener('notificationclose', (event) => {
+  console.log('SW: Notification closed:', event.notification.tag);
+});
+
+console.log('SW: Custom listener loaded v2.0 - iOS enhanced');
