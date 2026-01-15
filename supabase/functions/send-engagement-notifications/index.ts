@@ -1,55 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { 
+  sendWebPushNotification, 
+  getVapidKeys, 
+  type PushSubscription,
+  type NotificationPayload 
+} from "../_shared/webpush.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-interface PushSubscription {
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-}
-
-async function sendPushNotification(
-  subscription: PushSubscription,
-  payload: { title: string; body: string; icon?: string; data?: any }
-) {
-  const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
-  const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
-  
-  if (!vapidPublicKey || !vapidPrivateKey) {
-    console.error('VAPID keys not configured');
-    return false;
-  }
-
-  try {
-    // Import web-push for Deno
-    const webpush = await import('https://esm.sh/web-push@3.6.7');
-    
-    webpush.setVapidDetails(
-      'mailto:hello@babybites.app',
-      vapidPublicKey,
-      vapidPrivateKey
-    );
-
-    await webpush.sendNotification(
-      {
-        endpoint: subscription.endpoint,
-        keys: subscription.keys,
-      },
-      JSON.stringify(payload)
-    );
-    
-    console.log('✅ Push notification sent successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ Error sending push notification:', error);
-    return false;
-  }
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -57,14 +17,23 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('📬 send-engagement-notifications v2.0 - Using unified webpush module');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get VAPID keys
+    const vapidKeys = getVapidKeys();
+    if (!vapidKeys) {
+      throw new Error('VAPID keys not configured');
+    }
+
     const { type } = await req.json();
     console.log(`📬 Processing engagement notification type: ${type}`);
 
-    let results = { sent: 0, failed: 0 };
+    let results = { sent: 0, failed: 0, expired: 0 };
+    const expiredIds: string[] = [];
 
     if (type === 'checkin_reminder') {
       // Send check-in reminder to users who haven't checked in today
@@ -73,10 +42,10 @@ Deno.serve(async (req) => {
       // Get all users with push subscriptions
       const { data: subscriptions } = await supabase
         .from('push_subscriptions')
-        .select('user_id, endpoint, keys');
+        .select('id, user_id, endpoint, keys');
 
-      if (!subscriptions) {
-        return new Response(JSON.stringify({ message: 'No subscriptions found' }), {
+      if (!subscriptions || subscriptions.length === 0) {
+        return new Response(JSON.stringify({ message: 'No subscriptions found', results }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -112,15 +81,38 @@ Deno.serve(async (req) => {
 
           const babyName = profile?.baby_name || 'your baby';
           
-          const success = await sendPushNotification(sub.keys as any, {
+          const notification: NotificationPayload = {
             title: '🍽️ How was feeding today?',
             body: `Don't forget to log how ${babyName} ate today! Keep your streak going.`,
             icon: '/icon-192x192.png',
+            badge: '/icon-192x192.png',
+            tag: 'checkin-reminder',
             data: { url: '/' }
-          });
+          };
 
-          if (success) results.sent++;
-          else results.failed++;
+          const pushSub: PushSubscription = {
+            id: sub.id,
+            user_id: sub.user_id,
+            endpoint: sub.endpoint,
+            keys: sub.keys as { p256dh: string; auth: string },
+          };
+
+          const result = await sendWebPushNotification(
+            pushSub,
+            notification,
+            vapidKeys.publicKey,
+            vapidKeys.privateKey
+          );
+
+          if (result.success) {
+            results.sent++;
+          } else {
+            results.failed++;
+            if (result.expired) {
+              expiredIds.push(sub.id);
+              results.expired++;
+            }
+          }
         }
       }
     } else if (type === 'streak_risk') {
@@ -150,20 +142,43 @@ Deno.serve(async (req) => {
 
           const { data: sub } = await supabase
             .from('push_subscriptions')
-            .select('endpoint, keys')
+            .select('id, user_id, endpoint, keys')
             .eq('user_id', streak.user_id)
             .maybeSingle();
 
           if (sub) {
-            const success = await sendPushNotification(sub.keys as any, {
+            const notification: NotificationPayload = {
               title: '🔥 Your streak is at risk!',
               body: `Don't lose your ${streak.current_streak}-day streak! Log in today to keep it going.`,
               icon: '/icon-192x192.png',
+              badge: '/icon-192x192.png',
+              tag: 'streak-risk',
               data: { url: '/' }
-            });
+            };
 
-            if (success) results.sent++;
-            else results.failed++;
+            const pushSub: PushSubscription = {
+              id: sub.id,
+              user_id: sub.user_id,
+              endpoint: sub.endpoint,
+              keys: sub.keys as { p256dh: string; auth: string },
+            };
+
+            const result = await sendWebPushNotification(
+              pushSub,
+              notification,
+              vapidKeys.publicKey,
+              vapidKeys.privateKey
+            );
+
+            if (result.success) {
+              results.sent++;
+            } else {
+              results.failed++;
+              if (result.expired) {
+                expiredIds.push(sub.id);
+                results.expired++;
+              }
+            }
           }
         }
       }
@@ -171,7 +186,6 @@ Deno.serve(async (req) => {
       // Notify about challenges expiring in 24h
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
       const { data: expiringChallenge } = await supabase
         .from('weekly_challenges')
@@ -204,27 +218,59 @@ Deno.serve(async (req) => {
 
             const { data: sub } = await supabase
               .from('push_subscriptions')
-              .select('endpoint, keys')
+              .select('id, user_id, endpoint, keys')
               .eq('user_id', progress.user_id)
               .maybeSingle();
 
             if (sub) {
-              const success = await sendPushNotification(sub.keys as any, {
+              const notification: NotificationPayload = {
                 title: '⏰ Challenge ending soon!',
                 body: `"${expiringChallenge.title}" ends tomorrow. Complete it to earn bonus points!`,
                 icon: '/icon-192x192.png',
+                badge: '/icon-192x192.png',
+                tag: 'challenge-expiring',
                 data: { url: '/' }
-              });
+              };
 
-              if (success) results.sent++;
-              else results.failed++;
+              const pushSub: PushSubscription = {
+                id: sub.id,
+                user_id: sub.user_id,
+                endpoint: sub.endpoint,
+                keys: sub.keys as { p256dh: string; auth: string },
+              };
+
+              const result = await sendWebPushNotification(
+                pushSub,
+                notification,
+                vapidKeys.publicKey,
+                vapidKeys.privateKey
+              );
+
+              if (result.success) {
+                results.sent++;
+              } else {
+                results.failed++;
+                if (result.expired) {
+                  expiredIds.push(sub.id);
+                  results.expired++;
+                }
+              }
             }
           }
         }
       }
     }
 
-    console.log(`📊 Notification results: ${results.sent} sent, ${results.failed} failed`);
+    // Clean up expired subscriptions
+    if (expiredIds.length > 0) {
+      console.log(`🧹 Cleaning ${expiredIds.length} expired subscriptions`);
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .in('id', expiredIds);
+    }
+
+    console.log(`📊 Notification results: ${results.sent} sent, ${results.failed} failed, ${results.expired} expired`);
 
     return new Response(JSON.stringify({ 
       success: true, 

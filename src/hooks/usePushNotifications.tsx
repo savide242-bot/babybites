@@ -10,6 +10,24 @@ const DEFAULT_MEAL_TIMES = [
   { meal_type: 'dinner', preferred_hour: 19, preferred_minute: 0, enabled: true },
 ];
 
+// Detect iOS device
+const isIOSDevice = (): boolean => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+};
+
+// Detect if running as standalone PWA
+const isStandalonePWA = (): boolean => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (navigator as any).standalone === true;
+};
+
+// Get iOS version
+const getIOSVersion = (): number => {
+  if (!isIOSDevice()) return 0;
+  const match = navigator.userAgent.match(/OS (\d+)_/);
+  return match ? parseInt(match[1], 10) : 0;
+};
+
 // Fetch VAPID public key from edge function
 const fetchVapidPublicKey = async (): Promise<string | null> => {
   try {
@@ -37,13 +55,41 @@ const fetchVapidPublicKey = async (): Promise<string | null> => {
 export const usePushNotifications = () => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
+  const [iosStatus, setIosStatus] = useState({
+    isIOS: false,
+    isStandalone: false,
+    iosVersion: 0,
+    canReceiveNotifications: true,
+  });
 
   useEffect(() => {
-    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-    setIsSupported(supported);
-    console.log('📱 Push notifications supported:', supported);
+    const iOS = isIOSDevice();
+    const standalone = isStandalonePWA();
+    const version = getIOSVersion();
+    
+    // iOS requires PWA mode and version 16.4+ for Web Push
+    const canReceiveNotifications = !iOS || (standalone && version >= 16);
+    
+    setIosStatus({
+      isIOS: iOS,
+      isStandalone: standalone,
+      iosVersion: version,
+      canReceiveNotifications,
+    });
 
-    if (supported) {
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    setIsSupported(supported && canReceiveNotifications);
+    
+    console.log('📱 Push notifications check:', {
+      browserSupport: supported,
+      iOS,
+      standalone,
+      version,
+      canReceiveNotifications,
+      finalSupported: supported && canReceiveNotifications
+    });
+
+    if (supported && canReceiveNotifications) {
       checkExistingSubscription();
     }
   }, []);
@@ -338,7 +384,8 @@ export const usePushNotifications = () => {
     isSupported,
     subscription,
     subscribeToPushNotifications,
-    unsubscribeFromPushNotifications
+    unsubscribeFromPushNotifications,
+    iosStatus,
   };
 };
 
