@@ -11,8 +11,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface ShoppingItem {
   id: string;
@@ -104,99 +102,43 @@ const ShoppingList = () => {
 
   const handleExportPDF = () => {
     try {
-      const doc = new jsPDF();
-      
-      doc.setFontSize(24);
-      doc.setTextColor(236, 72, 153);
-      doc.text('🛒 BabyBites Shopping List', 20, 25);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      })}`, 20, 35);
-      
-      doc.setDrawColor(236, 72, 153);
-      doc.setLineWidth(0.5);
-      doc.line(20, 40, 190, 40);
-      
       const uncheckedItems = items.filter(i => !i.checked);
       
       if (uncheckedItems.length === 0) {
-        doc.setFontSize(12);
-        doc.setTextColor(150, 150, 150);
-        doc.text('All items are checked off! 🎉', 20, 55);
-      } else {
-        const categories = [...new Set(uncheckedItems.map(i => i.category))];
-        let yPosition = 50;
-        
-        categories.forEach((category, index) => {
-          const categoryItems = uncheckedItems.filter(i => i.category === category);
-          if (categoryItems.length > 0) {
-            doc.setFontSize(14);
-            doc.setTextColor(79, 70, 229);
-            doc.text(`${category} (${categoryItems.length})`, 20, yPosition);
-            yPosition += 8;
-            
-            const tableData = categoryItems.map(item => [
-              '☐',
-              item.ingredient,
-              item.fromRecipe || '-'
-            ]);
-            
-            autoTable(doc, {
-              startY: yPosition,
-              head: [['✓', 'Item', 'For Recipe']],
-              body: tableData,
-              theme: 'striped',
-              headStyles: { 
-                fillColor: [236, 72, 153],
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-                fontSize: 10
-              },
-              bodyStyles: { fontSize: 9 },
-              alternateRowStyles: { fillColor: [252, 231, 243] },
-              margin: { left: 25, right: 20 },
-              columnStyles: {
-                0: { cellWidth: 10 },
-                1: { cellWidth: 70 },
-                2: { cellWidth: 75, fontStyle: 'italic', textColor: [100, 100, 100] }
-              }
-            });
-            
-            yPosition = (doc as any).lastAutoTable.finalY + 10;
-            
-            if (yPosition > 250 && index < categories.length - 1) {
-              doc.addPage();
-              yPosition = 20;
-            }
-          }
-        });
+        toast({ title: "Nothing to export", description: "All items are checked!", variant: "destructive" });
+        return;
       }
       
-      const pageCount = (doc as any).internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(
-          `Page ${i} of ${pageCount} | Created with BabyBites 💕`,
-          doc.internal.pageSize.getWidth() / 2,
-          doc.internal.pageSize.getHeight() - 10,
-          { align: 'center' }
-        );
-      }
+      // Create a printable text version
+      const categories = [...new Set(uncheckedItems.map(i => i.category))];
+      let content = `🛒 BabyBites Shopping List\n`;
+      content += `Generated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
       
-      const fileName = `babybites-shopping-${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
+      categories.forEach(category => {
+        const categoryItems = uncheckedItems.filter(i => i.category === category);
+        if (categoryItems.length > 0) {
+          content += `📦 ${category} (${categoryItems.length})\n`;
+          categoryItems.forEach(item => {
+            content += `  ☐ ${item.ingredient}${item.fromRecipe ? ` (for ${item.fromRecipe})` : ''}\n`;
+          });
+          content += '\n';
+        }
+      });
       
-      toast({ title: "✅ PDF Downloaded!", description: fileName });
+      // Create and download text file
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `babybites-shopping-${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({ title: "✅ List Downloaded!", description: "Shopping list saved as text file" });
     } catch (error) {
-      console.error('PDF generation error:', error);
+      console.error('Export error:', error);
       toast({ title: "Export failed", variant: "destructive" });
     }
   };
