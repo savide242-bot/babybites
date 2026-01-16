@@ -6,8 +6,6 @@ import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { recipes } from "@/data/recipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -134,74 +132,46 @@ const RecipeDetail = () => {
 
   const handleExportPDF = () => {
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(24);
-      doc.setTextColor(255, 105, 180);
-      doc.text(recipe.title, 20, 25);
-      doc.setFontSize(10);
-      doc.setTextColor(64, 224, 208);
-      doc.text(`${recipe.category} | ${recipe.ageGroup}`, 20, 35);
-      doc.setDrawColor(255, 182, 193);
-      doc.setLineWidth(0.5);
-      doc.line(20, 40, 190, 40);
-      doc.setFontSize(11);
-      doc.setTextColor(100, 100, 100);
-      const descLines = doc.splitTextToSize(recipe.description, 170);
-      doc.text(descLines, 20, 48);
-      let yPos = 48 + (descLines.length * 6) + 8;
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`⏱️ Prep Time: ${recipe.prepTime}`, 20, yPos);
-      doc.text(`👥 Servings: ${recipe.servings}`, 120, yPos);
-      yPos += 12;
-      doc.setFontSize(16);
-      doc.setTextColor(255, 105, 180);
-      doc.text('Ingredients', 20, yPos);
-      yPos += 8;
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      recipe.ingredients.forEach((ingredient) => {
-        if (yPos > 270) { doc.addPage(); yPos = 20; }
-        doc.text(`• ${ingredient}`, 25, yPos);
-        yPos += 6;
+      // Create a printable text version of the recipe
+      let content = `🍽️ ${recipe.title}\n`;
+      content += `${'='.repeat(50)}\n\n`;
+      content += `📌 ${recipe.category} | ${recipe.ageGroup}\n`;
+      content += `⏱️ Prep Time: ${recipe.prepTime} | 👥 Servings: ${recipe.servings}\n\n`;
+      content += `${recipe.description}\n\n`;
+      
+      content += `📝 INGREDIENTS\n${'-'.repeat(30)}\n`;
+      recipe.ingredients.forEach(ingredient => {
+        content += `• ${ingredient}\n`;
       });
-      yPos += 8;
-      if (yPos > 250) { doc.addPage(); yPos = 20; }
-      doc.setFontSize(16);
-      doc.setTextColor(255, 105, 180);
-      doc.text('Instructions', 20, yPos);
-      yPos += 8;
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
+      content += '\n';
+      
+      content += `👩‍🍳 INSTRUCTIONS\n${'-'.repeat(30)}\n`;
       recipe.instructions.forEach((instruction, index) => {
-        if (yPos > 270) { doc.addPage(); yPos = 20; }
-        const stepLines = doc.splitTextToSize(`${index + 1}. ${instruction}`, 165);
-        doc.text(stepLines, 25, yPos);
-        yPos += (stepLines.length * 6) + 4;
+        content += `${index + 1}. ${instruction}\n\n`;
       });
-      if (yPos > 220) { doc.addPage(); yPos = 20; } else { yPos += 8; }
-      doc.setFontSize(16);
-      doc.setTextColor(255, 105, 180);
-      doc.text('Nutrition Information', 20, yPos);
-      yPos += 8;
-      autoTable(doc, {
-        startY: yPos,
-        head: [['Nutrient', 'Amount']],
-        body: [
-          ['Calories', `${recipe.nutrition.calories} kcal`],
-          ['Protein', `${recipe.nutrition.protein}g`],
-          ['Carbs', `${recipe.nutrition.carbs}g`],
-          ['Fats', `${recipe.nutrition.fat}g`]
-        ],
-        theme: 'striped',
-        headStyles: { fillColor: [255, 182, 193], textColor: [0, 0, 0] },
-        margin: { left: 25 }
-      });
-      const fileName = `babybites-${recipe.title.toLowerCase().replace(/\s+/g, '-')}.pdf`;
-      doc.save(fileName);
-      toast.success("Recipe Downloaded!", { description: `${recipe.title} saved as PDF` });
+      
+      content += `📊 NUTRITION INFO\n${'-'.repeat(30)}\n`;
+      content += `Calories: ${recipe.nutrition.calories} kcal\n`;
+      content += `Protein: ${recipe.nutrition.protein}g\n`;
+      content += `Carbs: ${recipe.nutrition.carbs}g\n`;
+      content += `Fats: ${recipe.nutrition.fat}g\n\n`;
+      
+      content += `💕 Created with BabyBites`;
+      
+      // Create and download text file
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `babybites-${recipe.title.toLowerCase().replace(/\s+/g, '-')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Recipe Downloaded!", { description: `${recipe.title} saved as text file` });
     } catch (error) {
-      toast.error("Export Failed", { description: "Could not generate PDF." });
+      toast.error("Export Failed", { description: "Could not generate file." });
     }
   };
 
