@@ -296,6 +296,8 @@ export async function sendWebPushNotification(
         'Content-Type': 'application/octet-stream',
         'Content-Encoding': 'aes128gcm',
         'Authorization': vapidHeaders.authorization,
+        // IMPORTANT: required by many push services for VAPID
+        'Crypto-Key': vapidHeaders.cryptoKey,
         'TTL': '86400',
         'Urgency': 'high',
       },

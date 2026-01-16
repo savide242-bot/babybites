@@ -52,11 +52,11 @@ const NotificationComposer = () => {
         title: '✅ Teste Enviado',
         description: 'Verifique se recebeu a notificação',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error testing notification:', error);
       toast({
         title: 'Erro',
-        description: 'Falha ao enviar teste',
+        description: error?.message || 'Falha ao enviar teste',
         variant: 'destructive',
       });
     } finally {
@@ -100,11 +100,11 @@ const NotificationComposer = () => {
       setBody('');
       setActionLabel('');
       setActionUrl('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending notifications:', error);
       toast({
         title: 'Erro',
-        description: 'Falha ao enviar notificações',
+        description: error?.message || 'Falha ao enviar notificações',
         variant: 'destructive',
       });
     } finally {

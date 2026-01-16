@@ -14,7 +14,7 @@ const Admin = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 space-y-4">
+      <div className="min-h-screen bg-background pb-24 lg:pb-8 container mx-auto p-4 space-y-4">
         <Skeleton className="h-12 w-48" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -26,7 +26,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="min-h-screen bg-background pb-24 lg:pb-8 container mx-auto p-4 space-y-6">
       <div className="flex items-center gap-3">
         <Shield className="h-8 w-8 text-primary" />
         <h1 className="text-3xl font-bold">Admin Panel</h1>
