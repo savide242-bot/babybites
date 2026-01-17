@@ -65,6 +65,9 @@ const AppContent = () => {
   // Track user sessions
   useSessionTracking();
   
+  // Check if user is banned
+  useBanCheck();
+  
   // Navigation refs for app tour
   const recipesNavRef = useRef<HTMLAnchorElement>(null);
   const plannerNavRef = useRef<HTMLAnchorElement>(null);

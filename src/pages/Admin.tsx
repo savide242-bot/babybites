@@ -1,13 +1,14 @@
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import UserManagement from '@/components/admin/UserManagement';
 import NotificationComposer from '@/components/admin/NotificationComposer';
 import ActivityLogs from '@/components/admin/ActivityLogs';
-import { Shield, Users, Bell, Activity } from 'lucide-react';
+import ContentModeration from '@/components/admin/ContentModeration';
+import SystemHealth from '@/components/admin/SystemHealth';
+import { Shield, Users, Bell, Activity, MessageSquare, Server } from 'lucide-react';
 
 const Admin = () => {
   const { isAdmin, isLoading } = useAdminRole();
@@ -33,22 +34,30 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Dashboard
+            <span className="hidden sm:inline">Dashboard</span>
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Users
+            <span className="hidden sm:inline">Users</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Notifications
+            <span className="hidden sm:inline">Notificações</span>
+          </TabsTrigger>
+          <TabsTrigger value="content" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Conteúdo</span>
+          </TabsTrigger>
+          <TabsTrigger value="health" className="flex items-center gap-2">
+            <Server className="h-4 w-4" />
+            <span className="hidden sm:inline">Sistema</span>
           </TabsTrigger>
           <TabsTrigger value="logs" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Logs
+            <span className="hidden sm:inline">Logs</span>
           </TabsTrigger>
         </TabsList>
 
@@ -62,6 +71,14 @@ const Admin = () => {
 
         <TabsContent value="notifications" className="mt-6">
           <NotificationComposer />
+        </TabsContent>
+
+        <TabsContent value="content" className="mt-6">
+          <ContentModeration />
+        </TabsContent>
+
+        <TabsContent value="health" className="mt-6">
+          <SystemHealth />
         </TabsContent>
 
         <TabsContent value="logs" className="mt-6">
