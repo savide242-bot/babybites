@@ -862,11 +862,14 @@ export type Database = {
           avatar_url: string | null
           baby_birth_date: string | null
           baby_name: string | null
+          banned_at: string | null
+          banned_reason: string | null
           bio: string | null
           created_at: string | null
           dietary_preferences: string[] | null
           full_name: string
           id: string
+          is_banned: boolean | null
           is_verified_pediatrician: boolean | null
           mother_name: string | null
           timezone: string | null
@@ -876,11 +879,14 @@ export type Database = {
           avatar_url?: string | null
           baby_birth_date?: string | null
           baby_name?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           bio?: string | null
           created_at?: string | null
           dietary_preferences?: string[] | null
           full_name: string
           id: string
+          is_banned?: boolean | null
           is_verified_pediatrician?: boolean | null
           mother_name?: string | null
           timezone?: string | null
@@ -890,11 +896,14 @@ export type Database = {
           avatar_url?: string | null
           baby_birth_date?: string | null
           baby_name?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
           bio?: string | null
           created_at?: string | null
           dietary_preferences?: string[] | null
           full_name?: string
           id?: string
+          is_banned?: boolean | null
           is_verified_pediatrician?: boolean | null
           mother_name?: string | null
           timezone?: string | null
@@ -1374,6 +1383,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: { check_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

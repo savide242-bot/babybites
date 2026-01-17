@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, MessageSquare, Calendar, Bell, Activity, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Users, MessageSquare, Calendar, Bell, Activity, TrendingUp, TrendingDown, RefreshCw, Wifi } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +12,14 @@ import { pt } from 'date-fns/locale';
 interface Stats {
   totalUsers: number;
   activeUsers: number;
+  onlineNow: number;
   mealLogs: number;
   communityPosts: number;
   notificationSubscribers: number;
   newUsersToday: number;
   newUsersWeek: number;
   weeklyGrowth: number;
+  bannedUsers: number;
 }
 
 interface DailyData {
@@ -36,19 +38,33 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       const today = startOfDay(new Date()).toISOString();
       const sevenDaysAgo = startOfDay(subDays(new Date(), 7)).toISOString();
       const fourteenDaysAgo = startOfDay(subDays(new Date(), 14)).toISOString();
       
-      const [usersRes, activeRes, mealsRes, postsRes, subsRes, newTodayRes, newWeekRes, prevWeekRes] = await Promise.all([
+      const [
+        usersRes, 
+        activeRes, 
+        onlineRes,
+        mealsRes, 
+        postsRes, 
+        subsRes, 
+        newTodayRes, 
+        newWeekRes, 
+        prevWeekRes,
+        bannedRes
+      ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('user_sessions').select('id', { count: 'exact', head: true }).gte('last_active', twentyFourHoursAgo),
+        supabase.from('user_sessions').select('id', { count: 'exact', head: true }).gte('last_active', fiveMinutesAgo),
         supabase.from('meal_logs').select('id', { count: 'exact', head: true }),
         supabase.from('forum_posts').select('id', { count: 'exact', head: true }),
         supabase.from('push_subscriptions').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', today),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', fourteenDaysAgo).lt('created_at', sevenDaysAgo),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_banned', true),
       ]);
 
       const newWeek = newWeekRes.count || 0;
@@ -58,15 +74,17 @@ const AdminDashboard = () => {
       setStats({
         totalUsers: usersRes.count || 0,
         activeUsers: activeRes.count || 0,
+        onlineNow: onlineRes.count || 0,
         mealLogs: mealsRes.count || 0,
         communityPosts: postsRes.count || 0,
         notificationSubscribers: subsRes.count || 0,
         newUsersToday: newTodayRes.count || 0,
         newUsersWeek: newWeek,
         weeklyGrowth: growth,
+        bannedUsers: bannedRes.count || 0,
       });
 
-      // Fetch chart data - users and meals per day for last 7 days
+      // Fetch chart data
       const { data: profiles } = await supabase
         .from('profiles')
         .select('created_at')
@@ -111,7 +129,18 @@ const AdminDashboard = () => {
     
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
+
+    // Real-time subscription for immediate updates
+    const channel = supabase
+      .channel('admin-dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_sessions' }, fetchStats)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchStats)
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleRefresh = () => {
@@ -122,8 +151,8 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          {[1, 2, 3, 4, 5].map((i) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-32 w-full" />
           ))}
         </div>
@@ -142,15 +171,24 @@ const AdminDashboard = () => {
       subtitle: `+${stats?.newUsersToday || 0} hoje`
     },
     { 
-      title: 'Utilizadores Activos', 
-      value: stats?.activeUsers || 0, 
-      icon: Activity, 
+      title: 'Online Agora', 
+      value: stats?.onlineNow || 0, 
+      icon: Wifi, 
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
-      subtitle: 'Últimas 24h'
+      subtitle: 'Últimos 5 min',
+      pulse: (stats?.onlineNow || 0) > 0
     },
     { 
-      title: 'Refeições Registadas', 
+      title: 'Activos (24h)', 
+      value: stats?.activeUsers || 0, 
+      icon: Activity, 
+      color: 'text-emerald-500',
+      bgColor: 'bg-emerald-500/10',
+      subtitle: `${stats?.totalUsers ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0}% retenção`
+    },
+    { 
+      title: 'Refeições', 
       value: stats?.mealLogs || 0, 
       icon: Calendar, 
       color: 'text-amber-500',
@@ -158,12 +196,12 @@ const AdminDashboard = () => {
       subtitle: 'Total acumulado'
     },
     { 
-      title: 'Posts Comunidade', 
+      title: 'Posts', 
       value: stats?.communityPosts || 0, 
       icon: MessageSquare, 
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
-      subtitle: 'Actividade fórum'
+      subtitle: 'Comunidade'
     },
     { 
       title: 'Push Activos', 
@@ -178,8 +216,8 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header with refresh */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
           <Badge variant="outline" className="text-xs">
             Última actualização: {format(lastUpdate, 'HH:mm:ss')}
           </Badge>
@@ -196,6 +234,11 @@ const AdminDashboard = () => {
               {stats.weeklyGrowth >= 0 ? '+' : ''}{stats.weeklyGrowth}% esta semana
             </Badge>
           )}
+          {(stats?.bannedUsers || 0) > 0 && (
+            <Badge variant="destructive" className="text-xs">
+              {stats?.bannedUsers} banidos
+            </Badge>
+          )}
         </div>
         <Button 
           variant="outline" 
@@ -209,15 +252,18 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         {statCards.map((stat) => (
           <Card key={stat.title} className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-full ${stat.bgColor}`}>
+              <div className={`p-2 rounded-full ${stat.bgColor} relative`}>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                {stat.pulse && (
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -287,7 +333,7 @@ const AdminDashboard = () => {
       </Card>
 
       {/* Quick stats row */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -323,6 +369,22 @@ const AdminDashboard = () => {
               {stats?.totalUsers ? (stats.mealLogs / stats.totalUsers).toFixed(1) : 0}
             </div>
             <p className="text-xs text-muted-foreground">refeições registadas</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Engagement Score
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.totalUsers 
+                ? Math.round(((stats.mealLogs + stats.communityPosts) / stats.totalUsers) * 10) / 10
+                : 0
+              }
+            </div>
+            <p className="text-xs text-muted-foreground">acções por utilizador</p>
           </CardContent>
         </Card>
       </div>
