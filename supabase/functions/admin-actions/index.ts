@@ -231,7 +231,11 @@ Deno.serve(async (req) => {
 
         // Import webpush utilities
         const { getVapidKeys, sendWebPushNotification } = await import('../_shared/webpush.ts');
-        const vapidKeys = await getVapidKeys();
+        const vapidKeys = getVapidKeys();
+        
+        if (!vapidKeys) {
+          throw new Error('VAPID keys not configured');
+        }
 
         const pushResult = await sendWebPushNotification(
           subscription,

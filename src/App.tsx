@@ -11,6 +11,7 @@ import { useMealReminders } from "@/hooks/useMealReminders";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import { useBanCheck } from "@/hooks/useBanCheck";
 import AppErrorBoundary from "./components/AppErrorBoundary";
 import Header from "./components/Header";
 import Home from "./pages/Home";
