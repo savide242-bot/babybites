@@ -82,9 +82,12 @@ self.addEventListener('fetch', (event) => {
   // For navigation and other requests, let Workbox handle with its caching strategies
 });
 
-// Handle push notifications with enhanced iOS support
+// Handle push notifications with enhanced iOS support and detailed logging
 self.addEventListener('push', (event) => {
-  console.log('SW: Push received:', event);
+  const timestamp = new Date().toISOString();
+  console.log(`📬 [SW-PUSH ${timestamp}] Push event received`);
+  console.log('📬 [SW-PUSH] Event:', event);
+  console.log('📬 [SW-PUSH] Has data:', !!event.data);
   
   let data = {
     title: 'BabyBites Notification',
@@ -95,27 +98,36 @@ self.addEventListener('push', (event) => {
 
   try {
     if (event.data) {
+      console.log('📬 [SW-PUSH] Data bytes:', event.data.arrayBuffer ? 'present' : 'missing');
+      
       // Try to parse as JSON first
       try {
         const payload = event.data.json();
         data = { ...data, ...payload };
-        console.log('SW: Parsed JSON payload:', data.title);
+        console.log('📬 [SW-PUSH] Parsed JSON payload successfully');
+        console.log('📬 [SW-PUSH] Title:', data.title);
+        console.log('📬 [SW-PUSH] Body:', data.body);
       } catch (jsonError) {
+        console.log('📬 [SW-PUSH] JSON parse failed, trying text...');
         // If JSON fails, try as text
         const text = event.data.text();
-        console.log('SW: Raw text payload:', text);
+        console.log('📬 [SW-PUSH] Raw text:', text);
         
         // Try to parse the text as JSON
         try {
           const parsed = JSON.parse(text);
           data = { ...data, ...parsed };
+          console.log('📬 [SW-PUSH] Parsed text as JSON successfully');
         } catch {
+          console.log('📬 [SW-PUSH] Using text as body');
           data.body = text;
         }
       }
+    } else {
+      console.log('📬 [SW-PUSH] No data in push event');
     }
   } catch (e) {
-    console.error('SW: Error processing push data:', e);
+    console.error('📬 [SW-PUSH] Error processing push data:', e);
   }
 
   // iOS-specific: Ensure we have valid notification data
@@ -137,12 +149,31 @@ self.addEventListener('push', (event) => {
     options.actions = data.actions;
   }
 
-  console.log('SW: Showing notification:', data.title, options);
+  console.log('📬 [SW-PUSH] Calling showNotification with:');
+  console.log('📬 [SW-PUSH] - Title:', data.title);
+  console.log('📬 [SW-PUSH] - Options:', JSON.stringify(options));
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)
-      .then(() => console.log('SW: Notification shown successfully'))
-      .catch(err => console.error('SW: Error showing notification:', err))
+      .then(() => {
+        console.log('📬 [SW-PUSH] ✅ showNotification succeeded!');
+        // Try to notify clients that notification was shown
+        self.clients.matchAll().then(clients => {
+          console.log('📬 [SW-PUSH] Active clients:', clients.length);
+          clients.forEach(client => {
+            client.postMessage({ 
+              type: 'PUSH_NOTIFICATION_SHOWN', 
+              title: data.title,
+              timestamp 
+            });
+          });
+        });
+      })
+      .catch(err => {
+        console.error('📬 [SW-PUSH] ❌ showNotification failed:', err);
+        console.error('📬 [SW-PUSH] Error name:', err.name);
+        console.error('📬 [SW-PUSH] Error message:', err.message);
+      })
   );
 });
 

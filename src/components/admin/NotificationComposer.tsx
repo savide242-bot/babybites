@@ -23,6 +23,8 @@ const NotificationComposer = () => {
   const { toast } = useToast();
 
   const handleTest = async () => {
+    console.log('🧪 [TEST] Starting test notification...');
+    
     if (!title || !body) {
       toast({
         title: 'Campos obrigatórios',
@@ -35,28 +37,35 @@ const NotificationComposer = () => {
     setTesting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('🧪 [TEST] User:', user?.id);
       if (!user) throw new Error('Não autenticado');
 
-      const { error } = await supabase.functions.invoke('test-push-notification', {
-        body: { 
-          userId: user.id,
-          title,
-          body,
-          icon,
-        },
+      const payload = { 
+        userId: user.id,
+        title,
+        body,
+        icon,
+      };
+      console.log('🧪 [TEST] Payload:', payload);
+
+      const { data, error } = await supabase.functions.invoke('test-push-notification', {
+        body: payload,
       });
+
+      console.log('🧪 [TEST] Response data:', data);
+      console.log('🧪 [TEST] Response error:', error);
 
       if (error) throw error;
 
       toast({
         title: '✅ Teste Enviado',
-        description: 'Verifique se recebeu a notificação',
+        description: `Notificação enviada! Resposta: ${JSON.stringify(data).slice(0, 100)}`,
       });
     } catch (error: any) {
-      console.error('Error testing notification:', error);
+      console.error('🧪 [TEST] Exception:', error);
       toast({
-        title: 'Erro',
-        description: error?.message || 'Falha ao enviar teste',
+        title: 'Erro no Teste',
+        description: `${error?.message || 'Falha'} - Ver console para detalhes`,
         variant: 'destructive',
       });
     } finally {
@@ -65,6 +74,8 @@ const NotificationComposer = () => {
   };
 
   const handleSend = async () => {
+    console.log('📤 [SEND] Starting send to all...');
+    
     if (!title || !body) {
       toast({
         title: 'Campos obrigatórios',
@@ -77,23 +88,36 @@ const NotificationComposer = () => {
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('📤 [SEND] User:', user?.id);
       if (!user) throw new Error('Não autenticado');
 
-      const { error } = await supabase.functions.invoke('notify-all-users', {
-        body: {
-          title,
-          body,
-          icon,
-          action_label: actionLabel || null,
-          action_url: actionUrl || null,
-        },
+      const payload = {
+        title,
+        body,
+        icon,
+        action_label: actionLabel || null,
+        action_url: actionUrl || null,
+      };
+      console.log('📤 [SEND] Payload:', payload);
+
+      const startTime = Date.now();
+      const { data, error } = await supabase.functions.invoke('notify-all-users', {
+        body: payload,
       });
+      const duration = Date.now() - startTime;
+
+      console.log('📤 [SEND] Response data:', data);
+      console.log('📤 [SEND] Response error:', error);
+      console.log('📤 [SEND] Duration:', duration, 'ms');
 
       if (error) throw error;
 
+      const successCount = data?.successful || 0;
+      const failedCount = data?.failed || 0;
+
       toast({
         title: '✅ Notificações Enviadas',
-        description: 'Push notifications enviadas a todos os subscritores',
+        description: `Enviadas: ${successCount} | Falhadas: ${failedCount} | Tempo: ${duration}ms`,
       });
 
       setTitle('');
@@ -101,10 +125,10 @@ const NotificationComposer = () => {
       setActionLabel('');
       setActionUrl('');
     } catch (error: any) {
-      console.error('Error sending notifications:', error);
+      console.error('📤 [SEND] Exception:', error);
       toast({
-        title: 'Erro',
-        description: error?.message || 'Falha ao enviar notificações',
+        title: 'Erro ao Enviar',
+        description: `${error?.message || 'Falha'} - Ver console para detalhes`,
         variant: 'destructive',
       });
     } finally {

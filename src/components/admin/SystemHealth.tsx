@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Activity, 
   Bell, 
@@ -14,8 +15,8 @@ import {
   XCircle, 
   AlertTriangle,
   Server,
-  Users,
-  HardDrive
+  Smartphone,
+  Bug
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -47,6 +48,13 @@ const SystemHealth = () => {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [swStatus, setSwStatus] = useState<{
+    registered: boolean;
+    hasSubscription: boolean;
+    endpoint?: string;
+  } | null>(null);
+  const [debugging, setDebugging] = useState(false);
+  const { toast } = useToast();
 
   const checkHealth = async () => {
     try {
@@ -147,6 +155,64 @@ const SystemHealth = () => {
     checkHealth();
   };
 
+  const checkServiceWorker = async () => {
+    console.log('🔍 [SW-CHECK] Starting Service Worker check...');
+    try {
+      if (!('serviceWorker' in navigator)) {
+        console.log('🔍 [SW-CHECK] Service Worker not supported');
+        setSwStatus({ registered: false, hasSubscription: false });
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      console.log('🔍 [SW-CHECK] Registration:', registration);
+      console.log('🔍 [SW-CHECK] Active SW:', registration.active?.state);
+
+      const subscription = await registration.pushManager.getSubscription();
+      console.log('🔍 [SW-CHECK] Subscription:', subscription);
+
+      setSwStatus({
+        registered: !!registration.active,
+        hasSubscription: !!subscription,
+        endpoint: subscription?.endpoint?.slice(0, 50) + '...',
+      });
+
+      toast({
+        title: 'Service Worker Status',
+        description: `Registado: ${!!registration.active} | Subscrição: ${!!subscription}`,
+      });
+    } catch (e) {
+      console.error('🔍 [SW-CHECK] Error:', e);
+      setSwStatus({ registered: false, hasSubscription: false });
+    }
+  };
+
+  const runDebugPush = async () => {
+    console.log('🐛 [DEBUG] Starting debug push check...');
+    setDebugging(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('debug-push');
+      console.log('🐛 [DEBUG] Response:', data);
+      console.log('🐛 [DEBUG] Error:', error);
+
+      if (error) throw error;
+
+      toast({
+        title: '🐛 Debug Push Results',
+        description: `VAPID: ${data?.vapidConfigured ? '✓' : '✗'} | Subs: ${data?.subscriptionCount || 0} | Encryption: ${data?.encryptionTest ? '✓' : '✗'}`,
+      });
+    } catch (e: any) {
+      console.error('🐛 [DEBUG] Exception:', e);
+      toast({
+        title: 'Debug Error',
+        description: e?.message || 'Failed to run debug',
+        variant: 'destructive',
+      });
+    } finally {
+      setDebugging(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -175,15 +241,34 @@ const SystemHealth = () => {
           <Activity className="h-5 w-5" />
           Estado do Sistema
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={checkServiceWorker}
+          >
+            <Smartphone className="h-4 w-4 mr-2" />
+            SW Status
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={runDebugPush}
+            disabled={debugging}
+          >
+            <Bug className={`h-4 w-4 mr-2 ${debugging ? 'animate-pulse' : ''}`} />
+            Debug Push
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -282,6 +367,35 @@ const SystemHealth = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Service Worker Status */}
+        {swStatus && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-cyan-500" />
+                Service Worker
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Registado</span>
+                  <StatusIcon status={swStatus.registered ? 'ok' : 'error'} />
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subscrição</span>
+                  <StatusIcon status={swStatus.hasSubscription ? 'ok' : 'error'} />
+                </div>
+                {swStatus.endpoint && (
+                  <div className="text-xs text-muted-foreground break-all">
+                    {swStatus.endpoint}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Edge Functions */}
         <Card className="md:col-span-2">
