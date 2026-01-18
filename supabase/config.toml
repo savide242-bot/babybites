@@ -57,3 +57,6 @@ verify_jwt = true
 
 [functions.admin-actions]
 verify_jwt = false
+
+[functions.debug-push]
+verify_jwt = false
