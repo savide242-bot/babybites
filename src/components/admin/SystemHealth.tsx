@@ -54,7 +54,7 @@ const SystemHealth = () => {
       let vapidConfigured = false;
       try {
         const { data } = await supabase.functions.invoke('get-vapid-key');
-        vapidConfigured = !!data?.publicKey;
+        vapidConfigured = !!data?.vapidPublicKey;
       } catch (e) {
         console.error('VAPID check error:', e);
       }
