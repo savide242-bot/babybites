@@ -31,65 +31,115 @@ const ResetPassword = () => {
   const [tokenError, setTokenError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for error in URL hash (e.g., expired link)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    console.log('🔐 [RESET-PAGE] Initializing password reset page...');
+    console.log('🔐 [RESET-PAGE] Full URL:', window.location.href);
+    console.log('🔐 [RESET-PAGE] Hash:', window.location.hash);
+    console.log('🔐 [RESET-PAGE] Search params:', window.location.search);
+
+    // Parse hash parameters more robustly
+    const hashString = window.location.hash.substring(1);
+    const hashParams = new URLSearchParams(hashString);
+    
+    // Check for error in URL
     const error = hashParams.get('error');
     const errorDescription = hashParams.get('error_description');
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const tokenType = hashParams.get('type');
+    
+    console.log('🔐 [RESET-PAGE] Parsed params:', { 
+      error, 
+      errorDescription, 
+      hasAccessToken: !!accessToken,
+      tokenType 
+    });
     
     if (error) {
+      console.error('🔐 [RESET-PAGE] Error in URL:', error, errorDescription);
       setIsValidToken(false);
-      setTokenError(errorDescription || 'Invalid or expired reset link');
+      setTokenError(errorDescription?.replace(/\+/g, ' ') || 'Invalid or expired reset link');
       setIsCheckingToken(false);
       return;
     }
 
-    // Listen for auth state changes - PASSWORD_RECOVERY event
+    // If we have tokens in URL, set session manually
+    const setSessionFromUrl = async () => {
+      if (accessToken && refreshToken) {
+        console.log('🔐 [RESET-PAGE] Found tokens in URL, setting session...');
+        try {
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          console.log('🔐 [RESET-PAGE] setSession result:', { data: !!data.session, error: sessionError });
+          
+          if (sessionError) {
+            throw sessionError;
+          }
+          
+          if (data.session) {
+            setIsValidToken(true);
+            setIsCheckingToken(false);
+            return true;
+          }
+        } catch (e) {
+          console.error('🔐 [RESET-PAGE] Error setting session:', e);
+        }
+      }
+      return false;
+    };
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 [RESET-PAGE] Auth state changed:', event, !!session);
+      
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('🔐 [RESET-PAGE] PASSWORD_RECOVERY event detected!');
         setIsValidToken(true);
         setIsCheckingToken(false);
       } else if (event === 'SIGNED_IN' && session) {
-        // User might have been signed in via the recovery token
+        console.log('🔐 [RESET-PAGE] SIGNED_IN event with session');
         setIsValidToken(true);
         setIsCheckingToken(false);
       }
     });
 
-    // Check if there's already a session (user came from email link)
+    // Main check flow
     const checkSession = async () => {
       try {
+        // First try to set session from URL tokens
+        const sessionSet = await setSessionFromUrl();
+        if (sessionSet) return;
+        
+        // Check existing session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔐 [RESET-PAGE] Current session:', !!session);
         
         if (session) {
-          // Check if this is a recovery session by looking at the URL or session metadata
-          const urlHasRecoveryToken = window.location.hash.includes('type=recovery') || 
-                                       window.location.hash.includes('access_token');
-          
-          if (urlHasRecoveryToken || session.user?.recovery_sent_at) {
-            setIsValidToken(true);
-          } else {
-            // User is logged in but not for password recovery
-            setIsValidToken(true); // Still allow password change if logged in
-          }
-        } else {
-          // No session and no recovery token in URL
-          const hasToken = window.location.hash.includes('access_token') || 
-                          window.location.hash.includes('type=recovery');
-          
-          if (!hasToken) {
-            setIsValidToken(false);
-            setTokenError('No reset token found. Please request a new password reset link.');
-          }
+          setIsValidToken(true);
+          setIsCheckingToken(false);
+          return;
+        }
+        
+        // No session - check if we have recovery type in URL
+        const hasRecoveryType = tokenType === 'recovery' || hashString.includes('type=recovery');
+        const hasAccessToken = !!accessToken || hashString.includes('access_token');
+        
+        console.log('🔐 [RESET-PAGE] Recovery indicators:', { hasRecoveryType, hasAccessToken });
+        
+        if (!hasAccessToken && !hasRecoveryType) {
+          setIsValidToken(false);
+          setTokenError('No reset token found. Please request a new password reset link.');
         }
       } catch (error) {
-        console.error("Session check error:", error);
+        console.error("🔐 [RESET-PAGE] Session check error:", error);
         setIsValidToken(false);
         setTokenError('Failed to verify reset link. Please try again.');
       } finally {
-        // Give a small delay to allow auth state change to fire
         setTimeout(() => {
           setIsCheckingToken(false);
-        }, 1000);
+        }, 1500);
       }
     };
 

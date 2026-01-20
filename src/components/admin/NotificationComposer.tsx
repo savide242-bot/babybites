@@ -87,9 +87,37 @@ const NotificationComposer = () => {
 
     setSending(true);
     try {
+      // First refresh the session to ensure valid token
+      console.log('📤 [SEND] Refreshing session...');
+      const { data: sessionData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        console.error('📤 [SEND] Session refresh failed:', refreshError);
+      } else {
+        console.log('📤 [SEND] Session refreshed successfully');
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('📤 [SEND] User:', user?.id);
-      if (!user) throw new Error('Não autenticado');
+      console.log('📤 [SEND] User:', user?.id, user?.email);
+      
+      if (!user) {
+        throw new Error('Não autenticado - faça login novamente');
+      }
+
+      // Check admin role before sending
+      console.log('📤 [SEND] Checking admin role...');
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      console.log('📤 [SEND] Role check:', { roleData, roleError });
+      
+      if (roleError || !roleData) {
+        throw new Error('Sem permissão admin - verifique o seu role na base de dados');
+      }
 
       const payload = {
         title,
@@ -110,14 +138,23 @@ const NotificationComposer = () => {
       console.log('📤 [SEND] Response error:', error);
       console.log('📤 [SEND] Duration:', duration, 'ms');
 
-      if (error) throw error;
+      if (error) {
+        console.error('📤 [SEND] Function error:', error);
+        throw new Error(error.message || JSON.stringify(error));
+      }
+
+      if (data?.error) {
+        console.error('📤 [SEND] Response contains error:', data.error);
+        throw new Error(data.error);
+      }
 
       const successCount = data?.successful || 0;
       const failedCount = data?.failed || 0;
+      const expiredCount = data?.expired || 0;
 
       toast({
         title: '✅ Notificações Enviadas',
-        description: `Enviadas: ${successCount} | Falhadas: ${failedCount} | Tempo: ${duration}ms`,
+        description: `Enviadas: ${successCount} | Falhadas: ${failedCount} | Expiradas: ${expiredCount} | Tempo: ${duration}ms`,
       });
 
       setTitle('');
@@ -128,7 +165,7 @@ const NotificationComposer = () => {
       console.error('📤 [SEND] Exception:', error);
       toast({
         title: 'Erro ao Enviar',
-        description: `${error?.message || 'Falha'} - Ver console para detalhes`,
+        description: error?.message || 'Falha desconhecida - Ver console',
         variant: 'destructive',
       });
     } finally {
