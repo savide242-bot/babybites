@@ -38,6 +38,7 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
   }, [email]);
 
   const handleSendResetEmail = async () => {
+    console.log('🔑 [RESET] Starting password reset request...');
     setError("");
     const validation = emailSchema.safeParse({ email: resetEmail });
     
@@ -48,24 +49,40 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
+      const redirectUrl = `${window.location.origin}/auth/reset-password`;
+      console.log('🔑 [RESET] Sending to:', resetEmail);
+      console.log('🔑 [RESET] Redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: redirectUrl
       });
       
+      console.log('🔑 [RESET] Response data:', data);
+      console.log('🔑 [RESET] Response error:', error);
+      
       if (error) {
+        console.error('🔑 [RESET] Error details:', error);
         if (error.message.includes('rate limit') || error.message.includes('too many')) {
-          setCooldown(60); // 60 second cooldown
+          setCooldown(60);
           toast.error("Too many requests. Please wait 60 seconds.");
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error("Please confirm your email first before resetting password.");
+        } else if (error.message.includes('User not found')) {
+          // Don't reveal if user exists - still show success for security
+          setIsSent(true);
+          toast.success("If an account exists, you'll receive an email.");
+          return;
         } else {
-          toast.error("Failed to send reset email. Please try again.");
+          toast.error(`Reset failed: ${error.message}`);
         }
         return;
       }
       
       setIsSent(true);
-      toast.success("Password reset email sent!");
-    } catch (error) {
-      console.error("Reset email error:", error);
+      toast.success("Password reset email sent! Check your inbox.");
+      console.log('🔑 [RESET] Success! Email sent to:', resetEmail);
+    } catch (error: any) {
+      console.error("🔑 [RESET] Exception:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
