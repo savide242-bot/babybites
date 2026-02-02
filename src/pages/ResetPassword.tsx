@@ -36,21 +36,24 @@ const ResetPassword = () => {
     console.log('🔐 [RESET-PAGE] Hash:', window.location.hash);
     console.log('🔐 [RESET-PAGE] Search params:', window.location.search);
 
-    // Parse hash parameters more robustly
+    // Parse hash parameters more robustly - handle both hash and query params
     const hashString = window.location.hash.substring(1);
     const hashParams = new URLSearchParams(hashString);
+    const queryParams = new URLSearchParams(window.location.search);
     
-    // Check for error in URL
-    const error = hashParams.get('error');
-    const errorDescription = hashParams.get('error_description');
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const tokenType = hashParams.get('type');
+    // Check for error in URL (from both hash and query)
+    const error = hashParams.get('error') || queryParams.get('error');
+    const errorDescription = hashParams.get('error_description') || queryParams.get('error_description');
+    const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+    const tokenType = hashParams.get('type') || queryParams.get('type');
+    const code = queryParams.get('code'); // For PKCE flow
     
     console.log('🔐 [RESET-PAGE] Parsed params:', { 
       error, 
       errorDescription, 
       hasAccessToken: !!accessToken,
+      hasCode: !!code,
       tokenType 
     });
     
@@ -63,7 +66,8 @@ const ResetPassword = () => {
     }
 
     // If we have tokens in URL, set session manually
-    const setSessionFromUrl = async () => {
+    const setSessionFromUrl = async (): Promise<boolean> => {
+      // Try access_token + refresh_token first
       if (accessToken && refreshToken) {
         console.log('🔐 [RESET-PAGE] Found tokens in URL, setting session...');
         try {
@@ -75,18 +79,39 @@ const ResetPassword = () => {
           console.log('🔐 [RESET-PAGE] setSession result:', { data: !!data.session, error: sessionError });
           
           if (sessionError) {
+            console.error('🔐 [RESET-PAGE] setSession error:', sessionError);
             throw sessionError;
           }
           
           if (data.session) {
-            setIsValidToken(true);
-            setIsCheckingToken(false);
             return true;
           }
         } catch (e) {
           console.error('🔐 [RESET-PAGE] Error setting session:', e);
         }
       }
+      
+      // Try code exchange for PKCE flow
+      if (code) {
+        console.log('🔐 [RESET-PAGE] Found code, exchanging for session...');
+        try {
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          
+          console.log('🔐 [RESET-PAGE] exchangeCode result:', { data: !!data.session, error: exchangeError });
+          
+          if (exchangeError) {
+            console.error('🔐 [RESET-PAGE] exchangeCode error:', exchangeError);
+            throw exchangeError;
+          }
+          
+          if (data.session) {
+            return true;
+          }
+        } catch (e) {
+          console.error('🔐 [RESET-PAGE] Error exchanging code:', e);
+        }
+      }
+      
       return false;
     };
 
@@ -105,14 +130,23 @@ const ResetPassword = () => {
       }
     });
 
-    // Main check flow
+    // Main check flow with delay for Supabase to process the hash
     const checkSession = async () => {
       try {
+        // CRITICAL: Wait 800ms for Supabase to process the URL hash internally
+        console.log('🔐 [RESET-PAGE] Waiting 800ms for Supabase to process hash...');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
         // First try to set session from URL tokens
         const sessionSet = await setSessionFromUrl();
-        if (sessionSet) return;
+        if (sessionSet) {
+          console.log('🔐 [RESET-PAGE] Session set from URL successfully!');
+          setIsValidToken(true);
+          setIsCheckingToken(false);
+          return;
+        }
         
-        // Check existing session
+        // Check existing session (Supabase may have already processed the hash)
         const { data: { session } } = await supabase.auth.getSession();
         console.log('🔐 [RESET-PAGE] Current session:', !!session);
         
@@ -125,10 +159,27 @@ const ResetPassword = () => {
         // No session - check if we have recovery type in URL
         const hasRecoveryType = tokenType === 'recovery' || hashString.includes('type=recovery');
         const hasAccessToken = !!accessToken || hashString.includes('access_token');
+        const hasCode = !!code;
         
-        console.log('🔐 [RESET-PAGE] Recovery indicators:', { hasRecoveryType, hasAccessToken });
+        console.log('🔐 [RESET-PAGE] Recovery indicators:', { hasRecoveryType, hasAccessToken, hasCode });
         
-        if (!hasAccessToken && !hasRecoveryType) {
+        // If we have indicators but no session, wait a bit more and retry once
+        if (hasAccessToken || hasRecoveryType || hasCode) {
+          console.log('🔐 [RESET-PAGE] Has recovery indicators, waiting 500ms more...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const { data: { session: retrySession } } = await supabase.auth.getSession();
+          if (retrySession) {
+            console.log('🔐 [RESET-PAGE] Session found on retry!');
+            setIsValidToken(true);
+            setIsCheckingToken(false);
+            return;
+          }
+          
+          // Still no session - show error
+          setIsValidToken(false);
+          setTokenError('Reset link may have expired. Please request a new password reset.');
+        } else {
           setIsValidToken(false);
           setTokenError('No reset token found. Please request a new password reset link.');
         }
@@ -137,9 +188,10 @@ const ResetPassword = () => {
         setIsValidToken(false);
         setTokenError('Failed to verify reset link. Please try again.');
       } finally {
+        // Ensure loading state ends after 3s max
         setTimeout(() => {
           setIsCheckingToken(false);
-        }, 1500);
+        }, 3000);
       }
     };
 

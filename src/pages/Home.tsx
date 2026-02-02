@@ -14,6 +14,9 @@ import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import { GlassCard } from "@/components/ui/glass-card";
+import { EmotionalHeader, StreakBadge } from "@/components/ui/emotional-header";
+import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
 
 interface TodayMeal {
   mealType: string;
@@ -63,6 +66,7 @@ const Home = () => {
 
   const { todayCheckin, submitCheckin } = useEngagement();
   const tour = useAppTour();
+  const { triggerReward, RewardComponent } = useReward();
 
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const todayDayName = dayNames[new Date().getDay()];
@@ -204,12 +208,12 @@ const Home = () => {
             
             if (allPrepared && wasPreviouslyNotAllPrepared && updated.length > 0) {
               setTimeout(() => {
-                confetti({
-                  particleCount: 100,
-                  spread: 70,
-                  origin: { y: 0.6 }
+                triggerReward({
+                  type: 'confetti',
+                  message: '🎉 All meals done today!',
+                  points: 50,
                 });
-                toast.success("🎉 All meals done today!", {
+                toast.success("Amazing! All meals prepared!", {
                   duration: 5000,
                 });
               }, 100);
@@ -241,7 +245,10 @@ const Home = () => {
   const navRefs = (window as any).__tourNavRefs;
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-8">
+    <div className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background pb-24 lg:pb-8">
+      {/* Reward animation overlay */}
+      <RewardComponent />
+
       {/* App Tour for new users */}
       {!tour.isLoading && (
         <AppTour
@@ -269,50 +276,35 @@ const Home = () => {
         initial="hidden"
         animate="visible"
       >
-        {/* Greeting Header */}
+        {/* Emotional Header with Greeting */}
         <motion.div variants={itemVariants}>
           {isLoading ? (
             <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-2xl" />
+              <Skeleton className="h-14 w-14 rounded-2xl" />
               <div>
                 <Skeleton className="h-6 w-40 mb-1.5" />
                 <Skeleton className="h-4 w-28" />
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-gold/30 via-peach/50 to-primary/20 text-2xl shadow-lg border border-gold/20">
-                {emoji}
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-foreground">
-                  {greeting}, <span className="bg-gradient-to-r from-gold to-primary bg-clip-text text-transparent">{motherName || "Mom"}</span>!
-                </h1>
-                <p className="text-muted-foreground text-sm">
-                  {emotionalMessage} ✨
-                </p>
-              </div>
-            </div>
+            <EmotionalHeader
+              greeting={greeting}
+              name={motherName || "Mom"}
+              subtitle={emotionalMessage}
+              emoji={emoji}
+              badge={streak && streak.current_streak > 0 ? (
+                <StreakBadge streak={streak.current_streak} />
+              ) : undefined}
+            />
           )}
         </motion.div>
-
-        {/* Streak Badge */}
-        {!isLoading && streak && streak.current_streak > 0 && (
-          <motion.div variants={itemVariants}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-gold/20 via-amber-500/15 to-gold/20 border border-gold/40 shadow-lg backdrop-blur-sm">
-              <span className="text-lg">🔥</span>
-              <span className="text-sm font-bold bg-gradient-to-r from-gold to-amber-600 bg-clip-text text-transparent">
-                {streak.current_streak} day streak
-              </span>
-              <span className="text-gold text-xs">⭐</span>
-            </div>
-          </motion.div>
-        )}
 
         {/* Plan Meals Prompt */}
         {!isLoading && (
           <motion.div variants={itemVariants}>
-            <PlanMealsPrompt hasMealsPlanned={todayMeals.length > 0} />
+            <GlassCard variant="peach" hover={false}>
+              <PlanMealsPrompt hasMealsPlanned={todayMeals.length > 0} />
+            </GlassCard>
           </motion.div>
         )}
 
@@ -329,32 +321,38 @@ const Home = () => {
         {/* Recipe of the Day */}
         {!isLoading && recipeOfTheDay && (
           <motion.div variants={itemVariants} ref={recipeOfDayRef}>
-            <DailyActionCard
-              recipeOfTheDay={recipeOfTheDay}
-              todayMeals={todayMeals}
-              babyName={babyName}
-            />
+            <GlassCard variant="gold" glow>
+              <DailyActionCard
+                recipeOfTheDay={recipeOfTheDay}
+                todayMeals={todayMeals}
+                babyName={babyName}
+              />
+            </GlassCard>
           </motion.div>
         )}
 
         {/* Quick Check-in */}
         {!isLoading && (
           <motion.div variants={itemVariants} ref={checkinWidgetRef}>
-            <QuickCheckinWidget 
-              todayCheckin={todayCheckin} 
-              onSubmit={submitCheckin}
-              babyName={babyName}
-            />
+            <GlassCard variant="mint">
+              <QuickCheckinWidget 
+                todayCheckin={todayCheckin} 
+                onSubmit={submitCheckin}
+                babyName={babyName}
+              />
+            </GlassCard>
           </motion.div>
         )}
 
         {/* Weekly Progress */}
         <motion.div variants={itemVariants}>
-          <WeeklyProgressCard
-            streak={streak}
-            mealsThisWeek={mealsThisWeek}
-            babyName={babyName}
-          />
+          <GlassCard variant="warm">
+            <WeeklyProgressCard
+              streak={streak}
+              mealsThisWeek={mealsThisWeek}
+              babyName={babyName}
+            />
+          </GlassCard>
         </motion.div>
       </motion.div>
     </div>

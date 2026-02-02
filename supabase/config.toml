@@ -60,3 +60,6 @@ verify_jwt = false
 
 [functions.debug-push]
 verify_jwt = false
+
+[functions.force-test-reminder]
+verify_jwt = false

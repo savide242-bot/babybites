@@ -288,19 +288,29 @@ export async function sendWebPushNotification(
     const encryptedBody = buildAes128GcmBody(ciphertext, salt, localPublicKey);
 
     console.log('🔐 Payload encrypted, sending to push service...');
+    console.log('📍 Endpoint URL:', subscription.endpoint.substring(0, 80));
+
+    // Build headers - some push services need different header combinations
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/octet-stream',
+      'Content-Encoding': 'aes128gcm',
+      'Authorization': vapidHeaders.authorization,
+      'TTL': '86400',
+      'Urgency': 'high',
+    };
+    
+    // Add Crypto-Key header for services that need it (FCM, some others)
+    // Only add if the endpoint is NOT an Apple/Safari endpoint
+    if (!subscription.endpoint.includes('push.apple.com')) {
+      headers['Crypto-Key'] = vapidHeaders.cryptoKey;
+    }
+
+    console.log('📋 Request headers:', Object.keys(headers).join(', '));
 
     // Send the push notification
     const response = await fetch(subscription.endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'Content-Encoding': 'aes128gcm',
-        'Authorization': vapidHeaders.authorization,
-        // IMPORTANT: required by many push services for VAPID
-        'Crypto-Key': vapidHeaders.cryptoKey,
-        'TTL': '86400',
-        'Urgency': 'high',
-      },
+      headers,
       body: toArrayBuffer(encryptedBody),
     });
 
@@ -313,8 +323,9 @@ export async function sendWebPushNotification(
       const errorText = await response.text();
       console.error('❌ Push service error:', response.status, errorText);
       
-      // Check if subscription expired
-      const expired = response.status === 410 || response.status === 404;
+      // Check if subscription expired (410 Gone, 404 Not Found, or 401 Unauthorized with certain messages)
+      const expired = response.status === 410 || response.status === 404 || 
+        (response.status === 401 && errorText.includes('unsubscribed'));
       return { success: false, expired, status: response.status, error: errorText };
     }
   } catch (error) {

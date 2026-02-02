@@ -65,14 +65,18 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string
   }
 };
 
-// FIXED APPROACH: Check if we're within the notification window
-// We want to send notifications when we're between 25-35 minutes BEFORE the meal
-// This gives us a 10-minute window to catch the cron job (which runs every 5 min)
-const MIN_MINUTES_BEFORE_MEAL = 25;
-const MAX_MINUTES_BEFORE_MEAL = 35;
+// IMPROVED APPROACH: Wider notification window for better reliability
+// We want to send notifications when we're between 20-40 minutes BEFORE the meal
+// This gives us a 20-minute window to catch the cron job reliably (runs every 5 min)
+const MIN_MINUTES_BEFORE_MEAL = 20;
+const MAX_MINUTES_BEFORE_MEAL = 40;
 
-// ==================== WEB PUSH LIBRARY IMPLEMENTATION ====================
+// ==================== NATIVE WEB PUSH IMPLEMENTATION ====================
+// Using the shared webpush module instead of external library for better Deno compatibility
 
+import { sendWebPushNotification as sendPush, getVapidKeys, type PushSubscription, type NotificationPayload } from "../_shared/webpush.ts";
+
+// Wrapper function to maintain backward compatibility
 async function sendWebPushNotification(
   subscription: PushSubscriptionRecord,
   title: string,
@@ -81,53 +85,49 @@ async function sendWebPushNotification(
   vapidPrivateKey: string,
   tag?: string
 ): Promise<{ success: boolean; expired: boolean; error?: string }> {
-  try {
-    // Import web-push for Deno (same as send-engagement-notifications)
-    const webpush = await import('https://esm.sh/web-push@3.6.7');
+  console.log('📤 Sending push to:', subscription.endpoint.substring(0, 60) + '...');
+  
+  const notification: NotificationPayload = {
+    title,
+    body,
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    tag: tag || `meal-${Date.now()}`,
+    data: { url: '/planner', timestamp: Date.now() },
+    requireInteraction: true,
+  };
+  
+  const pushSub: PushSubscription = {
+    endpoint: subscription.endpoint,
+    keys: subscription.keys,
+  };
+  
+  // Retry up to 3 times with exponential backoff
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const result = await sendPush(pushSub, notification, vapidPublicKey, vapidPrivateKey);
     
-    webpush.setVapidDetails(
-      'mailto:hello@babybites.app',
-      vapidPublicKey,
-      vapidPrivateKey
-    );
-
-    const payload = JSON.stringify({
-      title,
-      body,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
-      tag: tag || `meal-${Date.now()}`,
-      data: { url: '/planner', timestamp: Date.now() }
-    });
-
-    console.log('📤 Sending push to:', subscription.endpoint.substring(0, 60) + '...');
-
-    await webpush.sendNotification(
-      {
-        endpoint: subscription.endpoint,
-        keys: subscription.keys,
-      },
-      payload
-    );
-    
-    console.log('✅ Push notification sent successfully!');
-    return { success: true, expired: false };
-  } catch (error: any) {
-    console.error('❌ Error sending push notification:', error);
-    
-    // Check if subscription is expired (410 Gone or 404 Not Found)
-    const statusCode = error?.statusCode || error?.response?.statusCode;
-    if (statusCode === 410 || statusCode === 404) {
-      console.log('📛 Subscription expired, marking for cleanup');
-      return { success: false, expired: true, error: error.message };
+    if (result.success) {
+      console.log(`✅ Push sent successfully on attempt ${attempt}!`);
+      return { success: true, expired: false };
     }
     
-    return { 
-      success: false, 
-      expired: false,
-      error: error instanceof Error ? error.message : String(error) 
-    };
+    if (result.expired) {
+      console.log('📛 Subscription expired, marking for cleanup');
+      return { success: false, expired: true, error: result.error };
+    }
+    
+    // If not expired and failed, retry with backoff
+    if (attempt < 3) {
+      const delay = attempt * 1000; // 1s, 2s
+      console.log(`⏳ Attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+    } else {
+      console.error(`❌ All ${attempt} attempts failed:`, result.error);
+      return { success: false, expired: false, error: result.error };
+    }
   }
+  
+  return { success: false, expired: false, error: 'Max retries exceeded' };
 }
 
 // Get current time in user's timezone
