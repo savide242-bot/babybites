@@ -16,6 +16,7 @@ import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
 import { EmptyRecipes } from "@/components/empty-states";
 import { motion } from "framer-motion";
 import { hapticFeedback } from "@/utils/haptic";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const Recipes = () => {
   const { t } = useLanguage();
@@ -81,13 +82,14 @@ const Recipes = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.02, duration: 0.3 }}
-        whileHover={{ y: -8 }}
+        whileHover={{ y: -8, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         className="group"
       >
         <Link to={`/recipe/${recipe.id}`} className="block">
-          <Card className={`overflow-hidden transition-all duration-500 hover:shadow-2xl border-0 shadow-lg ${
+          <div className={`overflow-hidden transition-all duration-500 rounded-2xl shadow-lg hover:shadow-2xl ${
             isCompatible && preferences.length > 0 ? 'ring-2 ring-mint/60' : ''
-          }`}>
+          } bg-card/80 backdrop-blur-sm border border-border/30`}>
             <div className="aspect-square relative overflow-hidden">
               <img
                 src={recipe.image}
@@ -176,22 +178,22 @@ const Recipes = () => {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         </Link>
       </motion.div>
     );
   };
 
   return (
-    <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-primary/5 to-background">
+    <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-peach/5 to-mint/5">
       <div className="container px-3 sm:px-4">
-        {/* Clean Header */}
+        {/* Clean Header with gradient text */}
         <div className="mb-6 pt-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
             {t('recipes.title')}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            {filteredRecipes.length}+ nutritious recipes for your little one
+            {filteredRecipes.length}+ nutritious recipes for your little one ✨
           </p>
         </div>
 
@@ -200,7 +202,7 @@ const Recipes = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="sticky top-16 z-30 backdrop-blur-xl bg-background/80 py-3 sm:py-4 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-border/50 mb-6"
+          className="sticky top-16 z-30 backdrop-blur-xl bg-card/80 py-3 sm:py-4 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-gold/10 mb-6 rounded-b-2xl shadow-lg"
         >
           <div className="space-y-3">
             {/* Search */}
