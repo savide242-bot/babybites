@@ -4,45 +4,56 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense, lazy } from "react";
 import { updateLastVisit } from "@/hooks/useNotifications";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
-import { useMealReminders } from "@/hooks/useMealReminders";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { useBanCheck } from "@/hooks/useBanCheck";
 import AppErrorBoundary from "./components/AppErrorBoundary";
 import Header from "./components/Header";
 import Home from "./pages/Home";
-import Onboarding from "./pages/Onboarding";
-import FirstDay from "./pages/FirstDay";
-import Recipes from "./pages/Recipes";
-import RecipeDetail from "./pages/RecipeDetail";
-import MealPlanner from "./pages/MealPlanner";
-import Advice from "./pages/Advice";
-import Community from "./pages/Community";
-import GrowthTracker from "./pages/GrowthTracker";
-import FoodAnalyzer from "./pages/FoodAnalyzer";
-import Settings from "./pages/Settings";
-import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
-import ProgressReports from "./pages/ProgressReports";
-import ShoppingList from "./pages/ShoppingList";
-import Favorites from "./pages/Favorites";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
-import Admin from "./pages/Admin";
-import Achievements from "./pages/Achievements";
-import Profile from "./pages/Profile";
-import FoodDiary from "./pages/FoodDiary";
-import IOSPushSetup from "./pages/IOSPushSetup";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { NotificationPromptModal } from "@/components/NotificationPromptModal";
 import BirthdayCelebrationModal from "@/components/BirthdayCelebrationModal";
 import BottomNavigation from "@/components/BottomNavigation";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load heavy pages for better initial bundle size
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const FirstDay = lazy(() => import("./pages/FirstDay"));
+const Recipes = lazy(() => import("./pages/Recipes"));
+const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
+const MealPlanner = lazy(() => import("./pages/MealPlanner"));
+const Advice = lazy(() => import("./pages/Advice"));
+const Community = lazy(() => import("./pages/Community"));
+const GrowthTracker = lazy(() => import("./pages/GrowthTracker"));
+const FoodAnalyzer = lazy(() => import("./pages/FoodAnalyzer"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Install = lazy(() => import("./pages/Install"));
+const ProgressReports = lazy(() => import("./pages/ProgressReports"));
+const ShoppingList = lazy(() => import("./pages/ShoppingList"));
+const Favorites = lazy(() => import("./pages/Favorites"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+const Profile = lazy(() => import("./pages/Profile"));
+const FoodDiary = lazy(() => import("./pages/FoodDiary"));
+const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
+
+// Loading fallback for lazy loaded pages
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="space-y-4 text-center">
+      <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+      <Skeleton className="h-4 w-32 mx-auto" />
+    </div>
+  </div>
+);
 
 // Routes where Header and BottomNavigation should be hidden for full-screen experience
 const FULLSCREEN_ROUTES = ["/onboarding", "/first-day"];
@@ -97,29 +108,31 @@ const AppContent = () => {
           planner: plannerNavRef, 
         }} />
       )}
-      <Routes>
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/first-day" element={<FirstDay />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/recipes" element={<Recipes />} />
-        <Route path="/recipe/:id" element={<RecipeDetail />} />
-        <Route path="/favorites" element={<Favorites />} />
-        <Route path="/planner" element={<MealPlanner />} />
-        <Route path="/advice" element={<Advice />} />
-        <Route path="/community" element={<Community />} />
-        <Route path="/growth" element={<GrowthTracker />} />
-        <Route path="/scanner" element={<FoodAnalyzer />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/install" element={<Install />} />
-        <Route path="/reports" element={<ProgressReports />} />
-        <Route path="/shopping" element={<ShoppingList />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/achievements" element={<Achievements />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/food-diary" element={<FoodDiary />} />
-        <Route path="/ios-push-setup" element={<IOSPushSetup />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/first-day" element={<FirstDay />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/recipes" element={<Recipes />} />
+          <Route path="/recipe/:id" element={<RecipeDetail />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/planner" element={<MealPlanner />} />
+          <Route path="/advice" element={<Advice />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/growth" element={<GrowthTracker />} />
+          <Route path="/scanner" element={<FoodAnalyzer />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/install" element={<Install />} />
+          <Route path="/reports" element={<ProgressReports />} />
+          <Route path="/shopping" element={<ShoppingList />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/food-diary" element={<FoodDiary />} />
+          <Route path="/ios-push-setup" element={<IOSPushSetup />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </div>
   );
 };
