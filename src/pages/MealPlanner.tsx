@@ -243,8 +243,26 @@ const MealPlanner = () => {
       // Store REAL age - including < 6 months for proper gating
       setBabyAgeMonths(Math.max(0, Math.min(24, ageMonths)));
     } else {
-      // No birth date - default to 0 (too young) for safety
-      setBabyAgeMonths(0);
+      // No birth date - default to 6 months to allow basic recipes (with warning in UI)
+      setBabyAgeMonths(6);
+    }
+    
+    if (profile?.dietary_preferences) {
+      setDietaryPrefs(profile.dietary_preferences);
+    }
+  };
+
+  // Placeholder function kept for reference - actual logic moved above
+  const _legacyAgeLogic = (profile: any) => {
+    if (profile?.baby_birth_date) {
+      const birthDate = new Date(profile.baby_birth_date);
+      const now = new Date();
+      const ageMonths = Math.floor((now.getTime() - birthDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000));
+      // Store REAL age - including < 6 months for proper gating
+      setBabyAgeMonths(Math.max(0, Math.min(24, ageMonths)));
+    } else {
+      // No birth date - default to 6 months to allow basic recipes (show warning in UI)
+      setBabyAgeMonths(6);
     }
     
     if (profile?.dietary_preferences) {

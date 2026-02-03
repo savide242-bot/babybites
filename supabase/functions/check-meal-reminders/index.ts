@@ -66,10 +66,10 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string; emoji: string
 };
 
 // IMPROVED APPROACH: Wider notification window for better reliability
-// We want to send notifications when we're between 20-40 minutes BEFORE the meal
-// This gives us a 20-minute window to catch the cron job reliably (runs every 5 min)
-const MIN_MINUTES_BEFORE_MEAL = 20;
-const MAX_MINUTES_BEFORE_MEAL = 40;
+// We want to send notifications when we're between 15-45 minutes BEFORE the meal
+// This gives us a 30-minute window to catch the cron job reliably (runs every 5 min)
+const MIN_MINUTES_BEFORE_MEAL = 15;
+const MAX_MINUTES_BEFORE_MEAL = 45;
 
 // ==================== NATIVE WEB PUSH IMPLEMENTATION ====================
 // Using the shared webpush module instead of external library for better Deno compatibility

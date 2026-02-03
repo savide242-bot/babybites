@@ -7,6 +7,7 @@ import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPreferences';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAutoResubscribe } from '@/hooks/useAutoResubscribe';
 import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Clock, Shield, Flame, Trophy, CalendarCheck, PartyPopper, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
@@ -15,6 +16,22 @@ import { NotificationPreferences } from '@/components/NotificationPreferences';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
 import ChangePasswordSection from '@/components/auth/ChangePasswordSection';
+import { motion } from 'framer-motion';
+import { GlassCard } from '@/components/ui/glass-card';
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 15, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.3 } }
+};
 
 const Settings = () => {
   const { t } = useLanguage();
@@ -23,6 +40,9 @@ const Settings = () => {
   const { preferences, togglePreference, hasPreference, loading } = useDietaryPreferences();
   const { isSupported, subscription, subscribeToPushNotifications, unsubscribeFromPushNotifications } = usePushNotifications();
   const { isAdmin } = useAdminRole();
+  
+  // Auto-resubscribe to push notifications if subscription was lost
+  useAutoResubscribe();
   const [updateNotifications, setUpdateNotifications] = useState(false);
   const [checking, setChecking] = useState(false);
   const [engagementPrefs, setEngagementPrefs] = useState({
@@ -145,16 +165,26 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen pt-12 pb-24 lg:pb-8">
+    <div className="min-h-screen pt-12 pb-24 lg:pb-8 bg-gradient-to-b from-background via-peach/5 to-background">
       <div className="container max-w-4xl">
-        <div className="mb-8">
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-            <SettingsIcon className="h-8 w-8" />
+            <SettingsIcon className="h-8 w-8 text-primary" />
             {t('settings.title')}
           </h1>
-        </div>
+        </motion.div>
 
-        <div className="space-y-6">
+        <motion.div 
+          className="space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <Card className="border-2 shadow-elegant">
             <CardHeader>
               <CardTitle>Language</CardTitle>
@@ -478,7 +508,7 @@ const Settings = () => {
               </p>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

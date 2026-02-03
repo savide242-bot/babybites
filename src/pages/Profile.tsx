@@ -14,6 +14,8 @@ import {
   BookOpen, Utensils, Eye, Target, Camera, Pencil, Save, X, Loader2, Trash2
 } from "lucide-react";
 import { differenceInMonths, format } from "date-fns";
+import { motion } from "framer-motion";
+import { GlassCard } from "@/components/ui/glass-card";
 
 interface ProfileData {
   mother_name: string | null;
@@ -287,9 +289,19 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <motion.div 
+      className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background pb-24 lg:pb-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       {/* Header with Avatar */}
-      <div className="bg-gradient-to-br from-primary/20 via-peach/30 to-secondary/20 pt-8 pb-12">
+      <motion.div 
+        className="bg-gradient-to-br from-primary/20 via-peach/30 to-mint/20 pt-8 pb-12"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="container max-w-2xl">
           <div className="flex flex-col items-center text-center">
             <div className="relative">
@@ -366,7 +378,7 @@ const Profile = () => {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="container max-w-2xl px-4 -mt-6 pb-8 space-y-6">
         {/* Edit Profile Card */}
@@ -421,32 +433,31 @@ const Profile = () => {
         )}
 
         {/* Stats Grid */}
-        <Card className="border-2 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Trophy className="h-5 w-5 text-sunshine" />
-              Your Stats
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {statCards.map((stat, index) => (
-                <div
-                  key={index}
-                  className={`${stat.bg} rounded-xl p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]`}
-                >
-                  <div className={`p-2 rounded-lg bg-background/80`}>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  </div>
+        <GlassCard variant="warm" glow>
+          <div className="flex items-center gap-2 text-lg font-semibold mb-4">
+            <Trophy className="h-5 w-5 text-gold" />
+            Your Stats
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {statCards.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
+                className={`${stat.bg} rounded-xl p-4 flex items-center gap-3 transition-transform hover:scale-[1.02]`}
+              >
+                <div className={`p-2 rounded-lg bg-background/80`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </GlassCard>
 
         {/* Baby Info Card */}
         {profile?.baby_birth_date && (
@@ -486,12 +497,12 @@ const Profile = () => {
             🌟 You're doing amazing!
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            {stats?.mealsLogged || 0} meals logged for {profile?.baby_name || "your baby"}'s healthy journey
-          </p>
-        </div>
+          {stats?.mealsLogged || 0} meals logged for {profile?.baby_name || "your baby"}'s healthy journey
+        </p>
       </div>
     </div>
-  );
+  </motion.div>
+);
 };
 
 export default Profile;
