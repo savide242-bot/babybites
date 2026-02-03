@@ -1,199 +1,287 @@
 
-# Plano de Correção Completa do BabyBites
 
-## Resumo dos Problemas Encontrados
+# Plano de Otimizacao Completa do BabyBites
 
-| Problema | Causa Raiz | Prioridade |
-|----------|------------|------------|
-| **Reset de senha falha** | URL de redirect não na whitelist + parsing do token | Alta |
-| **Notificações não chegam** | Bug na biblioteca web-push + falta de testes reais | Crítica |
-| **Design precisa melhorias** | Componentes premium criados mas não aplicados | Média |
+## Resumo da Analise
+
+Apos analisar profundamente o codigo, base de dados, logs e configuracoes, identifiquei os seguintes problemas e pontos de melhoria:
 
 ---
 
-## Fase 1: Corrigir Reset de Senha (Email chega, link falha)
+## Fase 1: Bugs Criticos a Corrigir
 
-### Problema
-O email de reset é enviado corretamente, mas quando o utilizador clica no link, a página mostra "Invalid or Expired Link".
+### Bug 1: Notificacoes Nao Chegam nas Refeicoes Automaticas (CRITICO)
 
-### Causas Identificadas
-1. O `ResetPassword.tsx` tenta extrair tokens do URL hash, mas pode haver um timing issue
-2. O evento `PASSWORD_RECOVERY` do Supabase pode não disparar antes do check inicial
-3. O fallback para `setSession` pode falhar silenciosamente
+**Status Atual:**
+- O cron job `check-meal-reminders` executa correctamente a cada minuto
+- Logs mostram: `"No push subscription for this user"` para alguns utilizadores
+- `notification_logs` tem 23 entradas (logo ja enviou algumas vezes)
+- `push_subscriptions` tem 7 subscricoes
 
-### Solução
+**Problema Real:**
+Os logs mostram que o sistema funciona, mas:
+1. Alguns utilizadores nao tem subscription registada
+2. A janela de 20-40 minutos pode ser perdida se o cron nao correr no momento exacto
+3. Falta feedback visual ao utilizador sobre o estado das notificacoes
 
-**Ficheiro: `src/pages/ResetPassword.tsx`**
+**Solucao:**
 
-1. Adicionar delay de 500ms antes de verificar sessão para dar tempo ao Supabase processar o hash
-2. Melhorar extração de tokens com suporte a formatos alternativos
-3. Adicionar fallback que tenta `supabase.auth.exchangeCodeForSession()` se disponível
-4. Mostrar mensagem de "A verificar..." por mais tempo (3s em vez de 1.5s)
-
-```typescript
-// Linha ~109: Adicionar delay antes do check
-const checkSession = async () => {
-  // Aguardar 500ms para Supabase processar hash
-  await new Promise(r => setTimeout(r, 500));
-  
-  // Primeiro tentar set session do URL
-  const sessionSet = await setSessionFromUrl();
-  // ...resto da lógica
-};
-```
-
-**Ficheiro: `src/components/auth/ForgotPasswordModal.tsx`**
-
-1. Verificar se o redirect URL está correto para preview e produção
-2. Adicionar log do URL completo que será usado
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/components/NotificationPreferences.tsx` | Adicionar diagnostico visual (badge verde/vermelho) mostrando se subscription esta activa |
+| `src/hooks/usePushNotifications.tsx` | Auto-resubscrever se subscription expirou ao abrir Settings |
+| `supabase/functions/check-meal-reminders/index.ts` | Alargar janela para 15-45 minutos para maior tolerancia |
 
 ---
 
-## Fase 2: Corrigir Notificações Automáticas de Refeições (CRÍTICO)
+### Bug 2: Reset de Senha Falha Apos Clicar no Link
 
-### Análise Detalhada
+**Status Atual:**
+- Email de reset e enviado correctamente
+- `ResetPassword.tsx` ja tem delay de 800ms e extrai tokens
 
-| Componente | Estado | Problema |
-|------------|--------|----------|
-| Cron Job (pg_cron) | ✅ Funciona | Executa a cada minuto |
-| Edge Function (check-meal-reminders) | ✅ Retorna 200 | Código parece correto |
-| Lógica de janela (25-35 min) | ⚠️ Questionável | Pode ser muito restritiva |
-| Envio real (web-push) | ❌ Suspeito | Nenhuma notificação nos logs |
-| notification_logs tabela | ❌ Vazia | Nunca gravou sucesso |
+**Problema Potencial:**
+1. O redirect URL pode nao estar na whitelist do Supabase Auth
+2. O token pode expirar antes do utilizador clicar
+3. PKCE flow pode falhar silenciosamente
 
-### Problema Real
-A biblioteca `web-push@3.6.7` importada via esm.sh pode ter incompatibilidades com Deno, causando falhas silenciosas.
+**Solucao:**
 
-### Solução: Unificar todo o envio usando o módulo `_shared/webpush.ts` nativo
-
-**Ficheiro: `supabase/functions/check-meal-reminders/index.ts`**
-
-1. REMOVER import da biblioteca `web-push` via esm.sh
-2. USAR o módulo unificado `_shared/webpush.ts` que já funciona
-3. Alargar janela de notificação para 20-40 minutos (mais tolerância)
-4. Adicionar logs mais detalhados do resultado de cada envio
-5. Garantir que notification_logs é gravado mesmo em caso de erro parcial
-
-```typescript
-// REMOVER linha ~86:
-// const webpush = await import('https://esm.sh/web-push@3.6.7');
-
-// ADICIONAR import do módulo nativo:
-import { sendWebPushNotification, getVapidKeys } from "../_shared/webpush.ts";
-```
-
-**Ficheiro: `supabase/functions/_shared/webpush.ts`**
-
-1. Adicionar header `Crypto-Key` que estava em falta em alguns casos
-2. Melhorar logging de erros do push service
-3. Implementar retry com backoff exponencial (3 tentativas)
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/ResetPassword.tsx` | Adicionar logs detalhados em cada etapa para debug |
+| `src/components/auth/ForgotPasswordModal.tsx` | Usar URL de producao `https://babybites.lovable.app/auth/reset-password` |
+| Verificar Supabase Auth | Confirmar que URL esta na whitelist (requer dashboard) |
 
 ---
 
-## Fase 3: Melhorias de Design e Atratividade
+### Bug 3: Pagina de Home Pode Crashar se Perfil Incompleto
 
-### Aplicar Componentes Premium nas Páginas
+**Problema:**
+Se `profiles.mother_name` ou `baby_birth_date` for null, a Home pode mostrar dados errados.
 
-**Ficheiro: `src/pages/Home.tsx`**
+**Solucao:**
 
-1. Substituir cards simples por `GlassCard`
-2. Adicionar `EmotionalHeader` no topo com saudação personalizada
-3. Usar `GradientButton` nos CTAs
-4. Adicionar `RewardAnimation` quando tarefas são completadas
-
-**Ficheiro: `src/pages/Recipes.tsx`**
-
-1. Cards de receitas com efeito glassmorphism
-2. Filtros como chips coloridos
-3. Animações suaves de hover (scale + shadow)
-
-**Ficheiro: `src/components/Header.tsx`**
-
-1. Adicionar gradiente dourado subtil
-2. Ícones com preenchimento quando ativos
-3. Badge de notificações animado
-
-**Ficheiro: `src/components/BottomNavigation.tsx`**
-
-1. Aplicar glassmorphism ao container
-2. Ícones com cor da secção quando ativos
-3. Animação de transição suave
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/Home.tsx` | Adicionar fallbacks seguros para todos os campos do perfil |
+| `src/components/PrivateRoute.tsx` | Ja esta robusto, mas adicionar log para debug |
 
 ---
 
-## Fase 4: Diagnóstico e Teste
+### Bug 4: MealPlanner Mostra "0 months" para Bebes sem Data de Nascimento
 
-### Criar Endpoint de Teste Forçado
+**Problema:**
+`MealPlanner.tsx` linha 244-248 define `babyAgeMonths = 0` se nao houver data de nascimento, o que bloqueia todas as receitas.
 
-**Ficheiro NOVO: `supabase/functions/force-test-reminder/index.ts`**
+**Solucao:**
 
-Endpoint que ignora a janela de tempo e envia notificação imediatamente para testar o fluxo completo.
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/MealPlanner.tsx` | Mudar fallback para 6 meses em vez de 0, com aviso para configurar data |
 
-```typescript
-// Permite testar o envio real sem esperar pelo horário da refeição
-Deno.serve(async (req) => {
-  // Buscar primeira subscription do utilizador autenticado
-  // Enviar notificação de teste usando módulo unificado
-  // Retornar resultado detalhado
-});
-```
+---
+
+### Bug 5: RLS Policy Permissiva Detectada
+
+**Problema:**
+O linter detectou uma policy com `USING (true)` que pode expor dados.
+
+**Solucao:**
+Verificar qual tabela tem a policy e corrigir para `auth.uid() = user_id`.
+
+---
+
+## Fase 2: Melhorias de Performance
+
+### Melhoria 1: Carregar Dados em Paralelo no Home
+
+**Problema:**
+`Home.tsx` ja usa `Promise.all`, mas pode otimizar cache.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/Home.tsx` | Adicionar React Query para cache automatico e revalidacao |
+
+---
+
+### Melhoria 2: Lazy Loading de Paginas
+
+**Problema:**
+Todas as paginas sao carregadas no bundle inicial.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/App.tsx` | Usar `React.lazy()` para paginas pesadas como Admin, GrowthTracker, Community |
+
+---
+
+### Melhoria 3: Skeleton Loading Consistente
+
+**Problema:**
+Algumas paginas nao tem skeleton loading.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/Recipes.tsx` | Adicionar skeleton para cards enquanto carrega |
+| `src/pages/Profile.tsx` | Ja tem skeleton, manter |
+
+---
+
+## Fase 3: Melhorias de Design e UX
+
+### Melhoria 1: Aplicar GlassCard em Mais Paginas
+
+**Problema:**
+`GlassCard` foi criado mas so usado na Home.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/Profile.tsx` | Substituir Cards por GlassCard |
+| `src/pages/Settings.tsx` | Aplicar GlassCard nos grupos de configuracoes |
+| `src/pages/FoodAnalyzer.tsx` | Usar GlassCard no resultado da analise |
+
+---
+
+### Melhoria 2: Animacoes Consistentes
+
+**Problema:**
+Algumas paginas tem animacoes Framer Motion, outras nao.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/pages/Settings.tsx` | Adicionar `motion.div` com stagger animations |
+| `src/pages/Profile.tsx` | Adicionar animacao de entrada suave |
+
+---
+
+### Melhoria 3: Feedback Visual nas Notificacoes
+
+**Problema:**
+Utilizador nao sabe se notificacoes estao a funcionar.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| `src/components/NotificationPreferences.tsx` | Adicionar secao de "Status" com check visual |
+
+---
+
+### Melhoria 4: Header e BottomNav Mais Premium
+
+**Status:**
+Ja implementados com glassmorphism e gold accent. Sem bugs detectados.
+
+---
+
+## Fase 4: Seguranca
+
+### Melhoria 1: Verificar RLS Policies
+
+**Accao:**
+1. Correr `security--run_security_scan` para detectar tabelas expostas
+2. Corrigir policies com `USING (true)` em operacoes INSERT/UPDATE/DELETE
+
+---
+
+### Melhoria 2: Validacao de Input
+
+**Problema:**
+Alguns formularios podem nao validar correctamente.
+
+**Solucao:**
+Verificar que todos os forms usam Zod validation (Auth.tsx ja usa).
+
+---
+
+## Fase 5: Codigo Limpo
+
+### Melhoria 1: Remover Console.logs Excessivos
+
+**Problema:**
+Muitos `console.log` em producao.
+
+**Solucao:**
+
+| Ficheiro | Mudanca |
+|----------|---------|
+| Multiplos ficheiros | Substituir `console.log` por logging condicional (`if (import.meta.env.DEV)`) |
+
+---
+
+### Melhoria 2: Tratar Erros de Forma Consistente
+
+**Problema:**
+Alguns `catch` blocks apenas fazem `console.error` sem feedback ao utilizador.
+
+**Solucao:**
+Garantir que todos os erros mostram toast ao utilizador.
 
 ---
 
 ## Ficheiros a Modificar
 
-| Ficheiro | Acção | Descrição |
-|----------|-------|-----------|
-| `src/pages/ResetPassword.tsx` | Modificar | Melhorar timing e extração de token |
-| `supabase/functions/check-meal-reminders/index.ts` | Modificar | Usar módulo nativo, alargar janela |
-| `supabase/functions/_shared/webpush.ts` | Modificar | Adicionar retry e logging |
-| `src/pages/Home.tsx` | Modificar | Aplicar componentes premium |
-| `src/pages/Recipes.tsx` | Modificar | Cards com glassmorphism |
-| `src/components/Header.tsx` | Modificar | Gradiente e animações |
-| `src/components/BottomNavigation.tsx` | Modificar | Glassmorphism e transições |
-| `supabase/functions/force-test-reminder/index.ts` | Criar | Endpoint de teste forçado |
-| `supabase/config.toml` | Modificar | Adicionar nova função |
+| Ficheiro | Prioridade | Descricao |
+|----------|------------|-----------|
+| `src/components/NotificationPreferences.tsx` | Alta | Status visual + auto-resubscribe |
+| `src/pages/ResetPassword.tsx` | Alta | Logs detalhados para debug |
+| `src/pages/MealPlanner.tsx` | Media | Fallback para idade do bebe |
+| `src/pages/Home.tsx` | Media | Fallbacks seguros para perfil |
+| `src/pages/Profile.tsx` | Media | GlassCard + animacoes |
+| `src/pages/Settings.tsx` | Media | GlassCard + animacoes |
+| `src/pages/FoodAnalyzer.tsx` | Baixa | GlassCard nos resultados |
+| `src/App.tsx` | Baixa | Lazy loading |
+| `src/hooks/usePushNotifications.tsx` | Alta | Auto-resubscribe |
+| `supabase/functions/check-meal-reminders/index.ts` | Alta | Alargar janela |
 
 ---
 
-## Ordem de Implementação
+## Ordem de Implementacao
 
-1. **Reset de Senha** - Adicionar delay e melhorar parsing (15 min)
-2. **Notificações** - Unificar módulo e alargar janela (30 min)
-3. **Endpoint de Teste** - Criar force-test-reminder (15 min)
-4. **Design Home** - Aplicar componentes premium (30 min)
-5. **Design Receitas** - Cards com efeitos visuais (30 min)
-6. **Navegação** - Header e BottomNav melhorados (20 min)
+1. **Notificacoes** - Diagnostico visual + auto-resubscribe + janela maior (45 min)
+2. **Reset Senha** - Logs detalhados + verificar redirect URL (20 min)
+3. **MealPlanner** - Fallback para idade do bebe (10 min)
+4. **Home** - Fallbacks seguros (10 min)
+5. **Design Profile** - GlassCard + animacoes (30 min)
+6. **Design Settings** - GlassCard + animacoes (30 min)
+7. **Performance** - Lazy loading no App.tsx (20 min)
+8. **Seguranca** - Verificar RLS policies (15 min)
 
 ---
 
 ## Resultado Esperado
 
-Após implementação:
-- ✅ Reset de senha funcional (email → link → nova senha)
-- ✅ Notificações de refeição chegam no horário configurado
-- ✅ Botão "Testar em Mim" funciona para validação
-- ✅ Design premium com conexão emocional
-- ✅ Animações e feedback visual consistentes
+Apos implementacao:
+- Notificacoes de refeicao com diagnostico visual claro
+- Reset de senha com logs para debug
+- App sem crashes com perfis incompletos
+- Design premium consistente em todas as paginas
+- Performance melhorada com lazy loading
+- Codigo limpo e seguro
 
 ---
 
-## Nota Técnica: Notificações
+## Nota Tecnica: Sobre Notificacoes
 
-O sistema de notificações está arquiteturalmente correto:
+Os logs mostram que o sistema de notificacoes esta funcional:
+- `notification_logs` tem 23 entradas (notificacoes foram enviadas)
+- `push_subscriptions` tem 7 subscricoes activas
+- Cron job executa correctamente
 
-```text
-pg_cron (minuto a minuto)
-    ↓
-check-meal-reminders (Edge Function)
-    ↓
-Verifica baby_meal_times + profiles.timezone
-    ↓
-Se 25-35 min antes da refeição:
-    ↓
-sendWebPushNotification()
-    ↓
-notification_logs (previne duplicados)
-```
+O problema principal e:
+1. Alguns utilizadores nao tem subscription (precisam reactivar em Settings)
+2. A janela de 20-40 min pode ser muito restritiva
 
-O problema está na biblioteca `web-push@3.6.7` que não funciona bem no Deno. A solução é usar o módulo nativo `_shared/webpush.ts` que implementa a criptografia AES-128-GCM e VAPID JWT manualmente.
+A solucao e alargar a janela e adicionar diagnostico visual para o utilizador saber se esta tudo configurado.
+
