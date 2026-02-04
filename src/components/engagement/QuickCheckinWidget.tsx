@@ -171,32 +171,50 @@ const QuickCheckinWidget = ({ todayCheckin, onSubmit, babyName }: QuickCheckinWi
           <motion.button
             onClick={() => handleQuickCheckin('ate_well')}
             disabled={isSubmitting}
-            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-mint/10 hover:bg-mint/20 border border-mint/30 transition-all disabled:opacity-50"
-            whileHover={{ scale: 1.02 }}
+            className="flex-1 relative overflow-hidden flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gradient-to-br from-mint/15 via-mint/10 to-secondary/10 border-2 border-mint/40 transition-all disabled:opacity-50 shadow-sm"
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 25px hsla(var(--mint), 0.25)" }}
             whileTap={{ scale: 0.95 }}
           >
-            <Check className="w-5 h-5 text-mint" />
-            <span className="text-xs font-medium text-foreground">Ate well</span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+              initial={{ x: -100, opacity: 0 }}
+              whileHover={{ x: 100, opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            />
+            <Check className="w-5 h-5 text-mint relative z-10" />
+            <span className="text-xs font-semibold text-foreground relative z-10">Ate well</span>
           </motion.button>
           <motion.button
             onClick={() => handleQuickCheckin('rejected')}
             disabled={isSubmitting}
-            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/30 transition-all disabled:opacity-50"
-            whileHover={{ scale: 1.02 }}
+            className="flex-1 relative overflow-hidden flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gradient-to-br from-accent/15 via-accent/10 to-peach/10 border-2 border-accent/40 transition-all disabled:opacity-50 shadow-sm"
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 25px hsla(var(--accent), 0.25)" }}
             whileTap={{ scale: 0.95 }}
           >
-            <X className="w-5 h-5 text-accent" />
-            <span className="text-xs font-medium text-foreground">Rejected</span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+              initial={{ x: -100, opacity: 0 }}
+              whileHover={{ x: 100, opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            />
+            <X className="w-5 h-5 text-accent relative z-10" />
+            <span className="text-xs font-semibold text-foreground relative z-10">Rejected</span>
           </motion.button>
           <motion.button
             onClick={() => handleQuickCheckin('tried_new')}
             disabled={isSubmitting}
-            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all disabled:opacity-50"
-            whileHover={{ scale: 1.02 }}
+            className="flex-1 relative overflow-hidden flex flex-col items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gradient-to-br from-primary/15 via-primary/10 to-gold/10 border-2 border-primary/40 transition-all disabled:opacity-50 shadow-sm"
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 25px hsla(var(--primary), 0.25)" }}
             whileTap={{ scale: 0.95 }}
           >
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">New!</span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+              initial={{ x: -100, opacity: 0 }}
+              whileHover={{ x: 100, opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            />
+            <Sparkles className="w-5 h-5 text-primary relative z-10" />
+            <span className="text-xs font-semibold text-foreground relative z-10">New!</span>
           </motion.button>
         </div>
       </Card>

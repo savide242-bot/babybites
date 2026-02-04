@@ -1,10 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChefHat, Clock, ChevronRight, Sparkles, Check } from "lucide-react";
+import { ChefHat, Clock, ChevronRight, Sparkles, Check, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Recipe } from "@/data/recipes";
 import { cn } from "@/lib/utils";
 import { getRecipeImageById } from "@/data/recipeImages";
+import { motion } from "framer-motion";
 
 interface TodayMeal {
   mealType: string;
@@ -109,36 +110,63 @@ const DailyActionCard = ({ recipeOfTheDay, todayMeals, babyName }: DailyActionCa
   const recipeImage = getRecipeImageById(recipeOfTheDay.id);
 
   return (
-    <Card className="overflow-hidden border-primary/20">
-      <div className="relative h-36">
+    <Card className="overflow-hidden border-gold/30 bg-gradient-to-br from-gold/5 via-card to-primary/5 relative">
+      {/* Sparkle decoration */}
+      <motion.div 
+        className="absolute -top-1 -right-1 z-20"
+        animate={{ rotate: 360, scale: [1, 1.15, 1] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center backdrop-blur-sm border border-gold/30">
+          <Star className="w-4 h-4 text-gold fill-gold/50" />
+        </div>
+      </motion.div>
+
+      <div className="relative h-40">
         <img 
           src={recipeImage} 
           alt={recipeOfTheDay.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        
+        {/* Premium badge */}
         <div className="absolute top-3 left-3">
-          <div className="flex items-center gap-1.5 bg-accent/90 backdrop-blur-sm px-2.5 py-1 rounded-full">
-            <Sparkles className="w-3.5 h-3.5 text-accent-foreground" />
-            <span className="text-xs font-semibold text-accent-foreground">Recipe of the Day</span>
-          </div>
+          <motion.div 
+            className="flex items-center gap-1.5 bg-gradient-to-r from-gold/90 to-gold/70 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg"
+            animate={{ scale: [1, 1.02, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <span className="text-xs font-bold text-white">Recipe of the Day</span>
+          </motion.div>
         </div>
+        
         <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">
+          <h3 className="text-xl font-bold text-white mb-1.5 line-clamp-1 drop-shadow-lg">
             {recipeOfTheDay.title}
           </h3>
-          <div className="flex items-center gap-2 text-white/80">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="text-xs">{recipeOfTheDay.prepTime}</span>
+          <div className="flex items-center gap-3 text-white/90">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">{recipeOfTheDay.prepTime}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs">🥗</span>
+              <span className="text-xs font-medium">{recipeOfTheDay.ageGroup}</span>
+            </div>
           </div>
         </div>
       </div>
-      <div className="p-3">
+      
+      <div className="p-4">
         <Link to={`/recipe/${recipeOfTheDay.id}`}>
-          <Button className="w-full rounded-xl gap-2">
-            <ChefHat className="w-4 h-4" />
-            Cook for {babyName || "Baby"}
-          </Button>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button className="w-full rounded-xl gap-2 h-11 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg">
+              <ChefHat className="w-4 h-4" />
+              Cook for {babyName || "Baby"} 👶
+            </Button>
+          </motion.div>
         </Link>
       </div>
     </Card>
