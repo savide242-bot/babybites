@@ -1,287 +1,304 @@
 
 
-# Plano de Otimizacao Completa do BabyBites
+# Plano de Melhorias Visuais e Correção do BabyBites
 
-## Resumo da Analise
+## Resumo das 3 Tarefas
 
-Apos analisar profundamente o codigo, base de dados, logs e configuracoes, identifiquei os seguintes problemas e pontos de melhoria:
-
----
-
-## Fase 1: Bugs Criticos a Corrigir
-
-### Bug 1: Notificacoes Nao Chegam nas Refeicoes Automaticas (CRITICO)
-
-**Status Atual:**
-- O cron job `check-meal-reminders` executa correctamente a cada minuto
-- Logs mostram: `"No push subscription for this user"` para alguns utilizadores
-- `notification_logs` tem 23 entradas (logo ja enviou algumas vezes)
-- `push_subscriptions` tem 7 subscricoes
-
-**Problema Real:**
-Os logs mostram que o sistema funciona, mas:
-1. Alguns utilizadores nao tem subscription registada
-2. A janela de 20-40 minutos pode ser perdida se o cron nao correr no momento exacto
-3. Falta feedback visual ao utilizador sobre o estado das notificacoes
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/components/NotificationPreferences.tsx` | Adicionar diagnostico visual (badge verde/vermelho) mostrando se subscription esta activa |
-| `src/hooks/usePushNotifications.tsx` | Auto-resubscrever se subscription expirou ao abrir Settings |
-| `supabase/functions/check-meal-reminders/index.ts` | Alargar janela para 15-45 minutos para maior tolerancia |
+| Tarefa | Problema Identificado | Solução |
+|--------|----------------------|---------|
+| **1. Cor do texto 12-18 months** | `text-mint-foreground` é branco (0 0% 100%) | Mudar para `text-foreground` (cor preta legível) |
+| **2. Home Page Premium** | Design funcional mas não espetacular | Redesign completo com conexão emocional forte |
+| **3. Imagens de Receitas** | 348 imagens locais já existem; bucket storage vazio | Verificar mapeamento e garantir cada receita tem imagem única |
 
 ---
 
-### Bug 2: Reset de Senha Falha Apos Clicar no Link
+## Tarefa 1: Corrigir Cor do Texto "12-18 months"
 
-**Status Atual:**
-- Email de reset e enviado correctamente
-- `ResetPassword.tsx` ja tem delay de 800ms e extrai tokens
+### Problema
+No ficheiro `src/components/home/AgeCategoryCircles.tsx`, a categoria "12-18 months" usa `text-mint-foreground` que está definido como branco no CSS (`--mint-foreground: 0 0% 100%`), tornando o texto invisível sobre fundo claro.
 
-**Problema Potencial:**
-1. O redirect URL pode nao estar na whitelist do Supabase Auth
-2. O token pode expirar antes do utilizador clicar
-3. PKCE flow pode falhar silenciosamente
+### Solução
+Mudar a cor do texto para `text-foreground` (preto/escuro) que é legível:
 
-**Solucao:**
+```typescript
+// Linha 38 em AgeCategoryCircles.tsx
+// DE:
+textColor: "text-mint-foreground"
 
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/ResetPassword.tsx` | Adicionar logs detalhados em cada etapa para debug |
-| `src/components/auth/ForgotPasswordModal.tsx` | Usar URL de producao `https://babybites.lovable.app/auth/reset-password` |
-| Verificar Supabase Auth | Confirmar que URL esta na whitelist (requer dashboard) |
+// PARA:
+textColor: "text-foreground"
+```
 
----
+**Alternativa ainda melhor**: Usar uma cor mais escura do mint para contraste:
 
-### Bug 3: Pagina de Home Pode Crashar se Perfil Incompleto
-
-**Problema:**
-Se `profiles.mother_name` ou `baby_birth_date` for null, a Home pode mostrar dados errados.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/Home.tsx` | Adicionar fallbacks seguros para todos os campos do perfil |
-| `src/components/PrivateRoute.tsx` | Ja esta robusto, mas adicionar log para debug |
+```typescript
+textColor: "text-emerald-700" // ou criar uma variável CSS nova
+```
 
 ---
 
-### Bug 4: MealPlanner Mostra "0 months" para Bebes sem Data de Nascimento
+## Tarefa 2: Redesign Premium da Home Page
 
-**Problema:**
-`MealPlanner.tsx` linha 244-248 define `babyAgeMonths = 0` se nao houver data de nascimento, o que bloqueia todas as receitas.
+### Visão Geral
+Transformar a Home numa experiência emocional espetacular que cria conexão profunda com as mães.
 
-**Solucao:**
+### Componentes a Melhorar
 
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/MealPlanner.tsx` | Mudar fallback para 6 meses em vez de 0, com aviso para configurar data |
+#### 2.1 Fundo e Atmosfera
+```typescript
+// ATUAL:
+<div className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background">
+
+// NOVO: Gradiente mais rico e emocional
+<div className="min-h-screen bg-gradient-to-br from-peach/20 via-background to-soft-blue/10 relative overflow-hidden">
+  {/* Decorative floating orbs */}
+  <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
+  <div className="absolute bottom-40 right-10 w-40 h-40 bg-gold/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}} />
+```
+
+#### 2.2 Emotional Header Melhorado
+Adicionar mais personalização e empatia:
+
+```typescript
+// Mensagens mais emocionais baseadas na hora do dia
+const getEmotionalContent = () => {
+  const hour = new Date().getHours();
+  if (hour < 6) return { 
+    greeting: "Early riser", 
+    message: "You're amazing for being up early",
+    emoji: "🌙✨"
+  };
+  if (hour < 12) return { 
+    greeting: "Good morning", 
+    message: `${babyName} is lucky to have you`,
+    emoji: "🌅💕"
+  };
+  if (hour < 15) return { 
+    greeting: "Hello sunshine", 
+    message: "You're doing incredible today",
+    emoji: "☀️🌟"
+  };
+  if (hour < 18) return { 
+    greeting: "Good afternoon", 
+    message: "Take a moment to breathe",
+    emoji: "🌤️💛"
+  };
+  if (hour < 21) return { 
+    greeting: "Good evening", 
+    message: "Another beautiful day with your little one",
+    emoji: "🌆💜"
+  };
+  return { 
+    greeting: "Sweet dreams time", 
+    message: "Rest well, supermom",
+    emoji: "🌙💫"
+  };
+};
+```
+
+#### 2.3 Cards com Mais Impacto Visual
+
+**Recipe of the Day** - Adicionar efeito de destaque:
+```typescript
+<motion.div 
+  className="relative"
+  whileHover={{ scale: 1.02 }}
+>
+  {/* Glow effect behind card */}
+  <div className="absolute -inset-1 bg-gradient-to-r from-gold/30 via-primary/20 to-gold/30 rounded-3xl blur-xl opacity-60" />
+  
+  <GlassCard variant="gold" glow className="relative z-10">
+    {/* Sparkle decoration */}
+    <motion.div 
+      className="absolute -top-2 -right-2"
+      animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+      transition={{ duration: 3, repeat: Infinity }}
+    >
+      <Sparkles className="w-6 h-6 text-gold" />
+    </motion.div>
+    <DailyActionCard ... />
+  </GlassCard>
+</motion.div>
+```
+
+#### 2.4 Quick Check-in com Mais Emoção
+
+Adicionar ícones animados e cores mais vibrantes:
+```typescript
+// Botões com gradientes e animações
+<motion.button
+  className="flex-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-mint/20 via-mint/10 to-secondary/10 border-2 border-mint/30"
+  whileHover={{ 
+    scale: 1.05, 
+    boxShadow: "0 8px 30px hsl(var(--mint) / 0.3)" 
+  }}
+  whileTap={{ scale: 0.95 }}
+>
+  {/* Shimmer effect on hover */}
+  <motion.div 
+    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+    animate={{ x: [-200, 200] }}
+    transition={{ duration: 2, repeat: Infinity }}
+  />
+  ...
+</motion.button>
+```
+
+#### 2.5 Weekly Progress com Celebração Visual
+
+Adicionar animações de conquista:
+```typescript
+// Quando streak é alto, mostrar efeito de fogo
+{currentStreak >= 7 && (
+  <motion.div 
+    className="absolute -top-4 left-1/2 transform -translate-x-1/2"
+    animate={{ 
+      y: [0, -5, 0], 
+      scale: [1, 1.1, 1] 
+    }}
+    transition={{ duration: 1, repeat: Infinity }}
+  >
+    <span className="text-3xl">🔥</span>
+  </motion.div>
+)}
+```
+
+#### 2.6 Age Category Circles Premium
+
+Tornar mais atraente e interativo:
+```typescript
+// Adicionar gradiente de fundo animado
+<div className="relative py-4">
+  {/* Decorative line */}
+  <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+  
+  {/* Circles com sombra colorida */}
+  <motion.div
+    className={`w-18 h-18 rounded-full flex items-center justify-center shadow-[0_8px_30px_-4px_hsl(var(--${color})/0.4)]`}
+  >
+```
+
+### Estrutura Visual Proposta
+
+```
+┌─────────────────────────────────────┐
+│  🌅 Good morning, Maria! 💕        │
+│  Sofia is lucky to have you        │
+│  ┌──────────────────────┐          │
+│  │ 🔥 7 days streak!   │          │
+│  └──────────────────────┘          │
+├─────────────────────────────────────┤
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐  │
+│  │ 🥣  │ │ 🥕  │ │ 🍝  │ │ 🥗  │  │ ← Age Categories
+│  │6-9m │ │9-12m│ │12-18│ │18-24│  │
+│  └─────┘ └─────┘ └─────┘ └─────┘  │
+├─────────────────────────────────────┤
+│  ✨ Recipe of the Day              │
+│  ┌─────────────────────────────┐   │
+│  │ 📸 [Beautiful Food Photo]  │   │
+│  │ "Spinach & Apple Surprise"  │   │
+│  │ ⏱️ 15 min • 🥗 Healthy     │   │
+│  │      [ Cook for Sofia 👶 ]  │   │
+│  └─────────────────────────────┘   │
+├─────────────────────────────────────┤
+│  💚 How did Sofia eat today?       │
+│  ┌─────┐  ┌─────┐  ┌─────┐        │
+│  │ ✓  │  │ ✗  │  │ ✨ │        │
+│  │Ate  │  │Rejec│  │New!│        │
+│  │Well │  │ted  │  │    │        │
+│  └─────┘  └─────┘  └─────┘        │
+├─────────────────────────────────────┤
+│  📊 Weekly Progress                 │
+│  ┌─────────────────────────────┐   │
+│  │ 🔥 7 Days  │  🏆 450 pts   │   │
+│  │ ⭐ One week on fire!       │   │
+│  │ ┌────────────────┐         │   │
+│  │ │ 🍽️ 12/14 meals │         │   │
+│  │ └────────────────┘         │   │
+│  └─────────────────────────────┘   │
+└─────────────────────────────────────┘
+```
 
 ---
 
-### Bug 5: RLS Policy Permissiva Detectada
+## Tarefa 3: Verificar e Corrigir Imagens de Receitas
 
-**Problema:**
-O linter detectou uma policy com `USING (true)` que pode expor dados.
+### Estado Atual
+- **348 imagens** existem em `src/assets/recipes/`
+- **300 receitas** precisam de imagens únicas
+- `recipeImageMap` mapeia IDs 1-300 para imagens
+- Bucket `recipe-images` está **vazio** (0 imagens armazenadas)
+- Função `generate-recipe-image` existe e funciona com Lovable AI
 
-**Solucao:**
-Verificar qual tabela tem a policy e corrigir para `auth.uid() = user_id`.
+### Problema Potencial
+Algumas receitas podem estar a usar a mesma imagem (fallback para `sweetPotatoCarrot`) se o mapeamento falhar.
 
----
+### Solução
 
-## Fase 2: Melhorias de Performance
+#### Passo 1: Auditar Mapeamento
+Verificar se todas as 300 receitas têm imagem única no `recipeImageMap`:
 
-### Melhoria 1: Carregar Dados em Paralelo no Home
+```typescript
+// Criar função de auditoria temporária
+const auditImages = () => {
+  const usedImages = new Set();
+  const duplicates: string[] = [];
+  
+  for (const [id, image] of Object.entries(recipeImageMap)) {
+    if (usedImages.has(image)) {
+      duplicates.push(`ID ${id} uses duplicate image`);
+    }
+    usedImages.add(image);
+  }
+  
+  console.log(`Unique images: ${usedImages.size}/300`);
+  console.log(`Duplicates: ${duplicates.length}`);
+};
+```
 
-**Problema:**
-`Home.tsx` ja usa `Promise.all`, mas pode otimizar cache.
+#### Passo 2: Gerar Imagens em Falta
+Para receitas sem imagem única, usar a edge function `generate-recipe-image`:
 
-**Solucao:**
+```typescript
+// Chamar para cada receita sem imagem
+const generateMissingImages = async (recipeId: string, title: string, ingredients: string[]) => {
+  const response = await supabase.functions.invoke('generate-recipe-image', {
+    body: { recipeId, recipeTitle: title, ingredients }
+  });
+  
+  if (response.data?.imageUrl) {
+    // Imagem gerada e armazenada no bucket
+    console.log(`Generated: ${title}`);
+  }
+};
+```
 
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/Home.tsx` | Adicionar React Query para cache automatico e revalidacao |
-
----
-
-### Melhoria 2: Lazy Loading de Paginas
-
-**Problema:**
-Todas as paginas sao carregadas no bundle inicial.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/App.tsx` | Usar `React.lazy()` para paginas pesadas como Admin, GrowthTracker, Community |
-
----
-
-### Melhoria 3: Skeleton Loading Consistente
-
-**Problema:**
-Algumas paginas nao tem skeleton loading.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/Recipes.tsx` | Adicionar skeleton para cards enquanto carrega |
-| `src/pages/Profile.tsx` | Ja tem skeleton, manter |
-
----
-
-## Fase 3: Melhorias de Design e UX
-
-### Melhoria 1: Aplicar GlassCard em Mais Paginas
-
-**Problema:**
-`GlassCard` foi criado mas so usado na Home.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/Profile.tsx` | Substituir Cards por GlassCard |
-| `src/pages/Settings.tsx` | Aplicar GlassCard nos grupos de configuracoes |
-| `src/pages/FoodAnalyzer.tsx` | Usar GlassCard no resultado da analise |
-
----
-
-### Melhoria 2: Animacoes Consistentes
-
-**Problema:**
-Algumas paginas tem animacoes Framer Motion, outras nao.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/pages/Settings.tsx` | Adicionar `motion.div` com stagger animations |
-| `src/pages/Profile.tsx` | Adicionar animacao de entrada suave |
-
----
-
-### Melhoria 3: Feedback Visual nas Notificacoes
-
-**Problema:**
-Utilizador nao sabe se notificacoes estao a funcionar.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| `src/components/NotificationPreferences.tsx` | Adicionar secao de "Status" com check visual |
-
----
-
-### Melhoria 4: Header e BottomNav Mais Premium
-
-**Status:**
-Ja implementados com glassmorphism e gold accent. Sem bugs detectados.
-
----
-
-## Fase 4: Seguranca
-
-### Melhoria 1: Verificar RLS Policies
-
-**Accao:**
-1. Correr `security--run_security_scan` para detectar tabelas expostas
-2. Corrigir policies com `USING (true)` em operacoes INSERT/UPDATE/DELETE
-
----
-
-### Melhoria 2: Validacao de Input
-
-**Problema:**
-Alguns formularios podem nao validar correctamente.
-
-**Solucao:**
-Verificar que todos os forms usam Zod validation (Auth.tsx ja usa).
-
----
-
-## Fase 5: Codigo Limpo
-
-### Melhoria 1: Remover Console.logs Excessivos
-
-**Problema:**
-Muitos `console.log` em producao.
-
-**Solucao:**
-
-| Ficheiro | Mudanca |
-|----------|---------|
-| Multiplos ficheiros | Substituir `console.log` por logging condicional (`if (import.meta.env.DEV)`) |
-
----
-
-### Melhoria 2: Tratar Erros de Forma Consistente
-
-**Problema:**
-Alguns `catch` blocks apenas fazem `console.error` sem feedback ao utilizador.
-
-**Solucao:**
-Garantir que todos os erros mostram toast ao utilizador.
+#### Passo 3: Atualizar Mapeamento
+Após gerar imagens, atualizar `recipeImages.ts` para apontar para URLs do storage.
 
 ---
 
 ## Ficheiros a Modificar
 
-| Ficheiro | Prioridade | Descricao |
-|----------|------------|-----------|
-| `src/components/NotificationPreferences.tsx` | Alta | Status visual + auto-resubscribe |
-| `src/pages/ResetPassword.tsx` | Alta | Logs detalhados para debug |
-| `src/pages/MealPlanner.tsx` | Media | Fallback para idade do bebe |
-| `src/pages/Home.tsx` | Media | Fallbacks seguros para perfil |
-| `src/pages/Profile.tsx` | Media | GlassCard + animacoes |
-| `src/pages/Settings.tsx` | Media | GlassCard + animacoes |
-| `src/pages/FoodAnalyzer.tsx` | Baixa | GlassCard nos resultados |
-| `src/App.tsx` | Baixa | Lazy loading |
-| `src/hooks/usePushNotifications.tsx` | Alta | Auto-resubscribe |
-| `supabase/functions/check-meal-reminders/index.ts` | Alta | Alargar janela |
-
----
-
-## Ordem de Implementacao
-
-1. **Notificacoes** - Diagnostico visual + auto-resubscribe + janela maior (45 min)
-2. **Reset Senha** - Logs detalhados + verificar redirect URL (20 min)
-3. **MealPlanner** - Fallback para idade do bebe (10 min)
-4. **Home** - Fallbacks seguros (10 min)
-5. **Design Profile** - GlassCard + animacoes (30 min)
-6. **Design Settings** - GlassCard + animacoes (30 min)
-7. **Performance** - Lazy loading no App.tsx (20 min)
-8. **Seguranca** - Verificar RLS policies (15 min)
+| Ficheiro | Alteração | Prioridade |
+|----------|-----------|------------|
+| `src/components/home/AgeCategoryCircles.tsx` | Corrigir cor texto 12-18m | Alta |
+| `src/pages/Home.tsx` | Redesign premium completo | Alta |
+| `src/components/ui/emotional-header.tsx` | Mensagens mais emocionais | Média |
+| `src/components/home/DailyActionCard.tsx` | Efeitos visuais premium | Média |
+| `src/components/engagement/QuickCheckinWidget.tsx` | Botões mais vibrantes | Média |
+| `src/components/home/WeeklyProgressCard.tsx` | Animações de celebração | Média |
+| `src/data/recipeImages.ts` | Auditoria de duplicados | Baixa |
 
 ---
 
 ## Resultado Esperado
 
-Apos implementacao:
-- Notificacoes de refeicao com diagnostico visual claro
-- Reset de senha com logs para debug
-- App sem crashes com perfis incompletos
-- Design premium consistente em todas as paginas
-- Performance melhorada com lazy loading
-- Codigo limpo e seguro
-
----
-
-## Nota Tecnica: Sobre Notificacoes
-
-Os logs mostram que o sistema de notificacoes esta funcional:
-- `notification_logs` tem 23 entradas (notificacoes foram enviadas)
-- `push_subscriptions` tem 7 subscricoes activas
-- Cron job executa correctamente
-
-O problema principal e:
-1. Alguns utilizadores nao tem subscription (precisam reactivar em Settings)
-2. A janela de 20-40 min pode ser muito restritiva
-
-A solucao e alargar a janela e adicionar diagnostico visual para o utilizador saber se esta tudo configurado.
+Após implementação:
+- ✅ Texto "12-18 months" legível em cor preta
+- ✅ Home page emocionalmente impactante e premium
+- ✅ Animações suaves e celebrativas
+- ✅ Gradientes e efeitos glassmorphism consistentes
+- ✅ Cada receita com imagem única e apropriada
+- ✅ Conexão emocional forte entre mãe e app
 
