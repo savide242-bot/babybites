@@ -35,7 +35,7 @@ const ageCategories = [
     maxAge: 18,
     color: "from-mint to-mint/70",
     ringColor: "ring-mint",
-    textColor: "text-mint-foreground"
+    textColor: "text-foreground"
   },
   { 
     label: "18-24 months", 

@@ -73,22 +73,39 @@ const Home = () => {
 
   const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
+    const displayBabyName = babyName || "your little one";
+    
+    if (hour < 6) return { 
+      greeting: "Early riser", 
+      emotionalMessage: "You're amazing for being up early ✨",
+      emoji: "🌙"
+    };
     if (hour < 12) return { 
       greeting: "Good morning", 
-      emotionalMessage: "Start the day with love",
+      emotionalMessage: `${displayBabyName} is lucky to have you 💕`,
       emoji: "🌅"
+    };
+    if (hour < 15) return { 
+      greeting: "Hello sunshine", 
+      emotionalMessage: "You're doing incredible today 🌟",
+      emoji: "☀️"
     };
     if (hour < 18) return { 
       greeting: "Good afternoon", 
-      emotionalMessage: "You're doing amazing",
-      emoji: "☀️"
+      emotionalMessage: "Take a moment to breathe 💛",
+      emoji: "🌤️"
+    };
+    if (hour < 21) return { 
+      greeting: "Good evening", 
+      emotionalMessage: `Another beautiful day with ${displayBabyName} 💜`,
+      emoji: "🌆"
     };
     return { 
-      greeting: "Good evening", 
-      emotionalMessage: "Rest well tonight",
+      greeting: "Sweet dreams time", 
+      emotionalMessage: "Rest well, supermom 💫",
       emoji: "🌙"
     };
-  }, []);
+  }, [babyName]);
 
   // Get recipe of the day based on baby's age
   const recipeOfTheDay = useMemo(() => {
@@ -245,7 +262,12 @@ const Home = () => {
   const navRefs = (window as any).__tourNavRefs;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background pb-24 lg:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-peach/15 via-background to-mint/5 pb-24 lg:pb-8 relative overflow-hidden">
+      {/* Floating decorative orbs */}
+      <div className="absolute top-20 left-5 w-32 h-32 bg-primary/8 rounded-full blur-3xl animate-pulse pointer-events-none" />
+      <div className="absolute top-60 right-5 w-40 h-40 bg-gold/10 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-40 left-10 w-28 h-28 bg-mint/10 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
+      
       {/* Reward animation overlay */}
       <RewardComponent />
 
@@ -318,10 +340,18 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* Recipe of the Day */}
+        {/* Recipe of the Day - Premium with Glow */}
         {!isLoading && recipeOfTheDay && (
-          <motion.div variants={itemVariants} ref={recipeOfDayRef}>
-            <GlassCard variant="gold" glow>
+          <motion.div 
+            variants={itemVariants} 
+            ref={recipeOfDayRef}
+            className="relative"
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            {/* Glow effect behind card */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-gold/25 via-primary/15 to-gold/25 rounded-3xl blur-xl opacity-70 pointer-events-none" />
+            <GlassCard variant="gold" glow className="relative z-10">
               <DailyActionCard
                 recipeOfTheDay={recipeOfTheDay}
                 todayMeals={todayMeals}

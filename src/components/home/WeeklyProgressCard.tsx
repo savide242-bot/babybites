@@ -34,6 +34,17 @@ const WeeklyProgressCard = ({ streak, mealsThisWeek, babyName }: WeeklyProgressC
 
   return (
     <Card className="p-4 bg-gradient-to-br from-accent/10 via-card to-primary/5 border-accent/20 overflow-hidden relative">
+      {/* Fire celebration for streaks >= 7 */}
+      {isOnFire && (
+        <motion.div 
+          className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20"
+          animate={{ y: [0, -4, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <span className="text-2xl drop-shadow-lg">🔥</span>
+        </motion.div>
+      )}
+      
       {/* Animated background for legendary streaks */}
       {isLegendary && (
         <motion.div
