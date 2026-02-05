@@ -251,7 +251,18 @@ import chickenApplePattiesUnique from "@/assets/recipes/chicken-apple-patties-un
 import creamyVeggieRisottoUnique from "@/assets/recipes/creamy-veggie-risotto-unique.jpg";
 import strawberryBananaNicecreamUnique from "@/assets/recipes/strawberry-banana-nicecream-unique.jpg";
 
-// NEW AI-GENERATED UNIQUE IMAGES for recipes 101-150
+// NEW SOUP IMAGES - IDs 301-310
+import creamyCarrotGingerSoup from "@/assets/recipes/creamy-carrot-ginger-soup.jpg";
+import butternutSquashAppleSoup from "@/assets/recipes/butternut-squash-apple-soup.jpg";
+import redLentilVegetableSoup from "@/assets/recipes/red-lentil-vegetable-soup.jpg";
+import sweetPeaMintSoup from "@/assets/recipes/sweet-pea-mint-soup.jpg";
+import chickenVegetableBrothSoup from "@/assets/recipes/chicken-vegetable-broth-soup.jpg";
+import tomatoBasilBabySoup from "@/assets/recipes/tomato-basil-baby-soup.jpg";
+import creamyBroccoliCheeseSoup from "@/assets/recipes/creamy-broccoli-cheese-soup.jpg";
+import babyMinestroneSoup from "@/assets/recipes/baby-minestrone-soup.jpg";
+import spinachPotatoSoup from "@/assets/recipes/spinach-potato-soup.jpg";
+import nourishingChickenNoodleSoup from "@/assets/recipes/nourishing-chicken-noodle-soup.jpg";
+
 import rainbowVeggieFrittata from "@/assets/recipes/rainbow-veggie-frittata.jpg";
 import peachOatCrumble from "@/assets/recipes/peach-oat-crumble.jpg";
 import tunaWhiteBeanSalad from "@/assets/recipes/tuna-white-bean-salad.jpg";
@@ -711,6 +722,18 @@ const recipeImageMap: Record<string, string> = {
   "298": chickenApplePattiesUnique,
   "299": creamyVeggieRisottoUnique,
   "300": strawberryBananaNicecreamUnique,
+
+  // IDs 301-310 (recipes301-310.ts) - SOUP RECIPES
+  "301": creamyCarrotGingerSoup,
+  "302": butternutSquashAppleSoup,
+  "303": redLentilVegetableSoup,
+  "304": sweetPeaMintSoup,
+  "305": chickenVegetableBrothSoup,
+  "306": tomatoBasilBabySoup,
+  "307": creamyBroccoliCheeseSoup,
+  "308": babyMinestroneSoup,
+  "309": spinachPotatoSoup,
+  "310": nourishingChickenNoodleSoup,
 };
 
 // Keyword to ID mapping for backward compatibility

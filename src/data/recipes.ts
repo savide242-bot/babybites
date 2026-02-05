@@ -7,6 +7,7 @@ import { recipes201to205 } from "./recipes201-205";
 import { recipes206to238 } from "./recipes206-238";
 import { recipes239to271 } from "./recipes239-271";
 import { recipes272to300 } from "./recipes272-300";
+import { recipes301to310 } from "./recipes301-310";
 
 export interface Recipe {
   id: string;
@@ -34,7 +35,7 @@ export interface Recipe {
 }
 
 export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months"];
-export const categories = ["All Categories", "Puree", "Finger Food", "Breakfast", "Lunch", "Dinner", "Snack"];
+export const categories = ["All Categories", "Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
 
 // Helper function to add default fields to recipes
 const addDefaultFields = (recipe: any): Recipe => {
@@ -44,11 +45,15 @@ const addDefaultFields = (recipe: any): Recipe => {
   if (!recipe.servingGuidance) {
     const servingsByCategory: { [key: string]: string } = {
       'Puree': 'Serve 2-4 tablespoons per meal, 1-2 times daily. Best offered at lunch or dinner, 3-4 times per week.',
-      'Breakfast': 'Serve 1 portion per breakfast, 3-5 times per week. Can also be offered as a substantial mid-morning snack.',
-      'Lunch': 'Serve 1 portion at lunchtime, 3-4 times weekly. Pair with vegetables or fruits for a complete meal.',
-      'Dinner': 'Serve 1 portion at dinner, 3-4 times weekly. Combine with other food groups for balanced nutrition.',
-      'Snack': 'Serve 1-2 pieces as a snack, 2-3 times daily between meals. Perfect for maintaining energy levels.',
-      'Finger Food': 'Serve 3-5 pieces per meal, 2-3 times daily. Great for developing self-feeding skills and hand-eye coordination.'
+      'Mash': 'Serve 3-5 tablespoons per meal, 1-2 times daily. Perfect for transitioning from smooth purees to more texture.',
+      'Soup': 'Serve 1/4 to 1/2 cup warm (not hot), 1-2 times daily. Perfect for hydration and easy digestion. Great for lunch or dinner.',
+      'Finger Food': 'Serve 3-5 pieces per meal, 2-3 times daily. Great for developing self-feeding skills and hand-eye coordination.',
+      'Porridge': 'Serve 1/2 cup per breakfast, 3-5 times weekly. Excellent source of sustained energy for growing babies.',
+      'Pancakes': 'Serve 2-4 small pancakes per meal. Perfect for breakfast or snacks. Can be made ahead and frozen.',
+      'Pasta': 'Serve 1/2 to 1 cup per meal, 2-3 times weekly. Great source of energy and pairs well with vegetables.',
+      'Bowl': 'Serve 1/2 to 1 cup per meal. Complete meals with grains, proteins, and vegetables combined.',
+      'Bites': 'Serve 2-4 pieces as a snack, 2-3 times daily between meals. Perfect for energy and self-feeding practice.',
+      'Smoothie': 'Serve 1/2 cup per serving, 1-2 times daily. Great for hydration and sneaking in extra fruits and veggies.'
     };
     recipe.servingGuidance = servingsByCategory[recipe.category] || 'Serve appropriate portion sizes based on your baby\'s age and appetite, 2-3 times per week.';
   }
@@ -1121,7 +1126,7 @@ export const recipes: Recipe[] = [
   },
   
   
-  // Import all additional recipes (recipes 44-300)
+  // Import all additional recipes (recipes 44-310)
   ...additionalRecipes,
   ...recipes47to100,
   ...recipes101to150,
@@ -1130,4 +1135,5 @@ export const recipes: Recipe[] = [
   ...recipes206to238,
   ...recipes239to271,
   ...recipes272to300,
+  ...recipes301to310,
 ].map(addDefaultFields);

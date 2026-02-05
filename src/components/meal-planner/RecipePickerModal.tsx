@@ -31,6 +31,10 @@ const mealTypeConfig: Record<string, { gradient: string; icon: string }> = {
 
 const quickFilters = [
   { id: "quick", label: "⚡ Quick (<20min)", filter: (r: any) => parseInt(r.prepTime) <= 20 },
+  { id: "puree", label: "🥣 Purees", filter: (r: any) => r.category === "Puree" },
+  { id: "soup", label: "🍲 Soups", filter: (r: any) => r.category === "Soup" },
+  { id: "finger", label: "🖐️ Finger Foods", filter: (r: any) => r.category === "Finger Food" },
+  { id: "pasta", label: "🍝 Pasta", filter: (r: any) => r.category === "Pasta" },
   { id: "vegetarian", label: "🥬 Vegetarian", filter: (r: any) => getRecipeDietaryTags(r.id).includes("vegetarian") },
   { id: "dairy-free", label: "🥛 Dairy-Free", filter: (r: any) => getRecipeDietaryTags(r.id).includes("dairy-free") },
   { id: "nut-free", label: "🥜 Nut-Free", filter: (r: any) => getRecipeDietaryTags(r.id).includes("nut-free") }
