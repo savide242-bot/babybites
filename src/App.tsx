@@ -40,6 +40,7 @@ const ProgressReports = lazy(() => import("./pages/ProgressReports"));
 const ShoppingList = lazy(() => import("./pages/ShoppingList"));
 const Favorites = lazy(() => import("./pages/Favorites"));
 const Admin = lazy(() => import("./pages/Admin"));
+const AdminRecipeImages = lazy(() => import("./pages/AdminRecipeImages"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const Profile = lazy(() => import("./pages/Profile"));
 const FoodDiary = lazy(() => import("./pages/FoodDiary"));
@@ -126,6 +127,7 @@ const AppContent = () => {
           <Route path="/reports" element={<ProgressReports />} />
           <Route path="/shopping" element={<ShoppingList />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/recipe-images" element={<AdminRecipeImages />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/food-diary" element={<FoodDiary />} />

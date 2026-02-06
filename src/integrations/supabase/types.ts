@@ -938,6 +938,27 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_image_overrides: {
+        Row: {
+          created_at: string
+          image_url: string
+          recipe_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          image_url: string
+          recipe_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          image_url?: string
+          recipe_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recipe_views: {
         Row: {
           id: string
