@@ -1,304 +1,208 @@
 
-
-# Plano de Melhorias Visuais e Correção do BabyBites
-
-## Resumo das 3 Tarefas
-
-| Tarefa | Problema Identificado | Solução |
-|--------|----------------------|---------|
-| **1. Cor do texto 12-18 months** | `text-mint-foreground` é branco (0 0% 100%) | Mudar para `text-foreground` (cor preta legível) |
-| **2. Home Page Premium** | Design funcional mas não espetacular | Redesign completo com conexão emocional forte |
-| **3. Imagens de Receitas** | 348 imagens locais já existem; bucket storage vazio | Verificar mapeamento e garantir cada receita tem imagem única |
+## Goal (what will change)
+1) **All existing recipes** will use **food-type categories** (Puree, Soup, Finger Food, Pasta, Bowl, etc.) — **no more Breakfast/Lunch/Dinner/Snack as categories**.  
+2) **Recipe images will stop repeating** due to mapping/fallback issues, and we’ll add a **systematic “detect duplicates → regenerate → permanently fix”** pipeline so this doesn’t keep coming back.
 
 ---
 
-## Tarefa 1: Corrigir Cor do Texto "12-18 months"
+## Why you’re still seeing duplicated images (root causes)
+Even though `recipeImageMap` exists, **some recipes still choose images using non-ID keywords** (example in `src/data/recipes.ts`: `getRecipeImage(["tropical"])`, `getRecipeImage(["egg"])`, etc.).  
+When an ID is not included, `getRecipeImage()` can:
+- map multiple recipes to the same keyword-based ID, or
+- fall back to a **hash-based fallbackId**, which inevitably creates collisions over time.
 
-### Problema
-No ficheiro `src/components/home/AgeCategoryCircles.tsx`, a categoria "12-18 months" usa `text-mint-foreground` que está definido como branco no CSS (`--mint-foreground: 0 0% 100%`), tornando o texto invisível sobre fundo claro.
-
-### Solução
-Mudar a cor do texto para `text-foreground` (preto/escuro) que é legível:
-
-```typescript
-// Linha 38 em AgeCategoryCircles.tsx
-// DE:
-textColor: "text-mint-foreground"
-
-// PARA:
-textColor: "text-foreground"
-```
-
-**Alternativa ainda melhor**: Usar uma cor mais escura do mint para contraste:
-
-```typescript
-textColor: "text-emerald-700" // ou criar uma variável CSS nova
-```
+That’s why you “see one or two recipes” with the same image: it’s not a manual mistake — it’s the current selection method allowing collisions.
 
 ---
 
-## Tarefa 2: Redesign Premium da Home Page
+## Deliverable A — Reclassify 300 recipes to food-type categories (without editing 300 entries manually)
+### Strategy
+Instead of editing every recipe file (risky and slow), we’ll do **central normalization** in `src/data/recipes.ts` when exporting the final `recipes[]`.
 
-### Visão Geral
-Transformar a Home numa experiência emocional espetacular que cria conexão profunda com as mães.
+### Changes
+1) **Extend the recipe model**
+- Add a new optional field like:
+  - `mealTime?: "Breakfast" | "Lunch" | "Dinner" | "Snack"` (metadata only; not used as category)
+- Keep `category` as the **food type** used by filters.
 
-### Componentes a Melhorar
+2) **Create a food-type inference function**
+In `src/data/recipes.ts`, implement:
+- `inferFoodTypeCategory(recipe): string`
+  - Uses robust English keyword heuristics from `recipe.title`, `recipe.description`, and `recipe.ingredients`.
 
-#### 2.1 Fundo e Atmosfera
-```typescript
-// ATUAL:
-<div className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background">
+Example rules (high-level):
+- If title contains: `soup | broth | chowder | stew | minestrone` → `Soup`
+- `puree` → `Puree`
+- `mash | mashed` → `Mash`
+- `porridge | oatmeal | congee | rice pudding` → `Porridge`
+- `pancake | waffle` → `Pancakes`
+- `pasta | noodle | macaroni | lasagna | gnocchi` → `Pasta`
+- `smoothie | lassi` → `Smoothie`
+- `bites | balls | cookies | muffins | popsicles | bark` → `Bites`
+- `fingers | tots | patties | quesadilla | wedges | sticks | pizza | tacos | pinwheels` → `Finger Food`
+- Otherwise: `Bowl` (default for “mixed meals” like rice/quinoa/risotto/couscous dishes)
 
-// NOVO: Gradiente mais rico e emocional
-<div className="min-h-screen bg-gradient-to-br from-peach/20 via-background to-soft-blue/10 relative overflow-hidden">
-  {/* Decorative floating orbs */}
-  <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-float" />
-  <div className="absolute bottom-40 right-10 w-40 h-40 bg-gold/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}} />
-```
+3) **Normalize every recipe at export time**
+When building the final exported array, apply:
+- `normalizeRecipe()` before `addDefaultFields()`, so every recipe ends up with a valid food-type `category`.
 
-#### 2.2 Emotional Header Melhorado
-Adicionar mais personalização e empatia:
+This will reclassify all imported shards:
+- `additionalRecipes.ts`
+- `recipes47-100.ts`
+- `recipes101-150.ts`
+- `recipes151-200.ts`
+- `recipes201-205.ts`
+- `recipes206-238.ts`
+- `recipes239-271.ts`
+- `recipes272-300.ts`
+- `recipes301-310.ts`
 
-```typescript
-// Mensagens mais emocionais baseadas na hora do dia
-const getEmotionalContent = () => {
-  const hour = new Date().getHours();
-  if (hour < 6) return { 
-    greeting: "Early riser", 
-    message: "You're amazing for being up early",
-    emoji: "🌙✨"
-  };
-  if (hour < 12) return { 
-    greeting: "Good morning", 
-    message: `${babyName} is lucky to have you`,
-    emoji: "🌅💕"
-  };
-  if (hour < 15) return { 
-    greeting: "Hello sunshine", 
-    message: "You're doing incredible today",
-    emoji: "☀️🌟"
-  };
-  if (hour < 18) return { 
-    greeting: "Good afternoon", 
-    message: "Take a moment to breathe",
-    emoji: "🌤️💛"
-  };
-  if (hour < 21) return { 
-    greeting: "Good evening", 
-    message: "Another beautiful day with your little one",
-    emoji: "🌆💜"
-  };
-  return { 
-    greeting: "Sweet dreams time", 
-    message: "Rest well, supermom",
-    emoji: "🌙💫"
-  };
-};
-```
+4) **Update any UI logic that still assumes old categories**
+At minimum:
+- `src/pages/FirstDay.tsx` currently sorts by `["Puree", "Breakfast"]`, `["Finger Food","Lunch","Dinner"]`, etc.  
+  We’ll update that to prefer food types (example):
+  - <9 months: `["Puree","Mash","Soup"]`
+  - 9–12: `["Finger Food","Puree","Mash","Soup"]`
+  - 12+: `["Finger Food","Bowl","Pasta","Soup","Bites","Smoothie"]`
 
-#### 2.3 Cards com Mais Impacto Visual
+Also update:
+- `src/utils/mealPlanGenerator.ts` mapping that currently references meal-time categories.
 
-**Recipe of the Day** - Adicionar efeito de destaque:
-```typescript
-<motion.div 
-  className="relative"
-  whileHover={{ scale: 1.02 }}
->
-  {/* Glow effect behind card */}
-  <div className="absolute -inset-1 bg-gradient-to-r from-gold/30 via-primary/20 to-gold/30 rounded-3xl blur-xl opacity-60" />
-  
-  <GlassCard variant="gold" glow className="relative z-10">
-    {/* Sparkle decoration */}
-    <motion.div 
-      className="absolute -top-2 -right-2"
-      animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-      transition={{ duration: 3, repeat: Infinity }}
-    >
-      <Sparkles className="w-6 h-6 text-gold" />
-    </motion.div>
-    <DailyActionCard ... />
-  </GlassCard>
-</motion.div>
-```
-
-#### 2.4 Quick Check-in com Mais Emoção
-
-Adicionar ícones animados e cores mais vibrantes:
-```typescript
-// Botões com gradientes e animações
-<motion.button
-  className="flex-1 relative overflow-hidden rounded-2xl bg-gradient-to-br from-mint/20 via-mint/10 to-secondary/10 border-2 border-mint/30"
-  whileHover={{ 
-    scale: 1.05, 
-    boxShadow: "0 8px 30px hsl(var(--mint) / 0.3)" 
-  }}
-  whileTap={{ scale: 0.95 }}
->
-  {/* Shimmer effect on hover */}
-  <motion.div 
-    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-    animate={{ x: [-200, 200] }}
-    transition={{ duration: 2, repeat: Infinity }}
-  />
-  ...
-</motion.button>
-```
-
-#### 2.5 Weekly Progress com Celebração Visual
-
-Adicionar animações de conquista:
-```typescript
-// Quando streak é alto, mostrar efeito de fogo
-{currentStreak >= 7 && (
-  <motion.div 
-    className="absolute -top-4 left-1/2 transform -translate-x-1/2"
-    animate={{ 
-      y: [0, -5, 0], 
-      scale: [1, 1.1, 1] 
-    }}
-    transition={{ duration: 1, repeat: Infinity }}
-  >
-    <span className="text-3xl">🔥</span>
-  </motion.div>
-)}
-```
-
-#### 2.6 Age Category Circles Premium
-
-Tornar mais atraente e interativo:
-```typescript
-// Adicionar gradiente de fundo animado
-<div className="relative py-4">
-  {/* Decorative line */}
-  <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
-  
-  {/* Circles com sombra colorida */}
-  <motion.div
-    className={`w-18 h-18 rounded-full flex items-center justify-center shadow-[0_8px_30px_-4px_hsl(var(--${color})/0.4)]`}
-  >
-```
-
-### Estrutura Visual Proposta
-
-```
-┌─────────────────────────────────────┐
-│  🌅 Good morning, Maria! 💕        │
-│  Sofia is lucky to have you        │
-│  ┌──────────────────────┐          │
-│  │ 🔥 7 days streak!   │          │
-│  └──────────────────────┘          │
-├─────────────────────────────────────┤
-│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐  │
-│  │ 🥣  │ │ 🥕  │ │ 🍝  │ │ 🥗  │  │ ← Age Categories
-│  │6-9m │ │9-12m│ │12-18│ │18-24│  │
-│  └─────┘ └─────┘ └─────┘ └─────┘  │
-├─────────────────────────────────────┤
-│  ✨ Recipe of the Day              │
-│  ┌─────────────────────────────┐   │
-│  │ 📸 [Beautiful Food Photo]  │   │
-│  │ "Spinach & Apple Surprise"  │   │
-│  │ ⏱️ 15 min • 🥗 Healthy     │   │
-│  │      [ Cook for Sofia 👶 ]  │   │
-│  └─────────────────────────────┘   │
-├─────────────────────────────────────┤
-│  💚 How did Sofia eat today?       │
-│  ┌─────┐  ┌─────┐  ┌─────┐        │
-│  │ ✓  │  │ ✗  │  │ ✨ │        │
-│  │Ate  │  │Rejec│  │New!│        │
-│  │Well │  │ted  │  │    │        │
-│  └─────┘  └─────┘  └─────┘        │
-├─────────────────────────────────────┤
-│  📊 Weekly Progress                 │
-│  ┌─────────────────────────────┐   │
-│  │ 🔥 7 Days  │  🏆 450 pts   │   │
-│  │ ⭐ One week on fire!       │   │
-│  │ ┌────────────────┐         │   │
-│  │ │ 🍽️ 12/14 meals │         │   │
-│  │ └────────────────┘         │   │
-│  └─────────────────────────────┘   │
-└─────────────────────────────────────┘
-```
+### Result
+- Filters in `Recipes` will finally be consistent because **all 300+ recipes will have category values from the same food-type taxonomy**.
 
 ---
 
-## Tarefa 3: Verificar e Corrigir Imagens de Receitas
+## Deliverable B — Fix duplicated recipe images permanently (not “today it’s fixed, tomorrow it’s broken”)
+### Strategy (two-layer protection)
+1) **Stop collisions at the source**: enforce **ID-based image selection everywhere**.
+2) **Add an automated repair system**: detect duplicates → regenerate only the needed images → serve overrides from backend storage.
 
-### Estado Atual
-- **348 imagens** existem em `src/assets/recipes/`
-- **300 receitas** precisam de imagens únicas
-- `recipeImageMap` mapeia IDs 1-300 para imagens
-- Bucket `recipe-images` está **vazio** (0 imagens armazenadas)
-- Função `generate-recipe-image` existe e funciona com Lovable AI
+### Step 1 — Enforce ID-based images everywhere
+1) In `src/data/recipes.ts` normalization:
+- Override image assignment to always be ID-based:
+  - `recipe.image = getRecipeImageById(recipe.id)`
+This eliminates all keyword/fallback collisions in the recipe list used by:
+- `src/pages/Recipes.tsx`
+- `src/pages/RecipeDetail.tsx`
+- `src/pages/Favorites.tsx`
 
-### Problema Potencial
-Algumas receitas podem estar a usar a mesma imagem (fallback para `sweetPotatoCarrot`) se o mapeamento falhar.
+2) Update other components still computing images ad-hoc:
+- `src/components/meal-planner/MealCard.tsx` uses `getRecipeImage([recipe.id, recipe.title])`.  
+  We’ll switch it to `getRecipeImageById(recipe.id)` for consistency and to avoid any future regressions.
 
-### Solução
+### Step 2 — Add a “duplicate detection + auto-fix” pipeline
+Because you’re also describing the case “two different IDs but same visual image”, we need detection that goes beyond just comparing URLs.
 
-#### Passo 1: Auditar Mapeamento
-Verificar se todas as 300 receitas têm imagem única no `recipeImageMap`:
+We’ll implement:
 
-```typescript
-// Criar função de auditoria temporária
-const auditImages = () => {
-  const usedImages = new Set();
-  const duplicates: string[] = [];
-  
-  for (const [id, image] of Object.entries(recipeImageMap)) {
-    if (usedImages.has(image)) {
-      duplicates.push(`ID ${id} uses duplicate image`);
-    }
-    usedImages.add(image);
-  }
-  
-  console.log(`Unique images: ${usedImages.size}/300`);
-  console.log(`Duplicates: ${duplicates.length}`);
-};
-```
+#### 2.1 Backend: a small table for overrides
+Create a table (via migration):
+- `recipe_image_overrides`
+  - `recipe_id text primary key`
+  - `image_url text not null`
+  - `updated_at timestamptz default now()`
+  - `created_at timestamptz default now()`
 
-#### Passo 2: Gerar Imagens em Falta
-Para receitas sem imagem única, usar a edge function `generate-recipe-image`:
+Policies:
+- Authenticated users: **read** (so the app can display overrides)
+- Writes: **only via backend function** (service role), not from the client
 
-```typescript
-// Chamar para cada receita sem imagem
-const generateMissingImages = async (recipeId: string, title: string, ingredients: string[]) => {
-  const response = await supabase.functions.invoke('generate-recipe-image', {
-    body: { recipeId, recipeTitle: title, ingredients }
-  });
-  
-  if (response.data?.imageUrl) {
-    // Imagem gerada e armazenada no bucket
-    console.log(`Generated: ${title}`);
-  }
-};
-```
+#### 2.2 Backend function: regenerate images for selected recipes
+Create a backend function (edge function) like:
+- `fix-recipe-images`
+Input:
+- `recipes: Array<{ id: string; title: string; ingredients: string[] }>`
+- `maxCount?: number` safety limit
 
-#### Passo 3: Atualizar Mapeamento
-Após gerar imagens, atualizar `recipeImages.ts` para apontar para URLs do storage.
+Behavior:
+- For each recipe:
+  - Generate a new high-quality image prompt that explicitly matches the recipe title + top ingredients
+  - Generate image (Lovable AI image model)
+  - Upload to file storage bucket using a deterministic filename:
+    - `recipe-{id}.png` (upsert true)
+  - Save public URL in `recipe_image_overrides` (upsert)
+
+This gives you a permanent, centrally managed “correct image per recipe”.
+
+#### 2.3 Frontend: automatic duplicate detector (admin tool)
+Add an internal page/tool (admin-only or hidden route) that:
+- Loads all recipes
+- Loads the final resolved image for each recipe (override if exists, else default)
+- Downloads images and computes **SHA-256 hash of bytes** in the browser (`crypto.subtle.digest`)
+- Detects **exact duplicates** even if filenames differ
+- Shows groups like:
+  - “Hash XYZ used by recipes: 88, 142, 170”
+- Button: “Fix duplicates automatically”
+  - Sends all but one ID from each duplicate group to `fix-recipe-images`
+
+This is the missing piece that makes it feel like “the app can finally identify duplicates and repair them”.
+
+#### 2.4 Use overrides everywhere images are rendered
+Create a small hook:
+- `useRecipeImageOverrides()` → returns `{[recipeId]: imageUrl}`
+Then introduce a single helper/component:
+- `<RecipeImage recipeId fallbackSrc alt className />`
+So all screens become consistent:
+- Recipes grid
+- Recipe detail
+- Favorites
+- Meal planner cards
+- FirstDay page cards (it currently uses `getRecipeImageById()` already in one place; we’ll unify)
+
+### Result
+- Even if any local asset duplication exists, overrides will replace it.
+- You can repair future duplicates in minutes, not weeks.
 
 ---
 
-## Ficheiros a Modificar
+## Quality controls (to ensure “super functional and no bugs”)
+1) **Category coverage check**
+- Add a dev-only console report (or small internal UI widget) showing:
+  - counts per category
+  - categories with 0 recipes (must be none)
 
-| Ficheiro | Alteração | Prioridade |
-|----------|-----------|------------|
-| `src/components/home/AgeCategoryCircles.tsx` | Corrigir cor texto 12-18m | Alta |
-| `src/pages/Home.tsx` | Redesign premium completo | Alta |
-| `src/components/ui/emotional-header.tsx` | Mensagens mais emocionais | Média |
-| `src/components/home/DailyActionCard.tsx` | Efeitos visuais premium | Média |
-| `src/components/engagement/QuickCheckinWidget.tsx` | Botões mais vibrantes | Média |
-| `src/components/home/WeeklyProgressCard.tsx` | Animações de celebração | Média |
-| `src/data/recipeImages.ts` | Auditoria de duplicados | Baixa |
+2) **Image uniqueness check**
+- Dev-only report:
+  - duplicates by src string (fast)
+  - duplicates by SHA-256 hash (accurate)
+
+3) **End-to-end verification checklist**
+- Recipes page: filter each category and confirm it returns matching recipes
+- Meal Planner: ensure meal plan generation still works and picks sensible types
+- Favorites + Recipe detail: images remain consistent and correct
 
 ---
 
-## Resultado Esperado
+## Files we will touch (high confidence list)
+### Category normalization
+- `src/data/recipes.ts` (normalization + inference + mealTime metadata)
+- `src/pages/FirstDay.tsx` (remove old preferredCategories)
+- `src/utils/mealPlanGenerator.ts` (remove old category references; use food types)
 
-Após implementação:
-- ✅ Texto "12-18 months" legível em cor preta
-- ✅ Home page emocionalmente impactante e premium
-- ✅ Animações suaves e celebrativas
-- ✅ Gradientes e efeitos glassmorphism consistentes
-- ✅ Cada receita com imagem única e apropriada
-- ✅ Conexão emocional forte entre mãe e app
+### Image correctness + repair pipeline
+- `src/components/meal-planner/MealCard.tsx` (use ID-based image)
+- `src/pages/Recipes.tsx`, `src/pages/RecipeDetail.tsx`, `src/pages/Favorites.tsx` (render via resolved image)
+- Add new backend function: `supabase/functions/fix-recipe-images/index.ts`
+- Add new internal UI: `src/pages/AdminRecipeImages.tsx` (or similar)
+- Add override-fetch hook: `src/hooks/useRecipeImageOverrides.ts`
+- Database migration: create `recipe_image_overrides` + RLS
 
+---
+
+## Implementation order (so we stabilize quickly)
+1) Enforce ID-based image selection in recipe export + key UI points (immediate win)
+2) Add category normalization in `recipes.ts` (filters become correct without rewriting 300 recipes)
+3) Update FirstDay + mealPlanGenerator to align with new taxonomy
+4) Add overrides table + `fix-recipe-images` backend function
+5) Add duplicate detector tool and run one clean-up batch
+6) Final E2E testing on Recipes filters + Meal Planner + Favorites + Recipe detail
+
+---
+
+## What I need from you (one quick decision)
+- Should the “duplicate repair tool” be:
+  1) **Admin-only page** (recommended), or
+  2) Hidden behind a secret key/gesture inside Settings?
+
+If you approve this approach, I’ll implement it in a way that fixes today’s duplicates and prevents them from returning.
