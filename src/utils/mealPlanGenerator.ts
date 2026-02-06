@@ -40,18 +40,19 @@ const getRecipesForAge = (ageMonths: number) => {
   });
 };
 
-// Get recipes by meal type preference
+// Get recipes by meal type preference using FOOD-TYPE categories
 const getRecipesByMealType = (mealType: string, ageMonths: number) => {
   const ageRecipes = getRecipesForAge(ageMonths);
   
-  const mealTypeMapping: { [key: string]: string[] } = {
-    breakfast: ["Breakfast", "Puree", "Snack"],
-    lunch: ["Lunch", "Dinner", "Finger Food"],
-    dinner: ["Dinner", "Lunch", "Finger Food"],
-    snack: ["Snack", "Puree", "Breakfast"],
+  // Map meal times to preferred food-type categories
+  const mealTypeToFoodTypes: { [key: string]: string[] } = {
+    breakfast: ["Porridge", "Pancakes", "Smoothie", "Bowl", "Puree"],
+    lunch: ["Bowl", "Pasta", "Soup", "Finger Food", "Mash"],
+    dinner: ["Bowl", "Pasta", "Soup", "Finger Food", "Mash"],
+    snack: ["Bites", "Smoothie", "Puree", "Finger Food"],
   };
   
-  const preferredCategories = mealTypeMapping[mealType] || ["Lunch"];
+  const preferredFoodTypes = mealTypeToFoodTypes[mealType] || ["Bowl"];
   
   // Score recipes by relevance
   return ageRecipes
@@ -60,21 +61,24 @@ const getRecipesByMealType = (mealType: string, ageMonths: number) => {
       const title = recipe.title.toLowerCase();
       const category = recipe.category;
       
-      // Category matching
-      preferredCategories.forEach((cat, idx) => {
-        if (category === cat) {
-          score += (4 - idx) * 2;
+      // Category matching (using food types)
+      preferredFoodTypes.forEach((foodType, idx) => {
+        if (category === foodType) {
+          score += (6 - idx) * 2; // Higher weight for better matches
         }
       });
       
-      // Meal type specific boosts
+      // Meal type specific keyword boosts
       if (mealType === "breakfast") {
-        if (title.includes("pancake") || title.includes("oatmeal") || title.includes("egg") || title.includes("porridge")) score += 3;
+        if (title.includes("pancake") || title.includes("oatmeal") || title.includes("egg") || 
+            title.includes("porridge") || title.includes("waffle") || title.includes("french toast")) score += 3;
       } else if (mealType === "lunch" || mealType === "dinner") {
         if (title.includes("chicken") || title.includes("salmon") || title.includes("beef") || 
-            title.includes("turkey") || title.includes("pasta") || title.includes("rice")) score += 3;
+            title.includes("turkey") || title.includes("pasta") || title.includes("rice") ||
+            title.includes("soup") || title.includes("stew") || title.includes("bowl")) score += 3;
       } else if (mealType === "snack") {
-        if (title.includes("puree") || title.includes("fruit") || title.includes("yogurt") || title.includes("banana")) score += 3;
+        if (title.includes("bites") || title.includes("balls") || title.includes("smoothie") || 
+            title.includes("fruit") || title.includes("yogurt") || title.includes("cookies")) score += 3;
       }
       
       return { recipe, score };

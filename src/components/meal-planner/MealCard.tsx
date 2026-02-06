@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, X, Edit2, Clock, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getRecipeImage } from "@/data/recipeImages";
+import { getRecipeImageById } from "@/data/recipeImages";
 
 interface Recipe {
   id: string;
@@ -88,7 +88,7 @@ export const MealCard = ({
     );
   }
 
-  const recipeImage = getRecipeImage([recipe.id, recipe.title]);
+  const recipeImage = getRecipeImageById(recipe.id);
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't navigate if clicking on action buttons

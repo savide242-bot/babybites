@@ -1,4 +1,4 @@
-import { getRecipeImage } from "./recipeImages";
+import { getRecipeImage, getRecipeImageById } from "./recipeImages";
 import { additionalRecipes } from "./additionalRecipes";
 import { recipes47to100 } from "./recipes47-100";
 import { recipes101to150 } from "./recipes101-150";
@@ -15,6 +15,7 @@ export interface Recipe {
   description: string;
   ageGroup: string;
   category: string;
+  mealTime?: "Breakfast" | "Lunch" | "Dinner" | "Snack"; // Metadata only, not used for filters
   prepTime: string;
   servings: string;
   image: string;
@@ -37,12 +38,86 @@ export interface Recipe {
 export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months"];
 export const categories = ["All Categories", "Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
 
+// Infer food-type category from recipe content
+const inferFoodTypeCategory = (recipe: any): string => {
+  const title = (recipe.title || "").toLowerCase();
+  const description = (recipe.description || "").toLowerCase();
+  const ingredients = (recipe.ingredients || []).join(" ").toLowerCase();
+  const combined = `${title} ${description} ${ingredients}`;
+  
+  // Priority-ordered matching rules
+  if (/soup|broth|chowder|stew|minestrone|bisque/.test(title)) return "Soup";
+  if (/puree|purée|puréed|blended smooth/.test(title)) return "Puree";
+  if (/mash|mashed/.test(title)) return "Mash";
+  if (/porridge|oatmeal|congee|rice pudding|overnight oats/.test(title)) return "Porridge";
+  if (/pancake|waffle|fritter/.test(title)) return "Pancakes";
+  if (/pasta|noodle|macaroni|lasagna|gnocchi|spaghetti|penne|fusilli/.test(title)) return "Pasta";
+  if (/smoothie|lassi|shake/.test(title)) return "Smoothie";
+  if (/bites?|balls?|cookies?|muffins?|popsicles?|bark|energy/.test(title)) return "Bites";
+  if (/fingers?|tots?|patties|quesadilla|wedges|sticks|pizza|tacos?|pinwheels?|toast|frittata|omelette|omelet|scrambled/.test(title)) return "Finger Food";
+  
+  // Secondary checks on description/ingredients
+  if (/smooth puree|silky smooth|completely smooth/.test(combined)) return "Puree";
+  if (/chunky|mashed|fork-mashed/.test(combined)) return "Mash";
+  if (/oats|porridge|cereal/.test(combined) && /breakfast/.test(combined)) return "Porridge";
+  if (/self-feeding|finger food|pick up/.test(combined)) return "Finger Food";
+  
+  // Check existing category if it's valid
+  const existingCategory = recipe.category;
+  const validFoodTypes = ["Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
+  if (validFoodTypes.includes(existingCategory)) {
+    return existingCategory;
+  }
+  
+  // Map old meal-time categories to likely food types
+  if (existingCategory === "Breakfast") {
+    if (/pancake|waffle/.test(title)) return "Pancakes";
+    if (/oatmeal|porridge|cereal/.test(title)) return "Porridge";
+    if (/smoothie/.test(title)) return "Smoothie";
+    return "Bowl"; // Default breakfast like eggs, etc.
+  }
+  if (existingCategory === "Snack") {
+    if (/puree|fruit/.test(title)) return "Puree";
+    if (/bites?|balls?|cookies?/.test(title)) return "Bites";
+    if (/smoothie/.test(title)) return "Smoothie";
+    return "Bites"; // Default snack
+  }
+  if (existingCategory === "Lunch" || existingCategory === "Dinner") {
+    if (/pasta|noodle/.test(title)) return "Pasta";
+    if (/soup|stew/.test(title)) return "Soup";
+    if (/fingers?|patties|wedges/.test(title)) return "Finger Food";
+    return "Bowl"; // Default main meal
+  }
+  
+  // Final fallback: Bowl (mixed meals)
+  return "Bowl";
+};
+
+// Normalize recipe to use food-type category and ID-based image
+const normalizeRecipe = (recipe: any): any => {
+  const normalizedCategory = inferFoodTypeCategory(recipe);
+  
+  // Store original category as mealTime if it was a meal-time category
+  const mealTimeCategories = ["Breakfast", "Lunch", "Dinner", "Snack"];
+  const mealTime = mealTimeCategories.includes(recipe.category) ? recipe.category : undefined;
+  
+  return {
+    ...recipe,
+    category: normalizedCategory,
+    mealTime: mealTime || recipe.mealTime,
+    image: getRecipeImageById(recipe.id), // ALWAYS use ID-based image lookup
+  };
+};
+
 // Helper function to add default fields to recipes
 const addDefaultFields = (recipe: any): Recipe => {
-  if (!recipe.healthBenefits) {
-    recipe.healthBenefits = `This nutritious ${recipe.category.toLowerCase()} is specially designed for babies aged ${recipe.ageGroup}. It provides essential nutrients for healthy growth and development, supporting your baby's immune system, brain function, and overall well-being. The carefully selected ingredients ensure optimal nutrition while being gentle on your baby's developing digestive system.`;
+  // First normalize the recipe
+  const normalized = normalizeRecipe(recipe);
+  
+  if (!normalized.healthBenefits) {
+    normalized.healthBenefits = `This nutritious ${normalized.category.toLowerCase()} is specially designed for babies aged ${normalized.ageGroup}. It provides essential nutrients for healthy growth and development, supporting your baby's immune system, brain function, and overall well-being. The carefully selected ingredients ensure optimal nutrition while being gentle on your baby's developing digestive system.`;
   }
-  if (!recipe.servingGuidance) {
+  if (!normalized.servingGuidance) {
     const servingsByCategory: { [key: string]: string } = {
       'Puree': 'Serve 2-4 tablespoons per meal, 1-2 times daily. Best offered at lunch or dinner, 3-4 times per week.',
       'Mash': 'Serve 3-5 tablespoons per meal, 1-2 times daily. Perfect for transitioning from smooth purees to more texture.',
@@ -55,9 +130,9 @@ const addDefaultFields = (recipe: any): Recipe => {
       'Bites': 'Serve 2-4 pieces as a snack, 2-3 times daily between meals. Perfect for energy and self-feeding practice.',
       'Smoothie': 'Serve 1/2 cup per serving, 1-2 times daily. Great for hydration and sneaking in extra fruits and veggies.'
     };
-    recipe.servingGuidance = servingsByCategory[recipe.category] || 'Serve appropriate portion sizes based on your baby\'s age and appetite, 2-3 times per week.';
+    normalized.servingGuidance = servingsByCategory[normalized.category] || 'Serve appropriate portion sizes based on your baby\'s age and appetite, 2-3 times per week.';
   }
-  return recipe as Recipe;
+  return normalized as Recipe;
 };
 
 export const recipes: Recipe[] = [

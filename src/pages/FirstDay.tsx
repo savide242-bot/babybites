@@ -187,13 +187,17 @@ const FirstDay = () => {
 
     const ageFilteredRecipes = recipes.filter(r => r.ageGroup === targetAgeGroup);
     
+    // Use food-type categories (not meal-time categories)
     let preferredCategories: string[];
     if (ageMonths < 9) {
-      preferredCategories = ["Puree", "Breakfast"];
+      // Early weaning: smooth textures
+      preferredCategories = ["Puree", "Mash", "Soup", "Porridge"];
     } else if (ageMonths < 12) {
-      preferredCategories = ["Finger Food", "Puree", "Snack"];
+      // Texture exploration
+      preferredCategories = ["Finger Food", "Puree", "Mash", "Soup", "Porridge"];
     } else {
-      preferredCategories = ["Finger Food", "Lunch", "Dinner"];
+      // Family foods
+      preferredCategories = ["Finger Food", "Bowl", "Pasta", "Soup", "Bites", "Smoothie", "Pancakes"];
     }
 
     const sortedRecipes = ageFilteredRecipes.sort((a, b) => {
