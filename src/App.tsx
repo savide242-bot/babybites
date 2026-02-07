@@ -22,6 +22,7 @@ import { NotificationPromptModal } from "@/components/NotificationPromptModal";
 import BirthdayCelebrationModal from "@/components/BirthdayCelebrationModal";
 import BottomNavigation from "@/components/BottomNavigation";
 import OfflineIndicator from "@/components/OfflineIndicator";
+import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load heavy pages for better initial bundle size
@@ -98,6 +99,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">
+      <AdminPreviewBanner />
       {!isFullscreenRoute && <Header />}
       {!isFullscreenRoute && <OfflineIndicator />}
       {!isFullscreenRoute && <WhatsAppButton />}

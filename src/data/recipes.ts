@@ -38,58 +38,96 @@ export interface Recipe {
 export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months"];
 export const categories = ["All Categories", "Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
 
-// Infer food-type category from recipe content
+// Infer food-type category from recipe content using intelligent keyword matching
 const inferFoodTypeCategory = (recipe: any): string => {
   const title = (recipe.title || "").toLowerCase();
   const description = (recipe.description || "").toLowerCase();
   const ingredients = (recipe.ingredients || []).join(" ").toLowerCase();
   const combined = `${title} ${description} ${ingredients}`;
   
-  // Priority-ordered matching rules
-  if (/soup|broth|chowder|stew|minestrone|bisque/.test(title)) return "Soup";
-  if (/puree|purée|puréed|blended smooth/.test(title)) return "Puree";
-  if (/mash|mashed/.test(title)) return "Mash";
-  if (/porridge|oatmeal|congee|rice pudding|overnight oats/.test(title)) return "Porridge";
-  if (/pancake|waffle|fritter/.test(title)) return "Pancakes";
-  if (/pasta|noodle|macaroni|lasagna|gnocchi|spaghetti|penne|fusilli/.test(title)) return "Pasta";
-  if (/smoothie|lassi|shake/.test(title)) return "Smoothie";
-  if (/bites?|balls?|cookies?|muffins?|popsicles?|bark|energy/.test(title)) return "Bites";
-  if (/fingers?|tots?|patties|quesadilla|wedges|sticks|pizza|tacos?|pinwheels?|toast|frittata|omelette|omelet|scrambled/.test(title)) return "Finger Food";
+  // ========== SOUP patterns (highest priority for soup-like recipes) ==========
+  if (/soup|broth|chowder|stew|minestrone|bisque|consommé|gazpacho|potage|cream of\s+\w+/.test(title)) return "Soup";
   
-  // Secondary checks on description/ingredients
-  if (/smooth puree|silky smooth|completely smooth/.test(combined)) return "Puree";
-  if (/chunky|mashed|fork-mashed/.test(combined)) return "Mash";
-  if (/oats|porridge|cereal/.test(combined) && /breakfast/.test(combined)) return "Porridge";
-  if (/self-feeding|finger food|pick up/.test(combined)) return "Finger Food";
+  // ========== PUREE patterns - smooth baby foods ==========
+  if (/puree|purée|puréed|blended\s+smooth|first\s+food|baby'?s?\s+first/.test(title)) return "Puree";
+  // Check for smooth texture indicators (but exclude cookies/pancakes which might use "smooth")
+  if (/smooth|silky/.test(title) && !/cookie|pancake|batter|dough/.test(title)) return "Puree";
+  // Check for blend patterns
+  if (/blend(?!er)|blended/.test(title) && /fruit|veggie|vegetable|banana|apple|pear|mango/.test(title)) return "Puree";
   
-  // Check existing category if it's valid
+  // ========== MASH patterns - chunkier texture ==========
+  if (/mash|mashed|smashed|fork[- ]?crushed|chunky/.test(title)) return "Mash";
+  
+  // ========== PORRIDGE patterns - grain-based breakfast foods ==========
+  if (/porridge|oatmeal|congee|rice\s+pudding|overnight\s+oats|chia\s+pudding|hot\s+cereal|baby\s+cereal/.test(title)) return "Porridge";
+  
+  // ========== PANCAKES patterns - griddle foods ==========
+  if (/pancake|waffle|fritter|crêpe|crepe|dutch\s+baby|griddle\s+cake|mini\s+pancake/.test(title)) return "Pancakes";
+  
+  // ========== PASTA patterns - noodle dishes ==========
+  if (/pasta|noodle|macaroni|lasagna|gnocchi|spaghetti|penne|fusilli|rigatoni|orzo|couscous|vermicelli|ramen|mac\s*(and|&|n)\s*cheese/.test(title)) return "Pasta";
+  
+  // ========== SMOOTHIE patterns - blended drinks ==========
+  if (/smoothie|lassi|shake|fruit\s+blend|milkshake|banana\s+shake/.test(title)) return "Smoothie";
+  
+  // ========== BITES patterns - small snackable items ==========
+  if (/bites?|balls?|cookies?|muffins?|popsicles?|bark|energy|cups|bars?|crackers?|snack\s+balls?|teething|mini\s+muffin/.test(title)) return "Bites";
+  
+  // ========== FINGER FOOD patterns - self-feeding items ==========
+  if (/fingers?|tots?|patties|quesadilla|wedges?|sticks?|pizza|tacos?|pinwheels?|toast|frittata|omelette|omelet|scrambled|strips?|nuggets?|croquettes?|dippers?|cutlets?|rolls?|wraps?|bites/.test(title)) {
+    // Avoid classifying "bites" as finger food if it's more of a snack item
+    if (!/energy|snack\s+balls?|muffin|cookie|popsicle/.test(title)) return "Finger Food";
+  }
+  
+  // ========== BOWL patterns - mixed grain meals ==========
+  if (/bowl|risotto|pilaf|fried\s+rice|quinoa|grain\s+bowl|buddha|poke/.test(title)) return "Bowl";
+  
+  // ========== Secondary checks on description/ingredients ==========
+  if (/completely\s+smooth|silky\s+smooth|smooth\s+puree|blend\s+until\s+smooth/.test(combined)) return "Puree";
+  if (/chunky\s+texture|fork[- ]?mashed|lumpy/.test(combined)) return "Mash";
+  if (/oats|porridge|cereal/.test(combined) && /breakfast|morning/.test(combined)) return "Porridge";
+  if (/self[- ]?feeding|finger\s+food|pick\s+up|pincer\s+grasp/.test(combined)) return "Finger Food";
+  
+  // ========== Ingredient-based inference ==========
+  // Pasta in ingredients but not in title (and not a soup)
+  if (/pasta|noodles?|macaroni|spaghetti|penne|fusilli/.test(ingredients) && !/soup|broth/.test(title)) return "Pasta";
+  // Oats-based but not a cookie/bar
+  if (/oats|oatmeal|rolled\s+oats/.test(ingredients) && !/cookie|bar|bites?|balls?/.test(title)) return "Porridge";
+  
+  // ========== Check existing category if it's already a valid food type ==========
   const existingCategory = recipe.category;
   const validFoodTypes = ["Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
   if (validFoodTypes.includes(existingCategory)) {
     return existingCategory;
   }
   
-  // Map old meal-time categories to likely food types
+  // ========== Map old meal-time categories with smarter logic ==========
   if (existingCategory === "Breakfast") {
-    if (/pancake|waffle/.test(title)) return "Pancakes";
-    if (/oatmeal|porridge|cereal/.test(title)) return "Porridge";
-    if (/smoothie/.test(title)) return "Smoothie";
-    return "Bowl"; // Default breakfast like eggs, etc.
+    if (/pancake|waffle|crepe|fritter/.test(title)) return "Pancakes";
+    if (/oatmeal|porridge|cereal|overnight|chia/.test(title)) return "Porridge";
+    if (/smoothie|shake/.test(title)) return "Smoothie";
+    if (/egg|scramble|omelette|frittata/.test(title)) return "Finger Food";
+    if (/muffin|cookie|bar/.test(title)) return "Bites";
+    return "Bowl"; // Default breakfast like mixed bowls
   }
   if (existingCategory === "Snack") {
-    if (/puree|fruit/.test(title)) return "Puree";
-    if (/bites?|balls?|cookies?/.test(title)) return "Bites";
-    if (/smoothie/.test(title)) return "Smoothie";
+    if (/puree|fruit\s+puree/.test(title)) return "Puree";
+    if (/bites?|balls?|cookies?|muffin|bar|cracker/.test(title)) return "Bites";
+    if (/smoothie|shake|lassi/.test(title)) return "Smoothie";
+    if (/sticks?|wedges?|fingers?/.test(title)) return "Finger Food";
     return "Bites"; // Default snack
   }
   if (existingCategory === "Lunch" || existingCategory === "Dinner") {
-    if (/pasta|noodle/.test(title)) return "Pasta";
-    if (/soup|stew/.test(title)) return "Soup";
-    if (/fingers?|patties|wedges/.test(title)) return "Finger Food";
+    if (/pasta|noodle|mac|spaghetti|lasagna|gnocchi/.test(title)) return "Pasta";
+    if (/soup|stew|broth|chowder/.test(title)) return "Soup";
+    if (/puree|purée|blend/.test(title)) return "Puree";
+    if (/mash|mashed/.test(title)) return "Mash";
+    if (/fingers?|patties|wedges?|sticks?|nuggets?|cutlet|tots?|pizza|quesadilla|wrap|roll/.test(title)) return "Finger Food";
+    if (/risotto|pilaf|quinoa|bowl/.test(title)) return "Bowl";
     return "Bowl"; // Default main meal
   }
   
-  // Final fallback: Bowl (mixed meals)
+  // ========== Final fallback: Bowl (mixed/undefined meals) ==========
   return "Bowl";
 };
 
