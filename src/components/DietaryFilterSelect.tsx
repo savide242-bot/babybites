@@ -41,14 +41,15 @@ export const DietaryFilterSelect = ({
       <PopoverTrigger asChild>
         <Button
           variant={selectedFilters.length > 0 ? "default" : "outline"}
-          className="rounded-full relative"
+          className="rounded-full relative flex-shrink-0 whitespace-nowrap px-3 sm:px-4 text-xs sm:text-sm h-9 sm:h-10"
         >
-          <Filter className="h-4 w-4 mr-2" />
-          Dietary Filters
+          <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+          <span className="hidden sm:inline">Dietary Filters</span>
+          <span className="sm:hidden">Dietary</span>
           {selectedFilters.length > 0 && (
             <Badge
               variant="secondary"
-              className="ml-2 rounded-full h-5 w-5 p-0 flex items-center justify-center"
+              className="ml-1.5 sm:ml-2 rounded-full h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-[10px] sm:text-xs"
             >
               {selectedFilters.length}
             </Badge>
