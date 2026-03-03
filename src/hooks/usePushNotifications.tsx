@@ -97,7 +97,7 @@ export const usePushNotifications = () => {
   const checkExistingSubscription = async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
-      const existingSub = await registration.pushManager.getSubscription();
+      const existingSub = await (registration as any).pushManager.getSubscription();
 
       if (existingSub) {
         console.log('✅ Found existing push subscription');
@@ -147,7 +147,7 @@ export const usePushNotifications = () => {
 
       // Step 3: ALWAYS unsubscribe existing and create new subscription
       // This ensures we're using the current VAPID key
-      const existingSub = await registration.pushManager.getSubscription();
+      const existingSub = await (registration as any).pushManager.getSubscription();
       if (existingSub) {
         console.log('🔄 Unsubscribing from old subscription to ensure fresh key...');
         await existingSub.unsubscribe();
@@ -172,7 +172,7 @@ export const usePushNotifications = () => {
       let sub: PushSubscription;
       try {
         const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-        sub = await registration.pushManager.subscribe({
+        sub = await (registration as any).pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: applicationServerKey.buffer as ArrayBuffer
         });

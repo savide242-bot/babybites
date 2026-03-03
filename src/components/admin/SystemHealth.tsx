@@ -168,7 +168,7 @@ const SystemHealth = () => {
       console.log('🔍 [SW-CHECK] Registration:', registration);
       console.log('🔍 [SW-CHECK] Active SW:', registration.active?.state);
 
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager.getSubscription();
       console.log('🔍 [SW-CHECK] Subscription:', subscription);
 
       setSwStatus({
