@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,136 @@ import { EmptyRecipes } from "@/components/empty-states";
 import { motion } from "framer-motion";
 import { hapticFeedback } from "@/utils/haptic";
 import { GlassCard } from "@/components/ui/glass-card";
+
+// Memoized Recipe Card for performance
+const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite }: {
+  recipe: typeof recipes[0];
+  showViewCount?: boolean;
+  viewCount?: number;
+  index?: number;
+  isFav: boolean;
+  isCompatible: boolean;
+  isNew: boolean;
+  isPopular: boolean;
+  isQuick: boolean;
+  hasPrefs: boolean;
+  onToggleFavorite: (id: string) => void;
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.02, 0.5), duration: 0.3 }}
+      whileHover={{ y: -8, scale: 1.02, rotateY: 2 }}
+      whileTap={{ scale: 0.98 }}
+      className="group"
+      style={{ perspective: 1000 }}
+    >
+      <Link to={`/recipe/${recipe.id}`} className="block">
+        <div className={`overflow-hidden transition-all duration-500 rounded-2xl shadow-lg hover:shadow-2xl ${
+          isCompatible && hasPrefs ? 'ring-2 ring-mint/60' : ''
+        } ${isFav ? 'ring-2 ring-primary/40' : ''} bg-card/80 backdrop-blur-sm border border-border/30`}>
+          <div className="aspect-square relative overflow-hidden">
+            <img
+              src={recipe.image}
+              alt={recipe.title}
+              loading="lazy"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+            />
+            
+            {/* Premium gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
+            
+            {/* Shine effect on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            
+            {/* Favorite glow ring */}
+            {isFav && (
+              <div className="absolute inset-0 rounded-2xl ring-2 ring-primary/50 ring-inset pointer-events-none" />
+            )}
+            
+            {/* Top left badges */}
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              {isNew && (
+                <Badge className="bg-gradient-to-r from-accent to-orange-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0 animate-pulse">
+                  <Zap className="h-2.5 w-2.5" />
+                  New
+                </Badge>
+              )}
+              {isPopular && !isNew && (
+                <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
+                  <TrendingUp className="h-2.5 w-2.5" />
+                  Popular
+                </Badge>
+              )}
+              {isQuick && (
+                <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
+                  <Clock className="h-2.5 w-2.5" />
+                  Quick
+                </Badge>
+              )}
+            </div>
+            
+            {/* Age badge + Favorite */}
+            <div className="absolute top-2 right-2 flex items-center gap-1">
+              <Badge className="bg-white/90 backdrop-blur-sm text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-lg border-0">
+                {recipe.ageGroup}
+              </Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg"
+                onClick={(e) => {
+                  e.preventDefault();
+                  hapticFeedback('light');
+                  onToggleFavorite(recipe.id);
+                }}
+              >
+                <Heart className={`h-3.5 w-3.5 transition-all duration-300 ${isFav ? 'fill-primary text-primary scale-125' : 'text-muted-foreground'}`} />
+              </Button>
+            </div>
+
+            {/* Perfect match */}
+            {isCompatible && hasPrefs && (
+              <motion.div 
+                className="absolute top-10 left-1/2 -translate-x-1/2"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+              >
+                <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  Perfect Match
+                </Badge>
+              </motion.div>
+            )}
+            
+            {/* Bottom content */}
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <h3 className="text-white font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-lg">
+                {recipe.title}
+              </h3>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
+                  <Clock className="h-3 w-3" />
+                  <span>{recipe.prepTime}</span>
+                </div>
+                {showViewCount && viewCount > 1 && (
+                  <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
+                    <Eye className="h-3 w-3" />
+                    <span>{viewCount}x</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+});
+
+RecipeCard.displayName = "RecipeCard";
 
 const Recipes = () => {
   const { t } = useLanguage();
@@ -42,156 +172,58 @@ const Recipes = () => {
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
 
-  const filteredRecipes = recipes.filter((recipe) => {
-    const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesAge = selectedAge === "All Ages" || recipe.ageGroup === selectedAge;
-    const matchesCategory = selectedCategory === "All Categories" || recipe.category === selectedCategory;
-    
-    const recipeTags = getRecipeDietaryTags(recipe.id);
-    const matchesDietary = dietaryFilters.length === 0 || 
-                          dietaryFilters.every(filter => recipeTags.includes(filter));
-    
-    return matchesSearch && matchesAge && matchesCategory && matchesDietary;
-  });
+  // Memoize filtered recipes for performance
+  const filteredRecipes = useMemo(() => {
+    return recipes.filter((recipe) => {
+      const matchesSearch = searchQuery === "" || 
+        recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesAge = selectedAge === "All Ages" || recipe.ageGroup === selectedAge;
+      const matchesCategory = selectedCategory === "All Categories" || recipe.category === selectedCategory;
+      
+      const recipeTags = getRecipeDietaryTags(recipe.id);
+      const matchesDietary = dietaryFilters.length === 0 || 
+                            dietaryFilters.every(filter => recipeTags.includes(filter));
+      
+      return matchesSearch && matchesAge && matchesCategory && matchesDietary;
+    });
+  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
 
-  const isCompatibleWithUserPrefs = (recipeId: string) => {
-    const recipeTags = getRecipeDietaryTags(recipeId);
-    return isRecipeCompatible(recipeTags);
-  };
+  // Memoize category counts
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    recipes.forEach(r => {
+      counts[r.category] = (counts[r.category] || 0) + 1;
+    });
+    return counts;
+  }, []);
 
-  const isNewRecipe = (recipeId: string) => {
+  const handleToggleFavorite = useCallback((id: string) => {
+    toggleFavorite(id);
+  }, [toggleFavorite]);
+
+  const isNewRecipe = useCallback((recipeId: string) => {
     const numericId = parseInt(recipeId.replace(/\D/g, '')) || 0;
-    return numericId > 45;
-  };
+    return numericId > 300;
+  }, []);
 
-  const isPopularRecipe = (recipeId: string) => {
+  const isPopularRecipe = useCallback((recipeId: string) => {
     const viewData = recentlyViewed.find(v => v.recipe_id === recipeId);
     return viewData && viewData.view_count >= 3;
-  };
-
-  const RecipeCard = ({ recipe, showViewCount = false, viewCount = 0, index = 0 }: { recipe: typeof recipes[0], showViewCount?: boolean, viewCount?: number, index?: number }) => {
-    const isCompatible = isCompatibleWithUserPrefs(recipe.id);
-    const isNew = isNewRecipe(recipe.id);
-    const isPopular = isPopularRecipe(recipe.id);
-    const prepTimeNum = parseInt(recipe.prepTime);
-    const isQuick = prepTimeNum <= 15;
-    
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.02, duration: 0.3 }}
-        whileHover={{ y: -8, scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="group"
-      >
-        <Link to={`/recipe/${recipe.id}`} className="block">
-          <div className={`overflow-hidden transition-all duration-500 rounded-2xl shadow-lg hover:shadow-2xl ${
-            isCompatible && preferences.length > 0 ? 'ring-2 ring-mint/60' : ''
-          } bg-card/80 backdrop-blur-sm border border-border/30`}>
-            <div className="aspect-square relative overflow-hidden">
-              <img
-                src={recipe.image}
-                alt={recipe.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-              />
-              
-              {/* Premium gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
-              
-              {/* Shine effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              
-              {/* Top left badges */}
-              <div className="absolute top-2 left-2 flex flex-col gap-1">
-                {isNew && (
-                  <Badge className="bg-gradient-to-r from-accent to-orange-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                    <Zap className="h-2.5 w-2.5" />
-                    New
-                  </Badge>
-                )}
-                {isPopular && !isNew && (
-                  <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                    <TrendingUp className="h-2.5 w-2.5" />
-                    Popular
-                  </Badge>
-                )}
-                {isQuick && (
-                  <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                    <Clock className="h-2.5 w-2.5" />
-                    Quick
-                  </Badge>
-                )}
-              </div>
-              
-              {/* Age badge + Favorite */}
-              <div className="absolute top-2 right-2 flex items-center gap-1">
-                <Badge className="bg-white/90 backdrop-blur-sm text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-lg border-0">
-                  {recipe.ageGroup}
-                </Badge>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    hapticFeedback('light');
-                    toggleFavorite(recipe.id);
-                  }}
-                >
-                  <Heart className={`h-3.5 w-3.5 transition-all duration-300 ${isFavorite(recipe.id) ? 'fill-primary text-primary scale-110' : 'text-muted-foreground'}`} />
-                </Button>
-              </div>
-
-              {/* Perfect match */}
-              {isCompatible && preferences.length > 0 && (
-                <motion.div 
-                  className="absolute top-10 left-1/2 -translate-x-1/2"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2, type: "spring" }}
-                >
-                  <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
-                    <Sparkles className="h-2.5 w-2.5" />
-                    Perfect Match
-                  </Badge>
-                </motion.div>
-              )}
-              
-              {/* Bottom content */}
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                <h3 className="text-white font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-lg">
-                  {recipe.title}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
-                    <Clock className="h-3 w-3" />
-                    <span>{recipe.prepTime}</span>
-                  </div>
-                  {showViewCount && viewCount > 1 && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <Eye className="h-3 w-3" />
-                      <span>{viewCount}x</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </motion.div>
-    );
-  };
+  }, [recentlyViewed]);
 
   return (
     <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-peach/5 to-mint/5">
       <div className="container px-3 sm:px-4">
         {/* Clean Header with gradient text */}
         <div className="mb-6 pt-4">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+          <motion.h1 
+            className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%] animate-[shimmer_3s_ease-in-out_infinite]"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
             {t('recipes.title')}
-          </h1>
+          </motion.h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             {filteredRecipes.length}+ nutritious recipes for your little one ✨
           </p>
@@ -219,7 +251,7 @@ const Recipes = () => {
             {/* Filter Pills */}
             <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
               <Select value={selectedAge} onValueChange={setSelectedAge}>
-                <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm">
+                <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm flex-shrink-0">
                   <SelectValue placeholder={t('recipes.selectAge')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -230,12 +262,14 @@ const Recipes = () => {
               </Select>
 
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[120px] sm:min-w-[140px] border-primary/20 bg-background shadow-sm">
+                <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[120px] sm:min-w-[140px] border-primary/20 bg-background shadow-sm flex-shrink-0">
                   <SelectValue placeholder={t('recipes.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                    <SelectItem key={category} value={category}>
+                      {category} {category !== "All Categories" && categoryCounts[category] ? `(${categoryCounts[category]})` : ''}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -277,6 +311,7 @@ const Recipes = () => {
                 {recentRecipes.slice(0, 8).map((recipe, index) => {
                   if (!recipe) return null;
                   const viewData = recentlyViewed.find(v => v.recipe_id === recipe.id);
+                  const recipeTags = getRecipeDietaryTags(recipe.id);
                   return (
                     <div key={recipe.id} className="flex-shrink-0 w-36 sm:w-44">
                       <RecipeCard 
@@ -284,6 +319,13 @@ const Recipes = () => {
                         showViewCount={true}
                         viewCount={viewData?.view_count || 0}
                         index={index}
+                        isFav={isFavorite(recipe.id)}
+                        isCompatible={isRecipeCompatible(recipeTags)}
+                        isNew={isNewRecipe(recipe.id)}
+                        isPopular={isPopularRecipe(recipe.id)}
+                        isQuick={parseInt(recipe.prepTime) <= 15}
+                        hasPrefs={preferences.length > 0}
+                        onToggleFavorite={handleToggleFavorite}
                       />
                     </div>
                   );
@@ -297,7 +339,7 @@ const Recipes = () => {
                   <TrendingUp className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground">Most Viewed:</span>
                   <span className="text-muted-foreground text-[10px] sm:text-xs truncate">
-                    {mostViewedRecipes.slice(0, 3).map((view, idx) => {
+                    {mostViewedRecipes.slice(0, 3).map((view) => {
                       const recipe = recipes.find(r => r.id === view.recipe_id);
                       return recipe?.title;
                     }).filter(Boolean).join(', ')}
@@ -328,9 +370,23 @@ const Recipes = () => {
             transition={{ delay: 0.4 }}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4"
           >
-            {filteredRecipes.map((recipe, index) => (
-              <RecipeCard key={recipe.id} recipe={recipe} index={index} />
-            ))}
+            {filteredRecipes.map((recipe, index) => {
+              const recipeTags = getRecipeDietaryTags(recipe.id);
+              return (
+                <RecipeCard 
+                  key={recipe.id} 
+                  recipe={recipe} 
+                  index={index}
+                  isFav={isFavorite(recipe.id)}
+                  isCompatible={isRecipeCompatible(recipeTags)}
+                  isNew={isNewRecipe(recipe.id)}
+                  isPopular={isPopularRecipe(recipe.id)}
+                  isQuick={parseInt(recipe.prepTime) <= 15}
+                  hasPrefs={preferences.length > 0}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              );
+            })}
           </motion.div>
         ) : (
           <EmptyRecipes 

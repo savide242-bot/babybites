@@ -63,3 +63,6 @@ verify_jwt = false
 
 [functions.force-test-reminder]
 verify_jwt = false
+
+[functions.daily-admin-report]
+verify_jwt = false
