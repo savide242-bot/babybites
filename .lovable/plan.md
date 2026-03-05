@@ -1,60 +1,110 @@
 
 
-# Performance, Visual Impact & Data Accuracy Fix
+# Comprehensive Update Plan
 
-## Issues Identified
-
-1. **Recipes page slow**: Rendering 315 recipe cards with framer-motion `initial/animate` per card is expensive. Each card runs its own animation on mount, causing jank.
-2. **Auth page lies**: Shows "500+ recipes" (actual: 315) and "10,000+ moms" (inflated). Must use real numbers.
-3. **Home page animations too subtle**: The current effects (tiny pulse orbs, soft gradients) are barely noticeable. Need bold, eye-catching animations.
-4. **App feels "stiff"**: Transitions between sections lack fluidity.
+This is a large multi-part request. I'll address each item plus the critical build errors that need fixing first.
 
 ---
 
-## Changes
+## 0. Fix Build Errors (BLOCKING - must fix first)
 
-### 1. Recipes Page Performance (`src/pages/Recipes.tsx`)
+The `pushManager` TypeScript error occurs because the default `ServiceWorkerRegistration` type doesn't include `pushManager`. Fix by adding a type assertion `(registration as any).pushManager` in all 4 files:
 
-- **Remove per-card framer-motion `initial/animate`** from `RecipeCard`. Replace with CSS-only `animation` using a staggered `animation-delay` via inline style. This eliminates 315 React animation instances.
-- **Virtualize rendering**: Only render first 30 recipes initially, add "Load More" or intersection observer to load batches of 30. This cuts initial DOM nodes from 315 to 30.
-- **Remove `whileHover={{ y: -8, scale: 1.02, rotateY: 2 }}`** from motion.div — replace with pure CSS `hover:` transforms (GPU-accelerated, no JS).
-- Change `RecipeCard` wrapper from `motion.div` to plain `div` with CSS classes.
-
-### 2. Auth Page Data Fix (`src/pages/Auth.tsx`)
-
-- Line 299: Change `10,000+ moms` → `300+ moms`
-- Line 308: Change `500+ recipes` → `315 recipes`
-
-### 3. Home Page Bold Effects (`src/pages/Home.tsx`)
-
-- **Floating food emojis**: Add 5-6 animated food emojis (🥑🍌🥕🍠🥦) floating across the background with CSS `@keyframes float-across` — large, visible, slow drift.
-- **Animated gradient background**: Replace static gradient with a slowly shifting animated gradient using `bg-[length:400%_400%] animate-[gradient-shift_8s_ease_infinite]`.
-- **Greeting text**: Make the name gradient text shimmer visibly with `animate-[shimmer_2s_ease-in-out_infinite]`.
-- **Recipe of the Day card**: Add a pulsing golden border glow animation (`animate-[glow-pulse_3s_ease-in-out_infinite]`).
-- **Card entrance**: Increase stagger to 0.15s and add scale from 0.9→1 for more dramatic reveal.
-
-### 4. New CSS Animations (`src/index.css`)
-
-Add these keyframes:
-- `gradient-shift`: shifts background-position for animated gradients
-- `float-across`: moves emojis diagonally across screen (translateX + translateY + rotate)
-- `card-entrance`: opacity 0→1 + translateY 30px→0 + scale 0.95→1
-- `shimmer-strong`: more aggressive shimmer for text gradients
-
-### 5. Glass Card Enhancement (`src/components/ui/glass-card.tsx`)
-
-- Add a subtle `animate-[card-entrance_0.4s_ease-out_both]` CSS class instead of framer-motion `initial/animate` (lighter).
+- `src/hooks/usePushNotifications.tsx` (lines 100, 150, 175)
+- `src/components/admin/SystemHealth.tsx` (line 171)
+- `src/components/NotificationPreferences.tsx` (line 179)
+- `src/pages/IOSPushSetup.tsx` (line 148)
 
 ---
 
-## Files to Modify
+## 1. Daily Admin Report Edge Function
 
-| File | Changes |
-|------|---------|
-| `src/pages/Recipes.tsx` | Remove framer-motion from cards, add CSS animations, add pagination/lazy loading (show 30, load more) |
-| `src/pages/Auth.tsx` | Fix "500+ recipes" → "315 recipes", "10,000+ moms" → "300+ moms" |
-| `src/pages/Home.tsx` | Add floating food emojis, animated gradient BG, stronger card animations |
-| `src/index.css` | Add `gradient-shift`, `float-across`, `card-entrance`, `shimmer-strong` keyframes |
-| `src/components/ui/glass-card.tsx` | Replace framer-motion with CSS animation for lighter rendering |
-| `src/components/ui/emotional-header.tsx` | Make greeting name shimmer more visibly |
+Create `supabase/functions/daily-admin-report/index.ts` that:
+- Queries `user_sessions` for DAU (distinct users active today)
+- Queries `profiles` for new signups (created_at = today)
+- Queries `recipe_views` for top 5 most viewed recipes today
+- Queries `user_streaks` for average current_streak
+- Queries `meal_plans` for total meals planned today
+- Sends a formatted push notification to admin's push subscription
+- Add to `supabase/config.toml` with `verify_jwt = false` (called by cron)
+
+---
+
+## 2. Add 5 New Recipes
+
+Add 5 new recipes (IDs 311-315) to a new file `src/data/recipes311-315.ts` and import in `src/data/recipes.ts`. Recipes will cover underrepresented categories for variety. Then trigger a notification to all users about new recipes via the existing `notify-all-users` edge function from the admin panel.
+
+---
+
+## 3. Performance Optimization
+
+- Add `React.memo` to heavy list items: recipe cards in `Recipes.tsx`
+- Add `useMemo` for filtered recipe lists
+- Lazy-load recipe images with `loading="lazy"` attribute
+- Minimize re-renders in Home.tsx by memoizing derived values
+
+---
+
+## 4. UI/UX Enhancements ("Crazy Effects")
+
+Enhance visual experience across key pages:
+
+**Home Page:**
+- Add animated gradient text for greetings using CSS `background-clip: text`
+- Add staggered card entrance animations (already has framer-motion, enhance timing)
+- Add parallax floating food emojis in background
+- Add shimmer/shine effect on Recipe of the Day card
+
+**Recipe Cards:**
+- Add 3D tilt effect on hover using `transform: perspective()` with framer-motion
+- Add gradient border glow on favorite recipes
+- Add micro-interaction: heart button with particle burst on favorite
+
+**Recipes Page:**
+- Add count badges on category filters showing recipe count per category
+- Add smooth skeleton loading with wave animation
+
+**General:**
+- Add page transition animations between routes
+- Add pull-to-refresh gesture feel on mobile
+- Add confetti burst when completing all daily meals
+
+---
+
+## 5. Precision & Weak Points Fix
+
+- Ensure all nutrition data uses consistent units (g, mg, kcal)
+- Fix any recipes with missing or placeholder nutrition values
+- Verify allergen data completeness across all recipes
+- Ensure dietary filter tags are correctly mapped for all 315 recipes
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/hooks/usePushNotifications.tsx` | Fix pushManager type |
+| `src/components/admin/SystemHealth.tsx` | Fix pushManager type |
+| `src/components/NotificationPreferences.tsx` | Fix pushManager type |
+| `src/pages/IOSPushSetup.tsx` | Fix pushManager type |
+| `supabase/functions/daily-admin-report/index.ts` | NEW - admin metrics |
+| `supabase/config.toml` | Add daily-admin-report config |
+| `src/data/recipes311-315.ts` | NEW - 5 new recipes |
+| `src/data/recipes.ts` | Import new recipes |
+| `src/pages/Recipes.tsx` | Perf + UI enhancements |
+| `src/pages/Home.tsx` | Visual effects upgrade |
+| `src/components/ui/glass-card.tsx` | Enhanced glow effects |
+| `src/index.css` | New animation keyframes |
+
+---
+
+## Implementation Order
+
+1. Fix TypeScript build errors (unblocks everything)
+2. Create daily-admin-report edge function
+3. Add 5 new recipes
+4. Performance optimizations (memo, lazy loading)
+5. UI/UX crazy effects (animations, transitions, 3D)
+6. Precision fixes on recipe data
 

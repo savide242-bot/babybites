@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter } from "lucide-react";
+import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter, ChevronDown } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -14,11 +14,11 @@ import { useDietaryPreferences, DietaryTag } from "@/hooks/useDietaryPreferences
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
 import { EmptyRecipes } from "@/components/empty-states";
-import { motion } from "framer-motion";
 import { hapticFeedback } from "@/utils/haptic";
-import { GlassCard } from "@/components/ui/glass-card";
 
-// Memoized Recipe Card for performance
+const BATCH_SIZE = 30;
+
+// Pure CSS recipe card - no framer-motion per card
 const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite }: {
   recipe: typeof recipes[0];
   showViewCount?: boolean;
@@ -33,19 +33,18 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
   onToggleFavorite: (id: string) => void;
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.02, 0.5), duration: 0.3 }}
-      whileHover={{ y: -8, scale: 1.02, rotateY: 2 }}
-      whileTap={{ scale: 0.98 }}
-      className="group"
-      style={{ perspective: 1000 }}
+    <div
+      className="group recipe-card-enter"
+      style={{ animationDelay: `${Math.min(index * 0.03, 0.6)}s` }}
     >
       <Link to={`/recipe/${recipe.id}`} className="block">
-        <div className={`overflow-hidden transition-all duration-500 rounded-2xl shadow-lg hover:shadow-2xl ${
-          isCompatible && hasPrefs ? 'ring-2 ring-mint/60' : ''
-        } ${isFav ? 'ring-2 ring-primary/40' : ''} bg-card/80 backdrop-blur-sm border border-border/30`}>
+        <div className={`overflow-hidden rounded-2xl shadow-lg border border-border/30 bg-card/80 backdrop-blur-sm
+          transition-all duration-500 ease-out
+          hover:-translate-y-2 hover:scale-[1.03] hover:shadow-2xl hover:shadow-primary/10
+          active:scale-[0.97]
+          ${isCompatible && hasPrefs ? 'ring-2 ring-mint/60' : ''} 
+          ${isFav ? 'ring-2 ring-primary/40 hover:ring-primary/60' : ''}`}
+        >
           <div className="aspect-square relative overflow-hidden">
             <img
               src={recipe.image}
@@ -54,13 +53,11 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             />
             
-            {/* Premium gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
             
-            {/* Shine effect on hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            {/* Shine sweep on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             
-            {/* Favorite glow ring */}
             {isFav && (
               <div className="absolute inset-0 rounded-2xl ring-2 ring-primary/50 ring-inset pointer-events-none" />
             )}
@@ -108,17 +105,12 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
 
             {/* Perfect match */}
             {isCompatible && hasPrefs && (
-              <motion.div 
-                className="absolute top-10 left-1/2 -translate-x-1/2"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-              >
+              <div className="absolute top-10 left-1/2 -translate-x-1/2">
                 <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
                   <Sparkles className="h-2.5 w-2.5" />
                   Perfect Match
                 </Badge>
-              </motion.div>
+              </div>
             )}
             
             {/* Bottom content */}
@@ -142,7 +134,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 });
 
@@ -158,6 +150,8 @@ const Recipes = () => {
   const [selectedAge, setSelectedAge] = useState("All Ages");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dietaryFilters, setDietaryFilters] = useState<DietaryTag[]>([]);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ageParam = searchParams.get('age');
@@ -169,10 +163,14 @@ const Recipes = () => {
     }
   }, [searchParams]);
 
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
+
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
 
-  // Memoize filtered recipes for performance
   const filteredRecipes = useMemo(() => {
     return recipes.filter((recipe) => {
       const matchesSearch = searchQuery === "" || 
@@ -189,7 +187,27 @@ const Recipes = () => {
     });
   }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
 
-  // Memoize category counts
+  const visibleRecipes = useMemo(() => {
+    return filteredRecipes.slice(0, visibleCount);
+  }, [filteredRecipes, visibleCount]);
+
+  const hasMore = visibleCount < filteredRecipes.length;
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount(prev => Math.min(prev + BATCH_SIZE, filteredRecipes.length));
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, filteredRecipes.length]);
+
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     recipes.forEach(r => {
@@ -215,29 +233,19 @@ const Recipes = () => {
   return (
     <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-peach/5 to-mint/5">
       <div className="container px-3 sm:px-4">
-        {/* Clean Header with gradient text */}
+        {/* Header */}
         <div className="mb-6 pt-4">
-          <motion.h1 
-            className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%] animate-[shimmer_3s_ease-in-out_infinite]"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%] animate-[shimmer_3s_ease-in-out_infinite]">
             {t('recipes.title')}
-          </motion.h1>
+          </h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            {filteredRecipes.length}+ nutritious recipes for your little one ✨
+            {filteredRecipes.length} nutritious recipes for your little one ✨
           </p>
         </div>
 
-        {/* Premium Filters */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="sticky top-16 z-30 backdrop-blur-xl bg-card/80 py-3 sm:py-4 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-gold/10 mb-6 rounded-b-2xl shadow-lg"
-        >
+        {/* Filters */}
+        <div className="sticky top-16 z-30 backdrop-blur-xl bg-card/80 py-3 sm:py-4 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-gold/10 mb-6 rounded-b-2xl shadow-lg">
           <div className="space-y-3">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
               <Input
@@ -248,7 +256,6 @@ const Recipes = () => {
               />
             </div>
             
-            {/* Filter Pills */}
             <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
               <Select value={selectedAge} onValueChange={setSelectedAge}>
                 <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm flex-shrink-0">
@@ -281,16 +288,11 @@ const Recipes = () => {
               />
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Recently Viewed */}
         {!historyLoading && recentRecipes.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-6 sm:mb-8"
-          >
+          <div className="mb-6 sm:mb-8 animate-fade-in">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
@@ -303,7 +305,6 @@ const Recipes = () => {
               </Badge>
             </div>
 
-            {/* Horizontal Scroll with fade edges */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
               <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
@@ -347,47 +348,54 @@ const Recipes = () => {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Results Count */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mb-4 flex items-center justify-between"
-        >
+        <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
             {t('recipes.showing')} <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? t('recipes.recipes') : t('recipes.recipe')}
+            {hasMore && <span className="text-primary ml-1">(showing {visibleCount})</span>}
           </p>
-        </motion.div>
+        </div>
 
         {/* Main Recipe Grid */}
         {filteredRecipes.length > 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4"
-          >
-            {filteredRecipes.map((recipe, index) => {
-              const recipeTags = getRecipeDietaryTags(recipe.id);
-              return (
-                <RecipeCard 
-                  key={recipe.id} 
-                  recipe={recipe} 
-                  index={index}
-                  isFav={isFavorite(recipe.id)}
-                  isCompatible={isRecipeCompatible(recipeTags)}
-                  isNew={isNewRecipe(recipe.id)}
-                  isPopular={isPopularRecipe(recipe.id)}
-                  isQuick={parseInt(recipe.prepTime) <= 15}
-                  hasPrefs={preferences.length > 0}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              );
-            })}
-          </motion.div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+              {visibleRecipes.map((recipe, index) => {
+                const recipeTags = getRecipeDietaryTags(recipe.id);
+                return (
+                  <RecipeCard 
+                    key={recipe.id} 
+                    recipe={recipe} 
+                    index={index}
+                    isFav={isFavorite(recipe.id)}
+                    isCompatible={isRecipeCompatible(recipeTags)}
+                    isNew={isNewRecipe(recipe.id)}
+                    isPopular={isPopularRecipe(recipe.id)}
+                    isQuick={parseInt(recipe.prepTime) <= 15}
+                    hasPrefs={preferences.length > 0}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                );
+              })}
+            </div>
+            
+            {/* Infinite scroll trigger + manual load more */}
+            {hasMore && (
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setVisibleCount(prev => Math.min(prev + BATCH_SIZE, filteredRecipes.length))}
+                  className="rounded-full px-6 gap-2 border-primary/20 hover:bg-primary/5"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                  Load more ({filteredRecipes.length - visibleCount} remaining)
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyRecipes 
             onClearFilters={() => {
