@@ -304,7 +304,7 @@ const Auth = () => {
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Heart className="w-3.5 h-3.5 text-primary fill-primary/50" />
-                  <span>500+ recipes</span>
+                  <span>315+ recipes</span>
                 </div>
               </div>
             )}

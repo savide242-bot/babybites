@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
 interface EmotionalHeaderProps {
@@ -17,73 +16,42 @@ export const EmotionalHeader = ({
   badge,
 }: EmotionalHeaderProps) => {
   return (
-    <motion.div
-      className="relative"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="relative animate-fade-in">
       <div className="flex items-start gap-4">
         {/* Animated emoji container */}
-        <motion.div
-          className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-gold/30 via-peach/50 to-primary/20 flex items-center justify-center text-2xl shadow-lg border border-gold/20"
-          animate={{
-            scale: [1, 1.05, 1],
-            rotate: [0, 2, -2, 0],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+        <div
+          className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-gold/30 via-peach/50 to-primary/20 flex items-center justify-center text-2xl shadow-lg border border-gold/20 animate-[float_4s_ease-in-out_infinite]"
         >
           {emoji}
-        </motion.div>
+        </div>
 
         <div className="flex-1 min-w-0">
-          {/* Main greeting */}
+          {/* Main greeting with shimmer */}
           <h1 className="text-xl font-bold text-foreground leading-tight">
             {greeting},{" "}
-            <span className="bg-gradient-to-r from-primary via-gold to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-gold via-50% to-primary bg-clip-text text-transparent bg-[length:300%] animate-[shimmer-strong_3s_ease-in-out_infinite]">
               {name}
             </span>
             !
           </h1>
 
-          {/* Subtitle with emotional touch */}
           {subtitle && (
-            <motion.p
-              className="text-sm text-muted-foreground mt-0.5"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+            <p className="text-sm text-muted-foreground mt-0.5 animate-fade-in" style={{ animationDelay: '0.2s' }}>
               {subtitle} ✨
-            </motion.p>
+            </p>
           )}
 
-          {/* Optional badge */}
           {badge && (
-            <motion.div
-              className="mt-2"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
+            <div className="mt-2 animate-scale-in" style={{ animationDelay: '0.3s' }}>
               {badge}
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
 
       {/* Decorative gradient line */}
-      <motion.div
-        className="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-      />
-    </motion.div>
+      <div className="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent animate-scale-in" style={{ animationDelay: '0.4s' }} />
+    </div>
   );
 };
 
@@ -98,36 +66,26 @@ export const StreakBadge = ({ streak, size = "md" }: StreakBadgeProps) => {
   const isLegendary = streak >= 30;
 
   return (
-    <motion.div
+    <div
       className={`inline-flex items-center gap-2 rounded-full border shadow-lg backdrop-blur-sm ${
         isLegendary
           ? "bg-gradient-to-r from-gold/30 via-amber-500/20 to-gold/30 border-gold/50"
           : isOnFire
           ? "bg-gradient-to-r from-accent/20 via-amber-500/15 to-accent/20 border-accent/40"
           : "bg-gradient-to-r from-primary/20 to-peach/20 border-primary/30"
-      } ${size === "sm" ? "px-3 py-1" : "px-4 py-2"}`}
-      animate={isOnFire ? { scale: [1, 1.02, 1] } : {}}
-      transition={{ duration: 2, repeat: Infinity }}
+      } ${size === "sm" ? "px-3 py-1" : "px-4 py-2"} ${isOnFire ? 'animate-pulse' : ''}`}
     >
-      <motion.span
-        className={size === "sm" ? "text-base" : "text-lg"}
-        animate={isOnFire ? { rotate: [0, -5, 5, 0] } : {}}
-        transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-      >
+      <span className={`${size === "sm" ? "text-base" : "text-lg"} ${isOnFire ? 'animate-[float_2s_ease-in-out_infinite]' : ''}`}>
         🔥
-      </motion.span>
+      </span>
       <span
         className={`font-bold bg-gradient-to-r ${
-          isLegendary
-            ? "from-gold to-amber-600"
-            : isOnFire
-            ? "from-accent to-amber-500"
-            : "from-primary to-gold"
+          isLegendary ? "from-gold to-amber-600" : isOnFire ? "from-accent to-amber-500" : "from-primary to-gold"
         } bg-clip-text text-transparent ${size === "sm" ? "text-xs" : "text-sm"}`}
       >
         {streak} day{streak !== 1 ? "s" : ""}
       </span>
       {isLegendary && <span className="text-gold text-xs">👑</span>}
-    </motion.div>
+    </div>
   );
 };
