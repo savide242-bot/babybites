@@ -296,7 +296,7 @@ const Auth = () => {
               <div className="flex items-center justify-center gap-4 pt-2">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Users className="w-3.5 h-3.5 text-primary" />
-                  <span>10,000+ moms</span>
+                  <span>300+ moms</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Star className="w-3.5 h-3.5 text-accent fill-accent" />
