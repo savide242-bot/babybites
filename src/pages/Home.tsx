@@ -237,9 +237,16 @@ const Home = () => {
           )}
         </div>
 
-        {/* Plan Meals Prompt */}
+        {/* What to Cook Widget */}
         {!isLoading && (
           <div className="home-card-enter" style={{ animationDelay: '0.1s' }}>
+            <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
+          </div>
+        )}
+
+        {/* Plan Meals Prompt */}
+        {!isLoading && (
+          <div className="home-card-enter" style={{ animationDelay: '0.15s' }}>
             <GlassCard variant="peach" hover={false}>
               <PlanMealsPrompt hasMealsPlanned={todayMeals.length > 0} />
             </GlassCard>
