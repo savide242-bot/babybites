@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import QuickCheckinWidget from "@/components/engagement/QuickCheckinWidget";
+import WhatToCookWidget from "@/components/home/WhatToCookWidget";
 import DailyActionCard from "@/components/home/DailyActionCard";
 import WeeklyProgressCard from "@/components/home/WeeklyProgressCard";
 import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
