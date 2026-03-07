@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { recipes } from "@/data/recipes";
 import { RefreshCw, ChefHat, Clock } from "lucide-react";
-import { getRecipeImageById } from "@/utils/recipeImages";
+import { getRecipeImageById } from "@/data/recipeImages";
 
 interface WhatToCookWidgetProps {
   babyAgeMonths: number;
