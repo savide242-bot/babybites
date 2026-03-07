@@ -637,6 +637,7 @@ export type Database = {
           day_of_week: string
           id: string
           meal_type: string
+          plan_type: string
           prepared: boolean | null
           recipe_id: string
           user_id: string
@@ -647,6 +648,7 @@ export type Database = {
           day_of_week: string
           id?: string
           meal_type: string
+          plan_type?: string
           prepared?: boolean | null
           recipe_id: string
           user_id: string
@@ -657,6 +659,7 @@ export type Database = {
           day_of_week?: string
           id?: string
           meal_type?: string
+          plan_type?: string
           prepared?: boolean | null
           recipe_id?: string
           user_id?: string

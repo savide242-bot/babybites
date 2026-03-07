@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import QuickCheckinWidget from "@/components/engagement/QuickCheckinWidget";
+import WhatToCookWidget from "@/components/home/WhatToCookWidget";
 import DailyActionCard from "@/components/home/DailyActionCard";
 import WeeklyProgressCard from "@/components/home/WeeklyProgressCard";
 import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
@@ -236,9 +237,16 @@ const Home = () => {
           )}
         </div>
 
-        {/* Plan Meals Prompt */}
+        {/* What to Cook Widget */}
         {!isLoading && (
           <div className="home-card-enter" style={{ animationDelay: '0.1s' }}>
+            <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
+          </div>
+        )}
+
+        {/* Plan Meals Prompt */}
+        {!isLoading && (
+          <div className="home-card-enter" style={{ animationDelay: '0.15s' }}>
             <GlassCard variant="peach" hover={false}>
               <PlanMealsPrompt hasMealsPlanned={todayMeals.length > 0} />
             </GlassCard>
