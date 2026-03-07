@@ -1,0 +1,2 @@
+ALTER TABLE public.meal_plans DROP CONSTRAINT meal_plans_unique_slot;
+ALTER TABLE public.meal_plans ADD CONSTRAINT meal_plans_unique_slot UNIQUE (user_id, week_start_date, day_of_week, meal_type, plan_type);
