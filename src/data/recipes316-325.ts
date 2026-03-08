@@ -21,17 +21,18 @@ export const recipes316to325 = [
       "2 tablespoons corn kernels (cooked)"
     ],
     instructions: [
-      "Cook chicken breast in a pan with a tiny pinch of cumin until fully cooked through (internal temp 165°F/74°C). Let cool, then shred finely with two forks.",
-      "Mash the avocado with lime juice until smooth and creamy.",
-      "Warm the mini tortillas in a dry pan for 30 seconds each side until soft and pliable.",
-      "Spread a spoonful of mashed avocado on each tortilla.",
-      "Top with shredded chicken, a sprinkle of cheese, and a few corn kernels.",
-      "Add a small dollop of Greek yogurt on top.",
-      "Fold gently and serve immediately. Let your toddler help assemble their own!"
+      "Place the chicken breast in a small saucepan and cover it completely with cold water. Add a tiny pinch of cumin to the water for a subtle background flavor. Bring to a gentle boil over medium heat, then reduce to a low simmer and cook for 12-15 minutes until the chicken is fully cooked through — the internal temperature should reach 165°F (74°C) when checked with a meat thermometer. Never serve undercooked poultry to toddlers.",
+      "Remove the chicken from the water and place it on a clean cutting board. Let it rest and cool for 5 minutes — this allows the juices to redistribute, making the meat more tender. Using two forks, shred the chicken into very fine, thin strands by holding one fork steady and pulling with the other. For toddlers, the finer the shred, the easier and safer it is to chew and swallow.",
+      "While the chicken cools, cut the avocado in half lengthwise. Remove the pit by tapping it firmly with the heel of a knife blade and twisting. Scoop the flesh into a small bowl using a spoon. Add the lime juice (which prevents browning and adds a bright, fresh flavor) and mash with a fork until smooth and creamy with no large chunks remaining.",
+      "Warm each mini tortilla individually in a dry, non-stick pan over medium heat for about 30 seconds on each side. You'll know they're ready when they become soft, pliable, and develop a few light golden spots. Warming them is essential — cold tortillas crack and tear when folded, which frustrates little hands.",
+      "Lay the warmed tortillas on a clean surface. Spread a generous spoonful of the mashed avocado-lime mixture across each one, creating an even layer that acts as both a flavorful base and a 'glue' to hold the toppings in place.",
+      "Distribute the finely shredded chicken evenly over the avocado layer on each tortilla. Follow with a sprinkle of shredded cheddar cheese and a few cooked corn kernels for a pop of natural sweetness and color.",
+      "Add a small dollop (about 1 teaspoon) of Greek yogurt on top of each taco — this replaces sour cream with a healthier, protein-rich alternative that toddlers love.",
+      "Fold each tortilla gently in half and serve immediately on a plate. For an interactive meal, set out the toppings in small bowls and let your toddler help assemble their own tacos — this builds independence and encourages adventurous eating!"
     ],
     nutrition: { calories: "185", protein: "14g", carbs: "16g", fat: "8g", fiber: "3g", vitamins: ["Vitamin B6", "Vitamin E", "Potassium", "Iron"] },
     allergens: ["Gluten", "Dairy"],
-    storage: "Best served fresh. Shredded chicken can be stored separately in the fridge for up to 2 days."
+    storage: "Best served fresh immediately after preparation. Shredded chicken can be stored separately in an airtight container in the fridge for up to 2 days. Mashed avocado browns quickly, so prepare it just before serving."
   },
   {
     id: "317",
@@ -54,17 +55,18 @@ export const recipes316to325 = [
       "1 spring onion, finely sliced (green part only)"
     ],
     instructions: [
-      "Heat vegetable oil in a non-stick pan or wok over medium-high heat.",
-      "Add diced carrots and cook for 2-3 minutes until slightly softened.",
-      "Add peas and corn, stir-fry for another minute.",
-      "Push vegetables to one side, pour beaten egg into the pan. Scramble until cooked through, then break into small pieces.",
-      "Add the cooled rice to the pan and toss everything together.",
-      "Drizzle soy sauce and sesame oil over the rice. Stir-fry for 2-3 minutes until rice is heated through and slightly crispy.",
-      "Garnish with sliced spring onion greens and serve warm."
+      "The key to great fried rice is using cold, day-old rice — freshly cooked rice is too moist and will steam rather than fry, resulting in a mushy texture. If you don't have leftover rice, cook it fresh, spread it on a baking tray, and refrigerate uncovered for at least 1 hour to dry out the surface. Break up any clumps with your fingers before cooking.",
+      "Prepare all your vegetables before you start cooking, as fried rice moves quickly. Peel and finely dice the carrot into pieces no larger than the size of a pea — this ensures they cook through in the short stir-fry time. Measure out the frozen peas (no need to thaw) and corn kernels. Finely slice only the green parts of the spring onion (the white parts can be too strong for toddlers).",
+      "Heat the vegetable oil in a large non-stick frying pan or wok over medium-high heat until it shimmers — this is important because fried rice needs high, quick heat to get the characteristic slightly crispy texture. Add the diced carrots first, as they take the longest to cook, and stir-fry for 2-3 minutes until they are just starting to soften but still have a slight bite.",
+      "Add the frozen peas and corn kernels to the pan. Stir-fry for another 1-2 minutes, tossing frequently, until the peas are bright green and heated through. The corn should be lightly golden on some edges.",
+      "Push all the vegetables to one side of the pan, creating an empty space. Pour the beaten egg into the empty space. Let it sit undisturbed for 15-20 seconds until the bottom sets, then use your spatula to scramble it into small pieces, breaking it up as it cooks. Once the egg is fully cooked through (no runny parts remaining), mix it into the vegetables.",
+      "Add the cold rice to the pan and toss everything together, pressing the rice against the hot surface of the pan and then flipping — this technique is what creates those delicious slightly crispy bits. Stir-fry for 2-3 minutes until the rice is heated through and you can hear it sizzling.",
+      "Drizzle the low-sodium soy sauce and sesame oil evenly over the rice. Toss and stir-fry for another 30 seconds to distribute the seasoning throughout. The sesame oil adds a warm, nutty aroma that makes this dish irresistible.",
+      "Remove from heat, scatter the sliced spring onion greens over the top for a fresh finish, and serve warm in a small bowl. For toddlers who prefer milder flavors, reduce the soy sauce to 1/2 tablespoon."
     ],
     nutrition: { calories: "210", protein: "8g", carbs: "32g", fat: "6g", fiber: "2g", vitamins: ["Vitamin A", "Vitamin B1", "Iron", "Folate"] },
     allergens: ["Egg", "Soy", "Sesame"],
-    storage: "Refrigerate in an airtight container for up to 2 days. Reheat thoroughly before serving."
+    storage: "Refrigerate in an airtight container for up to 2 days. Reheat thoroughly in a pan over medium heat (not in the microwave, which makes the rice rubbery). Always ensure rice is steaming hot all the way through before serving."
   },
   {
     id: "318",
@@ -86,16 +88,18 @@ export const recipes316to325 = [
       "Fresh mint leaves for garnish (optional)"
     ],
     instructions: [
-      "Wash and prepare all fruits: dice mango and pineapple into toddler-friendly small cubes, slice banana, peel and dice kiwi.",
-      "Divide the mixed fruits between two small bowls.",
-      "Add a generous dollop of Greek yogurt to each bowl.",
-      "Drizzle half a teaspoon of honey over each bowl.",
-      "Sprinkle toasted coconut flakes on top for a gentle crunch.",
-      "Garnish with fresh mint if desired. Serve immediately for the best freshness and flavor."
+      "Start by toasting the coconut flakes: spread them in a single layer in a small dry pan over medium-low heat. Stir constantly for 2-3 minutes, watching carefully as they go from golden to burnt very quickly. Once they turn a light, even golden color and smell fragrant, immediately transfer them to a plate to stop the cooking. Set aside to cool.",
+      "Prepare the mango: stand it upright and slice down each side of the flat pit. Score each cheek in a crosshatch pattern (about 1cm squares), cutting down to but not through the skin. Push the skin side to invert it, then slice the cubes off. Make sure all pieces are small enough for your toddler to handle safely — no larger than 1cm cubes.",
+      "Peel the kiwi by slicing off both ends, then sliding a spoon between the flesh and skin, rotating around the fruit. Dice into small pieces similar in size to the mango. Cut the pineapple into equally small pieces, removing any tough core sections which can be a choking hazard for toddlers.",
+      "Peel and slice the banana into rounds about 5mm thick. If preparing slightly ahead of time, toss the banana slices with a tiny squeeze of lemon juice to prevent browning.",
+      "Divide all the prepared fruits evenly between two small serving bowls, arranging them in a colorful pattern — the visual appeal encourages toddlers to try each fruit. Mix some together and leave some separated so they can identify and pick their favorites.",
+      "Add a generous dollop (about 1 tablespoon) of plain Greek yogurt to the center of each bowl. The yogurt adds protein and calcium, and its creamy tanginess balances the natural sweetness of the fruits beautifully.",
+      "Drizzle half a teaspoon of honey over each bowl in a thin zigzag pattern. Honey should only be given to children over 12 months old — never to younger babies due to the risk of infant botulism.",
+      "Finish by sprinkling the toasted coconut flakes over the top for a delicate crunch, and add a small fresh mint leaf for garnish if desired. Serve immediately for the best freshness, flavor, and texture."
     ],
     nutrition: { calories: "145", protein: "3g", carbs: "30g", fat: "3g", fiber: "4g", vitamins: ["Vitamin C", "Vitamin A", "Vitamin K", "Potassium", "Manganese"] },
     allergens: ["Dairy"],
-    storage: "Best served immediately. Can be prepped and stored without yogurt topping for up to 4 hours in the fridge."
+    storage: "Best served immediately for optimal freshness and texture. Fruits can be prepped and stored without the yogurt and coconut toppings for up to 4 hours in the fridge in a sealed container."
   },
   {
     id: "319",
@@ -117,17 +121,18 @@ export const recipes316to325 = [
       "Pinch of nutmeg"
     ],
     instructions: [
-      "Preheat oven to 375°F (190°C). Grease a mini muffin tin with butter or cooking spray.",
-      "In a large bowl, combine cooked macaroni, shredded cheddar, butternut squash puree, beaten egg, milk, and nutmeg. Mix until everything is evenly coated.",
-      "Spoon the mixture into the mini muffin cups, pressing down gently to compact.",
-      "Mix breadcrumbs with melted butter and sprinkle a little on top of each bite.",
-      "Bake for 18-20 minutes until the tops are golden and crispy.",
-      "Let cool in the tin for 5 minutes before carefully removing. The bites will firm up as they cool.",
-      "Serve warm or at room temperature. These are perfect for lunchboxes too!"
+      "Preheat your oven to 375°F (190°C). Generously grease a 12-cup mini muffin tin with butter or cooking spray — be thorough with this step, as the cheese in the mixture will stick tenaciously to any ungreased spots, making the bites very difficult to remove.",
+      "Cook the elbow macaroni in a large pot of boiling water according to package directions, but reduce the cooking time by 1 minute — the pasta will continue cooking in the oven, so slightly undercooking it now prevents mushy bites. Drain thoroughly in a colander, shaking off excess water.",
+      "If using fresh butternut squash, peel, deseed, and cube it, then steam or boil for 15-20 minutes until very tender. Blend until completely smooth with no lumps. Alternatively, use store-bought butternut squash baby food puree for convenience — it works perfectly. The squash puree adds vitamin A, natural sweetness, and extra creaminess that your toddler will never detect!",
+      "In a large mixing bowl, combine the drained macaroni, shredded cheddar cheese, butternut squash puree, beaten egg, whole milk, and nutmeg. Stir gently until every piece of pasta is evenly coated in the cheesy squash mixture. The egg acts as a binding agent that holds the bites together once baked.",
+      "Using a tablespoon, scoop the mixture into the prepared mini muffin cups. Press down gently but firmly with the back of the spoon or your finger to compact the mixture — this ensures the bites hold their shape and don't crumble apart when removed.",
+      "In a small bowl, mix the breadcrumbs with the melted butter until evenly moistened. Sprinkle a small amount on top of each bite — this creates the irresistible crispy, golden crust on top.",
+      "Bake in the center of the oven for 18-20 minutes until the tops are golden brown and the edges are slightly crispy. You'll know they're ready when the cheese is bubbling and the breadcrumb topping is a deep golden color.",
+      "Let the bites cool in the tin for a full 5 minutes — this is crucial as they firm up significantly as they cool and will fall apart if you try to remove them too soon. Run a small butter knife around the edge of each bite, then gently twist and lift them out. Serve warm or at room temperature — these are also excellent cold in lunchboxes!"
     ],
     nutrition: { calories: "65", protein: "3g", carbs: "7g", fat: "3g", fiber: "0.5g", vitamins: ["Calcium", "Vitamin A", "Vitamin B12", "Phosphorus"] },
     allergens: ["Gluten", "Dairy", "Egg"],
-    storage: "Store in an airtight container in the fridge for up to 3 days. Reheat in the oven at 350°F for 5-7 minutes."
+    storage: "Store in an airtight container in the fridge for up to 3 days. To reheat, place in the oven at 350°F (175°C) for 5-7 minutes until warmed through and the outside is crispy again. Microwaving works but the texture won't be as crispy."
   },
   {
     id: "320",
@@ -148,17 +153,18 @@ export const recipes316to325 = [
       "1/2 teaspoon olive oil"
     ],
     instructions: [
-      "Spread cream cheese thinly on one tortilla.",
-      "Layer mashed black beans, diced bell pepper, corn kernels, and shredded mozzarella evenly over the cream cheese.",
-      "Place the second tortilla on top and press down gently.",
-      "Heat olive oil in a large non-stick pan over medium heat.",
-      "Carefully place the quesadilla in the pan and cook for 2-3 minutes until the bottom is golden and crispy.",
-      "Flip carefully using a large spatula and cook the other side for 2-3 minutes until cheese is melted.",
-      "Let cool for 2 minutes, then cut into 8 small triangles. Serve with a side of plain yogurt for dipping."
+      "Drain and rinse the black beans thoroughly under cold running water to remove the canning liquid, which can be salty and have a strong taste. Place them in a small bowl and use the back of a fork to mash them lightly — you want about half the beans broken down into a rough paste while leaving the other half mostly whole. This creates a spreadable texture that also has interesting bits for your toddler to discover.",
+      "Wash and finely dice the bell pepper into pieces no larger than 5mm. Small, uniform pieces ensure they soften slightly during cooking and distribute evenly across the quesadilla. If using frozen corn, thaw it briefly under warm water and pat dry with a paper towel to prevent the quesadilla from becoming soggy.",
+      "Lay one tortilla flat on a clean surface. Spread the cream cheese thinly and evenly across the entire surface using the back of a spoon or a butter knife — the cream cheese acts as a 'glue' that helps all the toppings stick to the tortilla and adds a mild, creamy richness.",
+      "Layer the toppings in order: first spread the mashed black beans evenly over the cream cheese, then scatter the diced bell pepper and corn kernels across the surface. Finally, distribute the shredded mozzarella evenly on top. The cheese goes last so that when it melts, it binds all the fillings together.",
+      "Place the second tortilla on top and press down gently but firmly with your palm to compress everything together. This makes the quesadilla easier to flip and cut later.",
+      "Heat the olive oil in a large non-stick frying pan over medium heat — not too hot, or the tortilla will burn before the cheese melts. Carefully transfer the quesadilla to the pan. Cook for 2-3 minutes without moving it, until the bottom tortilla is golden and crispy. Peek underneath by lifting the edge with a spatula to check the color.",
+      "Flip carefully using a large, flat spatula — confidence and speed help here. If you're nervous about flipping, slide the quesadilla onto a plate, place the pan upside down over it, then flip both together. Cook the other side for 2-3 minutes until equally golden and the cheese inside is completely melted and stretchy.",
+      "Transfer to a cutting board and let it rest for 2 minutes — cutting immediately will cause the hot melted cheese to ooze out everywhere. Cut into 8 small triangles (cut in half, then each half into half, then each quarter into half). Serve with a small side of plain yogurt for dipping, which adds protein and makes the meal more interactive."
     ],
     nutrition: { calories: "175", protein: "9g", carbs: "20g", fat: "7g", fiber: "3g", vitamins: ["Vitamin C", "Calcium", "Iron", "Folate"] },
     allergens: ["Gluten", "Dairy"],
-    storage: "Refrigerate for up to 2 days. Reheat in a pan for best crispy results."
+    storage: "Refrigerate for up to 2 days in an airtight container. Reheat in a dry pan over medium heat for 1-2 minutes per side to restore the crispy texture — avoid microwaving as the tortilla becomes chewy and tough."
   },
   {
     id: "321",
@@ -177,15 +183,16 @@ export const recipes316to325 = [
       "Toppings: 1 tablespoon granola, fresh blueberries, 1 teaspoon chia seeds, sliced strawberry"
     ],
     instructions: [
-      "Add frozen banana slices, frozen berries, Greek yogurt, and milk to a blender.",
-      "Blend on high for 30-45 seconds until thick and creamy. The consistency should be thicker than a smoothie — like soft serve. Add a tiny splash more milk only if needed.",
-      "Pour into a small bowl.",
-      "Arrange toppings in rows: a line of granola, fresh blueberries, chia seeds, and sliced strawberry.",
-      "Serve immediately with a small spoon. Let your toddler enjoy the different textures!"
+      "The secret to a great smoothie bowl is using properly frozen fruit. Peel and slice the banana into 1cm rounds the night before, place them in a single layer on a parchment-lined plate, and freeze overnight. Using pre-frozen banana slices (rather than a whole frozen banana) makes blending much easier and more even.",
+      "Add the frozen banana slices and frozen mixed berries to a high-powered blender or food processor. Add the Greek yogurt and whole milk. Let the ingredients sit for 2-3 minutes before blending — this slight thaw prevents the blender from struggling with rock-hard frozen fruit.",
+      "Blend on high speed for 30-45 seconds, stopping to scrape down the sides with a spatula every 10 seconds. The consistency should be very thick — like soft-serve ice cream, not like a drinkable smoothie. If your blender is struggling, use the tamper tool (if available) to push the fruit toward the blades. Add only a tiny splash more milk (1 teaspoon at a time) if absolutely necessary.",
+      "Pour the thick smoothie blend into a small, shallow bowl — shallow bowls are easier for toddlers to scoop from. Use the back of a spoon to smooth the surface into an even layer.",
+      "Now arrange the toppings in neat rows or sections across the surface: a line of granola for crunch, a row of fresh whole blueberries, a sprinkle of chia seeds, and a few thin slices of fresh strawberry. Arranging toppings in distinct sections makes it visually exciting and lets your toddler explore different textures and flavors with each spoonful.",
+      "Serve immediately with a small spoon. Smoothie bowls melt and thin out quickly, especially in warm weather, so encourage your toddler to enjoy it within 10-15 minutes. This is an excellent opportunity to let them practice independent spoon feeding with a delicious, low-mess food!"
     ],
     nutrition: { calories: "195", protein: "6g", carbs: "38g", fat: "4g", fiber: "5g", vitamins: ["Vitamin C", "Vitamin K", "Manganese", "Potassium", "Antioxidants"] },
     allergens: ["Dairy"],
-    storage: "Must be served immediately. Does not store well as it melts quickly."
+    storage: "Must be served and eaten immediately. Does not store well as the frozen base melts rapidly and the texture is lost. Leftover blended mixture cannot be re-frozen successfully."
   },
   {
     id: "322",
@@ -208,17 +215,18 @@ export const recipes316to325 = [
       "2 tablespoons parmesan cheese, grated"
     ],
     instructions: [
-      "Heat olive oil in a saucepan over medium heat. Sauté garlic for 30 seconds until fragrant.",
-      "Add chopped carrot, zucchini, and red lentils. Stir for 1 minute.",
-      "Pour in crushed tomatoes, add oregano, and stir well. Bring to a simmer.",
-      "Cover and cook on low heat for 15-18 minutes until the lentils are completely soft and carrots are tender.",
-      "Meanwhile, cook penne pasta according to package directions. Drain and set aside.",
-      "Blend the sauce with an immersion blender until completely smooth — no visible veggie pieces!",
-      "Toss the cooked penne with the hidden veggie sauce. Serve topped with grated parmesan."
+      "Heat the olive oil in a medium saucepan over medium heat. Add the minced garlic and sauté for just 30 seconds, stirring constantly, until it's fragrant and very lightly golden — garlic burns in seconds and burnt garlic will make the entire sauce taste bitter, so keep it moving and keep the heat moderate.",
+      "Add the roughly chopped carrot and zucchini to the pan. There's no need to dice them finely since they'll be blended later — rough 2cm chunks are perfect. Stir them around in the garlic oil for about 1 minute to lightly coat them.",
+      "Rinse the red lentils in a fine-mesh sieve under cold water until the water runs clear (about 20 seconds), then add them to the saucepan. Pour in the crushed tomatoes and add the dried oregano. Stir everything together until well combined.",
+      "Bring the sauce to a gentle boil, then immediately reduce the heat to low. Cover with a lid and let it simmer quietly for 15-18 minutes, stirring every 5 minutes to prevent the bottom from catching. The sauce is ready when the lentils have completely disintegrated into the liquid and the carrot pieces are very tender — easily crushable between your fingers.",
+      "Meanwhile, bring a large pot of water to a rolling boil. Add the penne pasta and cook according to the package directions until al dente (firm to the bite). Drain in a colander, reserving about 1/4 cup of the starchy pasta water — this is liquid gold for adjusting sauce consistency later.",
+      "Remove the sauce from heat and blend it with an immersion blender for 45-60 seconds until it's completely smooth and silky — there should be absolutely no visible pieces of carrot, zucchini, or lentil. This is the 'hidden' part! If you don't have an immersion blender, carefully transfer to a standing blender, vent the lid slightly (hot liquids expand!), and blend until smooth.",
+      "Return the sauce to low heat if needed. Add the drained penne and toss thoroughly, ensuring every piece of pasta is well coated. If the sauce seems too thick, add a splash of the reserved pasta water to loosen it to the perfect consistency.",
+      "Serve in bowls topped with freshly grated parmesan cheese. The parmesan adds a savory, umami depth that makes the dish irresistible. Your toddler gets a massive hidden serving of vegetables and plant protein with every delicious bite!"
     ],
     nutrition: { calories: "245", protein: "11g", carbs: "40g", fat: "5g", fiber: "6g", vitamins: ["Vitamin A", "Vitamin C", "Iron", "Folate", "Fiber"] },
     allergens: ["Gluten", "Dairy"],
-    storage: "Sauce can be frozen for up to 3 months. Cooked pasta with sauce stores in fridge for 2 days."
+    storage: "The sauce alone can be frozen in portions for up to 3 months — a fantastic make-ahead option for busy parents. Cooked pasta with sauce stores in the fridge in an airtight container for up to 2 days. Reheat with a splash of water to restore the saucy consistency."
   },
   {
     id: "323",
@@ -240,17 +248,18 @@ export const recipes316to325 = [
       "1 teaspoon coconut oil for cooking"
     ],
     instructions: [
-      "In a bowl, mash the banana until smooth. Whisk in the egg, milk, and vanilla extract.",
-      "Add oat flour and baking powder. Stir until just combined — don't overmix, a few lumps are fine for fluffy pancakes.",
-      "Gently fold in the fresh blueberries.",
-      "Heat coconut oil in a non-stick pan over medium-low heat.",
-      "Pour 2 tablespoons of batter per pancake. Cook for 2-3 minutes until bubbles form on the surface and the edges look set.",
-      "Flip carefully and cook another 1-2 minutes until golden brown.",
-      "Serve warm with a thin drizzle of honey or a dollop of yogurt."
+      "If you don't have oat flour, make your own by placing rolled oats in a blender or food processor and pulsing for 25-30 seconds until you have a fine, powdery flour. A few slightly larger flakes are perfectly fine and actually add a pleasant, rustic texture to the pancakes. Measure out 1 cup of the oat flour.",
+      "In a medium mixing bowl, peel the banana and mash it thoroughly with a fork until it's very smooth with no large lumps — the smoother the banana, the more evenly it mixes into the batter and the more uniformly sweet each pancake will be. Crack in the egg, add the milk and vanilla extract, and whisk everything vigorously until well combined.",
+      "Add the oat flour and baking powder to the wet mixture. Stir gently with a spatula using slow, folding motions until the dry ingredients are just incorporated — you should still see a few small lumps in the batter, which is perfect. Resist the urge to keep stirring! Overmixing develops the gluten in the oats, resulting in tough, chewy pancakes instead of fluffy ones. Let the batter rest undisturbed for 5 minutes to allow the oat flour to hydrate.",
+      "While the batter rests, wash the fresh blueberries and gently pat them dry with a paper towel. After the 5-minute rest, gently fold the blueberries into the batter using 3-4 slow strokes — just enough to distribute them without crushing them. Crushed blueberries turn the batter purple and release too much moisture.",
+      "Heat the coconut oil in a non-stick pan or griddle over medium-low heat (this is important — too high and the outside burns before the inside cooks). Test the heat by dropping a tiny amount of batter into the pan; it should sizzle gently, not aggressively. Pour approximately 2 tablespoons of batter per pancake, spacing them 3-4cm apart.",
+      "Cook for 2-3 minutes, watching for the telltale signs that the pancake is ready to flip: small bubbles will form across the surface and the edges will look set and slightly dry. Carefully slide a thin spatula underneath and flip in one confident motion. Cook the second side for 1.5-2 minutes until golden brown.",
+      "Transfer the cooked pancakes to a warm plate (you can keep them in a low oven at 200°F while cooking the remaining batter). Repeat with any remaining batter.",
+      "Serve warm, stacked or fanned out on a plate. These are delicious on their own due to the natural banana sweetness, or with a thin drizzle of honey (for 12+ months only), a small dollop of Greek yogurt, or extra fresh berries on the side."
     ],
     nutrition: { calories: "75", protein: "3g", carbs: "12g", fat: "2g", fiber: "2g", vitamins: ["Vitamin B6", "Manganese", "Antioxidants", "Iron"] },
     allergens: ["Egg", "Gluten (oats)"],
-    storage: "Store in fridge for up to 2 days or freeze for up to 1 month. Reheat in toaster or pan."
+    storage: "Store in an airtight container in the fridge for up to 2 days, with parchment paper between each pancake to prevent sticking. Freeze for up to 1 month. Reheat in a toaster or warm pan for best results — microwaving tends to make them rubbery."
   },
   {
     id: "324",
@@ -275,18 +284,18 @@ export const recipes316to325 = [
       "Fresh parsley for garnish"
     ],
     instructions: [
-      "Heat olive oil and butter in a large pot over medium heat.",
-      "Add diced onion and celery, cook for 3-4 minutes until softened.",
-      "Add diced chicken and cook for 5 minutes, stirring occasionally, until no longer pink.",
-      "Add diced potato and carrot. Pour in chicken broth and add thyme.",
-      "Bring to a boil, then reduce heat and simmer covered for 15-18 minutes until all vegetables are tender.",
-      "Remove half the soup to a blender and blend until smooth. Return to the pot and stir together — this creates a creamy base with chunky bits.",
-      "Stir in the milk and heat gently for 2 minutes. Do not boil.",
-      "Serve in small bowls garnished with fresh parsley."
+      "Heat the olive oil and butter together in a large, heavy-bottomed pot or Dutch oven over medium heat. Wait until the butter has melted and is slightly foamy — this combination of oil and butter gives you the high heat tolerance of oil with the rich flavor of butter.",
+      "Add the finely diced onion and chopped celery. Sauté for 3-4 minutes, stirring occasionally with a wooden spoon, until the onion is translucent and the celery has softened. These aromatic vegetables form the flavor foundation of the soup, so don't rush this step — let them sweat gently without browning.",
+      "Add the diced chicken breast to the pot. Spread the pieces out in an even layer and cook for about 5 minutes, stirring every minute or so, until the chicken is no longer pink on the outside and has turned white all over. It doesn't need to be fully cooked through at this stage — it will continue cooking in the broth.",
+      "Add the diced potato and carrot to the pot. Pour in the chicken broth, making sure all the vegetables and chicken are submerged. Add the dried thyme and stir everything together. Bring to a boil over medium-high heat.",
+      "As soon as the soup reaches a boil, reduce the heat to low. Cover with a lid and let it simmer gently for 15-18 minutes, stirring once or twice. The soup is ready when the potatoes and carrots are completely tender — test by pressing a piece against the side of the pot with a spoon; it should crush easily with almost no resistance.",
+      "This is the step that creates the perfect texture: carefully ladle approximately half the soup into a blender or use an immersion blender on one side of the pot to blend just half. Blend until completely smooth, then stir it back into the pot with the remaining chunky half. This technique creates a luxuriously creamy broth while keeping some tender pieces of chicken and vegetables for your toddler to practice chewing.",
+      "Stir in the whole milk over low heat and warm gently for 2 minutes, stirring continuously. The milk adds calcium and richness, creating a beautiful, velvety consistency. Important: do not let the soup come to a boil after adding the milk, as it can curdle and develop an unpleasant grainy texture.",
+      "Ladle into small, toddler-appropriate bowls. Chop a few fresh parsley leaves finely and sprinkle over each serving — parsley adds a bright, fresh flavor and a pop of color that makes the soup more visually appealing. Serve warm with a slice of soft bread for dipping."
     ],
     nutrition: { calories: "195", protein: "16g", carbs: "18g", fat: "7g", fiber: "2g", vitamins: ["Vitamin A", "Vitamin C", "Vitamin B6", "Potassium", "Iron"] },
     allergens: ["Dairy"],
-    storage: "Refrigerate for up to 3 days. Freeze without milk for up to 2 months — add milk when reheating."
+    storage: "Refrigerate in an airtight container for up to 3 days. For freezing (up to 2 months), store without the milk — add fresh milk when reheating. Thaw overnight in the fridge and reheat on the stove over medium heat until steaming hot throughout."
   },
   {
     id: "325",
@@ -308,16 +317,17 @@ export const recipes316to325 = [
       "1 teaspoon maple syrup (optional)"
     ],
     instructions: [
-      "Boil or steam the sweet potato cubes for 10-12 minutes until very soft. Drain and mash until smooth.",
-      "In a saucepan, combine oats, milk, and water. Bring to a gentle boil over medium heat.",
-      "Reduce heat to low and cook for 4-5 minutes, stirring frequently, until oats are creamy and thickened.",
-      "Stir in the mashed sweet potato, cinnamon, and vanilla extract. Mix until well combined and the porridge turns a beautiful orange color.",
-      "Remove from heat. Stir in almond butter if using for extra protein and healthy fats.",
-      "Divide between two bowls. Drizzle with a tiny bit of maple syrup if desired.",
-      "Serve warm. This is also delicious cold the next day as overnight oats!"
+      "Peel the sweet potato and cut it into small, even cubes of about 1.5cm — uniform sizes ensure everything cooks at the same rate. Place the cubes in a steamer basket over a pot of boiling water, cover, and steam for 10-12 minutes until they are extremely soft and easily pierced through with a fork. Alternatively, place in a microwave-safe bowl with 2 tablespoons of water, cover, and microwave on high for 4-5 minutes.",
+      "Drain the steamed sweet potato well (excess water will make the porridge thin and watery) and transfer to a bowl. Mash thoroughly with a fork or potato masher until completely smooth with no lumps — the smoother the mash, the more evenly it will incorporate into the oats, creating a beautiful, uniform orange color throughout the porridge.",
+      "In a separate saucepan, combine the rolled oats with the whole milk and water. Place over medium heat and bring to a gentle boil, stirring frequently. Milk-based porridge scorches easily, so keep stirring and don't walk away from the stove.",
+      "As soon as it begins to bubble, reduce the heat to low. Cook for 4-5 minutes, stirring constantly with a wooden spoon in a figure-eight pattern to prevent lumps from forming and to keep the oats from sticking to the bottom. The porridge is ready when it looks thick, creamy, and pulls away slightly from the sides of the pan.",
+      "Remove from heat and add the mashed sweet potato, cinnamon, and vanilla extract. Stir vigorously until the sweet potato is completely incorporated and the porridge turns a beautiful, vibrant orange color. The natural sweetness of the sweet potato means no added sugar is needed at all.",
+      "If using almond butter (recommended for an extra boost of protein and healthy fats), drop it into the center of the warm porridge and stir through — it melts into the hot oats and adds a subtle, nutty richness that pairs wonderfully with the sweet potato and cinnamon flavors.",
+      "Divide the porridge between two small bowls. If desired, drizzle a tiny amount (no more than 1/2 teaspoon) of maple syrup over each bowl. Swirl it through with a spoon to create an attractive pattern.",
+      "Let the porridge cool to a safe temperature before serving — always test by touching a small amount to the inside of your wrist. This porridge is also delicious served cold the next day straight from the fridge, making it an excellent make-ahead breakfast option for busy mornings!"
     ],
     nutrition: { calories: "180", protein: "6g", carbs: "30g", fat: "5g", fiber: "4g", vitamins: ["Vitamin A", "Beta-carotene", "Calcium", "Iron", "Manganese"] },
     allergens: ["Dairy", "Gluten (oats)", "Tree Nuts (if using almond butter)"],
-    storage: "Refrigerate for up to 2 days. Can be served cold or reheated with a splash of milk."
+    storage: "Refrigerate in airtight containers for up to 2 days. Can be served cold as overnight oats or reheated with a splash of milk to restore the creamy consistency. Stir well before serving and always test the temperature."
   }
 ];
