@@ -9,6 +9,7 @@ import { recipes239to271 } from "./recipes239-271";
 import { recipes272to300 } from "./recipes272-300";
 import { recipes301to310 } from "./recipes301-310";
 import { recipes311to315 } from "./recipes311-315";
+import { recipes316to325 } from "./recipes316-325";
 
 export interface Recipe {
   id: string;
@@ -36,7 +37,7 @@ export interface Recipe {
   servingGuidance: string;
 }
 
-export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months"];
+export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months", "24+ months"];
 export const categories = ["All Categories", "Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
 
 // Infer food-type category from recipe content using intelligent keyword matching
@@ -1251,4 +1252,5 @@ export const recipes: Recipe[] = [
   ...recipes272to300,
   ...recipes301to310,
   ...recipes311to315,
+  ...recipes316to325,
 ].map(addDefaultFields);

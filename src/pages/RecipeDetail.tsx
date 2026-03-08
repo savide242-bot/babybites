@@ -14,6 +14,7 @@ import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
 import { useTodaysMealStatus } from "@/hooks/useTodaysMealStatus";
 import { motion } from "framer-motion";
+import { exportRecipePDF } from "@/utils/recipePDFExport";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
@@ -132,46 +133,10 @@ const RecipeDetail = () => {
 
   const handleExportPDF = () => {
     try {
-      // Create a printable text version of the recipe
-      let content = `🍽️ ${recipe.title}\n`;
-      content += `${'='.repeat(50)}\n\n`;
-      content += `📌 ${recipe.category} | ${recipe.ageGroup}\n`;
-      content += `⏱️ Prep Time: ${recipe.prepTime} | 👥 Servings: ${recipe.servings}\n\n`;
-      content += `${recipe.description}\n\n`;
-      
-      content += `📝 INGREDIENTS\n${'-'.repeat(30)}\n`;
-      recipe.ingredients.forEach(ingredient => {
-        content += `• ${ingredient}\n`;
-      });
-      content += '\n';
-      
-      content += `👩‍🍳 INSTRUCTIONS\n${'-'.repeat(30)}\n`;
-      recipe.instructions.forEach((instruction, index) => {
-        content += `${index + 1}. ${instruction}\n\n`;
-      });
-      
-      content += `📊 NUTRITION INFO\n${'-'.repeat(30)}\n`;
-      content += `Calories: ${recipe.nutrition.calories} kcal\n`;
-      content += `Protein: ${recipe.nutrition.protein}g\n`;
-      content += `Carbs: ${recipe.nutrition.carbs}g\n`;
-      content += `Fats: ${recipe.nutrition.fat}g\n\n`;
-      
-      content += `💕 Created with BabyBites`;
-      
-      // Create and download text file
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `babybites-${recipe.title.toLowerCase().replace(/\s+/g, '-')}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast.success("Recipe Downloaded!", { description: `${recipe.title} saved as text file` });
+      exportRecipePDF(recipe);
+      toast.success("Print dialog opened!", { description: `Save ${recipe.title} as PDF` });
     } catch (error) {
-      toast.error("Export Failed", { description: "Could not generate file." });
+      toast.error("Export Failed", { description: "Could not generate PDF." });
     }
   };
 

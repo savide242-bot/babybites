@@ -734,6 +734,18 @@ const recipeImageMap: Record<string, string> = {
   "308": babyMinestroneSoup,
   "309": spinachPotatoSoup,
   "310": nourishingChickenNoodleSoup,
+
+  // IDs 316-325 (recipes316-325.ts) - 24+ MONTHS
+  "316": chickenBroccoliPureeUnique,
+  "317": quinoaVegetableBowlUnique,
+  "318": tropicalSmoothieBowlUnique,
+  "319": cheesyCauliflowerBitesUnique,
+  "320": miniVeggieFrittataUnique,
+  "321": raspberryYogurtSwirlUnique,
+  "322": pastaStarsTomatoUnique,
+  "323": blueberryPancakeBitesUnique,
+  "324": creamyCarrotGingerSoup,
+  "325": pumpkinseedButterOatsUnique,
 };
 
 // Keyword to ID mapping for backward compatibility
