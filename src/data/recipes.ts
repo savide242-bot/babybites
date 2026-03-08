@@ -37,7 +37,7 @@ export interface Recipe {
   servingGuidance: string;
 }
 
-export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months"];
+export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months", "24+ months"];
 export const categories = ["All Categories", "Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
 
 // Infer food-type category from recipe content using intelligent keyword matching
