@@ -203,14 +203,15 @@ const Settings = () => {
             </Card>
           </motion.div>
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Salad className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-mint/5 to-secondary/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Salad className="h-5 w-5 text-mint" />
                 Dietary Preferences
               </CardTitle>
               <CardDescription>
-                Set your dietary restrictions to get personalized recipe recommendations. Changes are saved automatically.
+                Set dietary restrictions for personalized recommendations
               </CardDescription>
             </CardHeader>
             <CardContent>
