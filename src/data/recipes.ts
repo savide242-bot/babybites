@@ -1254,4 +1254,5 @@ export const recipes: Recipe[] = [
   ...recipes301to310,
   ...recipes311to315,
   ...recipes316to325,
+  ...recipes326to340,
 ].map(addDefaultFields);
