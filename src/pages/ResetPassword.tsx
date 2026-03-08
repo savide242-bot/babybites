@@ -125,7 +125,7 @@ const ResetPassword = () => {
         // First try to set session from URL tokens
         const sessionSet = await setSessionFromUrl();
         if (sessionSet) {
-          console.log('🔐 [RESET-PAGE] Session set from URL successfully!');
+          
           setIsValidToken(true);
           setIsCheckingToken(false);
           return;
