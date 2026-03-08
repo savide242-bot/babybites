@@ -351,86 +351,56 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     }
   }
 
-  // Build full HTML
-  const sections: string[] = [];
+  // Build sections - each major section wrapped with page-break-before
+  const wrap = (html: string, forceBreak = false) => 
+    `<div style="${forceBreak ? 'page-break-before:always;' : ''}">${html}</div>`;
 
-  // 1. Cover
-  sections.push(buildCoverPage(articles.length, categoriesUsed, today));
-  sections.push(PAGE_BREAK);
+  const allSections = [
+    wrap(buildCoverPage(articles.length, categoriesUsed, today), false),
+    wrap(buildIntroPage(), true),
+    wrap(buildTOCPage(grouped, globalIndex), true),
+  ];
 
-  // 2. Introduction
-  sections.push(buildIntroPage());
-  sections.push(PAGE_BREAK);
-
-  // 3. Table of Contents
-  sections.push(buildTOCPage(grouped, globalIndex));
-  sections.push(PAGE_BREAK);
-
-  // 4. Category sections
   for (const cat of categoriesUsed) {
-    // Category divider page
-    sections.push(buildCategoryDivider(cat, grouped[cat].length));
-    sections.push(PAGE_BREAK);
-
-    // Articles in this category
+    allSections.push(wrap(buildCategoryDivider(cat, grouped[cat].length), true));
+    
     const catArticles = grouped[cat];
-    for (const article of catArticles) {
-      sections.push(buildArticle(article, globalIndex[article.id]));
-    }
-    sections.push(PAGE_BREAK);
+    const articlesHtml = catArticles.map(a => buildArticle(a, globalIndex[a.id])).join('');
+    allSections.push(wrap(`<div style="padding:20px 44px;">${articlesHtml}</div>`, true));
   }
 
-  // 5. Back cover
-  sections.push(buildBackCover(today));
+  allSections.push(wrap(buildBackCover(today), true));
 
-  const html = `
-    <div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;width:100%;color:#1e293b;">
-      ${sections.join('')}
-    </div>
-  `;
+  const html = `<div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;width:794px;color:#1e293b;background:white;">${allSections.join('')}</div>`;
 
-  // Loading overlay to hide rendering from user
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;';
-  overlay.innerHTML = '<div style="text-align:center;"><div style="font-size:48px;margin-bottom:16px;">📖</div><div style="font-size:18px;font-weight:600;color:#1e293b;margin-bottom:8px;">A gerar o eBook...</div><div style="font-size:14px;color:#94a3b8;">Isto pode demorar alguns segundos</div></div>';
-  document.body.appendChild(overlay);
-
-  // Container must be VISIBLE (no opacity/visibility hiding) for html2canvas
   const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.width = '794px';
-  container.style.background = 'white';
-  container.style.zIndex = '999998';
-  container.style.overflow = 'visible';
-  container.style.pointerEvents = 'none';
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '-9999px';
   container.innerHTML = html;
   document.body.appendChild(container);
-
-  const element = container.firstElementChild as HTMLElement;
 
   const opt = {
     margin: [10, 10, 14, 10],
     filename: 'BabyBites-Knowledge-Hub-eBook.pdf',
-    image: { type: 'jpeg', quality: 0.94 },
+    image: { type: 'jpeg', quality: 0.95 },
     html2canvas: { 
       scale: 2, 
-      useCORS: true, 
-      width: 794, 
-      windowWidth: 794,
-      scrollX: 0,
-      scrollY: 0,
+      useCORS: true,
+      allowTaint: true,
       logging: false,
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'], before: '.html2pdf__page-break' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
   };
 
   html2pdf()
     .set(opt)
-    .from(element)
+    .from(container.firstElementChild)
     .save()
-    .then(() => { container.remove(); overlay.remove(); })
-    .catch(() => { container.remove(); overlay.remove(); });
+    .then(() => container.remove())
+    .catch((err: Error) => {
+      console.error('PDF generation error:', err);
+      container.remove();
+    });
 };
