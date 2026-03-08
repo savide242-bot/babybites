@@ -317,7 +317,7 @@ export const useEngagement = () => {
           .from('user_streaks')
           .select('total_points')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
         
         if (streakData) {
           await supabase
