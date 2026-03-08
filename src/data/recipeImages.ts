@@ -375,6 +375,30 @@ import veggieScrambledEggs259 from "@/assets/recipes/veggie-scrambled-eggs-259.j
 import avocadoEggBowl262 from "@/assets/recipes/avocado-egg-bowl-262.jpg";
 import papayaCoconut193 from "@/assets/recipes/papaya-coconut-193.jpg";
 
+// FINAL BATCH - Eliminating last 22 duplicate images
+import whiteFishParsnip210 from "@/assets/recipes/white-fish-parsnip-210.jpg";
+import beefCarrotPuree211 from "@/assets/recipes/beef-carrot-puree-211.jpg";
+import blueberryOatCream221 from "@/assets/recipes/blueberry-oat-cream-221.jpg";
+import cauliflowerCheese222 from "@/assets/recipes/cauliflower-cheese-222.jpg";
+import sweetPotatoCinnamon223 from "@/assets/recipes/sweet-potato-cinnamon-223.jpg";
+import broccoliPear224 from "@/assets/recipes/broccoli-pear-224.jpg";
+import apricotRiceCream226 from "@/assets/recipes/apricot-rice-cream-226.jpg";
+import greenBeanPotato227 from "@/assets/recipes/green-bean-potato-227.jpg";
+import chickenHerb228 from "@/assets/recipes/chicken-herb-228.jpg";
+import melonCottageCheese229 from "@/assets/recipes/melon-cottage-cheese-229.jpg";
+import lambVegetableStew230 from "@/assets/recipes/lamb-vegetable-stew-230.jpg";
+import beetrootApple232 from "@/assets/recipes/beetroot-apple-232.jpg";
+import eggYolkVegetable233 from "@/assets/recipes/egg-yolk-vegetable-233.jpg";
+import kiwiBanana236 from "@/assets/recipes/kiwi-banana-236.jpg";
+import asparagusPotato237 from "@/assets/recipes/asparagus-potato-237.jpg";
+import tofuFruit238 from "@/assets/recipes/tofu-fruit-238.jpg";
+import salmonPastaBake251 from "@/assets/recipes/salmon-pasta-bake-251.jpg";
+import quinoaVegetable284 from "@/assets/recipes/quinoa-vegetable-284.jpg";
+import pumpkinSpiceQuinoa182 from "@/assets/recipes/pumpkin-spice-quinoa-182.jpg";
+import blueberryLemonYogurtBark180 from "@/assets/recipes/blueberry-lemon-yogurt-bark-180.jpg";
+import spinachBananaSmoothie196 from "@/assets/recipes/spinach-banana-smoothie-196.jpg";
+import fishVegetablePuree114 from "@/assets/recipes/fish-vegetable-puree-114.jpg";
+
 export const recipeImages = {
   avocadoPuree, sweetPotatoCarrot, blueberryOatmeal, eggMuffins, bananaPancakes,
   chickenPatties, peaPuree, appleSauce, pastaTomato, yogurtBerries, quinoaVeggies,
