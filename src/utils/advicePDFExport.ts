@@ -1,4 +1,4 @@
-import html2pdf from 'html2pdf.js';
+// Uses browser native print for reliable PDF generation
 
 interface AdviceArticle {
   id: number;
