@@ -237,15 +237,15 @@ const Recipes = () => {
   const handleExportEbook = useCallback(() => {
     hapticFeedback('light');
     setIsExporting(true);
-    toast.info('A gerar o eBook... Isto pode demorar alguns segundos.');
+    toast.info('Generating eBook with photos... This may take a moment.');
     
     // Defer to let the toast render
     setTimeout(() => {
       try {
         exportRecipeEbook(recipes as any);
-        toast.success('eBook gerado com sucesso! 📖');
+        toast.success('eBook generated successfully! 📖');
       } catch (err) {
-        toast.error('Erro ao gerar o eBook. Tente novamente.');
+        toast.error('Error generating eBook. Please try again.');
       } finally {
         setIsExporting(false);
       }
