@@ -45,13 +45,6 @@ const ResetPassword = () => {
     const tokenType = hashParams.get('type') || queryParams.get('type');
     const code = queryParams.get('code'); // For PKCE flow
     
-    console.log('🔐 [RESET-PAGE] Parsed params:', { 
-      error, 
-      errorDescription, 
-      hasAccessToken: !!accessToken,
-      hasCode: !!code,
-      tokenType 
-    });
     
     if (error) {
       console.error('🔐 [RESET-PAGE] Error in URL:', error, errorDescription);
