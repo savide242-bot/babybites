@@ -152,10 +152,20 @@ const Home = () => {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={async () => {
+              if (notifLoading) return;
               setNotifLoading(true);
               try {
+                console.log('🏠 Home: Starting notification subscription...');
                 const success = await subscribeToPushNotifications();
-                if (success) toast.success("🔔 Notifications enabled!");
+                console.log('🏠 Home: Subscription result:', success);
+                if (success) {
+                  toast.success("🔔 Notifications enabled!");
+                } else {
+                  toast.error("Could not enable notifications. Check browser settings.");
+                }
+              } catch (err) {
+                console.error('🏠 Home: Subscription error:', err);
+                toast.error("Something went wrong. Please try again.");
               } finally {
                 setNotifLoading(false);
               }
