@@ -34,6 +34,7 @@ const ShoppingList = () => {
   const { toast } = useToast();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     checkUser();
@@ -43,7 +44,9 @@ const ShoppingList = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
-      loadShoppingList(user.id);
+      await loadShoppingList(user.id);
+    } else {
+      setIsLoading(false);
     }
   };
 
