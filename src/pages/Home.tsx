@@ -255,81 +255,90 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── AGE CATEGORIES ── */}
-        {!isLoading && (
-          <motion.div
-            ref={ageCategoriesRef}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 }}
-          >
-            <AgeCategoryCircles babyAgeMonths={babyAgeMonths} />
-          </motion.div>
-        )}
+        {/* ── DESKTOP 2-COLUMN / MOBILE SINGLE COLUMN ── */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-5 lg:space-y-0">
+          {/* LEFT COLUMN */}
+          <div className="space-y-5">
+            {/* ── AGE CATEGORIES ── */}
+            {!isLoading && (
+              <motion.div
+                ref={ageCategoriesRef}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 }}
+              >
+                <AgeCategoryCircles babyAgeMonths={babyAgeMonths} />
+              </motion.div>
+            )}
 
-        {/* ── WHAT TO COOK ── */}
-        {!isLoading && (
-          <motion.div
-            ref={recipeOfDayRef}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
-          </motion.div>
-        )}
+            {/* ── WHAT TO COOK ── */}
+            {!isLoading && (
+              <motion.div
+                ref={recipeOfDayRef}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
+              </motion.div>
+            )}
+          </div>
 
-        {/* ── DAILY TIP ── */}
-        {!isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="rounded-2xl bg-gradient-to-br from-secondary/30 to-peach/20 border border-secondary/30 p-4"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
-                {ageTip.icon}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Lightbulb className="w-3.5 h-3.5 text-primary" />
-                  <p className="text-xs font-semibold text-primary">
-                    Tip for {babyAgeMonths} months
-                  </p>
+          {/* RIGHT COLUMN */}
+          <div className="space-y-5">
+            {/* ── DAILY TIP ── */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="rounded-2xl bg-gradient-to-br from-secondary/30 to-peach/20 border border-secondary/30 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                    {ageTip.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Lightbulb className="w-3.5 h-3.5 text-primary" />
+                      <p className="text-xs font-semibold text-primary">
+                        Tip for {babyAgeMonths} months
+                      </p>
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {dailyTip?.tip_text || ageTip.tip}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {dailyTip?.tip_text || ageTip.tip}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
+              </motion.div>
+            )}
 
-        {/* ── EXPLORE RECIPES CTA ── */}
-        {!isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Link
-              to="/recipes"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-mint/10 border border-primary/15 active:scale-[0.98] transition-transform"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">👩‍🍳</span>
-                <div>
-                  <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
-                  <p className="text-xs text-muted-foreground">
-                    {recipes.length}+ recipes perfect for {babyName || "your baby"}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </Link>
-          </motion.div>
-        )}
+            {/* ── EXPLORE RECIPES CTA ── */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Link
+                  to="/recipes"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-mint/10 border border-primary/15 active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">👩‍🍳</span>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
+                      <p className="text-xs text-muted-foreground">
+                        {recipes.length}+ recipes perfect for {babyName || "your baby"}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </Link>
+              </motion.div>
+            )}
+          </div>
+        </div>
 
       </div>
     </div>

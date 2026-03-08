@@ -424,18 +424,20 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+          </motion.div>
 
+          <motion.div variants={itemVariants}>
           <ChangePasswordSection />
+          </motion.div>
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-secondary/5 to-mint/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <RefreshCw className="h-5 w-5 text-secondary" />
                 App Updates
               </CardTitle>
-              <CardDescription>
-                Manage app updates and notifications
-              </CardDescription>
+              <CardDescription>Manage app updates and notifications</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {isSupported && (
