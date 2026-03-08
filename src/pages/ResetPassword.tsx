@@ -155,7 +155,7 @@ const ResetPassword = () => {
           
           const { data: { session: retrySession } } = await supabase.auth.getSession();
           if (retrySession) {
-            console.log('🔐 [RESET-PAGE] Session found on retry!');
+            
             setIsValidToken(true);
             setIsCheckingToken(false);
             return;
