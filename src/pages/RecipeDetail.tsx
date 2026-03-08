@@ -134,7 +134,7 @@ const RecipeDetail = () => {
   const handleExportPDF = () => {
     try {
       exportRecipePDF(recipe);
-      toast.success("Print dialog opened!", { description: `Save ${recipe.title} as PDF` });
+      toast.success("Downloading PDF!", { description: `${recipe.title} is being saved` });
     } catch (error) {
       toast.error("Export Failed", { description: "Could not generate PDF." });
     }

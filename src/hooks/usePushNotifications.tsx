@@ -96,16 +96,41 @@ export const usePushNotifications = () => {
 
   const checkExistingSubscription = async () => {
     try {
+      // Wait a bit for service worker to fully initialize
       const registration = await navigator.serviceWorker.ready;
       const existingSub = await (registration as any).pushManager.getSubscription();
 
       if (existingSub) {
         console.log('✅ Found existing push subscription');
+        console.log('📍 Existing endpoint:', existingSub.endpoint.substring(0, 60) + '...');
         setSubscription(existingSub);
         // Ensure it's saved to database
-        await saveSubscription(existingSub);
+        const saved = await saveSubscription(existingSub);
+        if (!saved) {
+          console.warn('⚠️ Failed to sync existing subscription to database - will retry on next load');
+        }
       } else {
         console.log('📭 No existing push subscription found');
+        // Check if permission is granted but no subscription exists
+        if (Notification.permission === 'granted') {
+          console.log('🔄 Permission granted but no subscription - auto-subscribing...');
+          // Auto-subscribe since permission was already granted
+          try {
+            const vapidKey = await fetchVapidPublicKey();
+            if (vapidKey) {
+              const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+              const newSub = await (registration as any).pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: applicationServerKey.buffer as ArrayBuffer
+              });
+              console.log('✅ Auto-subscribed successfully');
+              setSubscription(newSub);
+              await saveSubscription(newSub);
+            }
+          } catch (autoSubError) {
+            console.error('❌ Auto-subscribe failed:', autoSubError);
+          }
+        }
       }
     } catch (error) {
       console.error('❌ Error checking subscription:', error);

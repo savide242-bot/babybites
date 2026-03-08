@@ -1,3 +1,5 @@
+import html2pdf from 'html2pdf.js';
+
 interface RecipeForPDF {
   title: string;
   description: string;
@@ -46,404 +48,142 @@ export const exportRecipePDF = (recipe: RecipeForPDF) => {
     .map((v) => `<span class="vitamin-badge">${v}</span>`)
     .join("");
 
-  const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${recipe.title} - BabyBites</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-  
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  body {
-    font-family: 'Nunito', -apple-system, sans-serif;
-    color: #2d2d2d;
-    background: #fff;
-    line-height: 1.6;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .page {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  /* HEADER */
-  .header {
-    text-align: center;
-    padding: 16px 0 12px;
-    border-bottom: 3px solid #ff8c69;
-    margin-bottom: 16px;
-  }
-  .logo-text {
-    font-size: 22px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #ff8c69, #e85d75);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.5px;
-  }
-  .logo-sub {
-    font-size: 10px;
-    color: #999;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-
-  /* HERO */
-  .hero {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .recipe-title {
-    font-size: 24px;
-    font-weight: 800;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-    line-height: 1.2;
-  }
-  .badge-row {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-  }
-  .badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .badge-age {
-    background: #fff3e6;
-    color: #e67700;
-    border: 1px solid #ffd8a8;
-  }
-  .badge-category {
-    background: #e6f9f0;
-    color: #0ca678;
-    border: 1px solid #96f2d7;
-  }
-  .badge-time {
-    background: #f3f0ff;
-    color: #7048e8;
-    border: 1px solid #d0bfff;
-  }
-  .badge-servings {
-    background: #fff0f6;
-    color: #d6336c;
-    border: 1px solid #fcc2d7;
-  }
-
-  .recipe-image {
-    width: 100%;
-    max-height: 260px;
-    object-fit: cover;
-    border-radius: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  }
-
-  .description {
-    font-size: 13px;
-    color: #555;
-    text-align: center;
-    padding: 0 10px;
-    margin-bottom: 20px;
-  }
-
-  /* SECTIONS */
-  .section {
-    margin-bottom: 20px;
-    break-inside: avoid;
-  }
-  .section-title {
-    font-size: 15px;
-    font-weight: 800;
-    color: #1a1a1a;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid #ffe3d6;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-icon {
-    font-size: 18px;
-  }
-
-  /* INGREDIENTS */
-  .ingredients-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 16px;
-  }
-  .ingredient-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    font-size: 12px;
-    padding: 4px 0;
-  }
-  .checkbox {
-    font-size: 14px;
-    color: #ff8c69;
-    flex-shrink: 0;
-    margin-top: -1px;
-  }
-
-  /* INSTRUCTIONS */
-  .step-card {
-    display: flex;
-    gap: 12px;
-    padding: 10px 12px;
-    background: #fafafa;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    border-left: 3px solid #ff8c69;
-  }
-  .step-number {
-    width: 26px;
-    height: 26px;
-    background: linear-gradient(135deg, #ff8c69, #e85d75);
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 800;
-    flex-shrink: 0;
-  }
-  .step-text {
-    font-size: 12px;
-    line-height: 1.5;
-    color: #333;
-  }
-
-  /* NUTRITION */
-  .nutrition-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-  }
-  .nutrition-card {
-    text-align: center;
-    padding: 10px 6px;
-    background: linear-gradient(135deg, #fff5f2, #fff0eb);
-    border-radius: 12px;
-    border: 1px solid #ffe3d6;
-  }
-  .nutrition-value {
-    font-size: 16px;
-    font-weight: 800;
-    color: #e85d75;
-  }
-  .nutrition-label {
-    font-size: 9px;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-  }
-
-  .vitamins-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 10px;
-  }
-  .vitamin-badge {
-    padding: 3px 8px;
-    background: #e6f9f0;
-    color: #0ca678;
-    border-radius: 12px;
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  /* ALLERGENS */
-  .allergens-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .allergen-badge {
-    padding: 4px 10px;
-    background: #fff3bf;
-    color: #e67700;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-    border: 1px solid #ffd43b;
-  }
-  .no-allergens {
-    font-size: 12px;
-    color: #0ca678;
-    font-weight: 600;
-  }
-
-  /* STORAGE */
-  .storage-box {
-    padding: 10px 14px;
-    background: #f0f4ff;
-    border-radius: 10px;
-    font-size: 12px;
-    color: #4263eb;
-    border: 1px solid #dbe4ff;
-  }
-
-  /* FOOTER */
-  .footer {
-    text-align: center;
-    padding: 16px 0 8px;
-    margin-top: 20px;
-    border-top: 2px solid #ffe3d6;
-  }
-  .footer-text {
-    font-size: 11px;
-    color: #aaa;
-  }
-  .footer-brand {
-    font-weight: 800;
-    background: linear-gradient(135deg, #ff8c69, #e85d75);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  @media print {
-    body { background: #fff; }
-    .page { padding: 12px; max-width: 100%; }
-    .step-card { break-inside: avoid; }
-    .section { break-inside: avoid; }
-    .nutrition-grid { break-inside: avoid; }
-  }
-</style>
-</head>
-<body>
-<div class="page">
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo-text">🍼 BabyBites</div>
-    <div class="logo-sub">Nutritious recipes for little ones</div>
+  const container = document.createElement("div");
+  container.innerHTML = `
+<div class="page" style="max-width:600px;margin:0 auto;padding:20px;font-family:'Nunito',-apple-system,sans-serif;color:#2d2d2d;line-height:1.6;">
+  <div style="text-align:center;padding:16px 0 12px;border-bottom:3px solid #ff8c69;margin-bottom:16px;">
+    <div style="font-size:22px;font-weight:800;color:#ff8c69;letter-spacing:-0.5px;">🍼 BabyBites</div>
+    <div style="font-size:10px;color:#999;letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Nutritious recipes for little ones</div>
   </div>
 
-  <!-- HERO -->
-  <div class="hero">
-    <h1 class="recipe-title">${recipe.title}</h1>
-    <div class="badge-row">
-      <span class="badge badge-age">👶 ${recipe.ageGroup}</span>
-      <span class="badge badge-category">📂 ${recipe.category}</span>
-      <span class="badge badge-time">⏱ ${recipe.prepTime}</span>
-      <span class="badge badge-servings">🍽 ${recipe.servings}</span>
+  <div style="text-align:center;margin-bottom:20px;">
+    <h1 style="font-size:24px;font-weight:800;color:#1a1a1a;margin-bottom:8px;line-height:1.2;">${recipe.title}</h1>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#fff3e6;color:#e67700;border:1px solid #ffd8a8;">👶 ${recipe.ageGroup}</span>
+      <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#e6f9f0;color:#0ca678;border:1px solid #96f2d7;">📂 ${recipe.category}</span>
+      <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#f3f0ff;color:#7048e8;border:1px solid #d0bfff;">⏱ ${recipe.prepTime}</span>
+      <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#fff0f6;color:#d6336c;border:1px solid #fcc2d7;">🍽 ${recipe.servings}</span>
     </div>
-    <img src="${recipe.image}" class="recipe-image" alt="${recipe.title}" onerror="this.style.display='none'" />
-    <p class="description">${recipe.description}</p>
+    <img src="${recipe.image}" style="width:100%;max-height:260px;object-fit:cover;border-radius:16px;margin-bottom:12px;" alt="${recipe.title}" crossorigin="anonymous" />
+    <p style="font-size:13px;color:#555;text-align:center;padding:0 10px;margin-bottom:20px;">${recipe.description}</p>
   </div>
 
-  <!-- INGREDIENTS -->
-  <div class="section">
-    <div class="section-title"><span class="section-icon">🥕</span> Ingredients</div>
-    <div class="ingredients-grid">${ingredientsHTML}</div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ffe3d6;">🥕 Ingredients</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">${ingredientsHTML}</div>
   </div>
 
-  <!-- INSTRUCTIONS -->
-  <div class="section">
-    <div class="section-title"><span class="section-icon">👩‍🍳</span> Instructions</div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ffe3d6;">👩‍🍳 Instructions</div>
     ${instructionsHTML}
   </div>
 
-  <!-- NUTRITION -->
-  <div class="section">
-    <div class="section-title"><span class="section-icon">📊</span> Nutrition</div>
-    <div class="nutrition-grid">
-      <div class="nutrition-card">
-        <div class="nutrition-value">${recipe.nutrition.calories}</div>
-        <div class="nutrition-label">Calories</div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ffe3d6;">📊 Nutrition</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+      <div style="text-align:center;padding:10px 6px;background:#fff5f2;border-radius:12px;border:1px solid #ffe3d6;">
+        <div style="font-size:16px;font-weight:800;color:#e85d75;">${recipe.nutrition.calories}</div>
+        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Calories</div>
       </div>
-      <div class="nutrition-card">
-        <div class="nutrition-value">${recipe.nutrition.protein}</div>
-        <div class="nutrition-label">Protein</div>
+      <div style="text-align:center;padding:10px 6px;background:#fff5f2;border-radius:12px;border:1px solid #ffe3d6;">
+        <div style="font-size:16px;font-weight:800;color:#e85d75;">${recipe.nutrition.protein}</div>
+        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Protein</div>
       </div>
-      <div class="nutrition-card">
-        <div class="nutrition-value">${recipe.nutrition.carbs}</div>
-        <div class="nutrition-label">Carbs</div>
+      <div style="text-align:center;padding:10px 6px;background:#fff5f2;border-radius:12px;border:1px solid #ffe3d6;">
+        <div style="font-size:16px;font-weight:800;color:#e85d75;">${recipe.nutrition.carbs}</div>
+        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Carbs</div>
       </div>
-      <div class="nutrition-card">
-        <div class="nutrition-value">${recipe.nutrition.fat}</div>
-        <div class="nutrition-label">Fat</div>
+      <div style="text-align:center;padding:10px 6px;background:#fff5f2;border-radius:12px;border:1px solid #ffe3d6;">
+        <div style="font-size:16px;font-weight:800;color:#e85d75;">${recipe.nutrition.fat}</div>
+        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Fat</div>
       </div>
-      <div class="nutrition-card">
-        <div class="nutrition-value">${recipe.nutrition.fiber}</div>
-        <div class="nutrition-label">Fiber</div>
+      <div style="text-align:center;padding:10px 6px;background:#fff5f2;border-radius:12px;border:1px solid #ffe3d6;">
+        <div style="font-size:16px;font-weight:800;color:#e85d75;">${recipe.nutrition.fiber}</div>
+        <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Fiber</div>
       </div>
     </div>
-    <div class="vitamins-row">${vitaminsHTML}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;">${vitaminsHTML}</div>
   </div>
 
-  <!-- ALLERGENS -->
-  <div class="section">
-    <div class="section-title"><span class="section-icon">⚠️</span> Allergens</div>
-    <div class="allergens-row">${allergensHTML}</div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ffe3d6;">⚠️ Allergens</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${allergensHTML}</div>
   </div>
 
-  <!-- STORAGE -->
-  <div class="section">
-    <div class="section-title"><span class="section-icon">❄️</span> Storage Tips</div>
-    <div class="storage-box">${recipe.storage}</div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ffe3d6;">❄️ Storage Tips</div>
+    <div style="padding:10px 14px;background:#f0f4ff;border-radius:10px;font-size:12px;color:#4263eb;border:1px solid #dbe4ff;">${recipe.storage}</div>
   </div>
 
   ${recipe.healthBenefits ? `
-  <div class="section">
-    <div class="section-title"><span class="section-icon">💚</span> Health Benefits</div>
-    <div class="storage-box" style="background:#e6f9f0;border-color:#96f2d7;color:#0ca678;">${recipe.healthBenefits}</div>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #ffe3d6;">💚 Health Benefits</div>
+    <div style="padding:10px 14px;background:#e6f9f0;border-radius:10px;font-size:12px;color:#0ca678;border:1px solid #96f2d7;">${recipe.healthBenefits}</div>
   </div>` : ""}
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-text">Made with love by <span class="footer-brand">BabyBites</span> 💕</div>
+  <div style="text-align:center;padding:16px 0 8px;margin-top:20px;border-top:2px solid #ffe3d6;">
+    <div style="font-size:11px;color:#aaa;">Made with love by <span style="font-weight:800;color:#ff8c69;">BabyBites</span> 💕</div>
   </div>
-</div>
-</body>
-</html>`;
+</div>`;
 
-  // Create iframe, write content, and trigger print
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "fixed";
-  iframe.style.right = "-9999px";
-  iframe.style.top = "-9999px";
-  iframe.style.width = "0";
-  iframe.style.height = "0";
-  iframe.style.border = "none";
-  document.body.appendChild(iframe);
+  // Style ingredient items and step cards inline for html2pdf
+  container.querySelectorAll('.ingredient-item').forEach(el => {
+    (el as HTMLElement).style.cssText = 'display:flex;align-items:flex-start;gap:6px;font-size:12px;padding:4px 0;';
+  });
+  container.querySelectorAll('.checkbox').forEach(el => {
+    (el as HTMLElement).style.cssText = 'font-size:14px;color:#ff8c69;flex-shrink:0;';
+  });
+  container.querySelectorAll('.step-card').forEach(el => {
+    (el as HTMLElement).style.cssText = 'display:flex;gap:12px;padding:10px 12px;background:#fafafa;border-radius:10px;margin-bottom:8px;border-left:3px solid #ff8c69;';
+  });
+  container.querySelectorAll('.step-number').forEach(el => {
+    (el as HTMLElement).style.cssText = 'width:26px;height:26px;min-width:26px;background:#ff8c69;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;';
+  });
+  container.querySelectorAll('.step-text').forEach(el => {
+    (el as HTMLElement).style.cssText = 'font-size:12px;line-height:1.5;color:#333;';
+  });
+  container.querySelectorAll('.allergen-badge').forEach(el => {
+    (el as HTMLElement).style.cssText = 'padding:4px 10px;background:#fff3bf;color:#e67700;border-radius:12px;font-size:11px;font-weight:700;border:1px solid #ffd43b;';
+  });
+  container.querySelectorAll('.no-allergens').forEach(el => {
+    (el as HTMLElement).style.cssText = 'font-size:12px;color:#0ca678;font-weight:600;';
+  });
+  container.querySelectorAll('.vitamin-badge').forEach(el => {
+    (el as HTMLElement).style.cssText = 'padding:3px 8px;background:#e6f9f0;color:#0ca678;border-radius:12px;font-size:10px;font-weight:600;';
+  });
 
-  const iframeDoc = iframe.contentWindow?.document;
-  if (!iframeDoc) {
-    document.body.removeChild(iframe);
-    throw new Error("Could not create print document");
-  }
+  // Temporarily add to DOM for rendering
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '-9999px';
+  document.body.appendChild(container);
 
-  iframeDoc.open();
-  iframeDoc.write(htmlContent);
-  iframeDoc.close();
+  const sanitizedTitle = recipe.title.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
 
-  // Wait for images/fonts to load, then print
-  iframe.onload = () => {
-    setTimeout(() => {
-      iframe.contentWindow?.print();
-      // Clean up after print dialog closes
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-    }, 500);
+  const opt = {
+    margin: [5, 5, 5, 5],
+    filename: `BabyBites-${sanitizedTitle}.pdf`,
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { 
+      scale: 2, 
+      useCORS: true,
+      allowTaint: true,
+      logging: false
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
   };
+
+  html2pdf()
+    .set(opt)
+    .from(container.firstElementChild)
+    .save()
+    .then(() => {
+      document.body.removeChild(container);
+    })
+    .catch((err: Error) => {
+      console.error('PDF generation error:', err);
+      document.body.removeChild(container);
+      throw err;
+    });
 };
