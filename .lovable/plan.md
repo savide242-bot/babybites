@@ -1,54 +1,110 @@
 
 
-## Plan: Add 15 New 24+ Months Recipes with Unique Images
+# Comprehensive Update Plan
 
-### Task 1: Create 15 New Recipes (IDs 326-340)
+This is a large multi-part request. I'll address each item plus the critical build errors that need fixing first.
 
-**Create `src/data/recipes326-340.ts`** with 15 nutrient-dense, development-focused recipes for toddlers 24+ months. All in English, with highly detailed step-by-step instructions (matching the quality of existing recipes 316-325). Each recipe will include:
-- Full description, ingredients with exact measurements, 6-8 detailed instruction steps
-- Complete nutrition data, allergens, storage tips
-- `ageGroup: "24+ months"` (never "24-36")
+---
 
-Recipes planned (all focused on strong nutrients and baby development):
-1. **326** - Salmon & Sweet Potato Cakes (Omega-3, brain development)
-2. **327** - Iron-Rich Beef & Lentil Stew (Iron, growth)
-3. **328** - Spinach & Cheese Mini Muffins (Calcium, Vitamin K)
-4. **329** - Turkey & Vegetable Meatloaf Bites (Protein, B12)
-5. **330** - Creamy Avocado & Chickpea Wrap (Healthy fats, fiber)
-6. **331** - Baked Cod with Mango Salsa (DHA, Vitamin C)
-7. **332** - Broccoli & Cheddar Stuffed Potatoes (Calcium, Vitamin C)
-8. **333** - Lentil & Carrot Shepherd's Pie (Iron, Vitamin A)
-9. **334** - Banana Oat Energy Balls (Energy, fiber)
-10. **335** - Greek Yogurt Chicken Dippers (Protein, probiotics)
-11. **336** - Veggie-Loaded Mini Frittatas (Eggs, varied vitamins)
-12. **337** - Peanut Butter Banana Toast Fingers (Healthy fats, energy)
-13. **338** - Butternut Squash & Apple Risotto (Beta-carotene, fiber)
-14. **339** - Mini Fish Pie with Cheesy Mash (Omega-3, Calcium)
-15. **340** - Berry & Oat Breakfast Crumble (Antioxidants, whole grains)
+## 0. Fix Build Errors (BLOCKING - must fix first)
 
-### Task 2: Generate 15 Unique Images
+The `pushManager` TypeScript error occurs because the default `ServiceWorkerRegistration` type doesn't include `pushManager`. Fix by adding a type assertion `(registration as any).pushManager` in all 4 files:
 
-Create 15 new image assets in `src/assets/recipes/`:
-- `recipe-326-salmon-sweet-potato-cakes.jpg` through `recipe-340-berry-oat-crumble.jpg`
-- Each generated with professional baby food photography styling
+- `src/hooks/usePushNotifications.tsx` (lines 100, 150, 175)
+- `src/components/admin/SystemHealth.tsx` (line 171)
+- `src/components/NotificationPreferences.tsx` (line 179)
+- `src/pages/IOSPushSetup.tsx` (line 148)
 
-### Task 3: Update Registry Files
+---
 
-**`src/data/recipeImages.ts`**:
-- Import all 15 new images
-- Add entries 326-340 to `recipeImageMap`
+## 1. Daily Admin Report Edge Function
 
-**`src/data/recipes.ts`**:
-- Import `recipes326to340` from the new file
-- Add `...recipes326to340` to the recipes array
+Create `supabase/functions/daily-admin-report/index.ts` that:
+- Queries `user_sessions` for DAU (distinct users active today)
+- Queries `profiles` for new signups (created_at = today)
+- Queries `recipe_views` for top 5 most viewed recipes today
+- Queries `user_streaks` for average current_streak
+- Queries `meal_plans` for total meals planned today
+- Sends a formatted push notification to admin's push subscription
+- Add to `supabase/config.toml` with `verify_jwt = false` (called by cron)
 
-### Task 4: Verify English-Only
+---
 
-All text across the new recipes and any modified files will be exclusively in English.
+## 2. Add 5 New Recipes
 
-### Files Summary
-1. **Create** `src/data/recipes326-340.ts` — 15 detailed recipes
-2. **Create** 15 image files in `src/assets/recipes/`
-3. **Edit** `src/data/recipeImages.ts` — import + map 15 images
-4. **Edit** `src/data/recipes.ts` — import + spread new recipes
+Add 5 new recipes (IDs 311-315) to a new file `src/data/recipes311-315.ts` and import in `src/data/recipes.ts`. Recipes will cover underrepresented categories for variety. Then trigger a notification to all users about new recipes via the existing `notify-all-users` edge function from the admin panel.
+
+---
+
+## 3. Performance Optimization
+
+- Add `React.memo` to heavy list items: recipe cards in `Recipes.tsx`
+- Add `useMemo` for filtered recipe lists
+- Lazy-load recipe images with `loading="lazy"` attribute
+- Minimize re-renders in Home.tsx by memoizing derived values
+
+---
+
+## 4. UI/UX Enhancements ("Crazy Effects")
+
+Enhance visual experience across key pages:
+
+**Home Page:**
+- Add animated gradient text for greetings using CSS `background-clip: text`
+- Add staggered card entrance animations (already has framer-motion, enhance timing)
+- Add parallax floating food emojis in background
+- Add shimmer/shine effect on Recipe of the Day card
+
+**Recipe Cards:**
+- Add 3D tilt effect on hover using `transform: perspective()` with framer-motion
+- Add gradient border glow on favorite recipes
+- Add micro-interaction: heart button with particle burst on favorite
+
+**Recipes Page:**
+- Add count badges on category filters showing recipe count per category
+- Add smooth skeleton loading with wave animation
+
+**General:**
+- Add page transition animations between routes
+- Add pull-to-refresh gesture feel on mobile
+- Add confetti burst when completing all daily meals
+
+---
+
+## 5. Precision & Weak Points Fix
+
+- Ensure all nutrition data uses consistent units (g, mg, kcal)
+- Fix any recipes with missing or placeholder nutrition values
+- Verify allergen data completeness across all recipes
+- Ensure dietary filter tags are correctly mapped for all 315 recipes
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/hooks/usePushNotifications.tsx` | Fix pushManager type |
+| `src/components/admin/SystemHealth.tsx` | Fix pushManager type |
+| `src/components/NotificationPreferences.tsx` | Fix pushManager type |
+| `src/pages/IOSPushSetup.tsx` | Fix pushManager type |
+| `supabase/functions/daily-admin-report/index.ts` | NEW - admin metrics |
+| `supabase/config.toml` | Add daily-admin-report config |
+| `src/data/recipes311-315.ts` | NEW - 5 new recipes |
+| `src/data/recipes.ts` | Import new recipes |
+| `src/pages/Recipes.tsx` | Perf + UI enhancements |
+| `src/pages/Home.tsx` | Visual effects upgrade |
+| `src/components/ui/glass-card.tsx` | Enhanced glow effects |
+| `src/index.css` | New animation keyframes |
+
+---
+
+## Implementation Order
+
+1. Fix TypeScript build errors (unblocks everything)
+2. Create daily-admin-report edge function
+3. Add 5 new recipes
+4. Performance optimizations (memo, lazy loading)
+5. UI/UX crazy effects (animations, transitions, 3D)
+6. Precision fixes on recipe data
 
