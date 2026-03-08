@@ -3,20 +3,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
-import QuickCheckinWidget from "@/components/engagement/QuickCheckinWidget";
 import WhatToCookWidget from "@/components/home/WhatToCookWidget";
-import DailyActionCard from "@/components/home/DailyActionCard";
-import WeeklyProgressCard from "@/components/home/WeeklyProgressCard";
 import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
 import PlanMealsPrompt from "@/components/home/PlanMealsPrompt";
+import TodaysMealsPreview from "@/components/home/TodaysMealsPreview";
 import AppTour from "@/components/onboarding/AppTour";
 import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { BellRing, Flame, Star, ChevronRight } from "lucide-react";
+import { BellRing, Flame, Trophy, Target, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { getRecipeImageById } from "@/data/recipeImages";
 
 interface TodayMeal {
   mealType: string;
@@ -51,7 +51,7 @@ const Home = () => {
   const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
     const displayBabyName = babyName || "your little one";
-    
+
     if (hour < 6) return { greeting: "Early riser", emotionalMessage: "You're amazing for being up early", emoji: "🌙" };
     if (hour < 12) return { greeting: "Good morning", emotionalMessage: `${displayBabyName} is lucky to have you`, emoji: "🌅" };
     if (hour < 15) return { greeting: "Hello sunshine", emotionalMessage: "You're doing incredible today", emoji: "☀️" };
@@ -59,17 +59,6 @@ const Home = () => {
     if (hour < 21) return { greeting: "Good evening", emotionalMessage: `Another beautiful day with ${displayBabyName}`, emoji: "🌆" };
     return { greeting: "Sweet dreams time", emotionalMessage: "Rest well, supermom", emoji: "🌙" };
   }, [babyName]);
-
-  const recipeOfTheDay = useMemo(() => {
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-    let ageGroup = "6-9 months";
-    if (babyAgeMonths >= 9 && babyAgeMonths < 12) ageGroup = "9-12 months";
-    else if (babyAgeMonths >= 12 && babyAgeMonths < 18) ageGroup = "12-18 months";
-    else if (babyAgeMonths >= 18) ageGroup = "18-24 months";
-    const ageAppropriateRecipes = recipes.filter(r => r.ageGroup === ageGroup);
-    const index = dayOfYear % ageAppropriateRecipes.length;
-    return ageAppropriateRecipes[index] || recipes[0];
-  }, [babyAgeMonths]);
 
   const processMealPlanData = useCallback((mealPlanData: any[]): TodayMeal[] => {
     return mealPlanData.map(item => {
@@ -133,7 +122,7 @@ const Home = () => {
           const updatedMeal = payload.new as any;
           if (updatedMeal.day_of_week !== todayDayName) return;
           setTodayMeals(prev => {
-            const updated = prev.map(meal => 
+            const updated = prev.map(meal =>
               meal.recipeId === updatedMeal.recipe_id && meal.mealType === updatedMeal.meal_type
                 ? { ...meal, prepared: updatedMeal.prepared } : meal
             );
@@ -159,12 +148,11 @@ const Home = () => {
   const navRefs = (window as any).__tourNavRefs;
   const currentStreak = streak?.current_streak || 0;
   const totalPoints = streak?.total_points || 0;
+  const weeklyGoal = 14;
+  const preparedCount = todayMeals.filter(m => m.prepared).length;
 
   return (
     <div className="min-h-screen pb-24 lg:pb-8 bg-background">
-      {/* Subtle top gradient accent */}
-      <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-
       <RewardComponent />
 
       {!tour.isLoading && (
@@ -187,162 +175,157 @@ const Home = () => {
         />
       )}
 
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-4 space-y-4 relative z-10">
+      <div className="max-w-lg mx-auto px-4 pt-5 pb-4 space-y-5">
 
-        {/* ── GREETING HEADER ── */}
-        <div className="home-card-enter">
-          {isLoading ? (
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-2xl" />
+        {/* ── HERO HEADER ── */}
+        {isLoading ? (
+          <div className="space-y-3 pt-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="pt-2"
+          >
+            <div className="flex items-start justify-between">
               <div>
-                <Skeleton className="h-6 w-40 mb-1" />
-                <Skeleton className="h-4 w-28" />
+                <p className="text-sm text-muted-foreground">{emotionalMessage} ✨</p>
+                <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5">
+                  {greeting}, <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{motherName || "Mom"}</span>
+                </h1>
               </div>
+              <motion.div
+                className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center text-xl shrink-0 mt-1"
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {emoji}
+              </motion.div>
             </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-peach/30 flex items-center justify-center text-2xl">
-                  {emoji}
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-foreground leading-tight">
-                    {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
-                  </h1>
-                  <p className="text-xs text-muted-foreground mt-0.5">{emotionalMessage} ✨</p>
-                </div>
-              </div>
-              {currentStreak > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
-                  <Flame className="w-4 h-4 text-accent" />
-                  <span className="text-sm font-bold text-accent">{currentStreak}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+          </motion.div>
+        )}
 
         {/* ── NOTIFICATION CTA ── */}
         {!isLoading && isSupported && !subscription && (
-          <div className="home-card-enter" style={{ animationDelay: '0.05s' }}>
-            <button
-              onClick={async () => {
-                setNotifLoading(true);
-                try {
-                  const success = await subscribeToPushNotifications();
-                  if (success) {
-                    toast.success("🔔 Notificações ativadas!");
-                  }
-                } finally {
-                  setNotifLoading(false);
-                }
-              }}
-              disabled={notifLoading}
-              className="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md active:scale-[0.98] transition-transform"
-            >
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <BellRing className="w-5 h-5 animate-[wiggle_1s_ease-in-out_infinite]" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-semibold text-sm">Ativar Notificações</p>
-                <p className="text-xs opacity-80">Lembretes de refeições e dicas diárias</p>
-              </div>
-              {notifLoading && (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* ── QUICK STATS ROW ── */}
-        {!isLoading && (
-          <div className="home-card-enter grid grid-cols-3 gap-2.5" style={{ animationDelay: '0.08s' }}>
-            <Link to="/planner" className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-card border border-border/50 active:scale-[0.97] transition-transform">
-              <span className="text-xl">🍽️</span>
-              <span className="text-lg font-bold text-foreground">{todayMeals.length}</span>
-              <span className="text-[10px] text-muted-foreground leading-tight text-center">Today's Meals</span>
-            </Link>
-            <Link to="/recipes" className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-card border border-border/50 active:scale-[0.97] transition-transform">
-              <span className="text-xl">📊</span>
-              <span className="text-lg font-bold text-foreground">{mealsThisWeek}</span>
-              <span className="text-[10px] text-muted-foreground leading-tight text-center">This Week</span>
-            </Link>
-            <div className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-card border border-border/50">
-              <Star className="w-5 h-5 text-gold" />
-              <span className="text-lg font-bold text-foreground">{totalPoints}</span>
-              <span className="text-[10px] text-muted-foreground leading-tight text-center">Points</span>
-            </div>
-          </div>
-        )}
-
-        {/* ── WHAT TO COOK ── */}
-        {!isLoading && (
-          <div className="home-card-enter" style={{ animationDelay: '0.1s' }}>
-            <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
-          </div>
-        )}
-
-        {/* ── PLAN MEALS (only if no meals planned) ── */}
-        {!isLoading && todayMeals.length === 0 && (
-          <div className="home-card-enter" style={{ animationDelay: '0.12s' }}>
-            <PlanMealsPrompt hasMealsPlanned={false} />
-          </div>
-        )}
-
-        {/* ── RECIPE OF THE DAY ── */}
-        {!isLoading && recipeOfTheDay && (
-          <div 
-            ref={recipeOfDayRef}
-            className="home-card-enter"
-            style={{ animationDelay: '0.15s' }}
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={async () => {
+              setNotifLoading(true);
+              try {
+                const success = await subscribeToPushNotifications();
+                if (success) toast.success("🔔 Notificações ativadas!");
+              } finally {
+                setNotifLoading(false);
+              }
+            }}
+            disabled={notifLoading}
+            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg active:scale-[0.98] transition-transform"
           >
-            <div className="rounded-2xl border border-gold/20 bg-gradient-to-br from-card via-card to-gold/5 p-0.5">
-              <div className="rounded-[14px] bg-card overflow-hidden">
-                <DailyActionCard
-                  recipeOfTheDay={recipeOfTheDay}
-                  todayMeals={todayMeals}
-                  babyName={babyName}
-                />
-              </div>
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <BellRing className="w-4 h-4 animate-[wiggle_1s_ease-in-out_infinite]" />
             </div>
-          </div>
+            <div className="text-left flex-1">
+              <p className="font-semibold text-sm">Ativar Notificações</p>
+              <p className="text-[11px] opacity-80">Lembretes de refeições e dicas</p>
+            </div>
+            {notifLoading && (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            )}
+          </motion.button>
         )}
 
-        {/* ── QUICK CHECK-IN ── */}
+        {/* ── STATS STRIP ── */}
         {!isLoading && (
-          <div ref={checkinWidgetRef} className="home-card-enter" style={{ animationDelay: '0.2s' }}>
-            <div className="rounded-2xl border border-mint/20 bg-gradient-to-br from-card to-mint/5 p-4">
-              <QuickCheckinWidget 
-                todayCheckin={todayCheckin} 
-                onSubmit={submitCheckin}
-                babyName={babyName}
-              />
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center gap-2"
+          >
+            {/* Streak */}
+            <Link
+              to="/achievements"
+              className="flex-1 flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
+            >
+              <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                <Flame className="w-4.5 h-4.5 text-accent" />
+              </div>
+              <div>
+                <p className="text-lg font-extrabold text-foreground leading-none">{currentStreak}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">day streak</p>
+              </div>
+            </Link>
+
+            {/* Points */}
+            <div className="flex-1 flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15">
+              <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
+                <Trophy className="w-4.5 h-4.5 text-gold" />
+              </div>
+              <div>
+                <p className="text-lg font-extrabold text-foreground leading-none">{totalPoints}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">points</p>
+              </div>
             </div>
-          </div>
+
+            {/* Weekly */}
+            <Link
+              to="/planner"
+              className="flex-1 flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-mint/10 to-mint/5 border border-mint/15 active:scale-[0.97] transition-transform"
+            >
+              <div className="w-9 h-9 rounded-xl bg-mint/15 flex items-center justify-center">
+                <Target className="w-4.5 h-4.5 text-mint" />
+              </div>
+              <div>
+                <p className="text-lg font-extrabold text-foreground leading-none">{mealsThisWeek}<span className="text-xs font-medium text-muted-foreground">/{weeklyGoal}</span></p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">meals</p>
+              </div>
+            </Link>
+          </motion.div>
         )}
 
         {/* ── AGE CATEGORIES ── */}
         {!isLoading && (
-          <div className="home-card-enter" style={{ animationDelay: '0.25s' }}>
-            <AgeCategoryCircles 
-              ref={ageCategoriesRef}
-              babyAgeMonths={babyAgeMonths} 
-            />
-          </div>
+          <motion.div
+            ref={ageCategoriesRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+          >
+            <AgeCategoryCircles babyAgeMonths={babyAgeMonths} />
+          </motion.div>
         )}
 
-        {/* ── WEEKLY PROGRESS ── */}
+        {/* ── WHAT TO COOK (single recipe suggestion) ── */}
         {!isLoading && (
-          <div className="home-card-enter" style={{ animationDelay: '0.3s' }}>
-            <div className="rounded-2xl border border-border/50 bg-card p-4">
-              <WeeklyProgressCard
-                streak={streak}
-                mealsThisWeek={mealsThisWeek}
-                babyName={babyName}
-              />
-            </div>
-          </div>
+          <motion.div
+            ref={recipeOfDayRef}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
+          </motion.div>
         )}
+
+        {/* ── TODAY'S MEALS or PLAN MEALS ── */}
+        {!isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            {todayMeals.length > 0 ? (
+              <TodaysMealsPreview meals={todayMeals} />
+            ) : (
+              <PlanMealsPrompt hasMealsPlanned={false} />
+            )}
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
