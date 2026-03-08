@@ -5,7 +5,9 @@ import { Bell } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
-const STORAGE_KEY = 'push_notifications_activated';
+// Bump this version whenever VAPID keys change to force re-subscription
+const VAPID_VERSION = 'v2';
+const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
