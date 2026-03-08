@@ -177,7 +177,7 @@ import pumpkinSpiceQuinoa from "@/assets/recipes/pumpkin-spice-quinoa.jpg";
 import zucchiniCarrotFritters from "@/assets/recipes/zucchini-carrot-fritters.jpg";
 import spinachBananaSmoothie from "@/assets/recipes/spinach-banana-smoothie.jpg";
 import spinachPotatoPuree from "@/assets/recipes/spinach-potato-puree.jpg";
-import ricePeachCereal from "@/assets/recipes/rice-peach-cereal.jpg";
+import ricePeachCereal from "@/assets/recipes/rice-peach-cereal-unique.jpg";
 
 // UNIQUE VERSIONS - IDs 206-238
 import chickenSweetPotatoPureeUnique from "@/assets/recipes/chicken-sweet-potato-puree-unique.jpg";
