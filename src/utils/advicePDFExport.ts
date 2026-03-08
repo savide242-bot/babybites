@@ -43,7 +43,7 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     `).join('');
 
     return `
-      <div style="margin-bottom:28px;page-break-inside:avoid;">
+      <div style="margin-bottom:28px;">
         <table style="width:100%;margin-bottom:14px;border-collapse:collapse;">
           <tr>
             <td style="width:40px;vertical-align:middle;">
@@ -71,7 +71,7 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
   const html = `
     <div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;width:100%;">
       <!-- Cover Page -->
-      <div style="text-align:center;padding:80px 40px 60px;page-break-after:always;">
+      <div style="text-align:center;padding:60px 40px 40px;">
         <div style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#ec4899,#8b5cf6);margin:0 auto 32px;text-align:center;line-height:80px;">
           <span style="font-size:40px;">🍼</span>
         </div>
@@ -84,11 +84,15 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
         <div style="text-align:center;">${categoriesBadges}</div>
       </div>
 
+      <div style="height:0;overflow:hidden;" class="html2pdf__page-break"></div>
+
       <!-- Table of Contents -->
-      <div style="padding:20px 40px;page-break-after:always;">
+      <div style="padding:20px 40px;">
         <h2 style="font-size:22px;font-weight:700;color:#1e293b;margin:0 0 24px;padding-bottom:12px;border-bottom:3px solid #ec4899;">Table of Contents</h2>
         <table style="width:100%;border-collapse:collapse;">${tocItems}</table>
       </div>
+
+      <div style="height:0;overflow:hidden;" class="html2pdf__page-break"></div>
 
       <!-- Articles -->
       <div style="padding:20px 30px;">
@@ -120,7 +124,7 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     image: { type: 'jpeg', quality: 0.92 },
     html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 794 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: ['css', 'legacy'] },
+    pagebreak: { mode: 'avoid-all', before: '.html2pdf__page-break' },
   };
 
   html2pdf()
