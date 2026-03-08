@@ -28,129 +28,94 @@ const CATEGORY_ICONS: Record<string, string> = {
   Sleep: '🌙',
 };
 
-// Use CSS page-break-before on section wrappers instead of special divs
-
 function buildCoverPage(articleCount: number, categories: string[], today: string): string {
   const badges = categories.map(cat =>
-    `<td style="padding:4px;">
-      <div style="display:inline-block;padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;border:2px solid ${CATEGORY_COLORS[cat] || '#6366f1'};color:${CATEGORY_COLORS[cat] || '#6366f1'};">
-        ${CATEGORY_ICONS[cat] || '📖'} ${cat}
-      </div>
-    </td>`
+    `<span style="display:inline-block;padding:8px 20px;border-radius:24px;font-size:12px;font-weight:700;border:2px solid ${CATEGORY_COLORS[cat] || '#6366f1'};color:${CATEGORY_COLORS[cat] || '#6366f1'};margin:4px;">
+      ${CATEGORY_ICONS[cat] || '📖'} ${cat}
+    </span>`
   ).join('');
 
   return `
-    <div style="text-align:center;padding:80px 40px 60px;position:relative;">
-      <!-- Decorative border frame -->
-      <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;border:3px solid #ec4899;border-radius:20px;opacity:0.15;"></div>
-      <div style="position:absolute;top:28px;left:28px;right:28px;bottom:28px;border:1px solid #8b5cf6;border-radius:16px;opacity:0.1;"></div>
+    <div style="text-align:center;padding:100px 50px 80px;position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="position:absolute;top:30px;left:30px;right:30px;bottom:30px;border:3px solid #ec4899;border-radius:24px;opacity:0.12;"></div>
+      <div style="position:absolute;top:40px;left:40px;right:40px;bottom:40px;border:1.5px solid #8b5cf6;border-radius:18px;opacity:0.08;"></div>
 
-      <!-- Logo -->
-      <table style="margin:0 auto 16px;border-collapse:collapse;">
-        <tr>
-          <td style="width:90px;height:90px;border-radius:24px;background:linear-gradient(135deg,#ec4899,#8b5cf6);text-align:center;vertical-align:middle;">
-            <span style="font-size:44px;">🍼</span>
-          </td>
-        </tr>
-      </table>
+      <div style="width:100px;height:100px;border-radius:28px;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <span style="font-size:50px;">🍼</span>
+      </div>
 
-      <div style="font-size:14px;font-weight:800;color:#ec4899;letter-spacing:6px;text-transform:uppercase;margin-bottom:40px;">BABYBITES</div>
+      <div style="font-size:15px;font-weight:800;color:#ec4899;letter-spacing:8px;text-transform:uppercase;margin-bottom:50px;">BABYBITES</div>
 
-      <!-- Decorative line -->
-      <table style="margin:0 auto 32px;border-collapse:collapse;">
-        <tr>
-          <td style="width:40px;height:2px;background:#ec4899;"></td>
-          <td style="width:16px;"></td>
-          <td style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;"></td>
-          <td style="width:16px;"></td>
-          <td style="width:40px;height:2px;background:#8b5cf6;"></td>
-        </tr>
-      </table>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:40px;">
+        <div style="width:50px;height:2px;background:#ec4899;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;"></div>
+        <div style="width:50px;height:2px;background:#8b5cf6;"></div>
+      </div>
 
-      <h1 style="font-size:34px;font-weight:800;color:#1e293b;margin:0 0 8px;line-height:1.2;">Guia Completo de</h1>
-      <h1 style="font-size:34px;font-weight:800;color:#ec4899;margin:0 0 20px;line-height:1.2;">Nutrição Infantil</h1>
-      <p style="font-size:16px;color:#64748b;margin:0 0 8px;font-style:italic;">Expert Pediatric Nutrition Knowledge Hub</p>
-      <p style="font-size:13px;color:#94a3b8;margin:0 0 50px;">Edição ${today}</p>
+      <h1 style="font-size:42px;font-weight:800;color:#1e293b;margin:0 0 8px;line-height:1.2;">The Complete Guide to</h1>
+      <h1 style="font-size:42px;font-weight:800;color:#ec4899;margin:0 0 24px;line-height:1.2;">Baby Nutrition</h1>
+      <p style="font-size:17px;color:#64748b;margin:0 0 8px;font-style:italic;">Expert Pediatric Nutrition Knowledge Hub</p>
+      <p style="font-size:14px;color:#94a3b8;margin:0 0 60px;">${today} Edition</p>
 
-      <!-- Stats -->
-      <table style="margin:0 auto 50px;border-collapse:collapse;">
-        <tr>
-          <td style="text-align:center;padding:12px 30px;border-right:2px solid #e2e8f0;">
-            <div style="font-size:32px;font-weight:800;color:#ec4899;">${articleCount}</div>
-            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Artigos</div>
-          </td>
-          <td style="text-align:center;padding:12px 30px;border-right:2px solid #e2e8f0;">
-            <div style="font-size:32px;font-weight:800;color:#8b5cf6;">${categories.length}</div>
-            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Categorias</div>
-          </td>
-          <td style="text-align:center;padding:12px 30px;">
-            <div style="font-size:32px;">📚</div>
-            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">eBook</div>
-          </td>
-        </tr>
-      </table>
+      <div style="display:flex;justify-content:center;gap:40px;margin-bottom:60px;">
+        <div style="text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:#ec4899;">${articleCount}</div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-top:4px;">Articles</div>
+        </div>
+        <div style="width:2px;background:#e2e8f0;"></div>
+        <div style="text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:#8b5cf6;">${categories.length}</div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-top:4px;">Categories</div>
+        </div>
+        <div style="width:2px;background:#e2e8f0;"></div>
+        <div style="text-align:center;">
+          <div style="font-size:36px;">📚</div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-top:4px;">eBook</div>
+        </div>
+      </div>
 
-      <!-- Category badges -->
-      <table style="margin:0 auto;border-collapse:collapse;">
-        <tr>${badges}</tr>
-      </table>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;">${badges}</div>
     </div>
   `;
 }
 
 function buildIntroPage(): string {
   return `
-    <div style="padding:50px 44px;">
-      <table style="margin-bottom:30px;border-collapse:collapse;">
-        <tr>
-          <td style="width:50px;vertical-align:middle;">
-            <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#ec4899,#8b5cf6);text-align:center;line-height:42px;">
-              <span style="font-size:22px;">📖</span>
-            </div>
-          </td>
-          <td style="padding-left:14px;vertical-align:middle;">
-            <div style="font-size:24px;font-weight:800;color:#1e293b;">Sobre Este Guia</div>
-          </td>
-        </tr>
-      </table>
+    <div style="padding:60px 50px;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:32px;">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:24px;">📖</span>
+        </div>
+        <h2 style="font-size:28px;font-weight:800;color:#1e293b;margin:0;">About This Guide</h2>
+      </div>
 
-      <div style="height:3px;background:linear-gradient(to right,#ec4899,#8b5cf6);border-radius:2px;margin-bottom:28px;"></div>
+      <div style="height:3px;background:linear-gradient(to right,#ec4899,#8b5cf6);border-radius:2px;margin-bottom:32px;"></div>
 
-      <p style="font-size:13px;line-height:1.8;color:#475569;margin:0 0 18px;">
-        Bem-vindo ao <strong style="color:#ec4899;">BabyBites Knowledge Hub</strong> — o seu guia completo e baseado em evidências científicas para a nutrição infantil. Este eBook foi cuidadosamente elaborado para pais, cuidadores e profissionais de saúde que desejam oferecer o melhor início de vida aos seus bebés.
+      <p style="font-size:14px;line-height:1.9;color:#475569;margin:0 0 20px;">
+        Welcome to the <strong style="color:#ec4899;">BabyBites Knowledge Hub</strong> — your comprehensive, evidence-based guide to infant nutrition. This eBook has been carefully crafted for parents, caregivers, and health professionals who want to give their babies the best start in life.
       </p>
 
-      <p style="font-size:13px;line-height:1.8;color:#475569;margin:0 0 18px;">
-        Cada artigo foi desenvolvido com base nas mais recentes recomendações de organizações de saúde pediátrica, incluindo a OMS e a AAP, abrangendo temas essenciais como alimentação, saúde, desenvolvimento e sono.
+      <p style="font-size:14px;line-height:1.9;color:#475569;margin:0 0 20px;">
+        Every article is developed based on the latest recommendations from leading pediatric health organizations, including the WHO and AAP, covering essential topics such as feeding, health, development, and sleep.
       </p>
 
-      <table style="width:100%;border-collapse:collapse;margin:24px 0;">
-        <tr>
-          <td style="width:4px;background:#ec4899;border-radius:2px;"></td>
-          <td style="padding:16px 20px;background:#fdf2f8;border-radius:0 10px 10px 0;">
-            <div style="font-size:12px;font-weight:700;color:#ec4899;margin-bottom:6px;">💡 Como Utilizar Este Guia</div>
-            <p style="font-size:12px;line-height:1.7;color:#64748b;margin:0;">
-              Navegue pelo Índice para encontrar temas específicos, ou leia sequencialmente para uma formação completa. Cada categoria tem uma página de introdução com código de cores para facilitar a navegação.
-            </p>
-          </td>
-        </tr>
-      </table>
+      <div style="border-left:4px solid #ec4899;background:#fdf2f8;border-radius:0 12px 12px 0;padding:20px 24px;margin:28px 0;">
+        <div style="font-size:13px;font-weight:700;color:#ec4899;margin-bottom:8px;">💡 How to Use This Guide</div>
+        <p style="font-size:13px;line-height:1.8;color:#64748b;margin:0;">
+          Browse the Table of Contents to find specific topics, or read sequentially for a complete learning experience. Each category has a color-coded introduction page for easy navigation.
+        </p>
+      </div>
 
-      <p style="font-size:13px;line-height:1.8;color:#475569;margin:0 0 18px;">
-        Os artigos estão organizados em categorias temáticas, cada uma identificada por uma cor e ícone únicos. Dentro de cada categoria, os pontos-chave são numerados para facilitar a referência e a partilha com o seu pediatra.
+      <p style="font-size:14px;line-height:1.9;color:#475569;margin:0 0 20px;">
+        Articles are organized into thematic categories, each identified by a unique color and icon. Within each category, key points are numbered for easy reference and sharing with your pediatrician.
       </p>
 
-      <table style="width:100%;border-collapse:collapse;margin:24px 0;">
-        <tr>
-          <td style="width:4px;background:#8b5cf6;border-radius:2px;"></td>
-          <td style="padding:16px 20px;background:#f5f3ff;border-radius:0 10px 10px 0;">
-            <div style="font-size:12px;font-weight:700;color:#8b5cf6;margin-bottom:6px;">⚠️ Nota Importante</div>
-            <p style="font-size:12px;line-height:1.7;color:#64748b;margin:0;">
-              Este guia é apenas para fins educativos. Consulte sempre o pediatra do seu bebé antes de fazer alterações na alimentação ou rotina. Cada criança é única e as recomendações devem ser adaptadas individualmente.
-            </p>
-          </td>
-        </tr>
-      </table>
+      <div style="border-left:4px solid #8b5cf6;background:#f5f3ff;border-radius:0 12px 12px 0;padding:20px 24px;margin:28px 0;">
+        <div style="font-size:13px;font-weight:700;color:#8b5cf6;margin-bottom:8px;">⚠️ Important Note</div>
+        <p style="font-size:13px;line-height:1.8;color:#64748b;margin:0;">
+          This guide is for educational purposes only. Always consult your baby's pediatrician before making changes to their diet or routine. Every child is unique and recommendations should be adapted individually.
+        </p>
+      </div>
     </div>
   `;
 }
@@ -164,42 +129,33 @@ function buildTOCPage(groupedArticles: Record<string, AdviceArticle[]>, globalIn
     const articles = groupedArticles[cat];
 
     const items = articles.map(a => `
-      <tr>
-        <td style="padding:5px 0;font-size:12px;color:#475569;border-bottom:1px dotted #e2e8f0;">
-          <span style="color:${color};font-weight:700;margin-right:6px;">${globalIndex[a.id]}.</span> ${a.title}
-        </td>
-      </tr>
+      <div style="display:flex;align-items:baseline;padding:6px 0;border-bottom:1px dotted #e2e8f0;">
+        <span style="color:${color};font-weight:700;margin-right:8px;min-width:24px;">${globalIndex[a.id]}.</span>
+        <span style="font-size:13px;color:#475569;flex:1;">${a.title}</span>
+      </div>
     `).join('');
 
     return `
-      <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
-        <tr>
-          <td style="padding:8px 0 6px;">
-            <span style="font-size:14px;margin-right:6px;">${icon}</span>
-            <span style="font-size:13px;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:1px;">${cat}</span>
-            <span style="font-size:11px;color:#94a3b8;margin-left:8px;">(${articles.length} artigos)</span>
-          </td>
-        </tr>
+      <div style="margin-bottom:24px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 0 8px;">
+          <span style="font-size:16px;">${icon}</span>
+          <span style="font-size:14px;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:1.5px;">${cat}</span>
+          <span style="font-size:12px;color:#94a3b8;margin-left:8px;">(${articles.length} article${articles.length > 1 ? 's' : ''})</span>
+        </div>
         ${items}
-      </table>
+      </div>
     `;
   }).join('');
 
   return `
-    <div style="padding:40px 44px;">
-      <table style="width:100%;margin-bottom:24px;border-collapse:collapse;">
-        <tr>
-          <td style="width:50px;vertical-align:middle;">
-            <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#ec4899,#8b5cf6);text-align:center;line-height:42px;">
-              <span style="font-size:22px;">📑</span>
-            </div>
-          </td>
-          <td style="padding-left:14px;vertical-align:middle;">
-            <div style="font-size:24px;font-weight:800;color:#1e293b;">Índice</div>
-          </td>
-        </tr>
-      </table>
-      <div style="height:3px;background:linear-gradient(to right,#ec4899,#8b5cf6);border-radius:2px;margin-bottom:28px;"></div>
+    <div style="padding:50px 50px;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:24px;">📑</span>
+        </div>
+        <h2 style="font-size:28px;font-weight:800;color:#1e293b;margin:0;">Table of Contents</h2>
+      </div>
+      <div style="height:3px;background:linear-gradient(to right,#ec4899,#8b5cf6);border-radius:2px;margin-bottom:32px;"></div>
       ${tocSections}
     </div>
   `;
@@ -210,29 +166,21 @@ function buildCategoryDivider(category: string, count: number): string {
   const icon = CATEGORY_ICONS[category] || '📖';
 
   return `
-    <div style="text-align:center;padding:120px 40px 80px;">
-      <table style="margin:0 auto 24px;border-collapse:collapse;">
-        <tr>
-          <td style="width:80px;height:80px;border-radius:20px;background:${color};text-align:center;vertical-align:middle;">
-            <span style="font-size:40px;">${icon}</span>
-          </td>
-        </tr>
-      </table>
+    <div style="text-align:center;padding:140px 50px 100px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="width:90px;height:90px;border-radius:22px;background:${color};display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 8px 30px ${color}40;">
+        <span style="font-size:44px;">${icon}</span>
+      </div>
 
-      <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:4px;margin-bottom:12px;">Categoria</div>
-      <div style="font-size:32px;font-weight:800;color:${color};margin-bottom:16px;">${category}</div>
+      <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:5px;margin-bottom:14px;">Chapter</div>
+      <div style="font-size:36px;font-weight:800;color:${color};margin-bottom:20px;">${category}</div>
 
-      <table style="margin:0 auto 24px;border-collapse:collapse;">
-        <tr>
-          <td style="width:30px;height:2px;background:${color};opacity:0.3;"></td>
-          <td style="width:12px;"></td>
-          <td style="width:8px;height:8px;border-radius:50%;background:${color};"></td>
-          <td style="width:12px;"></td>
-          <td style="width:30px;height:2px;background:${color};opacity:0.3;"></td>
-        </tr>
-      </table>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+        <div style="width:36px;height:2px;background:${color};opacity:0.3;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${color};"></div>
+        <div style="width:36px;height:2px;background:${color};opacity:0.3;"></div>
+      </div>
 
-      <div style="font-size:14px;color:#64748b;">${count} artigo${count > 1 ? 's' : ''} nesta secção</div>
+      <div style="font-size:15px;color:#64748b;">${count} article${count > 1 ? 's' : ''} in this section</div>
     </div>
   `;
 }
@@ -241,99 +189,86 @@ function buildArticle(article: AdviceArticle, globalNum: number): string {
   const color = CATEGORY_COLORS[article.category] || '#6366f1';
 
   const contentHtml = article.content.map((p, pi) => `
-    <table style="width:100%;margin-bottom:10px;border-collapse:collapse;">
-      <tr>
-        <td style="width:28px;vertical-align:top;padding-top:3px;">
-          <div style="width:22px;height:22px;border-radius:50%;background:${color};text-align:center;line-height:22px;color:white;font-size:11px;font-weight:700;">${pi + 1}</div>
-        </td>
-        <td style="padding-left:10px;font-size:12px;line-height:1.7;color:#475569;vertical-align:top;">${p}</td>
-      </tr>
-    </table>
+    <div style="display:flex;gap:12px;margin-bottom:12px;">
+      <div style="width:24px;height:24px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px;">${pi + 1}</div>
+      <p style="font-size:13px;line-height:1.8;color:#475569;margin:0;flex:1;">${p}</p>
+    </div>
   `).join('');
 
   return `
-    <div style="margin-bottom:32px;">
-      <!-- Article header -->
-      <table style="width:100%;margin-bottom:14px;border-collapse:collapse;">
-        <tr>
-          <td style="width:44px;vertical-align:middle;">
-            <div style="width:38px;height:38px;border-radius:10px;background:${color};text-align:center;line-height:38px;color:white;font-size:16px;font-weight:800;">${globalNum}</div>
-          </td>
-          <td style="padding-left:12px;vertical-align:middle;">
-            <div style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px;">${article.category}</div>
-            <div style="font-size:16px;font-weight:800;color:#1e293b;line-height:1.3;">${article.title}</div>
-          </td>
-        </tr>
-      </table>
+    <div style="margin-bottom:36px;page-break-inside:avoid;">
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+        <div style="width:42px;height:42px;border-radius:12px;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:800;flex-shrink:0;">${globalNum}</div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;">${article.category}</div>
+          <div style="font-size:18px;font-weight:800;color:#1e293b;line-height:1.3;">${article.title}</div>
+        </div>
+      </div>
 
-      <p style="font-size:12px;color:#64748b;font-style:italic;margin:0 0 16px 50px;line-height:1.6;">${article.description}</p>
+      <p style="font-size:13px;color:#64748b;font-style:italic;margin:0 0 18px 56px;line-height:1.7;">${article.description}</p>
 
-      <div style="margin-left:50px;">
+      <div style="margin-left:56px;">
         ${contentHtml}
       </div>
 
-      <!-- Separator -->
-      <table style="width:100%;margin-top:24px;border-collapse:collapse;">
-        <tr>
-          <td style="height:1px;background:${color};opacity:0.15;"></td>
-        </tr>
-      </table>
+      <div style="height:1px;background:linear-gradient(to right,${color}20,${color}08);margin-top:28px;"></div>
     </div>
   `;
 }
 
 function buildBackCover(today: string): string {
   return `
-    <div style="text-align:center;padding:100px 50px 60px;">
-      <table style="margin:0 auto 20px;border-collapse:collapse;">
-        <tr>
-          <td style="width:70px;height:70px;border-radius:20px;background:linear-gradient(135deg,#ec4899,#8b5cf6);text-align:center;vertical-align:middle;">
-            <span style="font-size:36px;">🍼</span>
-          </td>
-        </tr>
-      </table>
+    <div style="text-align:center;padding:120px 60px 80px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+        <span style="font-size:40px;">🍼</span>
+      </div>
 
-      <div style="font-size:22px;font-weight:800;color:#ec4899;margin-bottom:8px;">BabyBites</div>
-      <div style="font-size:13px;color:#64748b;margin-bottom:40px;">Knowledge Hub — eBook Edition</div>
+      <div style="font-size:26px;font-weight:800;color:#ec4899;margin-bottom:8px;">BabyBites</div>
+      <div style="font-size:14px;color:#64748b;margin-bottom:50px;">Knowledge Hub — eBook Edition</div>
 
-      <table style="margin:0 auto 40px;border-collapse:collapse;">
-        <tr>
-          <td style="width:60px;height:2px;background:linear-gradient(to right,#ec4899,#8b5cf6);border-radius:1px;"></td>
-        </tr>
-      </table>
+      <div style="width:70px;height:2px;background:linear-gradient(to right,#ec4899,#8b5cf6);border-radius:1px;margin-bottom:50px;"></div>
 
-      <table style="width:80%;margin:0 auto 30px;border-collapse:collapse;">
-        <tr>
-          <td style="padding:20px 24px;background:#fdf2f8;border-radius:12px;text-align:center;">
-            <p style="font-size:12px;line-height:1.7;color:#64748b;margin:0 0 8px;">
-              <strong style="color:#ec4899;">Aviso Legal:</strong> Este guia é exclusivamente para fins educativos e informativos. Não substitui aconselhamento médico profissional.
-            </p>
-            <p style="font-size:12px;line-height:1.7;color:#64748b;margin:0;">
-              Consulte sempre o pediatra do seu bebé para orientação personalizada sobre alimentação e saúde infantil.
-            </p>
-          </td>
-        </tr>
-      </table>
+      <div style="max-width:500px;padding:24px 32px;background:#fdf2f8;border-radius:16px;margin-bottom:40px;">
+        <p style="font-size:13px;line-height:1.8;color:#64748b;margin:0 0 10px;">
+          <strong style="color:#ec4899;">Disclaimer:</strong> This guide is exclusively for educational and informational purposes. It does not replace professional medical advice.
+        </p>
+        <p style="font-size:13px;line-height:1.8;color:#64748b;margin:0;">
+          Always consult your baby's pediatrician for personalized guidance on feeding and child health.
+        </p>
+      </div>
 
-      <p style="font-size:11px;color:#94a3b8;margin:0 0 6px;">Gerado automaticamente por BabyBites</p>
-      <p style="font-size:11px;color:#cbd5e1;margin:0;">${today} • Todos os direitos reservados</p>
+      <p style="font-size:12px;color:#94a3b8;margin:0 0 6px;">Generated by BabyBites</p>
+      <p style="font-size:12px;color:#cbd5e1;margin:0 0 30px;">${today} • All rights reserved</p>
 
-      <table style="margin:30px auto 0;border-collapse:collapse;">
-        <tr>
-          <td style="font-size:20px;padding:0 4px;">💕</td>
-          <td style="font-size:11px;color:#94a3b8;font-style:italic;">Feito com amor para os pequeninos</td>
-          <td style="font-size:20px;padding:0 4px;">💕</td>
-        </tr>
-      </table>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:22px;">💕</span>
+        <span style="font-size:12px;color:#94a3b8;font-style:italic;">Made with love for little ones</span>
+        <span style="font-size:22px;">💕</span>
+      </div>
     </div>
   `;
 }
 
+const PRINT_STYLES = `
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+    color: #1e293b;
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  @page { size: A4; margin: 14mm 12mm; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  .page-break { page-break-before: always; }
+`;
+
 export const exportAdvicePDF = (articles: AdviceArticle[]) => {
-  const today = new Date().toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const categoryOrder = ['Feeding', 'Health', 'Nutrition', 'Development', 'Behavior', 'Tips', 'Sleep'];
 
-  // Group articles by category
   const grouped: Record<string, AdviceArticle[]> = {};
   for (const cat of categoryOrder) {
     const catArticles = articles.filter(a => a.category === cat);
@@ -342,7 +277,6 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
 
   const categoriesUsed = Object.keys(grouped);
 
-  // Build global index (1-based sequential numbering)
   const globalIndex: Record<number, number> = {};
   let counter = 1;
   for (const cat of categoriesUsed) {
@@ -351,55 +285,34 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     }
   }
 
-  // Build sections - each major section wrapped with page-break-before
-  const wrap = (html: string, forceBreak = false) => 
-    `<div style="${forceBreak ? 'page-break-before:always;' : ''}">${html}</div>`;
-
-  const allSections = [
-    wrap(buildCoverPage(articles.length, categoriesUsed, today), false),
-    wrap(buildIntroPage(), true),
-    wrap(buildTOCPage(grouped, globalIndex), true),
+  const sections: string[] = [
+    buildCoverPage(articles.length, categoriesUsed, today),
+    `<div class="page-break"></div>`,
+    buildIntroPage(),
+    `<div class="page-break"></div>`,
+    buildTOCPage(grouped, globalIndex),
   ];
 
   for (const cat of categoriesUsed) {
-    allSections.push(wrap(buildCategoryDivider(cat, grouped[cat].length), true));
+    sections.push(`<div class="page-break"></div>`);
+    sections.push(buildCategoryDivider(cat, grouped[cat].length));
+    sections.push(`<div class="page-break"></div>`);
     
-    const catArticles = grouped[cat];
-    const articlesHtml = catArticles.map(a => buildArticle(a, globalIndex[a.id])).join('');
-    allSections.push(wrap(`<div style="padding:20px 44px;">${articlesHtml}</div>`, true));
+    const articlesHtml = grouped[cat].map(a => buildArticle(a, globalIndex[a.id])).join('');
+    sections.push(`<div style="padding:30px 50px;">${articlesHtml}</div>`);
   }
 
-  allSections.push(wrap(buildBackCover(today), true));
-
-  const fullHtml = allSections.join('');
+  sections.push(`<div class="page-break"></div>`);
+  sections.push(buildBackCover(today));
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
-    alert('Por favor permita popups para gerar o PDF.');
+    alert('Please allow popups to generate the PDF.');
     return;
   }
 
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>BabyBites — Knowledge Hub eBook</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1e293b; background: white; }
-        @media print {
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-        @page { size: A4; margin: 12mm; }
-      </style>
-    </head>
-    <body>${fullHtml}</body>
-    </html>
-  `);
+  printWindow.document.write(`<!DOCTYPE html><html><head><title>BabyBites — Knowledge Hub eBook</title><style>${PRINT_STYLES}</style></head><body>${sections.join('')}</body></html>`);
   printWindow.document.close();
 
-  // Wait for content to render then trigger print
-  setTimeout(() => {
-    printWindow.print();
-  }, 500);
+  setTimeout(() => { printWindow.print(); }, 600);
 };
