@@ -390,11 +390,15 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
   `;
 
   const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
+  container.style.position = 'fixed';
   container.style.top = '0';
-  container.style.width = '210mm';
+  container.style.left = '0';
+  container.style.width = '794px';
   container.style.background = 'white';
+  container.style.zIndex = '-9999';
+  container.style.opacity = '0';
+  container.style.pointerEvents = 'none';
+  container.style.overflow = 'visible';
   container.innerHTML = html;
   document.body.appendChild(container);
 
@@ -404,9 +408,17 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     margin: [10, 10, 14, 10],
     filename: 'BabyBites-Knowledge-Hub-eBook.pdf',
     image: { type: 'jpeg', quality: 0.94 },
-    html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 794 },
+    html2canvas: { 
+      scale: 2, 
+      useCORS: true, 
+      width: 794, 
+      windowWidth: 794,
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+    },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: 'avoid-all', before: '.html2pdf__page-break' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'], before: '.html2pdf__page-break' },
   };
 
   html2pdf()
