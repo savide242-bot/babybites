@@ -184,31 +184,61 @@ const Home = () => {
             transition={{ delay: 0.1 }}
             className="flex items-center gap-2.5"
           >
-            <Link
-              to="/achievements"
-              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
-            >
-              <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
-                <Flame className="w-4.5 h-4.5 text-accent" />
-              </div>
-              <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{currentStreak}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">day streak</p>
-              </div>
-            </Link>
+            {currentStreak > 0 ? (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                  <Flame className="w-4.5 h-4.5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold text-foreground leading-none">{currentStreak}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">day streak</p>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                  <Flame className="w-4.5 h-4.5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-foreground leading-tight">Start your</p>
+                  <p className="text-[10px] text-muted-foreground">first streak!</p>
+                </div>
+              </Link>
+            )}
 
-            <Link
-              to="/achievements"
-              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
-            >
-              <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
-                <Trophy className="w-4.5 h-4.5 text-gold" />
-              </div>
-              <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{totalPoints}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">points</p>
-              </div>
-            </Link>
+            {totalPoints > 0 ? (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
+                  <Trophy className="w-4.5 h-4.5 text-gold" />
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold text-foreground leading-none">{totalPoints}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">points</p>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
+                  <Trophy className="w-4.5 h-4.5 text-gold" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-foreground leading-tight">Earn your</p>
+                  <p className="text-[10px] text-muted-foreground">first points!</p>
+                </div>
+              </Link>
+            )}
 
             <Link
               to="/recipes"
