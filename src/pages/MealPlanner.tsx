@@ -387,7 +387,7 @@ const MealPlanner = () => {
           week_start_date: currentWeekStart,
           plan_type: 'custom',
         }, { 
-          onConflict: 'user_id,week_start_date,day_of_week,meal_type' 
+          onConflict: 'user_id,week_start_date,day_of_week,meal_type,plan_type' 
         })
         .select()
         .single();
