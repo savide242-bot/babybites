@@ -28,7 +28,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   Sleep: '🌙',
 };
 
-const PAGE_BREAK = '<div style="height:0;overflow:hidden;" class="html2pdf__page-break"></div>';
+// Use CSS page-break-before on section wrappers instead of special divs
 
 function buildCoverPage(articleCount: number, categories: string[], today: string): string {
   const badges = categories.map(cat =>
