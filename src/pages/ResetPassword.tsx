@@ -86,7 +86,7 @@ const ResetPassword = () => {
         try {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           
-          console.log('🔐 [RESET-PAGE] exchangeCode result:', { data: !!data.session, error: exchangeError });
+          
           
           if (exchangeError) {
             console.error('🔐 [RESET-PAGE] exchangeCode error:', exchangeError);
