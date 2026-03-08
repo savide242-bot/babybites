@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter, ChevronDown } from "lucide-react";
+import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter, ChevronDown, Download, Loader2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
