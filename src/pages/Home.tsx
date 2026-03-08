@@ -45,6 +45,8 @@ const Home = () => {
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [mealsThisWeek, setMealsThisWeek] = useState(0);
+  const { isSupported, subscription, subscribeToPushNotifications } = usePushNotifications();
+  const [notifLoading, setNotifLoading] = useState(false);
 
   const recipeOfDayRef = useRef<HTMLDivElement>(null);
   const checkinWidgetRef = useRef<HTMLDivElement>(null);
