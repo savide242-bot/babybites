@@ -512,6 +512,7 @@ const Settings = () => {
           </motion.div>
         </motion.div>
       </div>
+    </div>
   );
 };
 
