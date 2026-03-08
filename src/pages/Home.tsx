@@ -146,7 +146,7 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── NOTIFICATION CTA ── */}
+        {/* ── NOTIFICATION CTA (subtle) ── */}
         {!isLoading && isSupported && !subscription && (
           <motion.button
             initial={{ opacity: 0, y: 8 }}
@@ -161,17 +161,17 @@ const Home = () => {
               }
             }}
             disabled={notifLoading}
-            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg active:scale-[0.98] transition-transform"
+            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-muted/60 border border-border/50 active:scale-[0.98] transition-transform"
           >
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-              <BellRing className="w-4 h-4 animate-[wiggle_1s_ease-in-out_infinite]" />
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <BellRing className="w-3.5 h-3.5 text-primary" />
             </div>
             <div className="text-left flex-1">
-              <p className="font-semibold text-sm">Enable Notifications</p>
-              <p className="text-[11px] opacity-80">Meal reminders & daily tips</p>
+              <p className="font-medium text-xs text-foreground">Enable Notifications</p>
+              <p className="text-[10px] text-muted-foreground">Meal reminders & daily tips</p>
             </div>
             {notifLoading && (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             )}
           </motion.button>
         )}
