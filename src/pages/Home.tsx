@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { EmotionalHeader, StreakBadge } from "@/components/ui/emotional-header";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Bell, BellRing } from "lucide-react";
 
 interface TodayMeal {
   mealType: string;
@@ -43,6 +45,8 @@ const Home = () => {
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [mealsThisWeek, setMealsThisWeek] = useState(0);
+  const { isSupported, subscription, subscribeToPushNotifications } = usePushNotifications();
+  const [notifLoading, setNotifLoading] = useState(false);
 
   const recipeOfDayRef = useRef<HTMLDivElement>(null);
   const checkinWidgetRef = useRef<HTMLDivElement>(null);
@@ -236,6 +240,38 @@ const Home = () => {
             />
           )}
         </div>
+
+        {/* 🔔 Activate Notifications Button - shown when no push subscription */}
+        {!isLoading && isSupported && !subscription && (
+          <div className="home-card-enter" style={{ animationDelay: '0.05s' }}>
+            <button
+              onClick={async () => {
+                setNotifLoading(true);
+                try {
+                  const success = await subscribeToPushNotifications();
+                  if (success) {
+                    toast.success("🔔 Notificações ativadas com sucesso!");
+                  }
+                } finally {
+                  setNotifLoading(false);
+                }
+              }}
+              disabled={notifLoading}
+              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+            >
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <BellRing className="w-6 h-6 animate-[wiggle_1s_ease-in-out_infinite]" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-bold text-base">Ativar Notificações</p>
+                <p className="text-sm opacity-90">Receba lembretes de refeições e dicas diárias</p>
+              </div>
+              {notifLoading && (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )}
+            </button>
+          </div>
+        )}
 
         {/* What to Cook Widget */}
         {!isLoading && (
