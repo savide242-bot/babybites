@@ -5,7 +5,9 @@ import { Bell } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
-const STORAGE_KEY = 'push_notifications_activated';
+// Bump this version whenever VAPID keys change to force re-subscription
+const VAPID_VERSION = 'v2';
+const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,9 +21,14 @@ export const NotificationPromptModal = () => {
       const activated = localStorage.getItem(STORAGE_KEY);
       if (activated === 'true') return;
 
-      // Also check if browser permission is already granted (activated on another session)
+      // If permission is granted but this VAPID version not yet activated,
+      // we need to re-subscribe with new keys - so DON'T skip
       if (Notification.permission === 'granted') {
-        localStorage.setItem(STORAGE_KEY, 'true');
+        // Auto re-subscribe silently with new VAPID keys
+        const success = await subscribeToPushNotifications();
+        if (success) {
+          localStorage.setItem(STORAGE_KEY, 'true');
+        }
         return;
       }
 
