@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { syncShoppingListFromMealPlans } from "@/utils/shoppingListSync";
 
 interface ShoppingItem {
   id: string;
