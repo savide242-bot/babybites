@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
           endpoint: sub.endpoint,
           keys: sub.keys as any,
         };
-        const result = await sendWebPushNotification(pushSub, payload, vapidKeys);
+        const result = await sendWebPushNotification(pushSub, payload, vapidKeys.publicKey, vapidKeys.privateKey);
         if (result.success) {
           sent++;
         } else {

@@ -1,37 +1,110 @@
 
 
-# Update VAPID Keys + Automatic Notifications Setup
+# Comprehensive Update Plan
 
-## Current State
-The app already has pg_cron jobs running automatically for:
-- **Meal reminders**: every minute (`check-meal-reminders`)
-- **Baby birthday check**: daily at 8 UTC
-- **Challenge rotation**: midnight daily
+This is a large multi-part request. I'll address each item plus the critical build errors that need fixing first.
 
-However, these are **missing automatic scheduling**:
-- **Engagement notifications** (check-in reminders, streak risk, challenge expiring) -- no cron job
-- **Daily admin report** -- no cron job AND has a bug (wrong function call signature)
+---
 
-## Changes
+## 0. Fix Build Errors (BLOCKING - must fix first)
 
-### 1. Update VAPID Keys
-Replace both `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` secrets with the new values provided.
+The `pushManager` TypeScript error occurs because the default `ServiceWorkerRegistration` type doesn't include `pushManager`. Fix by adding a type assertion `(registration as any).pushManager` in all 4 files:
 
-### 2. Fix `daily-admin-report/index.ts` Bug
-Line 159 calls `sendWebPushNotification(pushSub, payload, vapidKeys)` with 3 args but the function expects 4 (subscription, notification, publicKey, privateKey). Fix to use `vapidKeys.publicKey` and `vapidKeys.privateKey`.
+- `src/hooks/usePushNotifications.tsx` (lines 100, 150, 175)
+- `src/components/admin/SystemHealth.tsx` (line 171)
+- `src/components/NotificationPreferences.tsx` (line 179)
+- `src/pages/IOSPushSetup.tsx` (line 148)
 
-### 3. Add Missing pg_cron Jobs (SQL Migration)
-Create cron jobs for the notifications that currently have NO automatic trigger:
+---
 
-- **`send-engagement-checkin`**: Daily at 20:00 UTC -- sends check-in reminders to users who haven't logged today
-- **`send-engagement-streak-risk`**: Daily at 10:00 UTC -- alerts users whose streaks are at risk
-- **`send-engagement-challenge-expiring`**: Daily at 14:00 UTC -- notifies about challenges ending soon
-- **`daily-admin-report`**: Daily at 21:00 UTC -- sends metrics report to admins
+## 1. Daily Admin Report Edge Function
 
-### 4. Deduplicate Existing Cron Jobs
-There are two duplicate meal reminder jobs (jobid 3 and 7) both running every minute. Remove one.
+Create `supabase/functions/daily-admin-report/index.ts` that:
+- Queries `user_sessions` for DAU (distinct users active today)
+- Queries `profiles` for new signups (created_at = today)
+- Queries `recipe_views` for top 5 most viewed recipes today
+- Queries `user_streaks` for average current_streak
+- Queries `meal_plans` for total meals planned today
+- Sends a formatted push notification to admin's push subscription
+- Add to `supabase/config.toml` with `verify_jwt = false` (called by cron)
 
-### Files Modified
-- `supabase/functions/daily-admin-report/index.ts` (fix bug)
-- New SQL migration (add cron jobs, remove duplicate)
+---
+
+## 2. Add 5 New Recipes
+
+Add 5 new recipes (IDs 311-315) to a new file `src/data/recipes311-315.ts` and import in `src/data/recipes.ts`. Recipes will cover underrepresented categories for variety. Then trigger a notification to all users about new recipes via the existing `notify-all-users` edge function from the admin panel.
+
+---
+
+## 3. Performance Optimization
+
+- Add `React.memo` to heavy list items: recipe cards in `Recipes.tsx`
+- Add `useMemo` for filtered recipe lists
+- Lazy-load recipe images with `loading="lazy"` attribute
+- Minimize re-renders in Home.tsx by memoizing derived values
+
+---
+
+## 4. UI/UX Enhancements ("Crazy Effects")
+
+Enhance visual experience across key pages:
+
+**Home Page:**
+- Add animated gradient text for greetings using CSS `background-clip: text`
+- Add staggered card entrance animations (already has framer-motion, enhance timing)
+- Add parallax floating food emojis in background
+- Add shimmer/shine effect on Recipe of the Day card
+
+**Recipe Cards:**
+- Add 3D tilt effect on hover using `transform: perspective()` with framer-motion
+- Add gradient border glow on favorite recipes
+- Add micro-interaction: heart button with particle burst on favorite
+
+**Recipes Page:**
+- Add count badges on category filters showing recipe count per category
+- Add smooth skeleton loading with wave animation
+
+**General:**
+- Add page transition animations between routes
+- Add pull-to-refresh gesture feel on mobile
+- Add confetti burst when completing all daily meals
+
+---
+
+## 5. Precision & Weak Points Fix
+
+- Ensure all nutrition data uses consistent units (g, mg, kcal)
+- Fix any recipes with missing or placeholder nutrition values
+- Verify allergen data completeness across all recipes
+- Ensure dietary filter tags are correctly mapped for all 315 recipes
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/hooks/usePushNotifications.tsx` | Fix pushManager type |
+| `src/components/admin/SystemHealth.tsx` | Fix pushManager type |
+| `src/components/NotificationPreferences.tsx` | Fix pushManager type |
+| `src/pages/IOSPushSetup.tsx` | Fix pushManager type |
+| `supabase/functions/daily-admin-report/index.ts` | NEW - admin metrics |
+| `supabase/config.toml` | Add daily-admin-report config |
+| `src/data/recipes311-315.ts` | NEW - 5 new recipes |
+| `src/data/recipes.ts` | Import new recipes |
+| `src/pages/Recipes.tsx` | Perf + UI enhancements |
+| `src/pages/Home.tsx` | Visual effects upgrade |
+| `src/components/ui/glass-card.tsx` | Enhanced glow effects |
+| `src/index.css` | New animation keyframes |
+
+---
+
+## Implementation Order
+
+1. Fix TypeScript build errors (unblocks everything)
+2. Create daily-admin-report edge function
+3. Add 5 new recipes
+4. Performance optimizations (memo, lazy loading)
+5. UI/UX crazy effects (animations, transitions, 3D)
+6. Precision fixes on recipe data
 
