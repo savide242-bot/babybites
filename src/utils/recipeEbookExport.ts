@@ -515,11 +515,15 @@ export const exportRecipeEbook = (allRecipes: RecipeForEbook[]) => {
   `;
 
   const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
+  container.style.position = 'fixed';
   container.style.top = '0';
-  container.style.width = '210mm';
+  container.style.left = '0';
+  container.style.width = '794px';
   container.style.background = 'white';
+  container.style.zIndex = '-9999';
+  container.style.opacity = '0';
+  container.style.pointerEvents = 'none';
+  container.style.overflow = 'visible';
   container.innerHTML = html;
   document.body.appendChild(container);
 
@@ -529,9 +533,17 @@ export const exportRecipeEbook = (allRecipes: RecipeForEbook[]) => {
     margin: [8, 8, 12, 8],
     filename: 'BabyBites-Livro-de-Receitas.pdf',
     image: { type: 'jpeg', quality: 0.92 },
-    html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 794 },
+    html2canvas: { 
+      scale: 2, 
+      useCORS: true, 
+      width: 794, 
+      windowWidth: 794,
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+    },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: 'avoid-all', before: '.html2pdf__page-break' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'], before: '.html2pdf__page-break' },
   };
 
   html2pdf()
