@@ -317,34 +317,34 @@ const Settings = () => {
                 <p className="text-xs text-muted-foreground text-center mt-3">
                   Manage users, send notifications, and view activity logs
                 </p>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
+          </motion.div>
           )}
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-gold/5 to-peach/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Clock className="h-5 w-5 text-gold" />
                 Meal Reminders
               </CardTitle>
-              <CardDescription>
-                Customize your notification schedule
-              </CardDescription>
+              <CardDescription>Customize your notification schedule</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <NotificationPreferences />
             </CardContent>
           </Card>
+          </motion.div>
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-accent/5 to-primary/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Bell className="h-5 w-5 text-primary" />
                 Engagement Notifications
               </CardTitle>
-              <CardDescription>
-                Stay motivated with helpful reminders and celebrations
-              </CardDescription>
+              <CardDescription>Stay motivated with helpful reminders</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {loadingEngagement ? (
