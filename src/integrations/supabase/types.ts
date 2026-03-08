@@ -1397,7 +1397,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          full_name: string | null
+          id: string | null
+          is_verified_pediatrician: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_verified_pediatrician?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_verified_pediatrician?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -1407,7 +1430,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_challenge_progress: {
+        Args: { p_challenge_id: string; p_user_id: string }
+        Returns: undefined
+      }
       is_user_banned: { Args: { check_user_id: string }; Returns: boolean }
+      update_user_streak: {
+        Args: { p_last_activity_date: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
