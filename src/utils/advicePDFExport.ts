@@ -1,0 +1,122 @@
+import html2pdf from 'html2pdf.js';
+
+interface AdviceArticle {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  content: string[];
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Feeding: '#ec4899',
+  Health: '#ef4444',
+  Nutrition: '#8b5cf6',
+  Development: '#06b6d4',
+  Behavior: '#f43f5e',
+  Tips: '#64748b',
+  Sleep: '#6366f1',
+};
+
+export const exportAdvicePDF = (articles: AdviceArticle[]) => {
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  
+  const categoriesUsed = [...new Set(articles.map(a => a.category))];
+
+  // Build TOC
+  const tocItems = articles.map((a, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px dotted #e2e8f0;">
+      <span style="font-size:13px;color:#334155;">${i + 1}. ${a.title}</span>
+      <span style="font-size:11px;color:#94a3b8;white-space:nowrap;margin-left:8px;">${a.category}</span>
+    </div>
+  `).join('');
+
+  // Build article sections
+  const articleSections = articles.map((article, idx) => {
+    const color = CATEGORY_COLORS[article.category] || '#6366f1';
+    const contentHtml = article.content.map((p, pi) => `
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+          <span style="color:white;font-size:11px;font-weight:700;">${pi + 1}</span>
+        </div>
+        <p style="margin:0;font-size:13px;line-height:1.7;color:#475569;flex:1;">${p}</p>
+      </div>
+    `).join('');
+
+    return `
+      <div style="page-break-inside:avoid;margin-bottom:32px;${idx > 0 ? 'page-break-before:auto;' : ''}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:${color};display:flex;align-items:center;justify-content:center;">
+            <span style="color:white;font-size:16px;font-weight:800;">${idx + 1}</span>
+          </div>
+          <div>
+            <span style="display:inline-block;font-size:10px;font-weight:600;color:${color};text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">${article.category}</span>
+            <h2 style="margin:0;font-size:18px;font-weight:700;color:#1e293b;">${article.title}</h2>
+          </div>
+        </div>
+        <p style="font-size:13px;color:#64748b;font-style:italic;margin:0 0 16px 0;padding-left:52px;">${article.description}</p>
+        <div style="padding-left:52px;">
+          ${contentHtml}
+        </div>
+        <div style="height:1px;background:linear-gradient(to right,${color}33,transparent);margin-top:24px;"></div>
+      </div>
+    `;
+  }).join('');
+
+  const html = `
+    <div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">
+      <!-- Cover Page -->
+      <div style="text-align:center;padding:80px 40px 60px;page-break-after:always;">
+        <div style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#ec4899,#8b5cf6);margin:0 auto 32px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:40px;">🍼</span>
+        </div>
+        <h1 style="font-size:36px;font-weight:800;background:linear-gradient(135deg,#ec4899,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 12px;">BabyBites</h1>
+        <h2 style="font-size:28px;font-weight:700;color:#1e293b;margin:0 0 8px;">Knowledge Hub</h2>
+        <p style="font-size:16px;color:#64748b;margin:0 0 40px;">Expert Pediatric Nutrition Guide</p>
+        <div style="height:3px;width:60px;background:linear-gradient(to right,#ec4899,#8b5cf6);margin:0 auto 40px;border-radius:2px;"></div>
+        <p style="font-size:13px;color:#94a3b8;">${today}</p>
+        <p style="font-size:13px;color:#94a3b8;">${articles.length} Expert Articles</p>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:40px;">
+          ${categoriesUsed.map(cat => `<span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;background:${CATEGORY_COLORS[cat] || '#6366f1'}15;color:${CATEGORY_COLORS[cat] || '#6366f1'};">${cat}</span>`).join('')}
+        </div>
+      </div>
+
+      <!-- Table of Contents -->
+      <div style="padding:20px 40px;page-break-after:always;">
+        <h2 style="font-size:22px;font-weight:700;color:#1e293b;margin:0 0 24px;padding-bottom:12px;border-bottom:3px solid #ec4899;">Table of Contents</h2>
+        ${tocItems}
+      </div>
+
+      <!-- Articles -->
+      <div style="padding:20px 40px;">
+        ${articleSections}
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align:center;padding:40px;border-top:2px solid #e2e8f0;margin-top:40px;">
+        <p style="font-size:12px;color:#94a3b8;margin:0 0 8px;">Generated by BabyBites • ${today}</p>
+        <p style="font-size:11px;color:#cbd5e1;margin:0;">This guide is for educational purposes only. Always consult your pediatrician for personalized advice.</p>
+      </div>
+    </div>
+  `;
+
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  document.body.appendChild(container);
+
+  const opt = {
+    margin: [10, 10, 15, 10],
+    filename: 'BabyBites-Knowledge-Hub.pdf',
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] },
+  };
+
+  html2pdf()
+    .set(opt)
+    .from(container.firstElementChild)
+    .save()
+    .then(() => container.remove())
+    .catch(() => container.remove());
+};
