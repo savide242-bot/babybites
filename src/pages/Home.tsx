@@ -217,7 +217,7 @@ const Home = () => {
               setNotifLoading(true);
               try {
                 const success = await subscribeToPushNotifications();
-                if (success) toast.success("🔔 Notificações ativadas!");
+                if (success) toast.success("🔔 Notifications enabled!");
               } finally {
                 setNotifLoading(false);
               }
