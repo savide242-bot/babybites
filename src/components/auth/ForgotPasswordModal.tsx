@@ -55,8 +55,6 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
         redirectTo: redirectUrl
       });
       
-      console.log('🔑 [RESET] Response data:', data);
-      console.log('🔑 [RESET] Response error:', error);
       
       if (error) {
         console.error('🔑 [RESET] Error details:', error);
