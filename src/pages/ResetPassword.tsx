@@ -110,7 +110,6 @@ const ResetPassword = () => {
         setIsValidToken(true);
         setIsCheckingToken(false);
       } else if (event === 'SIGNED_IN' && session) {
-        console.log('🔐 [RESET-PAGE] SIGNED_IN event with session');
         setIsValidToken(true);
         setIsCheckingToken(false);
       }
