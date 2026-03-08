@@ -31,10 +31,6 @@ const ResetPassword = () => {
   const [tokenError, setTokenError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔐 [RESET-PAGE] Initializing password reset page...');
-    console.log('🔐 [RESET-PAGE] Full URL:', window.location.href);
-    console.log('🔐 [RESET-PAGE] Hash:', window.location.hash);
-    console.log('🔐 [RESET-PAGE] Search params:', window.location.search);
 
     // Parse hash parameters more robustly - handle both hash and query params
     const hashString = window.location.hash.substring(1);
