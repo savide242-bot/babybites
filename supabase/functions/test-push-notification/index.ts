@@ -231,8 +231,8 @@ async function sendWebPushNotification(
     const payload = JSON.stringify({
       title,
       body,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
+      icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+      badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
       tag: `notification-${Date.now()}`,
       data: { url: '/', timestamp: Date.now() }
     });
@@ -413,7 +413,7 @@ Deno.serve(async (req) => {
       );
     } else {
       // If subscription is expired, delete it
-      if (result.status === 410 || result.status === 404) {
+      if (result.status === 410 || result.status === 404 || (result.status === 400 && result.error?.includes('VapidPkHashMismatch'))) {
         console.log('🗑️ Deleting expired subscription');
         await supabase
           .from('push_subscriptions')

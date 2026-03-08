@@ -92,8 +92,8 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'BabyBites Notification',
     body: 'You have a new notification',
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png'
+    icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+    badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png'
   };
 
   try {
@@ -133,8 +133,8 @@ self.addEventListener('push', (event) => {
   // iOS-specific: Ensure we have valid notification data
   const options = {
     body: data.body || 'You have a new notification',
-    icon: data.icon || '/icon-192x192.png',
-    badge: data.badge || '/icon-192x192.png',
+    icon: data.icon || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+    badge: data.badge || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
     tag: data.tag || `notification-${Date.now()}`,
     data: data.data || { url: '/' },
     requireInteraction: data.requireInteraction !== false, // Default true for iOS visibility

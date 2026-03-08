@@ -55,8 +55,8 @@ Deno.serve(async (req) => {
       {
         title: title || '🎉 Teste BabyBites!',
         body: body || 'As tuas notificações estão a funcionar! 🍎',
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
+        icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+        badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
         tag: 'test-notification',
       },
       vapidKeys.publicKey,
