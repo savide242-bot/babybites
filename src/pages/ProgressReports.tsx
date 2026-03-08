@@ -122,7 +122,7 @@ const ProgressReports = () => {
         .from("profiles")
         .select("baby_name, baby_birth_date")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       if (profile) {
         setBabyName(profile.baby_name || "");
