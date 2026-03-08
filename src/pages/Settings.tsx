@@ -185,36 +185,33 @@ const Settings = () => {
           initial="hidden"
           animate="visible"
         >
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle>Language</CardTitle>
-              <CardDescription>
-                Application language settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted rounded-xl">
+          <motion.div variants={itemVariants}>
+            <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-mint/5 pb-4">
+                <CardTitle className="text-base">🌐 Language</CardTitle>
+                <CardDescription>Application language settings</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between p-3.5 bg-muted/50 rounded-xl border border-border/30">
                   <div>
-                    <p className="font-medium">Current Language</p>
-                    <p className="text-sm text-muted-foreground">The app is available in English</p>
+                    <p className="font-medium text-sm">Current Language</p>
+                    <p className="text-xs text-muted-foreground">The app is available in English</p>
                   </div>
-                  <div className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium">
-                    English
-                  </div>
+                  <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-3">English</Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Salad className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-mint/5 to-secondary/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Salad className="h-5 w-5 text-mint" />
                 Dietary Preferences
               </CardTitle>
               <CardDescription>
-                Set your dietary restrictions to get personalized recipe recommendations. Changes are saved automatically.
+                Set dietary restrictions for personalized recommendations
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -295,9 +292,11 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+          </motion.div>
 
           {isAdmin && (
-            <Card className="border-2 shadow-elegant border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+            <motion.div variants={itemVariants}>
+            <Card className="border border-primary/20 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -318,34 +317,34 @@ const Settings = () => {
                 <p className="text-xs text-muted-foreground text-center mt-3">
                   Manage users, send notifications, and view activity logs
                 </p>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
+          </motion.div>
           )}
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-gold/5 to-peach/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Clock className="h-5 w-5 text-gold" />
                 Meal Reminders
               </CardTitle>
-              <CardDescription>
-                Customize your notification schedule
-              </CardDescription>
+              <CardDescription>Customize your notification schedule</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <NotificationPreferences />
             </CardContent>
           </Card>
+          </motion.div>
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-accent/5 to-primary/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Bell className="h-5 w-5 text-primary" />
                 Engagement Notifications
               </CardTitle>
-              <CardDescription>
-                Stay motivated with helpful reminders and celebrations
-              </CardDescription>
+              <CardDescription>Stay motivated with helpful reminders</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {loadingEngagement ? (
@@ -425,18 +424,20 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+          </motion.div>
 
+          <motion.div variants={itemVariants}>
           <ChangePasswordSection />
+          </motion.div>
 
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5" />
+          <motion.div variants={itemVariants}>
+          <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-secondary/5 to-mint/5 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <RefreshCw className="h-5 w-5 text-secondary" />
                 App Updates
               </CardTitle>
-              <CardDescription>
-                Manage app updates and notifications
-              </CardDescription>
+              <CardDescription>Manage app updates and notifications</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {isSupported && (
@@ -508,6 +509,7 @@ const Settings = () => {
               </p>
             </CardContent>
           </Card>
+          </motion.div>
         </motion.div>
       </div>
     </div>

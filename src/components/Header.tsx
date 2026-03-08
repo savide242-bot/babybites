@@ -37,11 +37,11 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-xl shadow-sm">
       {/* Gold accent line at top */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold via-gold-light to-gold" />
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold via-primary to-gold" />
       
-      <div className="container flex h-14 items-center justify-between border-b border-border/30">
+      <div className="container flex h-14 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-gold via-primary to-secondary shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
             <Baby className="w-5 h-5 text-white" />

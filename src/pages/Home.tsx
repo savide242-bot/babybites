@@ -113,7 +113,7 @@ const Home = () => {
         />
       )}
 
-      <div className="max-w-lg mx-auto px-4 pt-5 pb-4 space-y-5">
+      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 pt-5 pb-4 space-y-5">
 
         {/* ── HERO HEADER ── */}
         {isLoading ? (
@@ -146,7 +146,7 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── NOTIFICATION CTA ── */}
+        {/* ── NOTIFICATION CTA (subtle) ── */}
         {!isLoading && isSupported && !subscription && (
           <motion.button
             initial={{ opacity: 0, y: 8 }}
@@ -161,17 +161,17 @@ const Home = () => {
               }
             }}
             disabled={notifLoading}
-            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg active:scale-[0.98] transition-transform"
+            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-muted/60 border border-border/50 active:scale-[0.98] transition-transform"
           >
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-              <BellRing className="w-4 h-4 animate-[wiggle_1s_ease-in-out_infinite]" />
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <BellRing className="w-3.5 h-3.5 text-primary" />
             </div>
             <div className="text-left flex-1">
-              <p className="font-semibold text-sm">Enable Notifications</p>
-              <p className="text-[11px] opacity-80">Meal reminders & daily tips</p>
+              <p className="font-medium text-xs text-foreground">Enable Notifications</p>
+              <p className="text-[10px] text-muted-foreground">Meal reminders & daily tips</p>
             </div>
             {notifLoading && (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             )}
           </motion.button>
         )}
@@ -184,31 +184,61 @@ const Home = () => {
             transition={{ delay: 0.1 }}
             className="flex items-center gap-2.5"
           >
-            <Link
-              to="/achievements"
-              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
-            >
-              <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
-                <Flame className="w-4.5 h-4.5 text-accent" />
-              </div>
-              <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{currentStreak}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">day streak</p>
-              </div>
-            </Link>
+            {currentStreak > 0 ? (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                  <Flame className="w-4.5 h-4.5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold text-foreground leading-none">{currentStreak}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">day streak</p>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
+                  <Flame className="w-4.5 h-4.5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-foreground leading-tight">Start your</p>
+                  <p className="text-[10px] text-muted-foreground">first streak!</p>
+                </div>
+              </Link>
+            )}
 
-            <Link
-              to="/achievements"
-              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
-            >
-              <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
-                <Trophy className="w-4.5 h-4.5 text-gold" />
-              </div>
-              <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{totalPoints}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">points</p>
-              </div>
-            </Link>
+            {totalPoints > 0 ? (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
+                  <Trophy className="w-4.5 h-4.5 text-gold" />
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold text-foreground leading-none">{totalPoints}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">points</p>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                to="/achievements"
+                className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
+              >
+                <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
+                  <Trophy className="w-4.5 h-4.5 text-gold" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-foreground leading-tight">Earn your</p>
+                  <p className="text-[10px] text-muted-foreground">first points!</p>
+                </div>
+              </Link>
+            )}
 
             <Link
               to="/recipes"
@@ -225,81 +255,90 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── AGE CATEGORIES ── */}
-        {!isLoading && (
-          <motion.div
-            ref={ageCategoriesRef}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 }}
-          >
-            <AgeCategoryCircles babyAgeMonths={babyAgeMonths} />
-          </motion.div>
-        )}
+        {/* ── DESKTOP 2-COLUMN / MOBILE SINGLE COLUMN ── */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-5 lg:space-y-0">
+          {/* LEFT COLUMN */}
+          <div className="space-y-5">
+            {/* ── AGE CATEGORIES ── */}
+            {!isLoading && (
+              <motion.div
+                ref={ageCategoriesRef}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.15 }}
+              >
+                <AgeCategoryCircles babyAgeMonths={babyAgeMonths} />
+              </motion.div>
+            )}
 
-        {/* ── WHAT TO COOK ── */}
-        {!isLoading && (
-          <motion.div
-            ref={recipeOfDayRef}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
-          </motion.div>
-        )}
+            {/* ── WHAT TO COOK ── */}
+            {!isLoading && (
+              <motion.div
+                ref={recipeOfDayRef}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
+              </motion.div>
+            )}
+          </div>
 
-        {/* ── DAILY TIP ── */}
-        {!isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="rounded-2xl bg-gradient-to-br from-secondary/30 to-peach/20 border border-secondary/30 p-4"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
-                {ageTip.icon}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Lightbulb className="w-3.5 h-3.5 text-primary" />
-                  <p className="text-xs font-semibold text-primary">
-                    Tip for {babyAgeMonths} months
-                  </p>
+          {/* RIGHT COLUMN */}
+          <div className="space-y-5">
+            {/* ── DAILY TIP ── */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="rounded-2xl bg-gradient-to-br from-secondary/30 to-peach/20 border border-secondary/30 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                    {ageTip.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Lightbulb className="w-3.5 h-3.5 text-primary" />
+                      <p className="text-xs font-semibold text-primary">
+                        Tip for {babyAgeMonths} months
+                      </p>
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {dailyTip?.tip_text || ageTip.tip}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-foreground leading-relaxed">
-                  {dailyTip?.tip_text || ageTip.tip}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
+              </motion.div>
+            )}
 
-        {/* ── EXPLORE RECIPES CTA ── */}
-        {!isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Link
-              to="/recipes"
-              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-mint/10 border border-primary/15 active:scale-[0.98] transition-transform"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">👩‍🍳</span>
-                <div>
-                  <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
-                  <p className="text-xs text-muted-foreground">
-                    {recipes.length}+ recipes perfect for {babyName || "your baby"}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </Link>
-          </motion.div>
-        )}
+            {/* ── EXPLORE RECIPES CTA ── */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Link
+                  to="/recipes"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-mint/10 border border-primary/15 active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">👩‍🍳</span>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
+                      <p className="text-xs text-muted-foreground">
+                        {recipes.length}+ recipes perfect for {babyName || "your baby"}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </Link>
+              </motion.div>
+            )}
+          </div>
+        </div>
 
       </div>
     </div>
