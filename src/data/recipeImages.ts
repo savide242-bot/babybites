@@ -629,7 +629,7 @@ const recipeImageMap: Record<string, string> = {
   "179": creamyVeggiePasta,
   "180": blueberryLemonYogurtBark180,
   "181": mangoTropicalPuree,
-  "182": pumpkinSpiceQuinoa,
+  "182": pumpkinSpiceQuinoa182,
   "183": blueberryOatCreamUnique,
   "184": cauliflowerCheesePureeUnique,
   "185": sweetPotatoCinnamonUnique,
