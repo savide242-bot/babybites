@@ -76,7 +76,7 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
       
       setIsSent(true);
       toast.success("Password reset email sent! Check your inbox.");
-      console.log('🔑 [RESET] Success! Email sent to:', resetEmail);
+      
     } catch (error: any) {
       console.error("🔑 [RESET] Exception:", error);
       toast.error("Something went wrong. Please try again.");
