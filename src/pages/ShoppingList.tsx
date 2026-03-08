@@ -59,6 +59,7 @@ const ShoppingList = () => {
 
     if (error) {
       console.error('Error loading shopping list:', error);
+      setIsLoading(false);
       return;
     }
 
@@ -72,6 +73,7 @@ const ShoppingList = () => {
       }));
       setItems(mappedItems);
     }
+    setIsLoading(false);
   };
 
   const toggleItem = async (id: string) => {
