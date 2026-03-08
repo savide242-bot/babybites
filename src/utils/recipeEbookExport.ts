@@ -476,84 +476,55 @@ export const exportRecipeEbook = (allRecipes: RecipeForEbook[]) => {
     }
   }
 
-  // Build HTML
-  const sections: string[] = [];
+  const wrap = (html: string, forceBreak = false) => 
+    `<div style="${forceBreak ? 'page-break-before:always;' : ''}">${html}</div>`;
 
-  // Cover
-  sections.push(buildCoverPage(allRecipes.length, ageGroupsUsed, today));
-  sections.push(PAGE_BREAK);
+  const allSections = [
+    wrap(buildCoverPage(allRecipes.length, ageGroupsUsed, today), false),
+    wrap(buildIntroPage(), true),
+    wrap(buildTOCPage(grouped, globalIndex), true),
+  ];
 
-  // Intro
-  sections.push(buildIntroPage());
-  sections.push(PAGE_BREAK);
-
-  // TOC
-  sections.push(buildTOCPage(grouped, globalIndex));
-  sections.push(PAGE_BREAK);
-
-  // Age group sections
   for (const ag of ageGroupsUsed) {
-    sections.push(buildAgeGroupDivider(ag, grouped[ag].length));
-    sections.push(PAGE_BREAK);
-
+    allSections.push(wrap(buildAgeGroupDivider(ag, grouped[ag].length), true));
+    
     const agRecipes = grouped[ag];
-    // Wrap recipes in a container div for that section
     const recipesHtml = agRecipes.map(r => buildRecipe(r, globalIndex[r.id])).join('');
-    sections.push(`<div style="padding:20px 44px;">${recipesHtml}</div>`);
-    sections.push(PAGE_BREAK);
+    allSections.push(wrap(`<div style="padding:20px 44px;">${recipesHtml}</div>`, true));
   }
 
-  // Back cover
-  sections.push(buildBackCover(today));
+  allSections.push(wrap(buildBackCover(today), true));
 
-  const html = `
-    <div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;width:100%;color:#1e293b;">
-      ${sections.join('')}
-    </div>
-  `;
+  const html = `<div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;width:794px;color:#1e293b;background:white;">${allSections.join('')}</div>`;
 
-  // Loading overlay to hide rendering from user
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;';
-  overlay.innerHTML = '<div style="text-align:center;"><div style="font-size:48px;margin-bottom:16px;">👩‍🍳</div><div style="font-size:18px;font-weight:600;color:#1e293b;margin-bottom:8px;">A gerar o Livro de Receitas...</div><div style="font-size:14px;color:#94a3b8;">340 receitas — isto pode demorar um momento</div></div>';
-  document.body.appendChild(overlay);
-
-  // Container must be VISIBLE (no opacity/visibility hiding) for html2canvas
   const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.width = '794px';
-  container.style.background = 'white';
-  container.style.zIndex = '999998';
-  container.style.overflow = 'visible';
-  container.style.pointerEvents = 'none';
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '-9999px';
   container.innerHTML = html;
   document.body.appendChild(container);
-
-  const element = container.firstElementChild as HTMLElement;
 
   const opt = {
     margin: [8, 8, 12, 8],
     filename: 'BabyBites-Livro-de-Receitas.pdf',
-    image: { type: 'jpeg', quality: 0.92 },
+    image: { type: 'jpeg', quality: 0.95 },
     html2canvas: { 
       scale: 2, 
-      useCORS: true, 
-      width: 794, 
-      windowWidth: 794,
-      scrollX: 0,
-      scrollY: 0,
+      useCORS: true,
+      allowTaint: true,
       logging: false,
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'], before: '.html2pdf__page-break' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
   };
 
   html2pdf()
     .set(opt)
-    .from(element)
+    .from(container.firstElementChild)
     .save()
-    .then(() => { container.remove(); overlay.remove(); })
-    .catch(() => { container.remove(); overlay.remove(); });
+    .then(() => container.remove())
+    .catch((err: Error) => {
+      console.error('PDF generation error:', err);
+      container.remove();
+    });
 };
