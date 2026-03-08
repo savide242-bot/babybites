@@ -1,4 +1,14 @@
 // Import all recipe images
+import recipe316ChickenTacos from "@/assets/recipe-316-chicken-tacos.jpg";
+import recipe317VeggieFriedRice from "@/assets/recipe-317-veggie-fried-rice.jpg";
+import recipe318TropicalFruitSalad from "@/assets/recipe-318-tropical-fruit-salad.jpg";
+import recipe319MacCheeseBites from "@/assets/recipe-319-mac-cheese-bites.jpg";
+import recipe320VeggieQuesadillas from "@/assets/recipe-320-veggie-quesadillas.jpg";
+import recipe321SmoothieBowl from "@/assets/recipe-321-smoothie-bowl.jpg";
+import recipe322HiddenVeggiePasta from "@/assets/recipe-322-hidden-veggie-pasta.jpg";
+import recipe323BlueberryPancakes from "@/assets/recipe-323-blueberry-pancakes.jpg";
+import recipe324ChickenVeggieSoup from "@/assets/recipe-324-chicken-veggie-soup.jpg";
+import recipe325SweetPotatoPorridge from "@/assets/recipe-325-sweet-potato-porridge.jpg";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
