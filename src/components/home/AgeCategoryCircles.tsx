@@ -74,6 +74,7 @@ const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
           return cat.ageGroup;
         }
       }
+      if (babyAgeMonths >= 24) return "24+ months";
       if (babyAgeMonths >= 18) return "18-24 months";
       return "6-9 months";
     };
