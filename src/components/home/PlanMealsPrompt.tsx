@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Calendar, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface PlanMealsPromptProps {
@@ -12,23 +12,28 @@ const PlanMealsPrompt = ({ hasMealsPlanned }: PlanMealsPromptProps) => {
   if (hasMealsPlanned) return null;
 
   return (
-    <motion.button
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      onClick={() => navigate("/planner")}
-      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-peach/10 border border-primary/20 hover:border-primary/40 transition-all group"
+      className="w-full rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-peach/10 border border-primary/20 p-4 space-y-3"
     >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-          <Calendar className="w-5 h-5 text-primary" />
+      <div className="flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+          <Sparkles className="w-4.5 h-4.5 text-primary" />
         </div>
-        <div className="text-left">
-          <p className="text-sm font-semibold text-foreground">Plan today's meals</p>
-          <p className="text-xs text-muted-foreground">Tap to create your meal plan</p>
+        <div>
+          <p className="text-sm font-semibold text-foreground leading-tight">A personalized plan for your baby</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Balanced, nutritious meals tailored to your baby's age and needs — ready in seconds.</p>
         </div>
       </div>
-      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-    </motion.button>
+      <button
+        onClick={() => navigate("/planner")}
+        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+      >
+        Create Personalized Plan
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </motion.div>
   );
 };
 
