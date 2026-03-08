@@ -90,7 +90,7 @@ export const useGamification = () => {
         .from('user_streaks')
         .select('*')
         .eq('user_id', uid)
-        .single();
+        .maybeSingle();
 
       if (streakData) {
         setStreak({

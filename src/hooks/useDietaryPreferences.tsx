@@ -34,7 +34,7 @@ export const useDietaryPreferences = () => {
         .from('profiles')
         .select('dietary_preferences')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
