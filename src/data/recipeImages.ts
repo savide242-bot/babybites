@@ -466,7 +466,7 @@ const recipeImageMap: Record<string, string> = {
   "7": riceBanana,
   "8": peaPuree,
   "9": spinachAppleSurprise,
-  "10": pearPruneBlend,
+  "10": ricePeachCereal,
   "11": pumpkinAppleMash,
   "12": blueberryOatmeal,
   "13": appleSauce,
