@@ -5,35 +5,23 @@ import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 import WhatToCookWidget from "@/components/home/WhatToCookWidget";
 import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
-import PlanMealsPrompt from "@/components/home/PlanMealsPrompt";
-import TodaysMealsPreview from "@/components/home/TodaysMealsPreview";
 import AppTour from "@/components/onboarding/AppTour";
 import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { BellRing, Flame, Trophy, Target, ChevronRight } from "lucide-react";
+import { BellRing, Flame, Trophy, BookOpen, ChevronRight, Lightbulb } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { getRecipeImageById } from "@/data/recipeImages";
-
-interface TodayMeal {
-  mealType: string;
-  recipeTitle: string;
-  recipeId: string;
-  prepared: boolean;
-}
 
 const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
   const [babyName, setBabyName] = useState<string>("");
   const [babyAgeMonths, setBabyAgeMonths] = useState<number>(6);
-  const [todayMeals, setTodayMeals] = useState<TodayMeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [mealsThisWeek, setMealsThisWeek] = useState(0);
   const { isSupported, subscription, subscribeToPushNotifications } = usePushNotifications();
   const [notifLoading, setNotifLoading] = useState(false);
 
@@ -41,12 +29,9 @@ const Home = () => {
   const checkinWidgetRef = useRef<HTMLDivElement>(null);
   const ageCategoriesRef = useRef<HTMLDivElement>(null);
 
-  const { todayCheckin, submitCheckin } = useEngagement();
+  const { todayCheckin, submitCheckin, dailyTip } = useEngagement();
   const tour = useAppTour();
   const { triggerReward, RewardComponent } = useReward();
-
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const todayDayName = dayNames[new Date().getDay()];
 
   const { greeting, emotionalMessage, emoji } = useMemo(() => {
     const hour = new Date().getHours();
@@ -60,13 +45,6 @@ const Home = () => {
     return { greeting: "Sweet dreams time", emotionalMessage: "Rest well, supermom", emoji: "🌙" };
   }, [babyName]);
 
-  const processMealPlanData = useCallback((mealPlanData: any[]): TodayMeal[] => {
-    return mealPlanData.map(item => {
-      const recipe = recipes.find(r => r.id === item.recipe_id);
-      return { mealType: item.meal_type, recipeTitle: recipe?.title || "Unknown recipe", recipeId: item.recipe_id, prepared: item.prepared || false };
-    });
-  }, []);
-
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -74,15 +52,10 @@ const Home = () => {
         if (!session?.user) { setIsLoading(false); return; }
         const currentUserId = session.user.id;
         setUserId(currentUserId);
-        const now = new Date();
-        const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
-        const [profileResult, mealPlanResult, streakResult, weekMealsResult] = await Promise.all([
+        const [profileResult, streakResult] = await Promise.all([
           supabase.from('profiles').select('mother_name, baby_name, baby_birth_date').eq('id', currentUserId).maybeSingle(),
-          supabase.from('meal_plans').select('meal_type, recipe_id, prepared').eq('user_id', currentUserId).eq('day_of_week', todayDayName),
           supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', currentUserId).maybeSingle(),
-          supabase.from('meal_plans').select('prepared, created_at').eq('user_id', currentUserId).eq('prepared', true)
         ]);
 
         if (profileResult.data) {
@@ -94,16 +67,6 @@ const Home = () => {
           }
         }
         if (streakResult.data) setStreak(streakResult.data);
-        if (weekMealsResult.data) {
-          const weekMeals = weekMealsResult.data.filter(meal => {
-            if (!meal.created_at) return false;
-            return isWithinInterval(new Date(meal.created_at), { start: weekStart, end: weekEnd });
-          });
-          setMealsThisWeek(weekMeals.length);
-        }
-        if (mealPlanResult.data && mealPlanResult.data.length > 0) {
-          setTodayMeals(processMealPlanData(mealPlanResult.data));
-        }
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -111,45 +74,20 @@ const Home = () => {
       }
     };
     fetchAllData();
-  }, [todayDayName, processMealPlanData]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel('home-meal-updates')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'meal_plans', filter: `user_id=eq.${userId}` },
-        (payload) => {
-          const updatedMeal = payload.new as any;
-          if (updatedMeal.day_of_week !== todayDayName) return;
-          setTodayMeals(prev => {
-            const updated = prev.map(meal =>
-              meal.recipeId === updatedMeal.recipe_id && meal.mealType === updatedMeal.meal_type
-                ? { ...meal, prepared: updatedMeal.prepared } : meal
-            );
-            const allPrepared = updated.every(m => m.prepared);
-            const wasPreviouslyNotAllPrepared = !prev.every(m => m.prepared);
-            if (allPrepared && wasPreviouslyNotAllPrepared && updated.length > 0) {
-              setTimeout(() => {
-                triggerReward({ type: 'confetti', message: '🎉 All meals done today!', points: 50 });
-                toast.success("Amazing! All meals prepared!", { duration: 5000 });
-              }, 100);
-            } else if (updatedMeal.prepared) {
-              const remainingCount = updated.filter(m => !m.prepared).length;
-              if (remainingCount > 0) toast.success(`✅ Meal done! ${remainingCount} left.`, { duration: 3000 });
-            }
-            return updated;
-          });
-          if (updatedMeal.prepared) setMealsThisWeek(prev => prev + 1);
-        }
-      ).subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [userId, todayDayName]);
+  }, []);
 
   const navRefs = (window as any).__tourNavRefs;
   const currentStreak = streak?.current_streak || 0;
   const totalPoints = streak?.total_points || 0;
-  const weeklyGoal = 14;
-  const preparedCount = todayMeals.filter(m => m.prepared).length;
+
+  // Daily feeding tips based on age
+  const ageTip = useMemo(() => {
+    if (babyAgeMonths < 6) return { tip: "Breast milk or formula is all your baby needs right now. Solids start around 6 months!", icon: "🍼" };
+    if (babyAgeMonths < 9) return { tip: "Start with single-ingredient purees. Offer one new food every 3 days to watch for allergies.", icon: "🥑" };
+    if (babyAgeMonths < 12) return { tip: "Introduce soft finger foods! Small pieces of banana, avocado, or well-cooked veggies are great.", icon: "🥕" };
+    if (babyAgeMonths < 18) return { tip: "Your toddler can eat most family foods now. Cut everything into small pieces to prevent choking.", icon: "🍝" };
+    return { tip: "Encourage self-feeding and offer a variety of textures. Messy meals are learning meals!", icon: "🥗" };
+  }, [babyAgeMonths]);
 
   return (
     <div className="min-h-screen pb-24 lg:pb-8 bg-background">
@@ -229,7 +167,7 @@ const Home = () => {
               <BellRing className="w-4 h-4 animate-[wiggle_1s_ease-in-out_infinite]" />
             </div>
             <div className="text-left flex-1">
-                <p className="font-semibold text-sm">Enable Notifications</p>
+              <p className="font-semibold text-sm">Enable Notifications</p>
               <p className="text-[11px] opacity-80">Meal reminders & daily tips</p>
             </div>
             {notifLoading && (
@@ -238,18 +176,17 @@ const Home = () => {
           </motion.button>
         )}
 
-        {/* ── STATS STRIP ── */}
+        {/* ── STATS ── */}
         {!isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2.5"
           >
-            {/* Streak */}
             <Link
               to="/achievements"
-              className="flex-1 flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
+              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/15 active:scale-[0.97] transition-transform"
             >
               <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center">
                 <Flame className="w-4.5 h-4.5 text-accent" />
@@ -260,8 +197,10 @@ const Home = () => {
               </div>
             </Link>
 
-            {/* Points */}
-            <div className="flex-1 flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15">
+            <Link
+              to="/achievements"
+              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/15 active:scale-[0.97] transition-transform"
+            >
               <div className="w-9 h-9 rounded-xl bg-gold/15 flex items-center justify-center">
                 <Trophy className="w-4.5 h-4.5 text-gold" />
               </div>
@@ -269,19 +208,18 @@ const Home = () => {
                 <p className="text-lg font-extrabold text-foreground leading-none">{totalPoints}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">points</p>
               </div>
-            </div>
+            </Link>
 
-            {/* Weekly */}
             <Link
-              to="/planner"
-              className="flex-1 flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-mint/10 to-mint/5 border border-mint/15 active:scale-[0.97] transition-transform"
+              to="/recipes"
+              className="flex-1 flex items-center gap-2.5 p-3.5 rounded-2xl bg-gradient-to-br from-mint/10 to-mint/5 border border-mint/15 active:scale-[0.97] transition-transform"
             >
               <div className="w-9 h-9 rounded-xl bg-mint/15 flex items-center justify-center">
-                <Target className="w-4.5 h-4.5 text-mint" />
+                <BookOpen className="w-4.5 h-4.5 text-mint" />
               </div>
               <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{mealsThisWeek}<span className="text-xs font-medium text-muted-foreground">/{weeklyGoal}</span></p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">meals</p>
+                <p className="text-lg font-extrabold text-foreground leading-none">{recipes.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">recipes</p>
               </div>
             </Link>
           </motion.div>
@@ -299,7 +237,7 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── WHAT TO COOK (single recipe suggestion) ── */}
+        {/* ── WHAT TO COOK ── */}
         {!isLoading && (
           <motion.div
             ref={recipeOfDayRef}
@@ -311,18 +249,55 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── TODAY'S MEALS or PLAN MEALS ── */}
+        {/* ── DAILY TIP ── */}
         {!isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
+            className="rounded-2xl bg-gradient-to-br from-secondary/30 to-peach/20 border border-secondary/30 p-4"
           >
-            {todayMeals.length > 0 ? (
-              <TodaysMealsPreview meals={todayMeals} />
-            ) : (
-              <PlanMealsPrompt hasMealsPlanned={false} />
-            )}
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                {ageTip.icon}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Lightbulb className="w-3.5 h-3.5 text-primary" />
+                  <p className="text-xs font-semibold text-primary">
+                    Tip for {babyAgeMonths} months
+                  </p>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">
+                  {dailyTip?.tip_text || ageTip.tip}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── EXPLORE RECIPES CTA ── */}
+        {!isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Link
+              to="/recipes"
+              className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-mint/10 border border-primary/15 active:scale-[0.98] transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">👩‍🍳</span>
+                <div>
+                  <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
+                  <p className="text-xs text-muted-foreground">
+                    {recipes.length}+ recipes perfect for {babyName || "your baby"}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </Link>
           </motion.div>
         )}
 
