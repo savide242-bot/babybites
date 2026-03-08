@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/glass-card";
 import { EmotionalHeader, StreakBadge } from "@/components/ui/emotional-header";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Bell, BellRing } from "lucide-react";
 
 interface TodayMeal {
   mealType: string;
