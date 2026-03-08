@@ -124,7 +124,7 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     image: { type: 'jpeg', quality: 0.92 },
     html2canvas: { scale: 2, useCORS: true, width: 794, windowWidth: 794 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: ['css', 'legacy'] },
+    pagebreak: { mode: 'avoid-all', before: '.html2pdf__page-break' },
   };
 
   html2pdf()
