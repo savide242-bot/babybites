@@ -133,7 +133,6 @@ const RecipeDetail = () => {
 
   const handleExportPDF = () => {
     try {
-      const { exportRecipePDF } = require("@/utils/recipePDFExport");
       exportRecipePDF(recipe);
       toast.success("Print dialog opened!", { description: `Save ${recipe.title} as PDF` });
     } catch (error) {
