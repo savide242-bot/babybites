@@ -688,7 +688,7 @@ const recipeImageMap: Record<string, string> = {
   "234": plumOatPorridgeUnique,
   "235": fishVegetableMedley235,
   "236": kiwiBanana236,
-  "237": asparagusPotatoMashUnique,
+  "237": asparagusPotato237,
   "238": tofuFruitPureeUnique,
 
   // IDs 239-271 (recipes239-271.ts) - ALL UNIQUE IMAGES
