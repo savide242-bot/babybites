@@ -97,7 +97,7 @@ const ResetPassword = () => {
             return true;
           }
         } catch (e) {
-          console.error('🔐 [RESET-PAGE] Error exchanging code:', e);
+          
         }
       }
       
