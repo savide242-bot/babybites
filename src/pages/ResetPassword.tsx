@@ -106,10 +106,7 @@ const ResetPassword = () => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 [RESET-PAGE] Auth state changed:', event, !!session);
-      
       if (event === 'PASSWORD_RECOVERY') {
-        console.log('🔐 [RESET-PAGE] PASSWORD_RECOVERY event detected!');
         setIsValidToken(true);
         setIsCheckingToken(false);
       } else if (event === 'SIGNED_IN' && session) {
