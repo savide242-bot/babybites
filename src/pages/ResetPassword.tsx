@@ -82,7 +82,7 @@ const ResetPassword = () => {
       
       // Try code exchange for PKCE flow
       if (code) {
-        console.log('🔐 [RESET-PAGE] Found code, exchanging for session...');
+        
         try {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           
