@@ -68,7 +68,7 @@ const ResetPassword = () => {
           
           
           if (sessionError) {
-            console.error('🔐 [RESET-PAGE] setSession error:', sessionError);
+            
             throw sessionError;
           }
           
