@@ -229,10 +229,10 @@ const ShoppingList = () => {
             <CardContent className="p-6 text-center space-y-4">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-                <span className="font-semibold text-lg">Building your shopping list...</span>
+                <span className="font-semibold text-lg">Syncing with your meal plan...</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Checking your meal plan for this week 🍽️
+                Checking your weekly planner and building your list 🍽️
               </p>
               <Progress value={35} className="h-2 animate-pulse" />
             </CardContent>
