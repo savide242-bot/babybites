@@ -133,7 +133,7 @@ const ResetPassword = () => {
         
         // Check existing session (Supabase may have already processed the hash)
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('🔐 [RESET-PAGE] Current session:', !!session);
+        
         
         if (session) {
           setIsValidToken(true);
