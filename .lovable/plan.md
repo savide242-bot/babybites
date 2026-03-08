@@ -1,47 +1,110 @@
 
 
-# Plan: Recipe eBook PDF Export
+# Comprehensive Update Plan
 
-## Overview
-Create a premium eBook-style PDF with all 340 recipes, grouped by age group, with the same professional design language as the Advice eBook.
+This is a large multi-part request. I'll address each item plus the critical build errors that need fixing first.
 
-## eBook Structure
+---
 
-```text
-Page 1:    Cover (BabyBites logo, "Livro de Receitas", date, recipe count)
-Page 2:    Introduction (about the book, how to use)
-Page 3-4:  Table of Contents (grouped by age: 6-9m, 9-12m, 12-18m, 18-24m, 24+)
-           ── Age Group Divider: 6-9 Months ──
-           Recipe pages (title, badges, ingredients, instructions, nutrition)
-           ── Age Group Divider: 9-12 Months ──
-           ...
-Last:      Back Cover (disclaimer + credits)
-```
+## 0. Fix Build Errors (BLOCKING - must fix first)
 
-## Recipe Page Layout
-Each recipe gets a clean section with:
-- Title + category/prep time/servings badges
-- Ingredients list (two columns with checkboxes)
-- Numbered instructions
-- Nutrition grid (calories, protein, carbs, fat, fiber)
-- Allergens + storage tips
-- Separator line before next recipe (no forced page breaks between recipes to avoid blank pages)
+The `pushManager` TypeScript error occurs because the default `ServiceWorkerRegistration` type doesn't include `pushManager`. Fix by adding a type assertion `(registration as any).pushManager` in all 4 files:
 
-## Technical Approach
-- **All table-based layouts** (same as advice eBook -- no flexbox/grid for html2pdf compatibility)
-- Reuse the same `html2pdf.js` + `html2pdf__page-break` pattern from the advice export
-- Group recipes by `ageGroup` with colored divider pages per age group
-- No images in PDF (html2canvas cross-origin issues with local assets) -- text-only clean design
-- Download as `BabyBites-Livro-de-Receitas.pdf`
+- `src/hooks/usePushNotifications.tsx` (lines 100, 150, 175)
+- `src/components/admin/SystemHealth.tsx` (line 171)
+- `src/components/NotificationPreferences.tsx` (line 179)
+- `src/pages/IOSPushSetup.tsx` (line 148)
 
-## Age Group Colors
-- 6-9 months: `#ec4899` (pink)
-- 9-12 months: `#f59e0b` (amber)
-- 12-18 months: `#10b981` (green)
-- 18-24 months: `#6366f1` (indigo)
-- 24+ months: `#8b5cf6` (purple)
+---
 
-## Files
-- **Create** `src/utils/recipeEbookExport.ts` -- full eBook generator
-- **Edit** `src/pages/Recipes.tsx` -- add "Download eBook" button in the header area
+## 1. Daily Admin Report Edge Function
+
+Create `supabase/functions/daily-admin-report/index.ts` that:
+- Queries `user_sessions` for DAU (distinct users active today)
+- Queries `profiles` for new signups (created_at = today)
+- Queries `recipe_views` for top 5 most viewed recipes today
+- Queries `user_streaks` for average current_streak
+- Queries `meal_plans` for total meals planned today
+- Sends a formatted push notification to admin's push subscription
+- Add to `supabase/config.toml` with `verify_jwt = false` (called by cron)
+
+---
+
+## 2. Add 5 New Recipes
+
+Add 5 new recipes (IDs 311-315) to a new file `src/data/recipes311-315.ts` and import in `src/data/recipes.ts`. Recipes will cover underrepresented categories for variety. Then trigger a notification to all users about new recipes via the existing `notify-all-users` edge function from the admin panel.
+
+---
+
+## 3. Performance Optimization
+
+- Add `React.memo` to heavy list items: recipe cards in `Recipes.tsx`
+- Add `useMemo` for filtered recipe lists
+- Lazy-load recipe images with `loading="lazy"` attribute
+- Minimize re-renders in Home.tsx by memoizing derived values
+
+---
+
+## 4. UI/UX Enhancements ("Crazy Effects")
+
+Enhance visual experience across key pages:
+
+**Home Page:**
+- Add animated gradient text for greetings using CSS `background-clip: text`
+- Add staggered card entrance animations (already has framer-motion, enhance timing)
+- Add parallax floating food emojis in background
+- Add shimmer/shine effect on Recipe of the Day card
+
+**Recipe Cards:**
+- Add 3D tilt effect on hover using `transform: perspective()` with framer-motion
+- Add gradient border glow on favorite recipes
+- Add micro-interaction: heart button with particle burst on favorite
+
+**Recipes Page:**
+- Add count badges on category filters showing recipe count per category
+- Add smooth skeleton loading with wave animation
+
+**General:**
+- Add page transition animations between routes
+- Add pull-to-refresh gesture feel on mobile
+- Add confetti burst when completing all daily meals
+
+---
+
+## 5. Precision & Weak Points Fix
+
+- Ensure all nutrition data uses consistent units (g, mg, kcal)
+- Fix any recipes with missing or placeholder nutrition values
+- Verify allergen data completeness across all recipes
+- Ensure dietary filter tags are correctly mapped for all 315 recipes
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/hooks/usePushNotifications.tsx` | Fix pushManager type |
+| `src/components/admin/SystemHealth.tsx` | Fix pushManager type |
+| `src/components/NotificationPreferences.tsx` | Fix pushManager type |
+| `src/pages/IOSPushSetup.tsx` | Fix pushManager type |
+| `supabase/functions/daily-admin-report/index.ts` | NEW - admin metrics |
+| `supabase/config.toml` | Add daily-admin-report config |
+| `src/data/recipes311-315.ts` | NEW - 5 new recipes |
+| `src/data/recipes.ts` | Import new recipes |
+| `src/pages/Recipes.tsx` | Perf + UI enhancements |
+| `src/pages/Home.tsx` | Visual effects upgrade |
+| `src/components/ui/glass-card.tsx` | Enhanced glow effects |
+| `src/index.css` | New animation keyframes |
+
+---
+
+## Implementation Order
+
+1. Fix TypeScript build errors (unblocks everything)
+2. Create daily-admin-report edge function
+3. Add 5 new recipes
+4. Performance optimizations (memo, lazy loading)
+5. UI/UX crazy effects (animations, transitions, 3D)
+6. Precision fixes on recipe data
 
