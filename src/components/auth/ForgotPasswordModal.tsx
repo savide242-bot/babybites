@@ -38,7 +38,7 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
   }, [email]);
 
   const handleSendResetEmail = async () => {
-    console.log('🔑 [RESET] Starting password reset request...');
+    
     setError("");
     const validation = emailSchema.safeParse({ email: resetEmail });
     
