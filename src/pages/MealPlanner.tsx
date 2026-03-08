@@ -387,7 +387,7 @@ const MealPlanner = () => {
           week_start_date: currentWeekStart,
           plan_type: 'custom',
         }, { 
-          onConflict: 'user_id,week_start_date,day_of_week,meal_type' 
+          onConflict: 'user_id,week_start_date,day_of_week,meal_type,plan_type' 
         })
         .select()
         .single();
@@ -508,7 +508,7 @@ const MealPlanner = () => {
 
       const { data, error } = await supabase
         .from('meal_plans')
-        .upsert(upserts, { onConflict: 'user_id,week_start_date,day_of_week,meal_type' })
+        .upsert(upserts, { onConflict: 'user_id,week_start_date,day_of_week,meal_type,plan_type' })
         .select();
 
       if (error) {
@@ -571,7 +571,7 @@ const MealPlanner = () => {
 
       const { data, error } = await supabase
         .from('meal_plans')
-        .upsert(upserts, { onConflict: 'user_id,week_start_date,day_of_week,meal_type' })
+        .upsert(upserts, { onConflict: 'user_id,week_start_date,day_of_week,meal_type,plan_type' })
         .select();
 
       if (error) {
