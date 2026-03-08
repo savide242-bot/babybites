@@ -704,7 +704,7 @@ const recipeImageMap: Record<string, string> = {
   "248": appleAlmondButterUnique,
   "249": chickenVeggieRisottoUnique,
   "250": shepherdsPie250,
-  "251": salmonPastaBakeUnique,
+  "251": salmonPastaBake251,
   "252": beefSweetPotatoStewUnique,
   "253": lentilVeggieCurryUnique,
   "254": turkeyRiceCasseroleUnique,
