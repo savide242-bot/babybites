@@ -57,7 +57,7 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
       
       
       if (error) {
-        console.error('🔑 [RESET] Error details:', error);
+        
         if (error.message.includes('rate limit') || error.message.includes('too many')) {
           setCooldown(60);
           toast.error("Too many requests. Please wait 60 seconds.");
