@@ -371,36 +371,35 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
 
   allSections.push(wrap(buildBackCover(today), true));
 
-  const html = `<div style="font-family:'Segoe UI',system-ui,-apple-system,sans-serif;width:794px;color:#1e293b;background:white;">${allSections.join('')}</div>`;
+  const fullHtml = allSections.join('');
 
-  const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.top = '-9999px';
-  container.innerHTML = html;
-  document.body.appendChild(container);
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Por favor permita popups para gerar o PDF.');
+    return;
+  }
 
-  const opt = {
-    margin: [10, 10, 14, 10],
-    filename: 'BabyBites-Knowledge-Hub-eBook.pdf',
-    image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: { 
-      scale: 2, 
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-  };
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>BabyBites — Knowledge Hub eBook</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1e293b; background: white; }
+        @media print {
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        @page { size: A4; margin: 12mm; }
+      </style>
+    </head>
+    <body>${fullHtml}</body>
+    </html>
+  `);
+  printWindow.document.close();
 
-  html2pdf()
-    .set(opt)
-    .from(container.firstElementChild)
-    .save()
-    .then(() => container.remove())
-    .catch((err: Error) => {
-      console.error('PDF generation error:', err);
-      container.remove();
-    });
+  // Wait for content to render then trigger print
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
 };
