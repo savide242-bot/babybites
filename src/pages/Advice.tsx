@@ -651,6 +651,7 @@ const Advice = () => {
                 Export All as PDF
               </Button>
             </div>
+          </div>
         </motion.div>
 
         {/* Category Filter Pills */}
