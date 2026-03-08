@@ -360,21 +360,23 @@ const RecipeDetail = () => {
             Enter Cook Mode
           </Button>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button onClick={handleAddToPlanner} variant="outline" size="lg" className="rounded-xl py-5">
-              <Calendar className="mr-2 h-5 w-5" />
-              Add to Plan
-            </Button>
-            <Button onClick={handleShareWhatsApp} variant="outline" size="lg" className="rounded-xl py-5">
-              <Share2 className="mr-2 h-5 w-5" />
-              Share
+          <div className="bg-muted/60 rounded-2xl border border-border/50 p-4 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Button onClick={handleAddToPlanner} variant="outline" size="lg" className="rounded-xl py-5 bg-card hover:bg-accent">
+                <Calendar className="mr-2 h-5 w-5" />
+                Add to Plan
+              </Button>
+              <Button onClick={handleShareWhatsApp} variant="outline" size="lg" className="rounded-xl py-5 bg-card hover:bg-accent">
+                <Share2 className="mr-2 h-5 w-5" />
+                Share
+              </Button>
+            </div>
+            
+            <Button onClick={handleExportPDF} variant="outline" className="w-full rounded-xl py-5 bg-card hover:bg-accent">
+              <FileDown className="mr-2 h-4 w-4" />
+              Download PDF
             </Button>
           </div>
-          
-          <Button onClick={handleExportPDF} variant="ghost" className="w-full rounded-xl">
-            <FileDown className="mr-2 h-4 w-4" />
-            Download PDF
-          </Button>
         </motion.div>
 
         {/* Servings Adjuster */}
