@@ -115,7 +115,7 @@ export function NotificationPreferences() {
         
         setUserTimezone(detectedTimezone);
         setInitialTimezone(detectedTimezone);
-        console.log(`🌍 Auto-detected timezone: ${detectedTimezone}`);
+        
       }
     } catch (error) {
       console.error('Error detecting timezone:', error);
@@ -370,30 +370,16 @@ export function NotificationPreferences() {
       }
 
       // Auto-subscribe to push notifications if supported
-      console.log('🔔 Notification permission:', Notification.permission, 'Supported:', isSupported);
-      
+
       if (isSupported) {
         if (Notification.permission === 'granted') {
-          console.log('✅ Permission already granted, subscribing...');
-          const subscribed = await subscribeToPushNotifications();
-          console.log('📱 Subscription result:', subscribed);
+          await subscribeToPushNotifications();
         } else if (Notification.permission === 'default') {
-          console.log('❓ Requesting notification permission...');
           const permission = await Notification.requestPermission();
-          console.log('🔐 Permission response:', permission);
-          
           if (permission === 'granted') {
-            console.log('✅ Permission granted, subscribing...');
-            const subscribed = await subscribeToPushNotifications();
-            console.log('📱 Subscription result:', subscribed);
-          } else {
-            console.warn('⚠️ Permission denied');
+            await subscribeToPushNotifications();
           }
-        } else {
-          console.warn('🚫 Notification permission was denied previously');
         }
-      } else {
-        console.warn('❌ Push notifications not supported in this browser');
       }
 
       // Send confirmation notification with SOUND

@@ -31,10 +31,6 @@ const ResetPassword = () => {
   const [tokenError, setTokenError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔐 [RESET-PAGE] Initializing password reset page...');
-    console.log('🔐 [RESET-PAGE] Full URL:', window.location.href);
-    console.log('🔐 [RESET-PAGE] Hash:', window.location.hash);
-    console.log('🔐 [RESET-PAGE] Search params:', window.location.search);
 
     // Parse hash parameters more robustly - handle both hash and query params
     const hashString = window.location.hash.substring(1);
@@ -49,16 +45,9 @@ const ResetPassword = () => {
     const tokenType = hashParams.get('type') || queryParams.get('type');
     const code = queryParams.get('code'); // For PKCE flow
     
-    console.log('🔐 [RESET-PAGE] Parsed params:', { 
-      error, 
-      errorDescription, 
-      hasAccessToken: !!accessToken,
-      hasCode: !!code,
-      tokenType 
-    });
     
     if (error) {
-      console.error('🔐 [RESET-PAGE] Error in URL:', error, errorDescription);
+      
       setIsValidToken(false);
       setTokenError(errorDescription?.replace(/\+/g, ' ') || 'Invalid or expired reset link');
       setIsCheckingToken(false);
@@ -69,17 +58,17 @@ const ResetPassword = () => {
     const setSessionFromUrl = async (): Promise<boolean> => {
       // Try access_token + refresh_token first
       if (accessToken && refreshToken) {
-        console.log('🔐 [RESET-PAGE] Found tokens in URL, setting session...');
+        
         try {
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken
           });
           
-          console.log('🔐 [RESET-PAGE] setSession result:', { data: !!data.session, error: sessionError });
+          
           
           if (sessionError) {
-            console.error('🔐 [RESET-PAGE] setSession error:', sessionError);
+            
             throw sessionError;
           }
           
@@ -87,20 +76,20 @@ const ResetPassword = () => {
             return true;
           }
         } catch (e) {
-          console.error('🔐 [RESET-PAGE] Error setting session:', e);
+          
         }
       }
       
       // Try code exchange for PKCE flow
       if (code) {
-        console.log('🔐 [RESET-PAGE] Found code, exchanging for session...');
+        
         try {
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           
-          console.log('🔐 [RESET-PAGE] exchangeCode result:', { data: !!data.session, error: exchangeError });
+          
           
           if (exchangeError) {
-            console.error('🔐 [RESET-PAGE] exchangeCode error:', exchangeError);
+            
             throw exchangeError;
           }
           
@@ -108,7 +97,7 @@ const ResetPassword = () => {
             return true;
           }
         } catch (e) {
-          console.error('🔐 [RESET-PAGE] Error exchanging code:', e);
+          
         }
       }
       
@@ -117,14 +106,10 @@ const ResetPassword = () => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 [RESET-PAGE] Auth state changed:', event, !!session);
-      
       if (event === 'PASSWORD_RECOVERY') {
-        console.log('🔐 [RESET-PAGE] PASSWORD_RECOVERY event detected!');
         setIsValidToken(true);
         setIsCheckingToken(false);
       } else if (event === 'SIGNED_IN' && session) {
-        console.log('🔐 [RESET-PAGE] SIGNED_IN event with session');
         setIsValidToken(true);
         setIsCheckingToken(false);
       }
@@ -134,13 +119,13 @@ const ResetPassword = () => {
     const checkSession = async () => {
       try {
         // CRITICAL: Wait 800ms for Supabase to process the URL hash internally
-        console.log('🔐 [RESET-PAGE] Waiting 800ms for Supabase to process hash...');
+        
         await new Promise(resolve => setTimeout(resolve, 800));
         
         // First try to set session from URL tokens
         const sessionSet = await setSessionFromUrl();
         if (sessionSet) {
-          console.log('🔐 [RESET-PAGE] Session set from URL successfully!');
+          
           setIsValidToken(true);
           setIsCheckingToken(false);
           return;
@@ -148,7 +133,7 @@ const ResetPassword = () => {
         
         // Check existing session (Supabase may have already processed the hash)
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('🔐 [RESET-PAGE] Current session:', !!session);
+        
         
         if (session) {
           setIsValidToken(true);
@@ -161,16 +146,16 @@ const ResetPassword = () => {
         const hasAccessToken = !!accessToken || hashString.includes('access_token');
         const hasCode = !!code;
         
-        console.log('🔐 [RESET-PAGE] Recovery indicators:', { hasRecoveryType, hasAccessToken, hasCode });
+        
         
         // If we have indicators but no session, wait a bit more and retry once
         if (hasAccessToken || hasRecoveryType || hasCode) {
-          console.log('🔐 [RESET-PAGE] Has recovery indicators, waiting 500ms more...');
+          
           await new Promise(resolve => setTimeout(resolve, 500));
           
           const { data: { session: retrySession } } = await supabase.auth.getSession();
           if (retrySession) {
-            console.log('🔐 [RESET-PAGE] Session found on retry!');
+            
             setIsValidToken(true);
             setIsCheckingToken(false);
             return;
@@ -184,7 +169,7 @@ const ResetPassword = () => {
           setTokenError('No reset token found. Please request a new password reset link.');
         }
       } catch (error) {
-        console.error("🔐 [RESET-PAGE] Session check error:", error);
+        
         setIsValidToken(false);
         setTokenError('Failed to verify reset link. Please try again.');
       } finally {

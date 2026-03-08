@@ -38,7 +38,7 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
   }, [email]);
 
   const handleSendResetEmail = async () => {
-    console.log('🔑 [RESET] Starting password reset request...');
+    
     setError("");
     const validation = emailSchema.safeParse({ email: resetEmail });
     
@@ -50,18 +50,14 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/auth/reset-password`;
-      console.log('🔑 [RESET] Sending to:', resetEmail);
-      console.log('🔑 [RESET] Redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: redirectUrl
       });
       
-      console.log('🔑 [RESET] Response data:', data);
-      console.log('🔑 [RESET] Response error:', error);
       
       if (error) {
-        console.error('🔑 [RESET] Error details:', error);
+        
         if (error.message.includes('rate limit') || error.message.includes('too many')) {
           setCooldown(60);
           toast.error("Too many requests. Please wait 60 seconds.");
@@ -80,9 +76,9 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
       
       setIsSent(true);
       toast.success("Password reset email sent! Check your inbox.");
-      console.log('🔑 [RESET] Success! Email sent to:', resetEmail);
+      
     } catch (error: any) {
-      console.error("🔑 [RESET] Exception:", error);
+      
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
