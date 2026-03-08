@@ -559,7 +559,7 @@ const recipeImageMap: Record<string, string> = {
   "111": apricotChickenTagine,
   "112": spinachBananaSmoothie,
   "113": miniVeggieFrittata,
-  "114": fishVegetablePuree,
+  "114": fishVegetablePuree114,
   "115": blackberryYogurtSwirl,
   "116": beefPotatoMash,
   "117": mangoLassi,
