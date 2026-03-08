@@ -13,11 +13,10 @@ import AppTour from "@/components/onboarding/AppTour";
 import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
-import { GlassCard } from "@/components/ui/glass-card";
-import { EmotionalHeader, StreakBadge } from "@/components/ui/emotional-header";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { Bell, BellRing } from "lucide-react";
+import { BellRing, Flame, Star, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TodayMeal {
   mealType: string;
@@ -25,16 +24,6 @@ interface TodayMeal {
   recipeId: string;
   prepared: boolean;
 }
-
-// Floating food emojis data
-const floatingFoods = [
-  { emoji: "🥑", size: "text-5xl", delay: "0s", duration: "18s", startX: "-5%", startY: "15%", endX: "105%", endY: "60%" },
-  { emoji: "🍌", size: "text-6xl", delay: "3s", duration: "22s", startX: "110%", startY: "30%", endX: "-10%", endY: "70%" },
-  { emoji: "🥕", size: "text-4xl", delay: "6s", duration: "20s", startX: "-8%", startY: "50%", endX: "108%", endY: "20%" },
-  { emoji: "🍠", size: "text-5xl", delay: "9s", duration: "25s", startX: "105%", startY: "70%", endX: "-5%", endY: "25%" },
-  { emoji: "🥦", size: "text-4xl", delay: "12s", duration: "19s", startX: "50%", startY: "-5%", endX: "20%", endY: "110%" },
-  { emoji: "🍎", size: "text-5xl", delay: "15s", duration: "21s", startX: "-10%", startY: "80%", endX: "110%", endY: "10%" },
-];
 
 const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
@@ -63,12 +52,12 @@ const Home = () => {
     const hour = new Date().getHours();
     const displayBabyName = babyName || "your little one";
     
-    if (hour < 6) return { greeting: "Early riser", emotionalMessage: "You're amazing for being up early ✨", emoji: "🌙" };
-    if (hour < 12) return { greeting: "Good morning", emotionalMessage: `${displayBabyName} is lucky to have you 💕`, emoji: "🌅" };
-    if (hour < 15) return { greeting: "Hello sunshine", emotionalMessage: "You're doing incredible today 🌟", emoji: "☀️" };
-    if (hour < 18) return { greeting: "Good afternoon", emotionalMessage: "Take a moment to breathe 💛", emoji: "🌤️" };
-    if (hour < 21) return { greeting: "Good evening", emotionalMessage: `Another beautiful day with ${displayBabyName} 💜`, emoji: "🌆" };
-    return { greeting: "Sweet dreams time", emotionalMessage: "Rest well, supermom 💫", emoji: "🌙" };
+    if (hour < 6) return { greeting: "Early riser", emotionalMessage: "You're amazing for being up early", emoji: "🌙" };
+    if (hour < 12) return { greeting: "Good morning", emotionalMessage: `${displayBabyName} is lucky to have you`, emoji: "🌅" };
+    if (hour < 15) return { greeting: "Hello sunshine", emotionalMessage: "You're doing incredible today", emoji: "☀️" };
+    if (hour < 18) return { greeting: "Good afternoon", emotionalMessage: "Take a moment to breathe", emoji: "🌤️" };
+    if (hour < 21) return { greeting: "Good evening", emotionalMessage: `Another beautiful day with ${displayBabyName}`, emoji: "🌆" };
+    return { greeting: "Sweet dreams time", emotionalMessage: "Rest well, supermom", emoji: "🌙" };
   }, [babyName]);
 
   const recipeOfTheDay = useMemo(() => {
@@ -168,32 +157,13 @@ const Home = () => {
   }, [userId, todayDayName]);
 
   const navRefs = (window as any).__tourNavRefs;
+  const currentStreak = streak?.current_streak || 0;
+  const totalPoints = streak?.total_points || 0;
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8 relative overflow-hidden">
-      {/* Animated shifting gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-peach/25 via-background via-50% to-mint/15 bg-[length:400%_400%] animate-[gradient-shift_8s_ease_infinite] pointer-events-none" />
-      
-      {/* Large floating food emojis */}
-      {floatingFoods.map((food, i) => (
-        <div
-          key={i}
-          className={`absolute ${food.size} pointer-events-none opacity-20 z-0`}
-          style={{
-            left: food.startX,
-            top: food.startY,
-            animation: `float-across ${food.duration} linear ${food.delay} infinite`,
-            filter: 'blur(1px)',
-          }}
-        >
-          {food.emoji}
-        </div>
-      ))}
-
-      {/* Glowing orbs - bigger and more visible */}
-      <div className="absolute top-10 left-0 w-48 h-48 bg-primary/15 rounded-full blur-3xl animate-[glow-pulse_4s_ease-in-out_infinite] pointer-events-none" />
-      <div className="absolute top-40 right-0 w-56 h-56 bg-gold/15 rounded-full blur-3xl animate-[glow-pulse_5s_ease-in-out_infinite] pointer-events-none" style={{ animationDelay: '1.5s' }} />
-      <div className="absolute bottom-32 left-5 w-40 h-40 bg-mint/15 rounded-full blur-3xl animate-[glow-pulse_6s_ease-in-out_infinite] pointer-events-none" style={{ animationDelay: '3s' }} />
+    <div className="min-h-screen pb-24 lg:pb-8 bg-background">
+      {/* Subtle top gradient accent */}
+      <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
 
       <RewardComponent />
 
@@ -217,31 +187,42 @@ const Home = () => {
         />
       )}
 
-      <div className="max-w-lg mx-auto px-4 py-5 space-y-5 relative z-10">
-        {/* Greeting */}
-        <div className="home-card-enter" style={{ animationDelay: '0s' }}>
+      <div className="max-w-lg mx-auto px-4 pt-6 pb-4 space-y-4 relative z-10">
+
+        {/* ── GREETING HEADER ── */}
+        <div className="home-card-enter">
           {isLoading ? (
             <div className="flex items-center gap-3">
-              <Skeleton className="h-14 w-14 rounded-2xl" />
+              <Skeleton className="h-12 w-12 rounded-2xl" />
               <div>
-                <Skeleton className="h-6 w-40 mb-1.5" />
+                <Skeleton className="h-6 w-40 mb-1" />
                 <Skeleton className="h-4 w-28" />
               </div>
             </div>
           ) : (
-            <EmotionalHeader
-              greeting={greeting}
-              name={motherName || "Mom"}
-              subtitle={emotionalMessage}
-              emoji={emoji}
-              badge={streak && streak.current_streak > 0 ? (
-                <StreakBadge streak={streak.current_streak} />
-              ) : undefined}
-            />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-peach/30 flex items-center justify-center text-2xl">
+                  {emoji}
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-foreground leading-tight">
+                    {greeting}, <span className="text-primary">{motherName || "Mom"}</span>
+                  </h1>
+                  <p className="text-xs text-muted-foreground mt-0.5">{emotionalMessage} ✨</p>
+                </div>
+              </div>
+              {currentStreak > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
+                  <Flame className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-bold text-accent">{currentStreak}</span>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
-        {/* 🔔 Activate Notifications Button - shown when no push subscription */}
+        {/* ── NOTIFICATION CTA ── */}
         {!isLoading && isSupported && !subscription && (
           <div className="home-card-enter" style={{ animationDelay: '0.05s' }}>
             <button
@@ -250,48 +231,99 @@ const Home = () => {
                 try {
                   const success = await subscribeToPushNotifications();
                   if (success) {
-                    toast.success("🔔 Notificações ativadas com sucesso!");
+                    toast.success("🔔 Notificações ativadas!");
                   }
                 } finally {
                   setNotifLoading(false);
                 }
               }}
               disabled={notifLoading}
-              className="w-full flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+              className="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md active:scale-[0.98] transition-transform"
             >
-              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <BellRing className="w-6 h-6 animate-[wiggle_1s_ease-in-out_infinite]" />
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <BellRing className="w-5 h-5 animate-[wiggle_1s_ease-in-out_infinite]" />
               </div>
               <div className="text-left flex-1">
-                <p className="font-bold text-base">Ativar Notificações</p>
-                <p className="text-sm opacity-90">Receba lembretes de refeições e dicas diárias</p>
+                <p className="font-semibold text-sm">Ativar Notificações</p>
+                <p className="text-xs opacity-80">Lembretes de refeições e dicas diárias</p>
               </div>
               {notifLoading && (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               )}
             </button>
           </div>
         )}
 
-        {/* What to Cook Widget */}
+        {/* ── QUICK STATS ROW ── */}
+        {!isLoading && (
+          <div className="home-card-enter grid grid-cols-3 gap-2.5" style={{ animationDelay: '0.08s' }}>
+            <Link to="/planner" className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-card border border-border/50 active:scale-[0.97] transition-transform">
+              <span className="text-xl">🍽️</span>
+              <span className="text-lg font-bold text-foreground">{todayMeals.length}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight text-center">Today's Meals</span>
+            </Link>
+            <Link to="/recipes" className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-card border border-border/50 active:scale-[0.97] transition-transform">
+              <span className="text-xl">📊</span>
+              <span className="text-lg font-bold text-foreground">{mealsThisWeek}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight text-center">This Week</span>
+            </Link>
+            <div className="flex flex-col items-center gap-1 p-3 rounded-2xl bg-card border border-border/50">
+              <Star className="w-5 h-5 text-gold" />
+              <span className="text-lg font-bold text-foreground">{totalPoints}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight text-center">Points</span>
+            </div>
+          </div>
+        )}
+
+        {/* ── WHAT TO COOK ── */}
         {!isLoading && (
           <div className="home-card-enter" style={{ animationDelay: '0.1s' }}>
             <WhatToCookWidget babyAgeMonths={babyAgeMonths} babyName={babyName} />
           </div>
         )}
 
-        {/* Plan Meals Prompt */}
-        {!isLoading && (
-          <div className="home-card-enter" style={{ animationDelay: '0.15s' }}>
-            <GlassCard variant="peach" hover={false}>
-              <PlanMealsPrompt hasMealsPlanned={todayMeals.length > 0} />
-            </GlassCard>
+        {/* ── PLAN MEALS (only if no meals planned) ── */}
+        {!isLoading && todayMeals.length === 0 && (
+          <div className="home-card-enter" style={{ animationDelay: '0.12s' }}>
+            <PlanMealsPrompt hasMealsPlanned={false} />
           </div>
         )}
 
-        {/* Age Category Circles */}
+        {/* ── RECIPE OF THE DAY ── */}
+        {!isLoading && recipeOfTheDay && (
+          <div 
+            ref={recipeOfDayRef}
+            className="home-card-enter"
+            style={{ animationDelay: '0.15s' }}
+          >
+            <div className="rounded-2xl border border-gold/20 bg-gradient-to-br from-card via-card to-gold/5 p-0.5">
+              <div className="rounded-[14px] bg-card overflow-hidden">
+                <DailyActionCard
+                  recipeOfTheDay={recipeOfTheDay}
+                  todayMeals={todayMeals}
+                  babyName={babyName}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── QUICK CHECK-IN ── */}
         {!isLoading && (
-          <div className="home-card-enter" style={{ animationDelay: '0.2s' }}>
+          <div ref={checkinWidgetRef} className="home-card-enter" style={{ animationDelay: '0.2s' }}>
+            <div className="rounded-2xl border border-mint/20 bg-gradient-to-br from-card to-mint/5 p-4">
+              <QuickCheckinWidget 
+                todayCheckin={todayCheckin} 
+                onSubmit={submitCheckin}
+                babyName={babyName}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── AGE CATEGORIES ── */}
+        {!isLoading && (
+          <div className="home-card-enter" style={{ animationDelay: '0.25s' }}>
             <AgeCategoryCircles 
               ref={ageCategoriesRef}
               babyAgeMonths={babyAgeMonths} 
@@ -299,48 +331,18 @@ const Home = () => {
           </div>
         )}
 
-        {/* Recipe of the Day - with dramatic glow */}
-        {!isLoading && recipeOfTheDay && (
-          <div 
-            ref={recipeOfDayRef}
-            className="relative home-card-enter"
-            style={{ animationDelay: '0.3s' }}
-          >
-            {/* Animated golden glow behind card */}
-            <div className="absolute -inset-2 bg-gradient-to-r from-gold/30 via-primary/20 to-gold/30 rounded-3xl blur-xl animate-[glow-pulse_3s_ease-in-out_infinite] pointer-events-none" />
-            <GlassCard variant="gold" glow className="relative z-10">
-              <DailyActionCard
-                recipeOfTheDay={recipeOfTheDay}
-                todayMeals={todayMeals}
-                babyName={babyName}
-              />
-            </GlassCard>
-          </div>
-        )}
-
-        {/* Quick Check-in */}
+        {/* ── WEEKLY PROGRESS ── */}
         {!isLoading && (
-          <div ref={checkinWidgetRef} className="home-card-enter" style={{ animationDelay: '0.4s' }}>
-            <GlassCard variant="mint">
-              <QuickCheckinWidget 
-                todayCheckin={todayCheckin} 
-                onSubmit={submitCheckin}
+          <div className="home-card-enter" style={{ animationDelay: '0.3s' }}>
+            <div className="rounded-2xl border border-border/50 bg-card p-4">
+              <WeeklyProgressCard
+                streak={streak}
+                mealsThisWeek={mealsThisWeek}
                 babyName={babyName}
               />
-            </GlassCard>
+            </div>
           </div>
         )}
-
-        {/* Weekly Progress */}
-        <div className="home-card-enter" style={{ animationDelay: '0.5s' }}>
-          <GlassCard variant="warm">
-            <WeeklyProgressCard
-              streak={streak}
-              mealsThisWeek={mealsThisWeek}
-              babyName={babyName}
-            />
-          </GlassCard>
-        </div>
       </div>
     </div>
   );
