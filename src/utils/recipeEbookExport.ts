@@ -48,8 +48,6 @@ const AGE_DESCRIPTIONS: Record<string, string> = {
   '24+ months': 'Receitas criativas para crianças em crescimento',
 };
 
-const PAGE_BREAK = '<div style="height:0;overflow:hidden;" class="html2pdf__page-break"></div>';
-
 function buildCoverPage(recipeCount: number, ageGroups: string[], today: string): string {
   const badges = ageGroups.map(ag =>
     `<td style="padding:4px;">
