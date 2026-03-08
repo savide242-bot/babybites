@@ -21,9 +21,14 @@ export const NotificationPromptModal = () => {
       const activated = localStorage.getItem(STORAGE_KEY);
       if (activated === 'true') return;
 
-      // Also check if browser permission is already granted (activated on another session)
+      // If permission is granted but this VAPID version not yet activated,
+      // we need to re-subscribe with new keys - so DON'T skip
       if (Notification.permission === 'granted') {
-        localStorage.setItem(STORAGE_KEY, 'true');
+        // Auto re-subscribe silently with new VAPID keys
+        const success = await subscribeToPushNotifications();
+        if (success) {
+          localStorage.setItem(STORAGE_KEY, 'true');
+        }
         return;
       }
 
