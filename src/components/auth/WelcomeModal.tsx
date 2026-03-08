@@ -22,7 +22,7 @@ const WelcomeModal = ({ userId, userName }: WelcomeModalProps) => {
         .from('user_preferences')
         .select('has_seen_welcome')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (!prefs?.has_seen_welcome) {
         setOpen(true);

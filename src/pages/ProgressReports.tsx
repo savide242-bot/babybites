@@ -122,7 +122,7 @@ const ProgressReports = () => {
         .from("profiles")
         .select("baby_name, baby_birth_date")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       if (profile) {
         setBabyName(profile.baby_name || "");
@@ -661,7 +661,7 @@ const ProgressReports = () => {
             <p className="text-sm text-muted-foreground mb-4">
               Start logging growth records and meals to see expert analysis
             </p>
-            <Button onClick={() => window.location.href = '/growth'} className="rounded-xl">
+            <Button onClick={() => window.location.assign('/growth')} className="rounded-xl">
               Go to Growth Tracker
             </Button>
           </Card>

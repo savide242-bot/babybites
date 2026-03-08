@@ -147,7 +147,7 @@ export const useMealReminders = () => {
           .from('profiles')
           .select('mother_name')
           .eq('id', user.id)
-          .single() : { data: null };
+          .maybeSingle() : { data: null };
 
         const motherName = profile?.mother_name || '';
         const personalizedBody = motherName 

@@ -84,7 +84,7 @@ const BirthdayCelebrationModal = () => {
           .from('profiles')
           .select('baby_name')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
         
         if (profile?.baby_name) {
           setBabyName(profile.baby_name);

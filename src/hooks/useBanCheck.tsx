@@ -17,7 +17,7 @@ export const useBanCheck = () => {
         .from('profiles')
         .select('is_banned, banned_reason')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error checking ban status:', error);

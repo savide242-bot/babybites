@@ -90,7 +90,7 @@ export const useGamification = () => {
         .from('user_streaks')
         .select('*')
         .eq('user_id', uid)
-        .single();
+        .maybeSingle();
 
       if (streakData) {
         setStreak({
@@ -257,7 +257,7 @@ export const useGamification = () => {
         .from('user_streaks')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (!current) return;
 
@@ -320,7 +320,7 @@ export const useGamification = () => {
         })
         .eq('user_id', userId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updated) {
         setStreak({
@@ -350,7 +350,7 @@ export const useGamification = () => {
         .update({ total_points: newPoints })
         .eq('user_id', userId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (data) {
         setStreak(prev => prev ? { ...prev, total_points: newPoints } : null);

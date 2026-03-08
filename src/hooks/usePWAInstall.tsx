@@ -64,7 +64,7 @@ export const usePWAInstall = () => {
           .from('profiles')
           .select('mother_name')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
         if (profile?.mother_name) {
           motherName = profile.mother_name;
@@ -97,7 +97,7 @@ export const usePWAInstall = () => {
           .from('profiles')
           .select('mother_name')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
         if (profile?.mother_name) {
           motherName = profile.mother_name;

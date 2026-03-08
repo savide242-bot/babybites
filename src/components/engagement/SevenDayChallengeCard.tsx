@@ -70,7 +70,7 @@ const SevenDayChallengeCard = ({ babyName }: SevenDayChallengeCardProps) => {
             .from('user_streaks')
             .select('total_points')
             .eq('user_id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (streak) {
             await supabase
