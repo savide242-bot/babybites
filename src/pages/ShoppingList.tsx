@@ -46,6 +46,8 @@ const ShoppingList = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
+      // Auto-sync shopping list from current week's meal plans
+      await syncShoppingListFromMealPlans(user.id);
       await loadShoppingList(user.id);
     } else {
       setIsLoading(false);
