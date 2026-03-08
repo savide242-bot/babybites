@@ -43,7 +43,7 @@ export const exportAdvicePDF = (articles: AdviceArticle[]) => {
     `).join('');
 
     return `
-      <div style="margin-bottom:28px;page-break-inside:avoid;">
+      <div style="margin-bottom:28px;">
         <table style="width:100%;margin-bottom:14px;border-collapse:collapse;">
           <tr>
             <td style="width:40px;vertical-align:middle;">
