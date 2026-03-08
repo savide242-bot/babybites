@@ -413,7 +413,7 @@ Deno.serve(async (req) => {
       );
     } else {
       // If subscription is expired, delete it
-      if (result.status === 410 || result.status === 404) {
+      if (result.status === 410 || result.status === 404 || (result.status === 400 && result.error?.includes('VapidPkHashMismatch'))) {
         console.log('🗑️ Deleting expired subscription');
         await supabase
           .from('push_subscriptions')

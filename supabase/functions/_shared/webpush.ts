@@ -324,7 +324,9 @@ export async function sendWebPushNotification(
       console.error('❌ Push service error:', response.status, errorText);
       
       // Check if subscription expired (410 Gone, 404 Not Found, or 401 Unauthorized with certain messages)
+      // 400 with VapidPkHashMismatch means subscription was created with different VAPID key - treat as expired
       const expired = response.status === 410 || response.status === 404 || 
+        (response.status === 400 && errorText.includes('VapidPkHashMismatch')) ||
         (response.status === 401 && errorText.includes('unsubscribed'));
       return { success: false, expired, status: response.status, error: errorText };
     }
