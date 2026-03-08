@@ -130,19 +130,27 @@ self.addEventListener('push', (event) => {
     console.error('📬 [SW-PUSH] Error processing push data:', e);
   }
 
-  // iOS-specific: Ensure we have valid notification data
+  // Detect iOS to avoid unsupported notification options
+  const isIOS = /iPad|iPhone|iPod/.test(self.navigator?.userAgent || '') || 
+    (self.navigator?.platform === 'MacIntel' && self.navigator?.maxTouchPoints > 1);
+
+  const tag = data.tag || `notification-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+
   const options = {
     body: data.body || 'You have a new notification',
     icon: data.icon || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
     badge: data.badge || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-    tag: data.tag || `notification-${Date.now()}`,
+    tag: tag,
     data: data.data || { url: '/' },
-    requireInteraction: data.requireInteraction !== false, // Default true for iOS visibility
     silent: false,
-    vibrate: [200, 100, 200],
-    // iOS requires renotify for updates to same tag
-    renotify: true,
   };
+
+  // Only add properties supported by the platform
+  if (!isIOS) {
+    options.requireInteraction = data.requireInteraction !== false;
+    options.vibrate = [200, 100, 200];
+    options.renotify = true;
+  }
 
   // Add actions if provided
   if (data.actions && Array.isArray(data.actions)) {
