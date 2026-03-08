@@ -115,7 +115,7 @@ export function NotificationPreferences() {
         
         setUserTimezone(detectedTimezone);
         setInitialTimezone(detectedTimezone);
-        console.log(`🌍 Auto-detected timezone: ${detectedTimezone}`);
+        
       }
     } catch (error) {
       console.error('Error detecting timezone:', error);
