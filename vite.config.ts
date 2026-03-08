@@ -54,7 +54,7 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: false, // Don't claim clients immediately either
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/auth/],
+        navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/~oauth/],
         sourcemap: false, // Disable for production
         runtimeCaching: [
           // Google Fonts - safe to cache aggressively
