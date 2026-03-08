@@ -217,7 +217,7 @@ const Home = () => {
               setNotifLoading(true);
               try {
                 const success = await subscribeToPushNotifications();
-                if (success) toast.success("🔔 Notificações ativadas!");
+                if (success) toast.success("🔔 Notifications enabled!");
               } finally {
                 setNotifLoading(false);
               }
@@ -229,8 +229,8 @@ const Home = () => {
               <BellRing className="w-4 h-4 animate-[wiggle_1s_ease-in-out_infinite]" />
             </div>
             <div className="text-left flex-1">
-              <p className="font-semibold text-sm">Ativar Notificações</p>
-              <p className="text-[11px] opacity-80">Lembretes de refeições e dicas</p>
+                <p className="font-semibold text-sm">Enable Notifications</p>
+              <p className="text-[11px] opacity-80">Meal reminders & daily tips</p>
             </div>
             {notifLoading && (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
