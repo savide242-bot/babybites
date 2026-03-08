@@ -113,7 +113,7 @@ const Home = () => {
         />
       )}
 
-      <div className="max-w-lg mx-auto px-4 pt-5 pb-4 space-y-5">
+      <div className="max-w-lg lg:max-w-5xl mx-auto px-4 pt-5 pb-4 space-y-5">
 
         {/* ── HERO HEADER ── */}
         {isLoading ? (
