@@ -150,7 +150,7 @@ const ResetPassword = () => {
         
         // If we have indicators but no session, wait a bit more and retry once
         if (hasAccessToken || hasRecoveryType || hasCode) {
-          console.log('🔐 [RESET-PAGE] Has recovery indicators, waiting 500ms more...');
+          
           await new Promise(resolve => setTimeout(resolve, 500));
           
           const { data: { session: retrySession } } = await supabase.auth.getSession();
