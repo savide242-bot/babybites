@@ -185,27 +185,23 @@ const Settings = () => {
           initial="hidden"
           animate="visible"
         >
-          <Card className="border-2 shadow-elegant">
-            <CardHeader>
-              <CardTitle>Language</CardTitle>
-              <CardDescription>
-                Application language settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted rounded-xl">
+          <motion.div variants={itemVariants}>
+            <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-mint/5 pb-4">
+                <CardTitle className="text-base">🌐 Language</CardTitle>
+                <CardDescription>Application language settings</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="flex items-center justify-between p-3.5 bg-muted/50 rounded-xl border border-border/30">
                   <div>
-                    <p className="font-medium">Current Language</p>
-                    <p className="text-sm text-muted-foreground">The app is available in English</p>
+                    <p className="font-medium text-sm">Current Language</p>
+                    <p className="text-xs text-muted-foreground">The app is available in English</p>
                   </div>
-                  <div className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium">
-                    English
-                  </div>
+                  <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-3">English</Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
           <Card className="border-2 shadow-elegant">
             <CardHeader>
