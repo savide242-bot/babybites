@@ -350,7 +350,7 @@ export const useGamification = () => {
         .update({ total_points: newPoints })
         .eq('user_id', userId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (data) {
         setStreak(prev => prev ? { ...prev, total_points: newPoints } : null);

@@ -83,7 +83,7 @@ const DailyPollWidget = ({ babyName }: DailyPollWidgetProps) => {
         .from('user_streaks')
         .select('total_points')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
       
       if (streakData) {
         await supabase

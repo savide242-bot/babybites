@@ -345,7 +345,7 @@ export const useEngagement = () => {
           .from('profiles')
           .select('baby_birth_date')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
         
         if (profile?.baby_birth_date) {
           ageMonths = calculateBabyAge(profile.baby_birth_date);
