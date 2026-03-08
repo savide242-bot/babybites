@@ -146,7 +146,7 @@ const ResetPassword = () => {
         const hasAccessToken = !!accessToken || hashString.includes('access_token');
         const hasCode = !!code;
         
-        console.log('🔐 [RESET-PAGE] Recovery indicators:', { hasRecoveryType, hasAccessToken, hasCode });
+        
         
         // If we have indicators but no session, wait a bit more and retry once
         if (hasAccessToken || hasRecoveryType || hasCode) {
