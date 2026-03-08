@@ -169,7 +169,7 @@ const ResetPassword = () => {
           setTokenError('No reset token found. Please request a new password reset link.');
         }
       } catch (error) {
-        console.error("🔐 [RESET-PAGE] Session check error:", error);
+        
         setIsValidToken(false);
         setTokenError('Failed to verify reset link. Please try again.');
       } finally {
