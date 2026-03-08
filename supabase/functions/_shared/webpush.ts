@@ -254,8 +254,8 @@ export async function sendWebPushNotification(
     const payload = JSON.stringify({
       title: notification.title,
       body: notification.body,
-      icon: notification.icon || '/icon-192x192.png',
-      badge: notification.badge || '/icon-192x192.png',
+      icon: notification.icon || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+      badge: notification.badge || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
       tag: notification.tag || `notification-${Date.now()}`,
       data: notification.data || { url: '/', timestamp: Date.now() },
       actions: notification.actions || [],
