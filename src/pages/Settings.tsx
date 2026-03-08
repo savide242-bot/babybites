@@ -292,9 +292,11 @@ const Settings = () => {
               )}
             </CardContent>
           </Card>
+          </motion.div>
 
           {isAdmin && (
-            <Card className="border-2 shadow-elegant border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+            <motion.div variants={itemVariants}>
+            <Card className="border border-primary/20 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 via-background to-secondary/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
