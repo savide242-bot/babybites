@@ -50,8 +50,6 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/auth/reset-password`;
-      console.log('🔑 [RESET] Sending to:', resetEmail);
-      console.log('🔑 [RESET] Redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: redirectUrl
