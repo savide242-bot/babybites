@@ -3,36 +3,37 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { supabase } from '@/integrations/supabase/client';
 
-const STORAGE_KEY = 'notification_prompt_dismissed';
-const REPROMPT_DAYS = 3;
+const STORAGE_KEY = 'push_notifications_activated';
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { subscribeToPushNotifications, isSupported } = usePushNotifications();
 
   useEffect(() => {
-    // Check if we should show the prompt
     const checkShouldPrompt = async () => {
       if (!isSupported) return;
 
-      // Check browser notification permission
-      if (Notification.permission === 'granted' || Notification.permission === 'denied') {
-        return; // Already decided
+      // If already activated and stored locally, never show again
+      const activated = localStorage.getItem(STORAGE_KEY);
+      if (activated === 'true') return;
+
+      // Also check if browser permission is already granted (activated on another session)
+      if (Notification.permission === 'granted') {
+        localStorage.setItem(STORAGE_KEY, 'true');
+        return;
       }
 
-      // Check if user dismissed recently
-      const dismissedData = localStorage.getItem(STORAGE_KEY);
-      if (dismissedData) {
-        const { timestamp } = JSON.parse(dismissedData);
-        const daysSince = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
-        if (daysSince < REPROMPT_DAYS) {
-          return; // Too soon to ask again
-        }
-      }
+      // If permission was denied by the browser, don't show (can't do anything)
+      if (Notification.permission === 'denied') return;
+
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       // Show the prompt after a short delay
-      setTimeout(() => setIsOpen(true), 2000);
+      setTimeout(() => setIsOpen(true), 1500);
     };
 
     checkShouldPrompt();
@@ -43,21 +44,14 @@ export const NotificationPromptModal = () => {
     const success = await subscribeToPushNotifications();
     
     if (success) {
-      // Mark as permanently handled
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-        timestamp: Date.now(),
-        activated: true 
-      }));
+      // Permanently mark as activated - never show again
+      localStorage.setItem(STORAGE_KEY, 'true');
     }
   };
 
   const handleMaybeLater = () => {
+    // Just close - will show again next time they open the app
     setIsOpen(false);
-    // Store timestamp for re-prompting later
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-      timestamp: Date.now(),
-      activated: false 
-    }));
   };
 
   if (!isSupported) return null;
@@ -80,11 +74,10 @@ export const NotificationPromptModal = () => {
               Get gentle reminders throughout the day for your baby's meals:
             </p>
             <ul className="text-left space-y-2 text-sm">
-              <li>🍳 <strong>Breakfast</strong> at 7:30 AM</li>
-              <li>🍎 <strong>Morning Snack</strong> at 10:00 AM</li>
+              <li>🍳 <strong>Breakfast</strong> at 8:00 AM</li>
               <li>🥗 <strong>Lunch</strong> at 12:30 PM</li>
-              <li>🍌 <strong>Afternoon Snack</strong> at 3:30 PM</li>
-              <li>🍽️ <strong>Dinner</strong> at 6:00 PM</li>
+              <li>🍌 <strong>Snack</strong> at 4:00 PM</li>
+              <li>🍽️ <strong>Dinner</strong> at 7:00 PM</li>
             </ul>
             <p className="text-sm text-muted-foreground">
               You can customize these times in Settings anytime!
