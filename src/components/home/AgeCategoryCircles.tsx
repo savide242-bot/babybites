@@ -47,6 +47,16 @@ const ageCategories = [
     ringColor: "ring-primary",
     textColor: "text-primary"
   },
+  { 
+    label: "24+ months", 
+    ageGroup: "24+ months", 
+    emoji: "🍱", 
+    minAge: 24, 
+    maxAge: 999,
+    color: "from-amber-400 to-amber-300",
+    ringColor: "ring-amber-400",
+    textColor: "text-amber-600"
+  },
 ];
 
 const AgeCategoryCircles = forwardRef<HTMLDivElement, AgeCategoryCirclesProps>(
