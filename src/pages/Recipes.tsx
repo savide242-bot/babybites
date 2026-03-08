@@ -15,6 +15,8 @@ import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
 import { EmptyRecipes } from "@/components/empty-states";
 import { hapticFeedback } from "@/utils/haptic";
+import { exportRecipeEbook } from "@/utils/recipeEbookExport";
+import { toast } from "sonner";
 
 const BATCH_SIZE = 30;
 
