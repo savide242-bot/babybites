@@ -14,6 +14,7 @@ import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
 import { useTodaysMealStatus } from "@/hooks/useTodaysMealStatus";
 import { motion } from "framer-motion";
+import { exportRecipePDF } from "@/utils/recipePDFExport";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
