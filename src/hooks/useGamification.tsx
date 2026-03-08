@@ -320,7 +320,7 @@ export const useGamification = () => {
         })
         .eq('user_id', userId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (updated) {
         setStreak({
