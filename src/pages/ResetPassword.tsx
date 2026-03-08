@@ -119,7 +119,7 @@ const ResetPassword = () => {
     const checkSession = async () => {
       try {
         // CRITICAL: Wait 800ms for Supabase to process the URL hash internally
-        console.log('🔐 [RESET-PAGE] Waiting 800ms for Supabase to process hash...');
+        
         await new Promise(resolve => setTimeout(resolve, 800));
         
         // First try to set session from URL tokens
