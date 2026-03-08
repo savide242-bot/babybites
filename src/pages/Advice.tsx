@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Heart, Baby, Moon, Utensils, AlertCircle, Sparkles,
   Droplets, Scale, BookOpen, Apple, Brain, ShieldCheck,
   Clock, Leaf, HandHeart, Stethoscope, ThermometerSun,
   Pill, Milk, Wheat, Snowflake, Plane, Users, DollarSign,
-  Calendar, Dumbbell, Eye, Smile, GraduationCap
+  Calendar, Dumbbell, Eye, Smile, GraduationCap, Download
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { exportAdvicePDF } from "@/utils/advicePDFExport";
 
 const adviceArticles = [
   {
