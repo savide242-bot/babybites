@@ -89,7 +89,7 @@ const ResetPassword = () => {
           
           
           if (exchangeError) {
-            console.error('🔐 [RESET-PAGE] exchangeCode error:', exchangeError);
+            
             throw exchangeError;
           }
           
