@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ShoppingCart, Download, Share2, Trash2, 
   Apple, Carrot, Beef, Wheat, Milk, Package,
@@ -34,6 +35,7 @@ const ShoppingList = () => {
   const { toast } = useToast();
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     checkUser();
@@ -43,7 +45,9 @@ const ShoppingList = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUserId(user.id);
-      loadShoppingList(user.id);
+      await loadShoppingList(user.id);
+    } else {
+      setIsLoading(false);
     }
   };
 
@@ -56,6 +60,7 @@ const ShoppingList = () => {
 
     if (error) {
       console.error('Error loading shopping list:', error);
+      setIsLoading(false);
       return;
     }
 
@@ -69,6 +74,7 @@ const ShoppingList = () => {
       }));
       setItems(mappedItems);
     }
+    setIsLoading(false);
   };
 
   const toggleItem = async (id: string) => {
@@ -195,6 +201,62 @@ const ShoppingList = () => {
   const completedCount = items.filter(i => i.checked).length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
+        <div className="container max-w-4xl mx-auto px-4">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-secondary">
+                <ShoppingCart className="w-8 h-8 text-primary-foreground animate-bounce" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Shopping List
+                </h1>
+                <p className="text-muted-foreground">
+                  Everything you need for your baby's meals
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Card className="mb-6 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <CardContent className="p-6 text-center space-y-4">
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                <span className="font-semibold text-lg">Building your shopping list...</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Checking your meal plan for this week 🍽️
+              </p>
+              <Progress value={35} className="h-2 animate-pulse" />
+            </CardContent>
+          </Card>
+
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="mb-4 border-0 shadow-md bg-muted/30">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <Skeleton className="h-10 w-10 rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[1, 2, 3, 4].map((j) => (
+                    <Skeleton key={j} className="h-14 rounded-xl" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 pt-20 pb-8">
