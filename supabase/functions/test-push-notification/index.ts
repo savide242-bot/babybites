@@ -231,8 +231,8 @@ async function sendWebPushNotification(
     const payload = JSON.stringify({
       title,
       body,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
+      icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+      badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
       tag: `notification-${Date.now()}`,
       data: { url: '/', timestamp: Date.now() }
     });
