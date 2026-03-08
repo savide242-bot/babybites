@@ -232,17 +232,52 @@ const Recipes = () => {
     return viewData && viewData.view_count >= 3;
   }, [recentlyViewed]);
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportEbook = useCallback(() => {
+    hapticFeedback('light');
+    setIsExporting(true);
+    toast.info('A gerar o eBook... Isto pode demorar alguns segundos.');
+    
+    // Defer to let the toast render
+    setTimeout(() => {
+      try {
+        exportRecipeEbook(recipes as any);
+        toast.success('eBook gerado com sucesso! 📖');
+      } catch (err) {
+        toast.error('Erro ao gerar o eBook. Tente novamente.');
+      } finally {
+        setIsExporting(false);
+      }
+    }, 100);
+  }, []);
+
   return (
     <div className="min-h-screen pt-16 pb-24 lg:pb-8 bg-gradient-to-b from-background via-peach/5 to-mint/5">
       <div className="container px-3 sm:px-4">
         {/* Header */}
         <div className="mb-6 pt-4">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%] animate-[shimmer_3s_ease-in-out_infinite]">
-            {t('recipes.title')}
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            {filteredRecipes.length} nutritious recipes for your little one ✨
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%] animate-[shimmer_3s_ease-in-out_infinite]">
+                {t('recipes.title')}
+              </h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                {filteredRecipes.length} nutritious recipes for your little one ✨
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportEbook}
+              disabled={isExporting}
+              className="rounded-full gap-1.5 border-primary/20 hover:bg-primary/5 text-xs sm:text-sm flex-shrink-0"
+            >
+              {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              <span className="hidden sm:inline">eBook PDF</span>
+              <span className="sm:hidden">PDF</span>
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
