@@ -257,7 +257,7 @@ export const useGamification = () => {
         .from('user_streaks')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (!current) return;
 

@@ -101,7 +101,7 @@ export function NotificationPreferences() {
         .from('profiles')
         .select('timezone')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profile?.timezone) {
         setUserTimezone(profile.timezone);

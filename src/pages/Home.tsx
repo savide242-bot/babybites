@@ -97,9 +97,9 @@ const Home = () => {
         const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
         const [profileResult, mealPlanResult, streakResult, weekMealsResult] = await Promise.all([
-          supabase.from('profiles').select('mother_name, baby_name, baby_birth_date').eq('id', currentUserId).single(),
+          supabase.from('profiles').select('mother_name, baby_name, baby_birth_date').eq('id', currentUserId).maybeSingle(),
           supabase.from('meal_plans').select('meal_type, recipe_id, prepared').eq('user_id', currentUserId).eq('day_of_week', todayDayName),
-          supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', currentUserId).single(),
+          supabase.from('user_streaks').select('current_streak, total_points').eq('user_id', currentUserId).maybeSingle(),
           supabase.from('meal_plans').select('prepared, created_at').eq('user_id', currentUserId).eq('prepared', true)
         ]);
 
