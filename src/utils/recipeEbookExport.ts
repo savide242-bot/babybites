@@ -514,16 +514,22 @@ export const exportRecipeEbook = (allRecipes: RecipeForEbook[]) => {
     </div>
   `;
 
+  // Loading overlay to hide rendering from user
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;';
+  overlay.innerHTML = '<div style="text-align:center;"><div style="font-size:48px;margin-bottom:16px;">👩‍🍳</div><div style="font-size:18px;font-weight:600;color:#1e293b;margin-bottom:8px;">A gerar o Livro de Receitas...</div><div style="font-size:14px;color:#94a3b8;">340 receitas — isto pode demorar um momento</div></div>';
+  document.body.appendChild(overlay);
+
+  // Container must be VISIBLE (no opacity/visibility hiding) for html2canvas
   const container = document.createElement('div');
   container.style.position = 'fixed';
   container.style.top = '0';
   container.style.left = '0';
   container.style.width = '794px';
   container.style.background = 'white';
-  container.style.zIndex = '-9999';
-  container.style.opacity = '0';
-  container.style.pointerEvents = 'none';
+  container.style.zIndex = '999998';
   container.style.overflow = 'visible';
+  container.style.pointerEvents = 'none';
   container.innerHTML = html;
   document.body.appendChild(container);
 
@@ -550,6 +556,6 @@ export const exportRecipeEbook = (allRecipes: RecipeForEbook[]) => {
     .set(opt)
     .from(element)
     .save()
-    .then(() => container.remove())
-    .catch(() => container.remove());
+    .then(() => { container.remove(); overlay.remove(); })
+    .catch(() => { container.remove(); overlay.remove(); });
 };
