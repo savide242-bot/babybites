@@ -508,7 +508,7 @@ const MealPlanner = () => {
 
       const { data, error } = await supabase
         .from('meal_plans')
-        .upsert(upserts, { onConflict: 'user_id,week_start_date,day_of_week,meal_type' })
+        .upsert(upserts, { onConflict: 'user_id,week_start_date,day_of_week,meal_type,plan_type' })
         .select();
 
       if (error) {
