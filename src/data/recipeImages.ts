@@ -795,6 +795,23 @@ const recipeImageMap: Record<string, string> = {
   "323": recipe323BlueberryPancakes,
   "324": recipe324ChickenVeggieSoup,
   "325": recipe325SweetPotatoPorridge,
+
+  // IDs 326-340 (recipes326-340.ts) - 24+ MONTHS NUTRIENT-DENSE
+  "326": recipe326SalmonSweetPotatoCakes,
+  "327": recipe327BeefLentilStew,
+  "328": recipe328SpinachCheeseMuffins,
+  "329": recipe329TurkeyMeatloafBites,
+  "330": recipe330AvocadoChickpeaWrap,
+  "331": recipe331BakedCodMangoSalsa,
+  "332": recipe332BroccoliCheddarPotatoes,
+  "333": recipe333LentilShepherdsPie,
+  "334": recipe334BananaOatEnergyBalls,
+  "335": recipe335YogurtChickenDippers,
+  "336": recipe336VeggieMinifrittatas,
+  "337": recipe337PbBananaToast,
+  "338": recipe338SquashAppleRisotto,
+  "339": recipe339MiniFishPie,
+  "340": recipe340BerryOatCrumble,
 };
 
 // Keyword to ID mapping for backward compatibility
