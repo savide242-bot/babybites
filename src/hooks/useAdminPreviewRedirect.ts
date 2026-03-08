@@ -50,10 +50,17 @@ export const useAdminPreviewRedirect = (): AdminPreviewState => {
         const currentPath = window.location.pathname + window.location.search;
         const previewUrl = `${PREVIEW_URL}${currentPath}`;
 
+        // Auto-redirect admin to preview URL immediately
+        if (isAdmin && isOnProduction) {
+          console.log("Admin detected on production — auto-redirecting to preview:", previewUrl);
+          window.location.href = previewUrl;
+          return; // Don't update state, we're redirecting
+        }
+
         setState({
           isAdmin,
           isOnProduction,
-          showBanner: isAdmin && isOnProduction,
+          showBanner: false, // No banner needed since we auto-redirect
           previewUrl,
           loading: false,
         });
