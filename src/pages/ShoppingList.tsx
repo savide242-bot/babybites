@@ -413,7 +413,7 @@ const ShoppingList = () => {
                 </p>
               </div>
               <Button 
-                onClick={() => window.location.href = "/planner"} 
+                onClick={() => window.location.assign("/planner")} 
                 className="rounded-full px-8 py-6 text-lg"
               >
                 <ChefHat className="mr-2 h-5 w-5" />

@@ -56,7 +56,7 @@ export const useSessionTracking = () => {
           .from('user_sessions')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (existingSession) {
           // Update existing session

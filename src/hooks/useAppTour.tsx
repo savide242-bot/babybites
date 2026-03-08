@@ -47,12 +47,12 @@ export const useAppTour = () => {
             .from('user_preferences')
             .select('has_completed_tour, has_seen_welcome')
             .eq('user_id', userId)
-            .single(),
+            .maybeSingle(),
           supabase
             .from('profiles')
             .select('mother_name, baby_name')
             .eq('id', userId)
-            .single()
+            .maybeSingle()
         ]);
 
         const hasCompletedTour = prefsResult.data?.has_completed_tour ?? false;
