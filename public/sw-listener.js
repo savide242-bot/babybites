@@ -92,8 +92,8 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'BabyBites Notification',
     body: 'You have a new notification',
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png'
+    icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
+    badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png'
   };
 
   try {
