@@ -642,7 +642,14 @@ const Advice = () => {
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-2 sm:mt-3 max-w-xl leading-relaxed">
                 Expert guidance from pediatric nutritionists to support your parenting journey with confidence
               </p>
-            </div>
+              <Button
+                onClick={() => exportAdvicePDF(adviceArticles.map(a => ({ id: a.id, title: a.title, description: a.description, category: a.category, content: a.content })))}
+                variant="outline"
+                className="mt-4 gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Export All as PDF
+              </Button>
           </div>
         </motion.div>
 
