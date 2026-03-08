@@ -65,7 +65,7 @@ const ResetPassword = () => {
             refresh_token: refreshToken
           });
           
-          console.log('🔐 [RESET-PAGE] setSession result:', { data: !!data.session, error: sessionError });
+          
           
           if (sessionError) {
             console.error('🔐 [RESET-PAGE] setSession error:', sessionError);
