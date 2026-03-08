@@ -47,7 +47,7 @@ const ResetPassword = () => {
     
     
     if (error) {
-      console.error('🔐 [RESET-PAGE] Error in URL:', error, errorDescription);
+      
       setIsValidToken(false);
       setTokenError(errorDescription?.replace(/\+/g, ' ') || 'Invalid or expired reset link');
       setIsCheckingToken(false);
