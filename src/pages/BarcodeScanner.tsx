@@ -80,7 +80,7 @@ const BarcodeScanner = () => {
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const CONFIRMATION_THRESHOLD = 2;
   const COOLDOWN_DURATION = 3000;

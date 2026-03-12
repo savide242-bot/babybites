@@ -42,7 +42,7 @@ const RecipeDetail = () => {
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isTimerRunning && totalSeconds > 0) {
       interval = setInterval(() => {
         setTotalSeconds((prev) => {
