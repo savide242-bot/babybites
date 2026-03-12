@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const PREVIEW_URL = "https://id-preview--c5922e44-641f-47eb-8afc-e9b38124e2b3.lovable.app";
-const PRODUCTION_URL = "https://babybites.lovable.app";
+const SESSION_DISMISS_KEY = "admin_preview_banner_dismissed";
 
 interface AdminPreviewState {
   isAdmin: boolean;
@@ -24,6 +24,12 @@ export const useAdminPreviewRedirect = (): AdminPreviewState => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
+        // If already dismissed this session, skip
+        if (sessionStorage.getItem(SESSION_DISMISS_KEY) === "true") {
+          setState(prev => ({ ...prev, loading: false }));
+          return;
+        }
+
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -31,7 +37,6 @@ export const useAdminPreviewRedirect = (): AdminPreviewState => {
           return;
         }
 
-        // Check if user has admin role in user_roles table (secure server-side check)
         const { data: roleData } = await supabase
           .from("user_roles")
           .select("role")
@@ -41,26 +46,17 @@ export const useAdminPreviewRedirect = (): AdminPreviewState => {
 
         const isAdmin = !!roleData;
         
-        // Check if we're on the production domain
         const currentHost = window.location.hostname;
         const isOnProduction = currentHost === "babybites.lovable.app" || 
                                currentHost.includes("babybites");
         
-        // Get current path to preserve navigation when redirecting
         const currentPath = window.location.pathname + window.location.search;
         const previewUrl = `${PREVIEW_URL}${currentPath}`;
-
-        // Auto-redirect admin to preview URL immediately
-        if (isAdmin && isOnProduction) {
-          console.log("Admin detected on production — auto-redirecting to preview:", previewUrl);
-          window.location.href = previewUrl;
-          return; // Don't update state, we're redirecting
-        }
 
         setState({
           isAdmin,
           isOnProduction,
-          showBanner: false, // No banner needed since we auto-redirect
+          showBanner: isAdmin && isOnProduction,
           previewUrl,
           loading: false,
         });
@@ -72,7 +68,6 @@ export const useAdminPreviewRedirect = (): AdminPreviewState => {
 
     checkAdminStatus();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       checkAdminStatus();
     });
@@ -81,4 +76,8 @@ export const useAdminPreviewRedirect = (): AdminPreviewState => {
   }, []);
 
   return state;
+};
+
+export const dismissAdminBanner = () => {
+  sessionStorage.setItem(SESSION_DISMISS_KEY, "true");
 };

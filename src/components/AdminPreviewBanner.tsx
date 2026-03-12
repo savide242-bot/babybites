@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, X, Sparkles } from "lucide-react";
-import { useAdminPreviewRedirect } from "@/hooks/useAdminPreviewRedirect";
+import { useAdminPreviewRedirect, dismissAdminBanner } from "@/hooks/useAdminPreviewRedirect";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const AdminPreviewBanner = () => {
@@ -14,6 +14,11 @@ export const AdminPreviewBanner = () => {
 
   const handleGoToPreview = () => {
     window.location.href = previewUrl;
+  };
+
+  const handleDismiss = () => {
+    dismissAdminBanner();
+    setDismissed(true);
   };
 
   return (
@@ -49,7 +54,7 @@ export const AdminPreviewBanner = () => {
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => setDismissed(true)}
+              onClick={handleDismiss}
               className="h-7 w-7 text-white/80 hover:text-white hover:bg-white/10"
             >
               <X className="h-4 w-4" />

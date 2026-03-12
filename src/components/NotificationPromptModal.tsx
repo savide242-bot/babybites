@@ -1,30 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Bell } from 'lucide-react';
+import { Bell, Loader2 } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
-// Bump this version whenever VAPID keys change to force re-subscription
 const VAPID_VERSION = 'v2';
 const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const { subscribeToPushNotifications, isSupported } = usePushNotifications();
 
   useEffect(() => {
     const checkShouldPrompt = async () => {
       if (!isSupported) return;
 
-      // If already activated and stored locally, never show again
       const activated = localStorage.getItem(STORAGE_KEY);
       if (activated === 'true') return;
 
-      // If permission is granted but this VAPID version not yet activated,
-      // we need to re-subscribe with new keys - so DON'T skip
       if (Notification.permission === 'granted') {
-        // Auto re-subscribe silently with new VAPID keys
         const success = await subscribeToPushNotifications();
         if (success) {
           localStorage.setItem(STORAGE_KEY, 'true');
@@ -32,14 +28,11 @@ export const NotificationPromptModal = () => {
         return;
       }
 
-      // If permission was denied by the browser, don't show (can't do anything)
       if (Notification.permission === 'denied') return;
 
-      // Check if user is logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Show the prompt after a short delay
       setTimeout(() => setIsOpen(true), 1500);
     };
 
@@ -47,24 +40,27 @@ export const NotificationPromptModal = () => {
   }, [isSupported]);
 
   const handleActivate = async () => {
-    setIsOpen(false);
-    const success = await subscribeToPushNotifications();
-    
-    if (success) {
-      // Permanently mark as activated - never show again
-      localStorage.setItem(STORAGE_KEY, 'true');
+    // Keep modal open during subscription to preserve user gesture context
+    setIsActivating(true);
+    try {
+      const success = await subscribeToPushNotifications();
+      if (success) {
+        localStorage.setItem(STORAGE_KEY, 'true');
+      }
+    } finally {
+      setIsActivating(false);
+      setIsOpen(false);
     }
   };
 
   const handleMaybeLater = () => {
-    // Just close - will show again next time they open the app
     setIsOpen(false);
   };
 
   if (!isSupported) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!isActivating) setIsOpen(open); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex justify-center mb-4">
@@ -95,15 +91,26 @@ export const NotificationPromptModal = () => {
           <Button 
             onClick={handleActivate} 
             size="lg"
+            disabled={isActivating}
             className="w-full text-base font-semibold"
           >
-            <Bell className="mr-2 h-5 w-5" />
-            Activate Reminders
+            {isActivating ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Activating...
+              </>
+            ) : (
+              <>
+                <Bell className="mr-2 h-5 w-5" />
+                Activate Reminders
+              </>
+            )}
           </Button>
           <Button 
             onClick={handleMaybeLater}
             variant="outline"
             size="lg"
+            disabled={isActivating}
             className="w-full"
           >
             Maybe Later
