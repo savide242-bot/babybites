@@ -1,110 +1,66 @@
+Plano aprovado para resolver definitivamente os lembretes automáticos com app/PWA fechado, com foco em confiabilidade máxima e mensagens em inglês.
 
+1) Diagnóstico confirmado (estado atual)
+- O backend já tem a função `check-meal-reminders`, mas não há agendamento de cron dessa função nas migrations (só existe cron para `rotate-challenges`).
+- Logs mostram: função roda, mas há poucas subscrições ativas e quase sempre “fora da janela”.
+- Há inconsistências que confundem teste/entrega:
+  - `send-meal-reminder` usa contrato diferente do frontend (`userId` vs `user_id`).
+  - UI de teste espera `data.success`, mas a função retorna outro formato.
+  - Janela de envio atual (15–45 min antes) não corresponde ao pedido “nos horários de refeição”.
 
-# Comprehensive Update Plan
+2) Implementação que vou fazer
+- Endurecer `supabase/functions/check-meal-reminders/index.ts`:
+  - Mudar lógica para horário de refeição (janela curta de tolerância, ex.: -2 a +8 min).
+  - Manter tudo em inglês nos textos.
+  - Tornar prevenção de duplicado atômica (claim por `notification_logs` com `ON CONFLICT DO NOTHING` antes de enviar).
+  - Fallback de timezone para `UTC` (não país fixo).
+  - Manter retry + limpeza de subscrições expiradas.
+- Limpar fluxo “lixo/inconsistente”:
+  - Padronizar `send-meal-reminder` para o mesmo contrato do app e mesmo motor `_shared/webpush.ts` (ou redirecionar testes para `force-test-reminder`).
+  - Corrigir `NotificationPreferences` para interpretar corretamente resposta de teste.
+- Garantir lanches:
+  - Unificar defaults de `usePushNotifications` com `baby_meal_times` (morning-snack + afternoon-snack, não apenas `snack` genérico).
 
-This is a large multi-part request. I'll address each item plus the critical build errors that need fixing first.
+3) Como programar o cron job (e deixar idempotente)
+- Criar/ajustar job no banco (sem migration global, execução direta no backend do projeto):
+```sql
+-- 1) garantir extensões
+create extension if not exists pg_cron with schema pg_catalog;
+create extension if not exists pg_net with schema extensions;
 
----
+-- 2) remover jobs antigos do meal reminder
+select cron.unschedule(jobid)
+from cron.job
+where jobname in ('check-meal-reminders-5min','meal-reminders-auto','check-meal-reminders');
 
-## 0. Fix Build Errors (BLOCKING - must fix first)
+-- 3) criar job novo (ex.: a cada 5 min; posso subir para 2 min se quiseres)
+select cron.schedule(
+  'check-meal-reminders-5min',
+  '*/5 * * * *',
+  $$
+  select net.http_post(
+    url:='https://bdkfoxzlndwxvzbbrbgl.supabase.co/functions/v1/check-meal-reminders',
+    headers:='{"Content-Type":"application/json","Authorization":"Bearer <ANON_KEY_ATUAL>"}'::jsonb,
+    body:='{}'::jsonb
+  );
+  $$
+);
 
-The `pushManager` TypeScript error occurs because the default `ServiceWorkerRegistration` type doesn't include `pushManager`. Fix by adding a type assertion `(registration as any).pushManager` in all 4 files:
+-- 4) validar
+select jobid, jobname, schedule, active from cron.job where jobname='check-meal-reminders-5min';
+```
 
-- `src/hooks/usePushNotifications.tsx` (lines 100, 150, 175)
-- `src/components/admin/SystemHealth.tsx` (line 171)
-- `src/components/NotificationPreferences.tsx` (line 179)
-- `src/pages/IOSPushSetup.tsx` (line 148)
+4) Resposta direta sobre “cron com VAPID keys antigas”
+- O cron job NÃO usa VAPID keys; ele só dispara a função.
+- VAPID antiga afeta as subscrições salvas no browser (ficam inválidas).
+- Por isso vou garantir:
+  - limpeza automática de `VapidPkHashMismatch`,
+  - re-subscrição automática dos utilizadores com permissão já concedida,
+  - e versionamento de subscrição para forçar refresh quando necessário.
 
----
-
-## 1. Daily Admin Report Edge Function
-
-Create `supabase/functions/daily-admin-report/index.ts` that:
-- Queries `user_sessions` for DAU (distinct users active today)
-- Queries `profiles` for new signups (created_at = today)
-- Queries `recipe_views` for top 5 most viewed recipes today
-- Queries `user_streaks` for average current_streak
-- Queries `meal_plans` for total meals planned today
-- Sends a formatted push notification to admin's push subscription
-- Add to `supabase/config.toml` with `verify_jwt = false` (called by cron)
-
----
-
-## 2. Add 5 New Recipes
-
-Add 5 new recipes (IDs 311-315) to a new file `src/data/recipes311-315.ts` and import in `src/data/recipes.ts`. Recipes will cover underrepresented categories for variety. Then trigger a notification to all users about new recipes via the existing `notify-all-users` edge function from the admin panel.
-
----
-
-## 3. Performance Optimization
-
-- Add `React.memo` to heavy list items: recipe cards in `Recipes.tsx`
-- Add `useMemo` for filtered recipe lists
-- Lazy-load recipe images with `loading="lazy"` attribute
-- Minimize re-renders in Home.tsx by memoizing derived values
-
----
-
-## 4. UI/UX Enhancements ("Crazy Effects")
-
-Enhance visual experience across key pages:
-
-**Home Page:**
-- Add animated gradient text for greetings using CSS `background-clip: text`
-- Add staggered card entrance animations (already has framer-motion, enhance timing)
-- Add parallax floating food emojis in background
-- Add shimmer/shine effect on Recipe of the Day card
-
-**Recipe Cards:**
-- Add 3D tilt effect on hover using `transform: perspective()` with framer-motion
-- Add gradient border glow on favorite recipes
-- Add micro-interaction: heart button with particle burst on favorite
-
-**Recipes Page:**
-- Add count badges on category filters showing recipe count per category
-- Add smooth skeleton loading with wave animation
-
-**General:**
-- Add page transition animations between routes
-- Add pull-to-refresh gesture feel on mobile
-- Add confetti burst when completing all daily meals
-
----
-
-## 5. Precision & Weak Points Fix
-
-- Ensure all nutrition data uses consistent units (g, mg, kcal)
-- Fix any recipes with missing or placeholder nutrition values
-- Verify allergen data completeness across all recipes
-- Ensure dietary filter tags are correctly mapped for all 315 recipes
-
----
-
-## Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| `src/hooks/usePushNotifications.tsx` | Fix pushManager type |
-| `src/components/admin/SystemHealth.tsx` | Fix pushManager type |
-| `src/components/NotificationPreferences.tsx` | Fix pushManager type |
-| `src/pages/IOSPushSetup.tsx` | Fix pushManager type |
-| `supabase/functions/daily-admin-report/index.ts` | NEW - admin metrics |
-| `supabase/config.toml` | Add daily-admin-report config |
-| `src/data/recipes311-315.ts` | NEW - 5 new recipes |
-| `src/data/recipes.ts` | Import new recipes |
-| `src/pages/Recipes.tsx` | Perf + UI enhancements |
-| `src/pages/Home.tsx` | Visual effects upgrade |
-| `src/components/ui/glass-card.tsx` | Enhanced glow effects |
-| `src/index.css` | New animation keyframes |
-
----
-
-## Implementation Order
-
-1. Fix TypeScript build errors (unblocks everything)
-2. Create daily-admin-report edge function
-3. Add 5 new recipes
-4. Performance optimizations (memo, lazy loading)
-5. UI/UX crazy effects (animations, transitions, 3D)
-6. Precision fixes on recipe data
-
+5) Critério de pronto (fim-a-fim real)
+- Teste no app publicado no telemóvel (não preview iframe).
+- Configurar 1 refeição para 5–10 minutos à frente.
+- Fechar PWA/app e esperar push chegar.
+- Confirmar registro em `notification_logs`.
+- Confirmar mensagem em inglês e sem duplicados.
