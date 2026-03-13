@@ -262,20 +262,20 @@ export function NotificationPreferences() {
 
       // Call send-meal-reminder edge function (public, no JWT needed)
       const { data, error } = await supabase.functions.invoke('send-meal-reminder', {
-        body: { user_id: user.id, meal_type: 'lunch' },
+        body: { user_id: user.id, meal_type: 'lunch', title: '🍽️ Test Meal Reminder', body: 'This is a test notification to verify delivery!' },
       });
 
       if (error) throw error;
 
-      if (data?.success) {
+      if (data?.success || data?.successful > 0) {
         toast({
           title: "✅ Meal Reminder Sent!",
-          description: "A real push notification was sent. Check your device (even with app closed).",
+          description: `Push notification delivered to ${data.successful || 1} device(s). Check your device!`,
         });
       } else {
         toast({
-          title: "⚠️ Result",
-          description: data?.message || "Notification may not have been delivered",
+          title: "⚠️ No Delivery",
+          description: data?.message || "No active push subscriptions found. Make sure notifications are enabled.",
           variant: "destructive",
         });
       }

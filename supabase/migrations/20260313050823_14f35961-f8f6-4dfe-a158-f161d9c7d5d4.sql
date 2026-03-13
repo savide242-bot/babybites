@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS notification_logs_user_meal_date_unique ON public.notification_logs (user_id, meal_type, sent_date);

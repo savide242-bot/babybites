@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
 const DEFAULT_MEAL_TIMES = [
-  { meal_type: 'breakfast', preferred_hour: 8, preferred_minute: 0, enabled: true },
+  { meal_type: 'breakfast', preferred_hour: 7, preferred_minute: 30, enabled: true },
+  { meal_type: 'morning-snack', preferred_hour: 10, preferred_minute: 0, enabled: true },
   { meal_type: 'lunch', preferred_hour: 12, preferred_minute: 30, enabled: true },
-  { meal_type: 'snack', preferred_hour: 16, preferred_minute: 0, enabled: true },
-  { meal_type: 'dinner', preferred_hour: 19, preferred_minute: 0, enabled: true },
+  { meal_type: 'afternoon-snack', preferred_hour: 15, preferred_minute: 30, enabled: true },
+  { meal_type: 'dinner', preferred_hour: 18, preferred_minute: 0, enabled: true },
 ];
 
 const isIOSDevice = (): boolean => {
