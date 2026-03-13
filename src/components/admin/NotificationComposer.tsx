@@ -23,138 +23,70 @@ const NotificationComposer = () => {
   const { toast } = useToast();
 
   const handleTest = async () => {
-    console.log('🧪 [TEST] Starting test notification...');
-    
     if (!title || !body) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha título e mensagem',
-        variant: 'destructive',
-      });
+      toast({ title: 'Required fields', description: 'Fill in title and message', variant: 'destructive' });
       return;
     }
 
     setTesting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('🧪 [TEST] User:', user?.id);
-      if (!user) throw new Error('Não autenticado');
-
-      const payload = { 
-        userId: user.id,
-        title,
-        body,
-        icon,
-      };
-      console.log('🧪 [TEST] Payload:', payload);
+      if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase.functions.invoke('test-push-notification', {
-        body: payload,
+        body: { userId: user.id, title, body, icon },
       });
-
-      console.log('🧪 [TEST] Response data:', data);
-      console.log('🧪 [TEST] Response error:', error);
 
       if (error) throw error;
 
-      toast({
-        title: '✅ Teste Enviado',
-        description: `Notificação enviada! Resposta: ${JSON.stringify(data).slice(0, 100)}`,
-      });
+      toast({ title: '✅ Test Sent', description: 'Check your device for the notification' });
     } catch (error: any) {
-      console.error('🧪 [TEST] Exception:', error);
-      toast({
-        title: 'Erro no Teste',
-        description: `${error?.message || 'Falha'} - Ver console para detalhes`,
-        variant: 'destructive',
-      });
+      console.error('Test notification error:', error);
+      toast({ title: 'Test Failed', description: error?.message || 'Unknown error', variant: 'destructive' });
     } finally {
       setTesting(false);
     }
   };
 
   const handleSend = async () => {
-    console.log('📤 [SEND] Starting send to all...');
-    
     if (!title || !body) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha título e mensagem',
-        variant: 'destructive',
-      });
+      toast({ title: 'Required fields', description: 'Fill in title and message', variant: 'destructive' });
       return;
     }
 
     setSending(true);
     try {
-      // First refresh the session to ensure valid token
-      console.log('📤 [SEND] Refreshing session...');
-      const { data: sessionData, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError) {
-        console.error('📤 [SEND] Session refresh failed:', refreshError);
-      } else {
-        console.log('📤 [SEND] Session refreshed successfully');
-      }
-      
+      await supabase.auth.refreshSession();
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('📤 [SEND] User:', user?.id, user?.email);
-      
-      if (!user) {
-        throw new Error('Não autenticado - faça login novamente');
-      }
+      if (!user) throw new Error('Not authenticated — please log in again');
 
-      // Check admin role before sending
-      console.log('📤 [SEND] Checking admin role...');
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
         .maybeSingle();
-      
-      console.log('📤 [SEND] Role check:', { roleData, roleError });
-      
-      if (roleError || !roleData) {
-        throw new Error('Sem permissão admin - verifique o seu role na base de dados');
-      }
 
-      const payload = {
-        title,
-        body,
-        icon,
-        action_label: actionLabel || null,
-        action_url: actionUrl || null,
-      };
-      console.log('📤 [SEND] Payload:', payload);
+      if (roleError || !roleData) throw new Error('Admin permission required');
 
       const startTime = Date.now();
       const { data, error } = await supabase.functions.invoke('notify-all-users', {
-        body: payload,
+        body: {
+          title,
+          body,
+          icon,
+          action_label: actionLabel || null,
+          action_url: actionUrl || null,
+        },
       });
       const duration = Date.now() - startTime;
 
-      console.log('📤 [SEND] Response data:', data);
-      console.log('📤 [SEND] Response error:', error);
-      console.log('📤 [SEND] Duration:', duration, 'ms');
-
-      if (error) {
-        console.error('📤 [SEND] Function error:', error);
-        throw new Error(error.message || JSON.stringify(error));
-      }
-
-      if (data?.error) {
-        console.error('📤 [SEND] Response contains error:', data.error);
-        throw new Error(data.error);
-      }
-
-      const successCount = data?.successful || 0;
-      const failedCount = data?.failed || 0;
-      const expiredCount = data?.expired || 0;
+      if (error) throw new Error(error.message || JSON.stringify(error));
+      if (data?.error) throw new Error(data.error);
 
       toast({
-        title: '✅ Notificações Enviadas',
-        description: `Enviadas: ${successCount} | Falhadas: ${failedCount} | Expiradas: ${expiredCount} | Tempo: ${duration}ms`,
+        title: '✅ Notifications Sent',
+        description: `Sent: ${data?.successful || 0} | Failed: ${data?.failed || 0} | Expired: ${data?.expired || 0} | ${duration}ms`,
       });
 
       setTitle('');
@@ -162,12 +94,8 @@ const NotificationComposer = () => {
       setActionLabel('');
       setActionUrl('');
     } catch (error: any) {
-      console.error('📤 [SEND] Exception:', error);
-      toast({
-        title: 'Erro ao Enviar',
-        description: error?.message || 'Falha desconhecida - Ver console',
-        variant: 'destructive',
-      });
+      console.error('Send notification error:', error);
+      toast({ title: 'Send Failed', description: error?.message || 'Unknown error', variant: 'destructive' });
     } finally {
       setSending(false);
     }
@@ -178,42 +106,42 @@ const NotificationComposer = () => {
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="compose" className="flex items-center gap-2">
           <Bell className="h-4 w-4" />
-          Compor
+          Compose
         </TabsTrigger>
         <TabsTrigger value="history" className="flex items-center gap-2">
           <History className="h-4 w-4" />
-          Histórico
+          History
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value="compose" className="mt-4">
         <Card>
           <CardHeader>
-            <CardTitle>Enviar Push Notification</CardTitle>
+            <CardTitle>Send Push Notification</CardTitle>
             <CardDescription>
-              Envie uma notificação push a todos os utilizadores subscritos
+              Send a push notification to all subscribed users
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
+              <Label htmlFor="title">Title *</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Nova Funcionalidade!"
+                placeholder="e.g. New Feature Available!"
                 maxLength={50}
               />
               <span className="text-xs text-muted-foreground">{title.length}/50</span>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="body">Mensagem *</Label>
+              <Label htmlFor="body">Message *</Label>
               <Textarea
                 id="body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Ex: Confira a nossa nova colecção de receitas..."
+                placeholder="e.g. Check out our new recipe collection..."
                 rows={4}
                 maxLength={200}
               />
@@ -221,7 +149,7 @@ const NotificationComposer = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="icon">URL do Ícone</Label>
+              <Label htmlFor="icon">Icon URL</Label>
               <Input
                 id="icon"
                 value={icon}
@@ -232,27 +160,26 @@ const NotificationComposer = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="actionLabel">Texto do Botão (opcional)</Label>
+                <Label htmlFor="actionLabel">Button Text (optional)</Label>
                 <Input
                   id="actionLabel"
                   value={actionLabel}
                   onChange={(e) => setActionLabel(e.target.value)}
-                  placeholder="Ex: Ver Agora"
+                  placeholder="e.g. View Now"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="actionUrl">URL de Acção (opcional)</Label>
+                <Label htmlFor="actionUrl">Action URL (optional)</Label>
                 <Input
                   id="actionUrl"
                   value={actionUrl}
                   onChange={(e) => setActionUrl(e.target.value)}
-                  placeholder="Ex: /recipes"
+                  placeholder="e.g. /recipes"
                 />
               </div>
             </div>
 
-            {/* Preview */}
             {preview && title && body && (
               <Alert className="bg-muted/50">
                 <AlertDescription>
@@ -264,9 +191,7 @@ const NotificationComposer = () => {
                       <div className="font-semibold">{title}</div>
                       <div className="text-sm text-muted-foreground">{body}</div>
                       {actionLabel && (
-                        <div className="text-xs text-primary font-medium mt-2">
-                          [{actionLabel}]
-                        </div>
+                        <div className="text-xs text-primary font-medium mt-2">[{actionLabel}]</div>
                       )}
                     </div>
                   </div>
@@ -275,30 +200,17 @@ const NotificationComposer = () => {
             )}
 
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                onClick={() => setPreview(!preview)}
-                variant="outline"
-                className="flex-1"
-              >
+              <Button onClick={() => setPreview(!preview)} variant="outline" className="flex-1">
                 <Eye className="mr-2 h-4 w-4" />
-                {preview ? 'Esconder' : 'Ver'} Preview
+                {preview ? 'Hide' : 'Show'} Preview
               </Button>
-              <Button
-                onClick={handleTest}
-                variant="secondary"
-                disabled={testing || !title || !body}
-                className="flex-1"
-              >
+              <Button onClick={handleTest} variant="secondary" disabled={testing || !title || !body} className="flex-1">
                 <TestTube className="mr-2 h-4 w-4" />
-                {testing ? 'A testar...' : 'Testar em Mim'}
+                {testing ? 'Testing...' : 'Test on Me'}
               </Button>
-              <Button
-                onClick={handleSend}
-                disabled={sending || !title || !body}
-                className="flex-1"
-              >
+              <Button onClick={handleSend} disabled={sending || !title || !body} className="flex-1">
                 <Send className="mr-2 h-4 w-4" />
-                {sending ? 'A enviar...' : 'Enviar a Todos'}
+                {sending ? 'Sending...' : 'Send to All'}
               </Button>
             </div>
           </CardContent>
