@@ -486,7 +486,7 @@ const UserManagement = () => {
                                 <DropdownMenuItem 
                                   onClick={() => { setSelectedUser(user); setNotifyDialogOpen(true); }}
                                 >
-                                  <Send className="h-4 w-4 mr-2" /> Enviar Notificação
+                                  <Send className="h-4 w-4 mr-2" /> Send Notification
                                 </DropdownMenuItem>
                               )}
                               
