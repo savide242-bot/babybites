@@ -615,10 +615,10 @@ const UserManagement = () => {
               />
             </div>
             <div>
-              <Label htmlFor="notifyBody">Mensagem</Label>
+              <Label htmlFor="notifyBody">Message</Label>
               <Textarea
                 id="notifyBody"
-                placeholder="Conteúdo da notificação..."
+                placeholder="Notification content..."
                 value={notifyBody}
                 onChange={(e) => setNotifyBody(e.target.value)}
                 className="mt-2"
