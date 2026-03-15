@@ -466,7 +466,7 @@ const UserManagement = () => {
                                   onClick={() => { setSelectedUser(user); setBanDialogOpen(true); }}
                                   className="text-amber-600"
                                 >
-                                  <Ban className="h-4 w-4 mr-2" /> Banir
+                                  <Ban className="h-4 w-4 mr-2" /> Ban
                                 </DropdownMenuItem>
                               )}
                               
