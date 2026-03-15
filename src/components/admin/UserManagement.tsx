@@ -627,13 +627,13 @@ const UserManagement = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNotifyDialogOpen(false)} disabled={actionLoading}>
-              Cancelar
+              Cancel
             </Button>
             <Button 
               onClick={handleSendNotification} 
               disabled={actionLoading || !notifyTitle || !notifyBody}
             >
-              {actionLoading ? 'A enviar...' : 'Enviar'}
+              {actionLoading ? 'Sending...' : 'Send'}
             </Button>
           </DialogFooter>
         </DialogContent>
