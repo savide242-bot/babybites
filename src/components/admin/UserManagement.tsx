@@ -598,9 +598,9 @@ const UserManagement = () => {
       <Dialog open={notifyDialogOpen} onOpenChange={setNotifyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enviar Notificação</DialogTitle>
+            <DialogTitle>Send Notification</DialogTitle>
             <DialogDescription>
-              Enviar uma notificação push para <strong>{selectedUser?.full_name}</strong>
+              Send a push notification to <strong>{selectedUser?.full_name}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
