@@ -439,7 +439,7 @@ const UserManagement = () => {
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-muted-foreground">
-                              <BellOff className="h-3 w-3 mr-1" /> Não
+                              <BellOff className="h-3 w-3 mr-1" /> No
                             </Badge>
                           )}
                         </TableCell>
