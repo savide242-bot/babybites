@@ -389,6 +389,43 @@ const Recipes = () => {
           </div>
         )}
 
+        {/* Ask Bibi CTA */}
+        <div className="mb-6 animate-fade-in">
+          <div 
+            onClick={() => navigate('/chat')}
+            className="cursor-pointer p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/15 shrink-0">
+                <MessageCircle className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-foreground">Not sure what to cook? Ask Bibi!</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Your AI nutritionist can suggest age-perfect meals, plan your week, and answer any feeding questions.</p>
+              </div>
+              <Badge className="bg-primary/10 text-primary border-0 text-[10px] shrink-0">Chat Now</Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Starting Solids Guide Banner */}
+        <div className="mb-6 animate-fade-in">
+          <div 
+            onClick={() => navigate('/chat')}
+            className="cursor-pointer p-4 rounded-2xl bg-gradient-to-r from-mint/15 to-emerald-500/10 border border-mint/30 hover:border-mint/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-mint/20 shrink-0">
+                <Baby className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-foreground">Starting Solids? We've got you covered!</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Filter by age below, or ask Bibi for a personalized first foods plan for your baby.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
