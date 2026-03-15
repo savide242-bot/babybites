@@ -144,6 +144,7 @@ RecipeCard.displayName = "RecipeCard";
 
 const Recipes = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { recentlyViewed, loading: historyLoading, getRecentRecipes, getMostViewed } = useRecipeHistory();
   const { preferences, isRecipeCompatible } = useDietaryPreferences();
