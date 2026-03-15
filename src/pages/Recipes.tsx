@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter, ChevronDown, Download, Loader2, MessageCircle, Baby } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFavorites } from "@/hooks/useFavorites";
