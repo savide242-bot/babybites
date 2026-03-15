@@ -459,7 +459,7 @@ const UserManagement = () => {
                             <DropdownMenuContent align="end">
                               {user.is_banned ? (
                                 <DropdownMenuItem onClick={() => handleUnban(user.id)}>
-                                  <UserX className="h-4 w-4 mr-2" /> Desbanir
+                                  <UserX className="h-4 w-4 mr-2" /> Unban
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem 
