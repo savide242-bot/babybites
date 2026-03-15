@@ -289,7 +289,7 @@ const UserManagement = () => {
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <CardTitle className="flex items-center gap-2 flex-wrap">
-              Gestão de Utilizadores
+              User Management
               <Badge variant="outline" className="text-sm">
                 {filteredUsers.length} de {users.length}
               </Badge>
