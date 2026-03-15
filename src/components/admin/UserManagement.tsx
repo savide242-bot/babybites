@@ -417,9 +417,9 @@ const UserManagement = () => {
                               🟢 Online
                             </Badge>
                           ) : isActive ? (
-                            <Badge variant="outline">🔵 Activo</Badge>
+                            <Badge variant="outline">🔵 Active</Badge>
                           ) : (
-                            <Badge variant="secondary">⚫ Inactivo</Badge>
+                            <Badge variant="secondary">⚫ Inactive</Badge>
                           )}
                           {lastActive && (
                             <div className="text-xs text-muted-foreground mt-1">
