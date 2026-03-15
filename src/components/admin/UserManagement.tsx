@@ -542,17 +542,17 @@ const UserManagement = () => {
       <AlertDialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Banir Utilizador</AlertDialogTitle>
+            <AlertDialogTitle>Ban User</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem a certeza que deseja banir <strong>{selectedUser?.full_name}</strong>?
-              O utilizador será impedido de aceder à aplicação.
+              Are you sure you want to ban <strong>{selectedUser?.full_name}</strong>?
+              The user will be blocked from accessing the app.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label htmlFor="banReason">Motivo (opcional)</Label>
+            <Label htmlFor="banReason">Reason (optional)</Label>
             <Textarea
               id="banReason"
-              placeholder="Infracção das regras da comunidade..."
+              placeholder="Community guidelines violation..."
               value={banReason}
               onChange={(e) => setBanReason(e.target.value)}
               className="mt-2"
