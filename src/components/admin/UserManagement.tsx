@@ -424,9 +424,9 @@ const UserManagement = () => {
                           {lastActive && (
                             <div className="text-xs text-muted-foreground mt-1">
                               {minutesSinceActive !== null && minutesSinceActive < 60
-                                ? `${minutesSinceActive}m atrás`
+                                ? `${minutesSinceActive}m ago`
                                 : minutesSinceActive !== null && minutesSinceActive < 60 * 24
-                                ? `${Math.floor(minutesSinceActive / 60)}h atrás`
+                                ? `${Math.floor(minutesSinceActive / 60)}h ago`
                                 : formatDistanceToNow(lastActive, { addSuffix: true })
                               }
                             </div>
