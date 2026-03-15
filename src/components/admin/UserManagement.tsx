@@ -325,14 +325,14 @@ const UserManagement = () => {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-40">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Estado" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="online">🟢 Online</SelectItem>
-                <SelectItem value="active">Activos (24h)</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-                <SelectItem value="banned">🚫 Banidos</SelectItem>
+                <SelectItem value="active">Active (24h)</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="banned">🚫 Banned</SelectItem>
               </SelectContent>
             </Select>
             <Select value={pushFilter} onValueChange={setPushFilter}>
