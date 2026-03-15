@@ -513,7 +513,7 @@ const UserManagement = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
-                Página {currentPage} de {totalPages}
+                Page {currentPage} of {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button
