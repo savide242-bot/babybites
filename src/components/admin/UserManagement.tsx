@@ -341,9 +341,9 @@ const UserManagement = () => {
                 <SelectValue placeholder="Push" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enabled">Com Push</SelectItem>
-                <SelectItem value="disabled">Sem Push</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="enabled">With Push</SelectItem>
+                <SelectItem value="disabled">Without Push</SelectItem>
               </SelectContent>
             </Select>
           </div>
