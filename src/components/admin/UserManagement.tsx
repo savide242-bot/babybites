@@ -559,13 +559,13 @@ const UserManagement = () => {
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleBan} 
               disabled={actionLoading}
               className="bg-amber-500 hover:bg-amber-600"
             >
-              {actionLoading ? 'A banir...' : 'Banir'}
+              {actionLoading ? 'Banning...' : 'Ban'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
