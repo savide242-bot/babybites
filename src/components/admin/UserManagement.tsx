@@ -166,8 +166,8 @@ const UserManagement = () => {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: '✅ Sucesso',
-        description: data.message || 'Acção executada com sucesso',
+        title: '✅ Success',
+        description: data.message || 'Action completed successfully',
       });
 
       fetchUsers();
