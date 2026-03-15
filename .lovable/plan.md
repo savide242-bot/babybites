@@ -1,110 +1,69 @@
 
 
-# Comprehensive Update Plan
+# Plan: Fix Notifications, Clean Ghost Data, Improve AI & Recipe Guidance
 
-This is a large multi-part request. I'll address each item plus the critical build errors that need fixing first.
+## Root Cause Analysis
 
----
+### 1. Ghost Users in Admin (219 sessions, 37 profiles)
+The `user_sessions` table has 219 rows (44 unique user_ids) while `profiles` only has 37. The admin `UserManagement` fetches profiles and merges with sessions, but the filter on line 112 (`full_name !== 'User' || has_session`) lets through ghost entries. The Dashboard stats query may also count `user_sessions` rows instead of unique users.
 
-## 0. Fix Build Errors (BLOCKING - must fix first)
+**Fix**: Filter admin user list to only show profiles that actually exist. Clean orphan session rows.
 
-The `pushManager` TypeScript error occurs because the default `ServiceWorkerRegistration` type doesn't include `pushManager`. Fix by adding a type assertion `(registration as any).pushManager` in all 4 files:
+### 2. Notifications NEVER Work — 403 VAPID Mismatch
+The edge function logs show the exact error:
+```
+403 the VAPID credentials in the authorization header do not correspond 
+to the credentials used to create the subscriptions.
+```
+All 3 existing push subscriptions were created with OLD VAPID keys. The server now sends with NEW VAPID keys → FCM/Apple returns 403.
 
-- `src/hooks/usePushNotifications.tsx` (lines 100, 150, 175)
-- `src/components/admin/SystemHealth.tsx` (line 171)
-- `src/components/NotificationPreferences.tsx` (line 179)
-- `src/pages/IOSPushSetup.tsx` (line 148)
+**Critical bug**: The cleanup code in `_shared/webpush.ts` line 328 only catches `410`, `404`, `400+VapidPkHashMismatch`, `401+unsubscribed` — it does NOT catch **403**. So stale subscriptions are never deleted, and notifications permanently fail.
 
----
+**Also**: `test-push-notification/index.ts` has its own 300-line copy of the webpush code (not using `_shared/webpush.ts`) with the same missing 403 handling.
 
-## 1. Daily Admin Report Edge Function
+**Fix**:
+- Add `403` to the expired detection in `_shared/webpush.ts`
+- Rewrite `test-push-notification` to use `_shared/webpush.ts` (delete 290 lines of duplicated code)
+- Delete the 3 stale subscriptions now (DB cleanup migration)
+- Auto-resubscribe users who have granted permission but have no valid subscription
 
-Create `supabase/functions/daily-admin-report/index.ts` that:
-- Queries `user_sessions` for DAU (distinct users active today)
-- Queries `profiles` for new signups (created_at = today)
-- Queries `recipe_views` for top 5 most viewed recipes today
-- Queries `user_streaks` for average current_streak
-- Queries `meal_plans` for total meals planned today
-- Sends a formatted push notification to admin's push subscription
-- Add to `supabase/config.toml` with `verify_jwt = false` (called by cron)
+### 3. AI Chatbot Feels Robotic
+The system prompt says "200 recipes" (it's 340+), doesn't load the user's baby age/name from the database, and uses `gemini-2.5-flash` which is the cheaper/faster model.
 
----
+**Fix**: 
+- Fetch baby profile data before calling AI, inject into system prompt
+- Update recipe count to 340+
+- Upgrade model to `google/gemini-2.5-pro` for more nuanced, natural responses
+- Add specific nutritional expertise instructions for starting solids at 6 months
 
-## 2. Add 5 New Recipes
+### 4. Recipe Page — Users Feel Alone
+Users requesting refunds because they feel unsupported. The recipe page is a grid of cards with no guidance.
 
-Add 5 new recipes (IDs 311-315) to a new file `src/data/recipes311-315.ts` and import in `src/data/recipes.ts`. Recipes will cover underrepresented categories for variety. Then trigger a notification to all users about new recipes via the existing `notify-all-users` edge function from the admin panel.
+**Fix**: Add a **"Starting Solids Guide"** banner for babies 6-8 months, and a **"Recommended for You"** section that shows age-appropriate recipes with nutritional context. Add a prominent link to the AI assistant (Bibi) with contextual prompts like "Ask Bibi what to cook today".
 
----
-
-## 3. Performance Optimization
-
-- Add `React.memo` to heavy list items: recipe cards in `Recipes.tsx`
-- Add `useMemo` for filtered recipe lists
-- Lazy-load recipe images with `loading="lazy"` attribute
-- Minimize re-renders in Home.tsx by memoizing derived values
-
----
-
-## 4. UI/UX Enhancements ("Crazy Effects")
-
-Enhance visual experience across key pages:
-
-**Home Page:**
-- Add animated gradient text for greetings using CSS `background-clip: text`
-- Add staggered card entrance animations (already has framer-motion, enhance timing)
-- Add parallax floating food emojis in background
-- Add shimmer/shine effect on Recipe of the Day card
-
-**Recipe Cards:**
-- Add 3D tilt effect on hover using `transform: perspective()` with framer-motion
-- Add gradient border glow on favorite recipes
-- Add micro-interaction: heart button with particle burst on favorite
-
-**Recipes Page:**
-- Add count badges on category filters showing recipe count per category
-- Add smooth skeleton loading with wave animation
-
-**General:**
-- Add page transition animations between routes
-- Add pull-to-refresh gesture feel on mobile
-- Add confetti burst when completing all daily meals
+### 5. Fallbacks
+- Edge functions: wrap all push sends in try/catch with graceful degradation
+- Frontend: if notification subscription fails, show clear instructions instead of silent failure
 
 ---
 
-## 5. Precision & Weak Points Fix
+## Files to Modify
 
-- Ensure all nutrition data uses consistent units (g, mg, kcal)
-- Fix any recipes with missing or placeholder nutrition values
-- Verify allergen data completeness across all recipes
-- Ensure dietary filter tags are correctly mapped for all 315 recipes
-
----
-
-## Files to Create/Modify
-
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/hooks/usePushNotifications.tsx` | Fix pushManager type |
-| `src/components/admin/SystemHealth.tsx` | Fix pushManager type |
-| `src/components/NotificationPreferences.tsx` | Fix pushManager type |
-| `src/pages/IOSPushSetup.tsx` | Fix pushManager type |
-| `supabase/functions/daily-admin-report/index.ts` | NEW - admin metrics |
-| `supabase/config.toml` | Add daily-admin-report config |
-| `src/data/recipes311-315.ts` | NEW - 5 new recipes |
-| `src/data/recipes.ts` | Import new recipes |
-| `src/pages/Recipes.tsx` | Perf + UI enhancements |
-| `src/pages/Home.tsx` | Visual effects upgrade |
-| `src/components/ui/glass-card.tsx` | Enhanced glow effects |
-| `src/index.css` | New animation keyframes |
-
----
+| `supabase/functions/_shared/webpush.ts` | Add 403 to expired detection (line 328) |
+| `supabase/functions/test-push-notification/index.ts` | Rewrite: delete local webpush copy, import from `_shared/webpush.ts`, use `NotificationPayload` |
+| `supabase/functions/check-meal-reminders/index.ts` | Add 403 handling for stale subs |
+| `supabase/functions/bibi-chat/index.ts` | Fetch user profile, inject baby age into prompt, upgrade model, update recipe count |
+| `src/components/admin/UserManagement.tsx` | Filter to real profiles only, show accurate count |
+| `src/pages/Recipes.tsx` | Add "Starting Solids Guide" banner + "Ask Bibi" CTA + "Recommended for You" section |
+| DB migration | Delete 3 stale push subscriptions, clean orphan user_sessions |
 
 ## Implementation Order
-
-1. Fix TypeScript build errors (unblocks everything)
-2. Create daily-admin-report edge function
-3. Add 5 new recipes
-4. Performance optimizations (memo, lazy loading)
-5. UI/UX crazy effects (animations, transitions, 3D)
-6. Precision fixes on recipe data
+1. Fix `_shared/webpush.ts` (403 detection) — unblocks ALL notifications
+2. Rewrite `test-push-notification` to use shared module
+3. DB migration: clean stale subscriptions + orphan sessions
+4. Fix admin user count
+5. Upgrade AI chatbot (profile-aware + better model)
+6. Add recipe page guidance sections
 
