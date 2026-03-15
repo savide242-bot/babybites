@@ -108,10 +108,8 @@ const UserManagement = () => {
         };
       }) || [];
 
-      // Filter out generic profiles
-      const realUsers = usersWithData.filter(user => 
-        user.full_name !== 'User' || sessionsRes.data?.some(s => s.user_id === user.id)
-      );
+      // Only show users with actual profiles (not ghost sessions)
+      const realUsers = usersWithData;
 
       // Sort by last_active
       realUsers.sort((a, b) => {
@@ -127,8 +125,8 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
-        title: 'Erro',
-        description: 'Falha ao carregar utilizadores',
+        title: 'Error',
+        description: 'Failed to load users',
         variant: 'destructive',
       });
     } finally {
@@ -168,8 +166,8 @@ const UserManagement = () => {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: '✅ Sucesso',
-        description: data.message || 'Acção executada com sucesso',
+        title: '✅ Success',
+        description: data.message || 'Action completed successfully',
       });
 
       fetchUsers();
@@ -177,8 +175,8 @@ const UserManagement = () => {
     } catch (error: any) {
       console.error('Admin action error:', error);
       toast({
-        title: 'Erro',
-        description: error.message || 'Falha ao executar acção',
+        title: 'Error',
+        description: error.message || 'Action failed',
         variant: 'destructive',
       });
       return false;
@@ -291,7 +289,7 @@ const UserManagement = () => {
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <CardTitle className="flex items-center gap-2 flex-wrap">
-              Gestão de Utilizadores
+              User Management
               <Badge variant="outline" className="text-sm">
                 {filteredUsers.length} de {users.length}
               </Badge>
@@ -309,7 +307,7 @@ const UserManagement = () => {
               disabled={refreshing}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              Refresh
             </Button>
           </div>
 
@@ -318,7 +316,7 @@ const UserManagement = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Pesquisar por nome, mãe ou bebé..."
+                placeholder="Search by name, mother or baby..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -327,14 +325,14 @@ const UserManagement = () => {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-40">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Estado" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="online">🟢 Online</SelectItem>
-                <SelectItem value="active">Activos (24h)</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-                <SelectItem value="banned">🚫 Banidos</SelectItem>
+                <SelectItem value="active">Active (24h)</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="banned">🚫 Banned</SelectItem>
               </SelectContent>
             </Select>
             <Select value={pushFilter} onValueChange={setPushFilter}>
@@ -343,9 +341,9 @@ const UserManagement = () => {
                 <SelectValue placeholder="Push" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="enabled">Com Push</SelectItem>
-                <SelectItem value="disabled">Sem Push</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="enabled">With Push</SelectItem>
+                <SelectItem value="disabled">Without Push</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -355,21 +353,21 @@ const UserManagement = () => {
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Mãe/Bebé</TableHead>
-                  <TableHead>Estado</TableHead>
+               <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Mother/Baby</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Push</TableHead>
-                  <TableHead>Sessões</TableHead>
-                  <TableHead>Registo</TableHead>
-                  <TableHead>Acções</TableHead>
+                  <TableHead>Sessions</TableHead>
+                  <TableHead>Registered</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Nenhum utilizador encontrado
+                      No users found
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -419,16 +417,16 @@ const UserManagement = () => {
                               🟢 Online
                             </Badge>
                           ) : isActive ? (
-                            <Badge variant="outline">🔵 Activo</Badge>
+                            <Badge variant="outline">🔵 Active</Badge>
                           ) : (
-                            <Badge variant="secondary">⚫ Inactivo</Badge>
+                            <Badge variant="secondary">⚫ Inactive</Badge>
                           )}
                           {lastActive && (
                             <div className="text-xs text-muted-foreground mt-1">
                               {minutesSinceActive !== null && minutesSinceActive < 60
-                                ? `${minutesSinceActive}m atrás`
+                                ? `${minutesSinceActive}m ago`
                                 : minutesSinceActive !== null && minutesSinceActive < 60 * 24
-                                ? `${Math.floor(minutesSinceActive / 60)}h atrás`
+                                ? `${Math.floor(minutesSinceActive / 60)}h ago`
                                 : formatDistanceToNow(lastActive, { addSuffix: true })
                               }
                             </div>
@@ -437,11 +435,11 @@ const UserManagement = () => {
                         <TableCell>
                           {user.hasPush ? (
                             <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                              <Bell className="h-3 w-3 mr-1" /> Activo
+                              <Bell className="h-3 w-3 mr-1" /> Active
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-muted-foreground">
-                              <BellOff className="h-3 w-3 mr-1" /> Não
+                              <BellOff className="h-3 w-3 mr-1" /> No
                             </Badge>
                           )}
                         </TableCell>
@@ -461,14 +459,14 @@ const UserManagement = () => {
                             <DropdownMenuContent align="end">
                               {user.is_banned ? (
                                 <DropdownMenuItem onClick={() => handleUnban(user.id)}>
-                                  <UserX className="h-4 w-4 mr-2" /> Desbanir
+                                  <UserX className="h-4 w-4 mr-2" /> Unban
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem 
                                   onClick={() => { setSelectedUser(user); setBanDialogOpen(true); }}
                                   className="text-amber-600"
                                 >
-                                  <Ban className="h-4 w-4 mr-2" /> Banir
+                                  <Ban className="h-4 w-4 mr-2" /> Ban
                                 </DropdownMenuItem>
                               )}
                               
@@ -476,11 +474,11 @@ const UserManagement = () => {
                               
                               {user.isAdmin ? (
                                 <DropdownMenuItem onClick={() => handleDemote(user.id)}>
-                                  <ShieldOff className="h-4 w-4 mr-2" /> Remover Admin
+                                  <ShieldOff className="h-4 w-4 mr-2" /> Remove Admin
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem onClick={() => handlePromote(user.id)}>
-                                  <Shield className="h-4 w-4 mr-2" /> Promover Admin
+                                  <Shield className="h-4 w-4 mr-2" /> Promote Admin
                                 </DropdownMenuItem>
                               )}
                               
@@ -488,7 +486,7 @@ const UserManagement = () => {
                                 <DropdownMenuItem 
                                   onClick={() => { setSelectedUser(user); setNotifyDialogOpen(true); }}
                                 >
-                                  <Send className="h-4 w-4 mr-2" /> Enviar Notificação
+                                  <Send className="h-4 w-4 mr-2" /> Send Notification
                                 </DropdownMenuItem>
                               )}
                               
@@ -498,7 +496,7 @@ const UserManagement = () => {
                                 onClick={() => { setSelectedUser(user); setDeleteDialogOpen(true); }}
                                 className="text-red-600"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" /> Remover
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -515,7 +513,7 @@ const UserManagement = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
-                Página {currentPage} de {totalPages}
+                Page {currentPage} of {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -544,30 +542,30 @@ const UserManagement = () => {
       <AlertDialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Banir Utilizador</AlertDialogTitle>
+            <AlertDialogTitle>Ban User</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem a certeza que deseja banir <strong>{selectedUser?.full_name}</strong>?
-              O utilizador será impedido de aceder à aplicação.
+              Are you sure you want to ban <strong>{selectedUser?.full_name}</strong>?
+              The user will be blocked from accessing the app.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Label htmlFor="banReason">Motivo (opcional)</Label>
+            <Label htmlFor="banReason">Reason (optional)</Label>
             <Textarea
               id="banReason"
-              placeholder="Infracção das regras da comunidade..."
+              placeholder="Community guidelines violation..."
               value={banReason}
               onChange={(e) => setBanReason(e.target.value)}
               className="mt-2"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleBan} 
               disabled={actionLoading}
               className="bg-amber-500 hover:bg-amber-600"
             >
-              {actionLoading ? 'A banir...' : 'Banir'}
+              {actionLoading ? 'Banning...' : 'Ban'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -577,20 +575,20 @@ const UserManagement = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover Utilizador</AlertDialogTitle>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem a certeza que deseja remover permanentemente <strong>{selectedUser?.full_name}</strong>?
-              Esta acção não pode ser desfeita e todos os dados do utilizador serão apagados.
+              Are you sure you want to permanently delete <strong>{selectedUser?.full_name}</strong>?
+              This action cannot be undone and all user data will be erased.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               disabled={actionLoading}
               className="bg-red-500 hover:bg-red-600"
             >
-              {actionLoading ? 'A remover...' : 'Remover Permanentemente'}
+              {actionLoading ? 'Deleting...' : 'Delete Permanently'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -600,27 +598,27 @@ const UserManagement = () => {
       <Dialog open={notifyDialogOpen} onOpenChange={setNotifyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enviar Notificação</DialogTitle>
+            <DialogTitle>Send Notification</DialogTitle>
             <DialogDescription>
-              Enviar uma notificação push para <strong>{selectedUser?.full_name}</strong>
+              Send a push notification to <strong>{selectedUser?.full_name}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="notifyTitle">Título</Label>
+              <Label htmlFor="notifyTitle">Title</Label>
               <Input
                 id="notifyTitle"
-                placeholder="Título da notificação"
+                placeholder="Notification title"
                 value={notifyTitle}
                 onChange={(e) => setNotifyTitle(e.target.value)}
                 className="mt-2"
               />
             </div>
             <div>
-              <Label htmlFor="notifyBody">Mensagem</Label>
+              <Label htmlFor="notifyBody">Message</Label>
               <Textarea
                 id="notifyBody"
-                placeholder="Conteúdo da notificação..."
+                placeholder="Notification content..."
                 value={notifyBody}
                 onChange={(e) => setNotifyBody(e.target.value)}
                 className="mt-2"
@@ -629,13 +627,13 @@ const UserManagement = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNotifyDialogOpen(false)} disabled={actionLoading}>
-              Cancelar
+              Cancel
             </Button>
             <Button 
               onClick={handleSendNotification} 
               disabled={actionLoading || !notifyTitle || !notifyBody}
             >
-              {actionLoading ? 'A enviar...' : 'Enviar'}
+              {actionLoading ? 'Sending...' : 'Send'}
             </Button>
           </DialogFooter>
         </DialogContent>
