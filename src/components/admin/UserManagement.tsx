@@ -125,8 +125,8 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
-        title: 'Erro',
-        description: 'Falha ao carregar utilizadores',
+        title: 'Error',
+        description: 'Failed to load users',
         variant: 'destructive',
       });
     } finally {
