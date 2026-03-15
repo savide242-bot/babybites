@@ -108,10 +108,8 @@ const UserManagement = () => {
         };
       }) || [];
 
-      // Filter out generic profiles
-      const realUsers = usersWithData.filter(user => 
-        user.full_name !== 'User' || sessionsRes.data?.some(s => s.user_id === user.id)
-      );
+      // Only show users with actual profiles (not ghost sessions)
+      const realUsers = usersWithData;
 
       // Sort by last_active
       realUsers.sort((a, b) => {
