@@ -367,7 +367,7 @@ const UserManagement = () => {
                 {paginatedUsers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Nenhum utilizador encontrado
+                      No users found
                     </TableCell>
                   </TableRow>
                 ) : (
