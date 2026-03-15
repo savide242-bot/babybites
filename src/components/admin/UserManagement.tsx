@@ -575,20 +575,20 @@ const UserManagement = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover Utilizador</AlertDialogTitle>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem a certeza que deseja remover permanentemente <strong>{selectedUser?.full_name}</strong>?
-              Esta acção não pode ser desfeita e todos os dados do utilizador serão apagados.
+              Are you sure you want to permanently delete <strong>{selectedUser?.full_name}</strong>?
+              This action cannot be undone and all user data will be erased.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete}
               disabled={actionLoading}
               className="bg-red-500 hover:bg-red-600"
             >
-              {actionLoading ? 'A remover...' : 'Remover Permanentemente'}
+              {actionLoading ? 'Deleting...' : 'Delete Permanently'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
