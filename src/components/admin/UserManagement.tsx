@@ -605,10 +605,10 @@ const UserManagement = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="notifyTitle">Título</Label>
+              <Label htmlFor="notifyTitle">Title</Label>
               <Input
                 id="notifyTitle"
-                placeholder="Título da notificação"
+                placeholder="Notification title"
                 value={notifyTitle}
                 onChange={(e) => setNotifyTitle(e.target.value)}
                 className="mt-2"
