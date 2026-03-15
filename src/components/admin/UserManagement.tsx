@@ -474,11 +474,11 @@ const UserManagement = () => {
                               
                               {user.isAdmin ? (
                                 <DropdownMenuItem onClick={() => handleDemote(user.id)}>
-                                  <ShieldOff className="h-4 w-4 mr-2" /> Remover Admin
+                                  <ShieldOff className="h-4 w-4 mr-2" /> Remove Admin
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem onClick={() => handlePromote(user.id)}>
-                                  <Shield className="h-4 w-4 mr-2" /> Promover Admin
+                                  <Shield className="h-4 w-4 mr-2" /> Promote Admin
                                 </DropdownMenuItem>
                               )}
                               
