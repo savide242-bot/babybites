@@ -496,7 +496,7 @@ const UserManagement = () => {
                                 onClick={() => { setSelectedUser(user); setDeleteDialogOpen(true); }}
                                 className="text-red-600"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" /> Remover
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
