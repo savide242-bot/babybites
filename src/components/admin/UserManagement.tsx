@@ -175,8 +175,8 @@ const UserManagement = () => {
     } catch (error: any) {
       console.error('Admin action error:', error);
       toast({
-        title: 'Erro',
-        description: error.message || 'Falha ao executar acção',
+        title: 'Error',
+        description: error.message || 'Action failed',
         variant: 'destructive',
       });
       return false;
