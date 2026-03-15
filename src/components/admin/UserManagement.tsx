@@ -435,7 +435,7 @@ const UserManagement = () => {
                         <TableCell>
                           {user.hasPush ? (
                             <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                              <Bell className="h-3 w-3 mr-1" /> Activo
+                              <Bell className="h-3 w-3 mr-1" /> Active
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-muted-foreground">
