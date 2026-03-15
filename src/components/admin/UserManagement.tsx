@@ -353,14 +353,14 @@ const UserManagement = () => {
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Mãe/Bebé</TableHead>
-                  <TableHead>Estado</TableHead>
+               <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Mother/Baby</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Push</TableHead>
-                  <TableHead>Sessões</TableHead>
-                  <TableHead>Registo</TableHead>
-                  <TableHead>Acções</TableHead>
+                  <TableHead>Sessions</TableHead>
+                  <TableHead>Registered</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
