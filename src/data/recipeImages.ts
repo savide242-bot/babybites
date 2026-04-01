@@ -24,6 +24,11 @@ import recipe337PbBananaToast from "@/assets/recipes/recipe-337-pb-banana-toast.
 import recipe338SquashAppleRisotto from "@/assets/recipes/recipe-338-squash-apple-risotto.jpg";
 import recipe339MiniFishPie from "@/assets/recipes/recipe-339-mini-fish-pie.jpg";
 import recipe340BerryOatCrumble from "@/assets/recipes/recipe-340-berry-oat-crumble.jpg";
+import recipe341BananaAvocadoMash from "@/assets/recipes/recipe-341-banana-avocado-mash.jpg";
+import recipe342MangoYogurtBowl from "@/assets/recipes/recipe-342-mango-yogurt-bowl.jpg";
+import recipe343CheesyBroccoliBites from "@/assets/recipes/recipe-343-cheesy-broccoli-bites.jpg";
+import recipe344AppleCinnamonOats from "@/assets/recipes/recipe-344-apple-cinnamon-oats.jpg";
+import recipe345PbBananaFingers from "@/assets/recipes/recipe-345-pb-banana-fingers.jpg";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
