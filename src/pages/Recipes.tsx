@@ -525,6 +525,7 @@ const Recipes = () => {
               setSelectedAge("All Ages");
               setSelectedCategory("All Categories");
               setDietaryFilters([]);
+              setEasyCookingMode(false);
             }}
           />
         )}
