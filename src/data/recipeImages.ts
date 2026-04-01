@@ -817,6 +817,11 @@ const recipeImageMap: Record<string, string> = {
   "338": recipe338SquashAppleRisotto,
   "339": recipe339MiniFishPie,
   "340": recipe340BerryOatCrumble,
+  "341": recipe341BananaAvocadoMash,
+  "342": recipe342MangoYogurtBowl,
+  "343": recipe343CheesyBroccoliBites,
+  "344": recipe344AppleCinnamonOats,
+  "345": recipe345PbBananaFingers,
 };
 
 // Keyword to ID mapping for backward compatibility
