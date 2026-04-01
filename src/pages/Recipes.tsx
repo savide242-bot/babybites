@@ -175,8 +175,13 @@ const Recipes = () => {
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
 
+  const isEasyRecipe = useCallback((recipe: typeof recipes[0]) => {
+    const prepMinutes = parseInt(recipe.prepTime) || 999;
+    return prepMinutes <= 15 && recipe.ingredients.length <= 6;
+  }, []);
+
   const filteredRecipes = useMemo(() => {
-    return recipes.filter((recipe) => {
+    let result = recipes.filter((recipe) => {
       const matchesSearch = searchQuery === "" || 
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -189,7 +194,14 @@ const Recipes = () => {
       
       return matchesSearch && matchesAge && matchesCategory && matchesDietary;
     });
-  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
+
+    if (easyCookingMode) {
+      result = result.filter(isEasyRecipe);
+      result.sort((a, b) => (parseInt(a.prepTime) || 0) - (parseInt(b.prepTime) || 0));
+    }
+
+    return result;
+  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters, easyCookingMode, isEasyRecipe]);
 
   const visibleRecipes = useMemo(() => {
     return filteredRecipes.slice(0, visibleCount);
