@@ -127,8 +127,8 @@ Deno.serve(async (req) => {
     const notification: NotificationPayload = {
       title: payload.title,
       body: payload.body,
-      icon: payload.icon || '/icon-192x192.png',
-      badge: '/icon-192x192.png',
+      icon: payload.icon || 'https://babybites.lovable.app/icon-192x192.png',
+      badge: 'https://babybites.lovable.app/icon-192x192.png',
       tag: `admin-${Date.now()}`,
       data: {
         url: payload.action_url || '/',

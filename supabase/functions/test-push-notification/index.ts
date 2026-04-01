@@ -84,6 +84,8 @@ Deno.serve(async (req) => {
     const notification: NotificationPayload = {
       title: '🔔 Test Notification',
       body: `Hi ${motherName}! Your meal reminders are working perfectly!`,
+      icon: 'https://babybites.lovable.app/icon-192x192.png',
+      badge: 'https://babybites.lovable.app/icon-192x192.png',
       tag: `test-${Date.now()}`,
       data: { url: '/', timestamp: Date.now() },
     };

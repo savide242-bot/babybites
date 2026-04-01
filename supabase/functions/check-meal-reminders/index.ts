@@ -6,7 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// English-only meal messages — sent AT meal time (not "in 30 minutes")
+const APP_URL = 'https://babybites.lovable.app';
+const ICON_URL = `${APP_URL}/icon-192x192.png`;
+
+// English-only meal messages — sent AT meal time
 const MEAL_MESSAGES: Record<string, { title: string; body: string }> = {
   'breakfast': {
     title: '🌅 Breakfast Time!',
@@ -34,10 +37,8 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string }> = {
   },
 };
 
-// Window: send if user's local time is between -2 and +8 minutes of meal time
-// With cron every 5 min, this guarantees exactly 1 hit per meal
-const WINDOW_BEFORE_MIN = 2;  // can be up to 2 min early
-const WINDOW_AFTER_MIN = 8;   // can be up to 8 min late
+const WINDOW_BEFORE_MIN = 2;
+const WINDOW_AFTER_MIN = 8;
 
 function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minute: number } {
   try {
@@ -66,8 +67,7 @@ function getUserLocalDate(utcDate: Date, timezone: string): string {
 function isInMealWindow(userHour: number, userMinute: number, mealHour: number, mealMinute: number): boolean {
   const userTotal = userHour * 60 + userMinute;
   const mealTotal = mealHour * 60 + mealMinute;
-  const diff = userTotal - mealTotal; // positive = user is past meal time
-  // diff in [-WINDOW_BEFORE, +WINDOW_AFTER] means we should send
+  const diff = userTotal - mealTotal;
   return diff >= -WINDOW_BEFORE_MIN && diff <= WINDOW_AFTER_MIN;
 }
 
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date();
-    console.log(`\n⏰ CHECK-MEAL-REMINDERS v3 | UTC: ${now.toISOString()}`);
+    console.log(`\n⏰ CHECK-MEAL-REMINDERS v4 | UTC: ${now.toISOString()}`);
 
     // 1) Fetch all enabled meal times
     const { data: allMealTimes, error: mtErr } = await supabase
@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 2) Fetch profiles (timezone + baby_name) and push subscriptions
+    // 2) Fetch profiles and push subscriptions
     const userIds = [...new Set(allMealTimes.map(m => m.user_id))];
 
     const [{ data: profiles }, { data: allSubs }] = await Promise.all([
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       subsMap.set(s.user_id, arr);
     });
 
-    let sentCount = 0, failedCount = 0, skipped = 0;
+    let sentCount = 0, failedCount = 0, skipped = 0, noSubCount = 0;
     const expiredIds: string[] = [];
 
     // 3) For each meal time, check if in window
@@ -132,9 +132,15 @@ Deno.serve(async (req) => {
 
       const inWindow = isInMealWindow(local.hour, local.minute, mt.preferred_hour, mt.preferred_minute);
 
-      console.log(`  ${mt.meal_type} | user=${mt.user_id.substring(0,8)} | tz=${tz} | local=${local.hour}:${String(local.minute).padStart(2,'0')} | meal=${mt.preferred_hour}:${String(mt.preferred_minute).padStart(2,'0')} | ${inWindow ? '✅ IN WINDOW' : '⏭️ skip'}`);
-
       if (!inWindow) continue;
+
+      // *** FIX: Check subscription BEFORE claiming the daily slot ***
+      const subs = subsMap.get(mt.user_id);
+      if (!subs?.length) {
+        console.log(`  ⚠️ ${mt.meal_type} | user=${mt.user_id.substring(0,8)} | IN WINDOW but NO subscription — skipping log insert`);
+        noSubCount++;
+        continue;
+      }
 
       // 4) Atomic duplicate prevention: insert first, skip if already exists
       const { error: logErr } = await supabase.from('notification_logs').insert({
@@ -144,9 +150,8 @@ Deno.serve(async (req) => {
       });
 
       if (logErr) {
-        // Unique constraint violation = already sent today
         if (logErr.code === '23505' || logErr.message?.includes('duplicate') || logErr.message?.includes('unique')) {
-          console.log(`  ⏭️ Already sent ${mt.meal_type} today`);
+          console.log(`  ⏭️ Already sent ${mt.meal_type} today for user=${mt.user_id.substring(0,8)}`);
           skipped++;
           continue;
         }
@@ -154,20 +159,14 @@ Deno.serve(async (req) => {
       }
 
       // 5) Send push
-      const subs = subsMap.get(mt.user_id);
-      if (!subs?.length) {
-        console.log(`  ⚠️ No push subscription for user`);
-        continue;
-      }
-
       const msg = MEAL_MESSAGES[mt.meal_type] || MEAL_MESSAGES['snack'];
       const body = msg.body.replace('{baby}', babyName);
 
       const notification: NotificationPayload = {
         title: msg.title,
         body,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
+        icon: ICON_URL,
+        badge: ICON_URL,
         tag: `meal-${mt.meal_type}-${localDate}`,
         data: { url: '/planner', mealType: mt.meal_type },
       };
@@ -175,23 +174,32 @@ Deno.serve(async (req) => {
       for (const sub of subs) {
         const pushSub: PushSubscription = { id: sub.id, endpoint: sub.endpoint, keys: sub.keys };
 
-        // Retry up to 2 times
         let success = false;
         for (let attempt = 1; attempt <= 2; attempt++) {
-          const result = await sendPush(pushSub, notification, vapidKeys.publicKey, vapidKeys.privateKey);
-          if (result.success) {
-            sentCount++;
-            success = true;
-            console.log(`  ✅ Sent ${mt.meal_type} to ${sub.endpoint.substring(0, 50)}...`);
-            break;
-          }
-          if (result.expired) {
-            expiredIds.push(sub.id);
+          try {
+            const result = await sendPush(pushSub, notification, vapidKeys.publicKey, vapidKeys.privateKey);
+            if (result.success) {
+              sentCount++;
+              success = true;
+              console.log(`  ✅ Sent ${mt.meal_type} to user=${mt.user_id.substring(0,8)} endpoint=${sub.endpoint.substring(0, 50)}...`);
+              break;
+            }
+            if (result.expired) {
+              expiredIds.push(sub.id);
+              failedCount++;
+              console.log(`  🗑️ Expired/VAPID mismatch for user=${mt.user_id.substring(0,8)}, will cleanup`);
+              break;
+            }
+            if (attempt < 2) await new Promise(r => setTimeout(r, 1000));
+            else {
+              failedCount++;
+              console.error(`  ❌ Failed after retries: status=${result.status} error=${result.error}`);
+            }
+          } catch (pushError) {
             failedCount++;
+            console.error(`  ❌ Push exception: ${pushError}`);
             break;
           }
-          if (attempt < 2) await new Promise(r => setTimeout(r, 1000));
-          else { failedCount++; console.error(`  ❌ Failed after retries: ${result.error}`); }
         }
       }
     }
@@ -202,10 +210,11 @@ Deno.serve(async (req) => {
       await supabase.from('push_subscriptions').delete().in('id', expiredIds);
     }
 
-    console.log(`📊 Done: ${sentCount} sent, ${failedCount} failed, ${skipped} skipped (duplicate)`);
+    console.log(`📊 Done: ${sentCount} sent, ${failedCount} failed, ${skipped} skipped (dup), ${noSubCount} no-sub`);
 
     return new Response(JSON.stringify({
-      success: true, sent: sentCount, failed: failedCount, skippedDuplicates: skipped,
+      success: true, sent: sentCount, failed: failedCount,
+      skippedDuplicates: skipped, noSubscription: noSubCount,
       expiredCleaned: expiredIds.length, checkedAt: now.toISOString(),
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {

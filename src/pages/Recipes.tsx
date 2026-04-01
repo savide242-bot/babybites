@@ -154,6 +154,7 @@ const Recipes = () => {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dietaryFilters, setDietaryFilters] = useState<DietaryTag[]>([]);
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [easyCookingMode, setEasyCookingMode] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -169,13 +170,18 @@ const Recipes = () => {
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
-  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
+  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters, easyCookingMode]);
 
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
 
+  const isEasyRecipe = useCallback((recipe: typeof recipes[0]) => {
+    const prepMinutes = parseInt(recipe.prepTime) || 999;
+    return prepMinutes <= 15 && recipe.ingredients.length <= 6;
+  }, []);
+
   const filteredRecipes = useMemo(() => {
-    return recipes.filter((recipe) => {
+    let result = recipes.filter((recipe) => {
       const matchesSearch = searchQuery === "" || 
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -188,7 +194,14 @@ const Recipes = () => {
       
       return matchesSearch && matchesAge && matchesCategory && matchesDietary;
     });
-  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
+
+    if (easyCookingMode) {
+      result = result.filter(isEasyRecipe);
+      result.sort((a, b) => (parseInt(a.prepTime) || 0) - (parseInt(b.prepTime) || 0));
+    }
+
+    return result;
+  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters, easyCookingMode, isEasyRecipe]);
 
   const visibleRecipes = useMemo(() => {
     return filteredRecipes.slice(0, visibleCount);
@@ -295,6 +308,23 @@ const Recipes = () => {
             </div>
             
             <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
+              <Button
+                variant={easyCookingMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  hapticFeedback('light');
+                  setEasyCookingMode(!easyCookingMode);
+                }}
+                className={`rounded-full text-xs h-9 sm:h-10 px-3 sm:px-4 flex-shrink-0 gap-1.5 ${
+                  easyCookingMode 
+                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg' 
+                    : 'border-primary/20 bg-background shadow-sm'
+                }`}
+              >
+                <ChefHat className="h-3.5 w-3.5" />
+                Easy Cooking
+              </Button>
+
               <Select value={selectedAge} onValueChange={setSelectedAge}>
                 <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm flex-shrink-0">
                   <SelectValue placeholder={t('recipes.selectAge')} />
@@ -426,6 +456,23 @@ const Recipes = () => {
           </div>
         </div>
 
+        {/* Easy Cooking Banner */}
+        {easyCookingMode && (
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-accent/10 via-primary/5 to-secondary/10 border border-accent/20 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-accent/15 shrink-0">
+                <ChefHat className="h-5 w-5 text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-foreground">Easy Cooking Mode 👩‍🍳</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Showing simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
@@ -478,6 +525,7 @@ const Recipes = () => {
               setSelectedAge("All Ages");
               setSelectedCategory("All Categories");
               setDietaryFilters([]);
+              setEasyCookingMode(false);
             }}
           />
         )}
