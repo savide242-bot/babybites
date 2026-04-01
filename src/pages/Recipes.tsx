@@ -308,6 +308,23 @@ const Recipes = () => {
             </div>
             
             <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
+              <Button
+                variant={easyCookingMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  hapticFeedback('light');
+                  setEasyCookingMode(!easyCookingMode);
+                }}
+                className={`rounded-full text-xs h-9 sm:h-10 px-3 sm:px-4 flex-shrink-0 gap-1.5 ${
+                  easyCookingMode 
+                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg' 
+                    : 'border-primary/20 bg-background shadow-sm'
+                }`}
+              >
+                <ChefHat className="h-3.5 w-3.5" />
+                Easy Cooking
+              </Button>
+
               <Select value={selectedAge} onValueChange={setSelectedAge}>
                 <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm flex-shrink-0">
                   <SelectValue placeholder={t('recipes.selectAge')} />
