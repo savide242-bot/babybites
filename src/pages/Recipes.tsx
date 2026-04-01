@@ -170,7 +170,7 @@ const Recipes = () => {
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
-  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters]);
+  }, [searchQuery, selectedAge, selectedCategory, dietaryFilters, easyCookingMode]);
 
   const recentRecipes = getRecentRecipes();
   const mostViewedRecipes = getMostViewed();
