@@ -154,6 +154,7 @@ const Recipes = () => {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dietaryFilters, setDietaryFilters] = useState<DietaryTag[]>([]);
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [easyCookingMode, setEasyCookingMode] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
