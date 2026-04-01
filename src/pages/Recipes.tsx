@@ -456,6 +456,23 @@ const Recipes = () => {
           </div>
         </div>
 
+        {/* Easy Cooking Banner */}
+        {easyCookingMode && (
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-accent/10 via-primary/5 to-secondary/10 border border-accent/20 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-accent/15 shrink-0">
+                <ChefHat className="h-5 w-5 text-accent" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-foreground">Easy Cooking Mode 👩‍🍳</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Showing simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
