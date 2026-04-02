@@ -1,52 +1,73 @@
 
 
-# Plan: Fix Notification Delivery Bug + Add "Easy Recipes" Tab
+# Plan: Install Prompt, Win-Back Notifications, Easy Cooking Filters, UI Polish
 
-## 1. Notification System — Critical Bug Found
+## Key Finding: Notifications ARE Working
 
-**Root cause discovered**: The `check-meal-reminders` function has a logic ordering bug:
+The database proves meal reminders are being delivered successfully. Today alone (April 2), there are **25+ notification_logs** entries across 8 users with active subscriptions — breakfast, morning-snack, lunch, afternoon-snack, dinner — all sent at the correct local times per timezone. The system is working. The reason you may not see them on YOUR device is if your push subscription was purged during the cleanup. You need to re-enable notifications in Settings on the published app.
 
-```text
-Current flow (BROKEN):
-  1. Check if meal is in time window → YES
-  2. INSERT into notification_logs (claims the "once per day" slot) ✅
-  3. Check if user has push subscription → NO subscription found
-  4. Skip (but the log entry already consumed the daily slot!)
-  
-Result: 80% of notification_logs entries are for users WITHOUT subscriptions.
-Those users can never get a retry that day.
-```
+## Key Finding: Onboarding Has No Duplicate
 
-Additionally, the icon URL is `/icon-192x192.png` (relative path). Push services need absolute URLs. Apple/FCM may silently drop notifications with invalid icons.
+Step 1 asks "What's your name?" (mother), Step 2 asks "What's your baby's name?" — these are different questions. However, Step 1's text says "Hi there! What's your name?" which could feel generic. I'll make the steps more visually distinct and polished.
 
-**Evidence from database**: Of today's 20 most recent notification_logs entries, only 6 have `has_sub=1`. The other 14 were logged but never sent because the users had no push subscription. The system "thinks" it sent them.
+---
 
-**Fix**:
-- Move subscription check BEFORE the notification_log insert — only claim the daily slot if the user actually has a subscription
-- Replace all relative icon paths (`/icon-192x192.png`) with the absolute URL in `check-meal-reminders`, `notify-all-users`, and `test-push-notification`
-- Add explicit success/failure logging after each push attempt so we can diagnose delivery
+## Changes
 
-**Files**: `supabase/functions/check-meal-reminders/index.ts`, `supabase/functions/notify-all-users/index.ts`, `supabase/functions/test-push-notification/index.ts`
+### 1. Smart Install Banner (Chrome/Safari detection)
+Add a persistent, dismissible install banner that detects when the user is browsing via Chrome/Safari (not in standalone PWA mode) and shows a clear "Install BabyBites" prompt with one-tap install for Android/Chrome and iOS instructions for Safari.
 
-## 2. "Easy Recipes" Tab for Beginner Cooks
+**Files**: New `src/components/SmartInstallBanner.tsx`, update `src/App.tsx` to include it.
 
-**Approach**: Classify recipes as "Super Easy" based on:
-- `prepTime` <= 15 minutes
-- `ingredients.length` <= 6
+### 2. Win-Back Notifications for Inactive Users (2+ days)
+Create a new Edge Function `send-winback-notification` that:
+- Queries `user_sessions` for users inactive 2+ days who have active `push_subscriptions`
+- Sends a personalized "We miss you, {motherName}!" push notification
+- Logs to `winback_campaigns` table to prevent duplicate sends
+- Schedule via pg_cron every 6 hours
 
-This covers purees, simple mashes, smoothies, and quick finger foods — perfect for moms who have never cooked before.
+**Files**: New `supabase/functions/send-winback-notification/index.ts`, DB insert for cron job.
 
-**Changes to Recipes page**:
-- Add **"Easy Cooking"** as a quick-access filter button at the top of the filters (styled distinctly with a beginner-friendly icon)
-- When active, show ONLY super-easy recipes with a friendly banner: "Simple recipes anyone can make — no cooking experience needed!"
-- Add the filter to the existing category/age dropdown system so it works with other filters
-- Sort easy recipes by prep time ascending (quickest first)
+### 3. Easy Cooking: Age Filter + Home Page CTA
+- In Easy Cooking mode, auto-detect baby age from profile and pre-select the age filter
+- Add age dropdown that stays visible in easy cooking mode
+- On Home page, add a card: "Can't cook? No worries! We have super easy recipes ready in under 15 minutes" linking to `/recipes` with easy cooking mode
 
-**File**: `src/pages/Recipes.tsx`
+**Files**: `src/pages/Recipes.tsx`, `src/pages/Home.tsx`
 
-## Implementation Order
-1. Fix `check-meal-reminders` logic ordering + icon URLs
-2. Fix icon URLs in `notify-all-users` and `test-push-notification`
-3. Deploy all 3 edge functions
-4. Add "Easy Cooking" filter to Recipes page
+### 4. Onboarding Polish
+- Make Step 1 (mother name) more warm and distinct — "Welcome, mama!" with illustration
+- Update StepWelcome to show "340+" instead of "300+"
+- Ensure each step has unique visual identity so nothing feels repeated
+
+**Files**: `src/components/onboarding/steps/StepMotherName.tsx`, `src/components/onboarding/steps/StepWelcome.tsx`
+
+### 5. Humanize AI-Generated Content
+- Remove emoji overuse in UI copy
+- Replace generic phrases with natural, warm language
+- Ensure recipe card badges, banners, and CTAs feel hand-crafted
+
+**Files**: `src/pages/Recipes.tsx`, `src/pages/Home.tsx`
+
+### 6. Recipes 341-345 Verification
+Already verified: all 5 recipes have detailed multi-step instructions, full nutrition info, allergen data, storage tips, and generated images. They are complete.
+
+---
+
+## Cron Job Setup (User Action Required)
+
+For the win-back notification, I'll provide the SQL to schedule a cron job that calls `send-winback-notification` every 6 hours. You'll need to confirm the execution.
+
+## Files Summary
+
+| File | Change |
+|------|--------|
+| `src/components/SmartInstallBanner.tsx` | New — detect browser, show install prompt |
+| `src/App.tsx` | Add SmartInstallBanner |
+| `supabase/functions/send-winback-notification/index.ts` | New — inactive user push notifications |
+| `src/pages/Recipes.tsx` | Easy cooking age auto-select + polish |
+| `src/pages/Home.tsx` | "Easy recipes" CTA card |
+| `src/components/onboarding/steps/StepMotherName.tsx` | Visual polish |
+| `src/components/onboarding/steps/StepWelcome.tsx` | Update "340+" count |
+| DB cron insert | Schedule win-back every 6h |
 
