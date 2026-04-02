@@ -165,6 +165,10 @@ const Recipes = () => {
         setSelectedAge(decodedAge);
       }
     }
+    const easyParam = searchParams.get('easy');
+    if (easyParam === 'true') {
+      setEasyCookingMode(true);
+    }
   }, [searchParams]);
 
   // Reset visible count when filters change
@@ -277,7 +281,7 @@ const Recipes = () => {
                 {t('recipes.title')}
               </h1>
               <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                {filteredRecipes.length} nutritious recipes for your little one ✨
+                {filteredRecipes.length} nutritious recipes for your little one
               </p>
             </div>
             <Button
@@ -464,9 +468,9 @@ const Recipes = () => {
                 <ChefHat className="h-5 w-5 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm text-foreground">Easy Cooking Mode 👩‍🍳</h3>
+                <h3 className="font-semibold text-sm text-foreground">Easy Cooking Mode</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Showing simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less!
+                  Simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less. No cooking experience needed!
                 </p>
               </div>
             </div>
@@ -476,7 +480,7 @@ const Recipes = () => {
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore 🍽️
+            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore
           </p>
         </div>
 
