@@ -234,13 +234,13 @@ const translations: Record<string, string> = {
   'advice.disclaimerText': 'The information provided in this advice hub is for educational purposes only and should not replace professional medical advice. Always consult with your pediatrician or healthcare provider before making decisions about your baby\'s nutrition and health.',
   
   // Chat
-  'chat.title': 'Chat with Bibi',
+  'chat.title': 'Smart Assistant',
   'chat.subtitle': 'Your warm and intelligent baby nutrition assistant',
-  'chat.welcome': 'Hey Mom! 👋 I\'m Bibi, your baby nutrition assistant! I\'m here to help you with recipes, meal planning, parenting advice, and everything about feeding your little one. What can I help you with today?',
+  'chat.welcome': 'Hey Mom! 👋 I\'m your baby nutrition assistant! I\'m here to help you with recipes, meal planning, parenting advice, and everything about feeding your little one. What can I help you with today?',
   'chat.placeholder': 'Ask me about recipes, nutrition, parenting advice...',
   'chat.tryAsking': '💡 Try asking: "What\'s a good breakfast for my 8-month-old?" or "My baby won\'t eat vegetables"',
   'chat.signInRequired': 'Sign in required',
-  'chat.signInToChat': 'Please sign in to chat with Bibi',
+  'chat.signInToChat': 'Please sign in to use the assistant',
   'chat.error': 'I\'m sorry, I\'m having trouble connecting right now. Please try again in a moment!',
   'chat.notAuthenticated': 'Please sign in to continue chatting.',
   

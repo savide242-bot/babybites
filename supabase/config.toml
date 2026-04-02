@@ -19,8 +19,6 @@ verify_jwt = false
 [functions.batch-generate-recipe-images]
 verify_jwt = true
 
-[functions.bibi-chat]
-verify_jwt = true
 
 [functions.check-meal-reminders]
 verify_jwt = false
