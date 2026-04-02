@@ -24,6 +24,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { Skeleton } from "@/components/ui/skeleton";
+import SmartInstallBanner from "@/components/SmartInstallBanner";
 
 // Lazy load heavy pages for better initial bundle size
 const Onboarding = lazy(() => import("./pages/Onboarding"));

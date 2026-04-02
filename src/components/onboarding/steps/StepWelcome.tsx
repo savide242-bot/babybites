@@ -67,7 +67,7 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
               <ChefHat className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-medium text-foreground">300+ Personalized Recipes</p>
+              <p className="font-medium text-foreground">340+ Personalized Recipes</p>
               <p className="text-sm text-muted-foreground">Tailored for {babyAgeMonths} months</p>
             </div>
           </div>
