@@ -66,3 +66,6 @@ verify_jwt = false
 
 [functions.daily-admin-report]
 verify_jwt = false
+
+[functions.send-winback-notification]
+verify_jwt = false
