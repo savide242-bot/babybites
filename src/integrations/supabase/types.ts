@@ -988,7 +988,6 @@ export type Database = {
           code: string
           created_at: string | null
           id: string
-          referred_email: string | null
           referred_user_id: string | null
           referrer_id: string
           reward_claimed: boolean | null
@@ -999,7 +998,6 @@ export type Database = {
           code: string
           created_at?: string | null
           id?: string
-          referred_email?: string | null
           referred_user_id?: string | null
           referrer_id: string
           reward_claimed?: boolean | null
@@ -1010,7 +1008,6 @@ export type Database = {
           code?: string
           created_at?: string | null
           id?: string
-          referred_email?: string | null
           referred_user_id?: string | null
           referrer_id?: string
           reward_claimed?: boolean | null
