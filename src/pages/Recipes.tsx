@@ -165,6 +165,10 @@ const Recipes = () => {
         setSelectedAge(decodedAge);
       }
     }
+    const easyParam = searchParams.get('easy');
+    if (easyParam === 'true') {
+      setEasyCookingMode(true);
+    }
   }, [searchParams]);
 
   // Reset visible count when filters change
