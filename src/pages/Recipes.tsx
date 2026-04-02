@@ -281,7 +281,7 @@ const Recipes = () => {
                 {t('recipes.title')}
               </h1>
               <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                {filteredRecipes.length} nutritious recipes for your little one ✨
+                {filteredRecipes.length} nutritious recipes for your little one
               </p>
             </div>
             <Button
