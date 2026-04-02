@@ -11,7 +11,7 @@ import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { BellRing, Flame, Trophy, BookOpen, ChevronRight, Lightbulb } from "lucide-react";
+import { BellRing, Flame, Trophy, BookOpen, ChevronRight, Lightbulb, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
