@@ -480,7 +480,7 @@ const Recipes = () => {
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore 🍽️
+            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore
           </p>
         </div>
 
