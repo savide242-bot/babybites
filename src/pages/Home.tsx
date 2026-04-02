@@ -323,6 +323,33 @@ const Home = () => {
               </motion.div>
             )}
 
+            {/* ── EASY COOKING CTA ── */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28 }}
+              >
+                <Link
+                  to="/recipes?easy=true"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/15 active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center">
+                      <ChefHat className="w-5 h-5 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">New to cooking?</p>
+                      <p className="text-xs text-muted-foreground">
+                        Easy recipes ready in under 15 min — no experience needed
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                </Link>
+              </motion.div>
+            )}
+
             {/* ── EXPLORE RECIPES CTA ── */}
             {!isLoading && (
               <motion.div

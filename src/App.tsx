@@ -104,8 +104,8 @@ const AppContent = () => {
       {!isFullscreenRoute && <Header />}
       {!isFullscreenRoute && <OfflineIndicator />}
       {!isFullscreenRoute && <WhatsAppButton />}
+      {!isFullscreenRoute && <SmartInstallBanner />}
       {!isFullscreenRoute && <NotificationPromptModal />}
-      {!isFullscreenRoute && <BirthdayCelebrationModal />}
       {!isFullscreenRoute && (
         <BottomNavigation navRefs={{ 
           recipes: recipesNavRef, 
