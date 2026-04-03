@@ -55,13 +55,20 @@ export const useSessionTracking = () => {
             { onConflict: 'user_id' }
           );
 
-        // After upsert succeeds, increment total_sessions for returning users
-        // The upsert above sets total_sessions=1 for new users
-        // For existing users we need to increment, so do a raw update
-        await supabase.rpc('update_session_count' as any, { p_user_id: user.id }).catch(() => {
-          // If RPC doesn't exist, fall back to direct update
-          // This is fine — the upsert already set last_login/last_active
-        });
+        // Note: upsert with onConflict doesn't support incrementing,
+        // so we do a separate update to bump total_sessions for existing users
+        const { data: existing } = await supabase
+          .from('user_sessions')
+          .select('total_sessions')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existing && existing.total_sessions > 0) {
+          await supabase
+            .from('user_sessions')
+            .update({ total_sessions: existing.total_sessions + 1 })
+            .eq('user_id', user.id);
+        }
       } catch (error) {
         console.error('Error tracking session:', error);
       }
