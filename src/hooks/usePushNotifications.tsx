@@ -25,10 +25,25 @@ const getIOSVersion = (): number => {
   return match ? parseInt(match[1], 10) : 0;
 };
 
+// Helper: wrap a promise with a timeout
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 const fetchVapidPublicKey = async (): Promise<string | null> => {
   try {
     console.log('🔑 Fetching VAPID public key...');
-    const { data, error } = await supabase.functions.invoke('get-vapid-key');
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('get-vapid-key'),
+      5000,
+      'VAPID key fetch'
+    );
     if (error) {
       console.error('❌ Error fetching VAPID key:', error);
       return null;
@@ -69,12 +84,14 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 async function subscribePushManager(registration: ServiceWorkerRegistration, vapidKey: string): Promise<PushSubscription> {
   const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-  // Pass Uint8Array directly — supported by all modern browsers
-  // Using .buffer can fail on some mobile browsers due to shared ArrayBuffer issues
-  return await (registration as any).pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: applicationServerKey,
-  });
+  return await withTimeout(
+    (registration as any).pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: applicationServerKey,
+    }),
+    15000,
+    'Push subscription'
+  );
 }
 
 export const usePushNotifications = () => {
@@ -107,7 +124,7 @@ export const usePushNotifications = () => {
 
   const checkExistingSubscription = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
       const existingSub = await (registration as any).pushManager.getSubscription();
 
       if (existingSub) {
@@ -155,9 +172,9 @@ export const usePushNotifications = () => {
         return false;
       }
 
-      // Step 2: Get service worker
+      // Step 2: Get service worker with timeout
       console.log('⚙️ Getting service worker registration...');
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
       console.log('✅ Service worker ready');
 
       // Step 3: Unsubscribe existing to ensure fresh VAPID key
@@ -167,16 +184,16 @@ export const usePushNotifications = () => {
         await existingSub.unsubscribe();
       }
 
-      // Step 4: Fetch VAPID key
+      // Step 4: Fetch VAPID key with timeout
       console.log('🔑 Fetching VAPID key...');
       const vapidKey = await fetchVapidPublicKey();
       if (!vapidKey) {
         console.error('❌ Failed to get VAPID key');
-        toast({ title: "Configuration Error", description: "Could not configure push notifications. Please try again later.", variant: "destructive" });
+        toast({ title: "Configuration Error", description: "Could not fetch notification keys. Please try again.", variant: "destructive" });
         return false;
       }
 
-      // Step 5: Create push subscription
+      // Step 5: Create push subscription with timeout
       console.log('📱 Creating push subscription...');
       let sub: PushSubscription;
       try {
@@ -185,7 +202,8 @@ export const usePushNotifications = () => {
         console.log('📍 Endpoint:', sub.endpoint.substring(0, 60) + '...');
       } catch (subscribeError) {
         console.error('❌ Push subscribe failed:', subscribeError);
-        toast({ title: "Subscription Failed", description: subscribeError instanceof Error ? subscribeError.message : "Could not enable push notifications.", variant: "destructive" });
+        const msg = subscribeError instanceof Error ? subscribeError.message : "Could not enable push notifications.";
+        toast({ title: "Subscription Failed", description: msg, variant: "destructive" });
         return false;
       }
 
@@ -211,7 +229,8 @@ export const usePushNotifications = () => {
       return true;
     } catch (error) {
       console.error('💥 Error in subscribeToPushNotifications:', error);
-      toast({ title: "Error", description: "Could not enable push notifications. Please try again.", variant: "destructive" });
+      const msg = error instanceof Error ? error.message : "Could not enable push notifications. Please try again.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
       return false;
     }
   };

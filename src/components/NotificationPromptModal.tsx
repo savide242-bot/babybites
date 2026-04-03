@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const VAPID_VERSION = 'v2';
 const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
+const MASTER_TIMEOUT_MS = 25000;
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,14 +41,21 @@ export const NotificationPromptModal = () => {
   }, [isSupported]);
 
   const handleActivate = async () => {
-    // Keep modal open during subscription to preserve user gesture context
     setIsActivating(true);
+
+    // Master timeout: force-close after 25s if subscription hangs
+    const timeout = setTimeout(() => {
+      setIsActivating(false);
+      setIsOpen(false);
+    }, MASTER_TIMEOUT_MS);
+
     try {
       const success = await subscribeToPushNotifications();
       if (success) {
         localStorage.setItem(STORAGE_KEY, 'true');
       }
     } finally {
+      clearTimeout(timeout);
       setIsActivating(false);
       setIsOpen(false);
     }

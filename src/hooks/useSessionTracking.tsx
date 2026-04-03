@@ -2,19 +2,16 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
 
-// Get device info
 const getDeviceInfo = () => {
   const ua = navigator.userAgent;
   let browser = 'Unknown';
   let os = 'Unknown';
   
-  // Detect browser
   if (ua.includes('Chrome')) browser = 'Chrome';
   else if (ua.includes('Safari')) browser = 'Safari';
   else if (ua.includes('Firefox')) browser = 'Firefox';
   else if (ua.includes('Edge')) browser = 'Edge';
   
-  // Detect OS
   if (ua.includes('Windows')) os = 'Windows';
   else if (ua.includes('Mac')) os = 'Mac';
   else if (ua.includes('Linux')) os = 'Linux';
@@ -33,63 +30,53 @@ export const useSessionTracking = () => {
       if (!user) return;
 
       const deviceInfo = getDeviceInfo();
+      const now = new Date().toISOString();
 
       try {
         // Auto-detect and update user's timezone
         const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        
-        // Update timezone in profiles (silently, non-blocking)
         supabase
           .from('profiles')
           .update({ timezone: detectedTimezone })
           .eq('id', user.id)
-          .then(({ error }) => {
-            if (error) {
-              console.warn('Could not update timezone:', error);
-            } else {
-              console.log('🌍 Timezone updated to:', detectedTimezone);
-            }
-          });
+          .then(() => {});
 
-        // Check if session record exists
-        const { data: existingSession } = await supabase
+        // Upsert session — uses UNIQUE(user_id) constraint
+        await supabase
           .from('user_sessions')
-          .select('*')
+          .upsert(
+            {
+              user_id: user.id,
+              last_login: now,
+              last_active: now,
+              total_sessions: 1,
+              device_info: deviceInfo,
+            },
+            { onConflict: 'user_id' }
+          );
+
+        // Note: upsert with onConflict doesn't support incrementing,
+        // so we do a separate update to bump total_sessions for existing users
+        const { data: existing } = await supabase
+          .from('user_sessions')
+          .select('total_sessions')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (existingSession) {
-          // Update existing session
+        if (existing && existing.total_sessions > 0) {
           await supabase
             .from('user_sessions')
-            .update({
-              last_login: new Date().toISOString(),
-              last_active: new Date().toISOString(),
-              total_sessions: existingSession.total_sessions + 1,
-              device_info: deviceInfo,
-            })
+            .update({ total_sessions: existing.total_sessions + 1 })
             .eq('user_id', user.id);
-        } else {
-          // Create new session record (also on SIGNUP)
-          await supabase
-            .from('user_sessions')
-            .insert({
-              user_id: user.id,
-              last_login: new Date().toISOString(),
-              last_active: new Date().toISOString(),
-              total_sessions: 1,
-              device_info: deviceInfo,
-            });
         }
       } catch (error) {
         console.error('Error tracking session:', error);
       }
     };
 
-    // Track on mount
     trackSession();
 
-    // Update last_active every 2 minutes (more frequent)
+    // Update last_active every 2 minutes
     const activityInterval = setInterval(async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -98,7 +85,7 @@ export const useSessionTracking = () => {
           .update({ last_active: new Date().toISOString() })
           .eq('user_id', user.id);
       }
-    }, 2 * 60 * 1000); // 2 minutes
+    }, 2 * 60 * 1000);
 
     return () => clearInterval(activityInterval);
   }, []);
