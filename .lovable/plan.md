@@ -1,73 +1,56 @@
 
 
-# Plan: Install Prompt, Win-Back Notifications, Easy Cooking Filters, UI Polish
+# Plan: Fix Notification Subscription Bug + Fix Admin Metrics + Simplify Admin Notification Sender
 
-## Key Finding: Notifications ARE Working
+## What's Wrong
 
-The database proves meal reminders are being delivered successfully. Today alone (April 2), there are **25+ notification_logs** entries across 8 users with active subscriptions — breakfast, morning-snack, lunch, afternoon-snack, dinner — all sent at the correct local times per timezone. The system is working. The reason you may not see them on YOUR device is if your push subscription was purged during the cleanup. You need to re-enable notifications in Settings on the published app.
+### Bug 1: Notification Subscription Hangs Forever
+The subscription flow in `usePushNotifications.tsx` has **no timeouts** on any async step. If `navigator.serviceWorker.ready` never resolves (common in non-PWA browsers), or if the VAPID key fetch hangs, or if `pushManager.subscribe()` stalls — the UI shows "Activating..." forever with no way out.
 
-## Key Finding: Onboarding Has No Duplicate
+The `NotificationPromptModal.tsx` also has no safety timeout — once `isActivating` is true, the modal locks and never closes if any step hangs.
 
-Step 1 asks "What's your name?" (mother), Step 2 asks "What's your baby's name?" — these are different questions. However, Step 1's text says "Hi there! What's your name?" which could feel generic. I'll make the steps more visually distinct and polished.
+### Bug 2: Admin Dashboard Shows Fake Numbers (235 Online)
+The `user_sessions` table has no `UNIQUE` constraint on `user_id`. The `useSessionTracking.tsx` uses `.maybeSingle()` which returns `null` when duplicates exist — so it inserts yet another row every time. One user has 235 duplicate rows. The admin dashboard counts rows, not unique users, so it shows 235 "Online Now."
+
+### Bug 3: Admin Notification Composer Is Too Complex
+You want a simple button: type title + message, click Send — it delivers push notifications to all users outside the app. The current form has unnecessary fields (Icon URL, Button Text, Action URL, "Show Preview" banner style). You want it clean and direct.
 
 ---
 
 ## Changes
 
-### 1. Smart Install Banner (Chrome/Safari detection)
-Add a persistent, dismissible install banner that detects when the user is browsing via Chrome/Safari (not in standalone PWA mode) and shows a clear "Install BabyBites" prompt with one-tap install for Android/Chrome and iOS instructions for Safari.
+### 1. Fix Push Subscription — Add Timeouts (usePushNotifications.tsx)
+- Add 10s timeout on `navigator.serviceWorker.ready`
+- Add 5s timeout on VAPID key fetch
+- Add 15s timeout on `pushManager.subscribe()`
+- Show specific error toast for each failure point
+- If any step fails, return `false` immediately so UI unblocks
 
-**Files**: New `src/components/SmartInstallBanner.tsx`, update `src/App.tsx` to include it.
+### 2. Fix Notification Modal — Add Safety Timeout (NotificationPromptModal.tsx)
+- Wrap `handleActivate` with a 25s master timeout
+- If subscription hangs, force-close modal and show error toast
+- Never let `isActivating` stay true forever
 
-### 2. Win-Back Notifications for Inactive Users (2+ days)
-Create a new Edge Function `send-winback-notification` that:
-- Queries `user_sessions` for users inactive 2+ days who have active `push_subscriptions`
-- Sends a personalized "We miss you, {motherName}!" push notification
-- Logs to `winback_campaigns` table to prevent duplicate sends
-- Schedule via pg_cron every 6 hours
+### 3. Fix Session Tracking Duplicates (Database Migration + useSessionTracking.tsx)
+- **Migration**: Delete all duplicate `user_sessions` rows (keep most recent per user), then add `UNIQUE(user_id)` constraint
+- **Code**: Replace `.maybeSingle()` pattern with `.upsert()` on `user_id` to prevent future duplicates
+- Admin dashboard queries will then show real numbers automatically
 
-**Files**: New `supabase/functions/send-winback-notification/index.ts`, DB insert for cron job.
-
-### 3. Easy Cooking: Age Filter + Home Page CTA
-- In Easy Cooking mode, auto-detect baby age from profile and pre-select the age filter
-- Add age dropdown that stays visible in easy cooking mode
-- On Home page, add a card: "Can't cook? No worries! We have super easy recipes ready in under 15 minutes" linking to `/recipes` with easy cooking mode
-
-**Files**: `src/pages/Recipes.tsx`, `src/pages/Home.tsx`
-
-### 4. Onboarding Polish
-- Make Step 1 (mother name) more warm and distinct — "Welcome, mama!" with illustration
-- Update StepWelcome to show "340+" instead of "300+"
-- Ensure each step has unique visual identity so nothing feels repeated
-
-**Files**: `src/components/onboarding/steps/StepMotherName.tsx`, `src/components/onboarding/steps/StepWelcome.tsx`
-
-### 5. Humanize AI-Generated Content
-- Remove emoji overuse in UI copy
-- Replace generic phrases with natural, warm language
-- Ensure recipe card badges, banners, and CTAs feel hand-crafted
-
-**Files**: `src/pages/Recipes.tsx`, `src/pages/Home.tsx`
-
-### 6. Recipes 341-345 Verification
-Already verified: all 5 recipes have detailed multi-step instructions, full nutrition info, allergen data, storage tips, and generated images. They are complete.
+### 4. Simplify Admin Notification Composer (NotificationComposer.tsx)
+- Remove Icon URL, Button Text, Action URL, and Preview banner fields
+- Keep only: **Title** + **Message** + two buttons: **Test on Me** and **Send to All**
+- The app icon is used automatically
+- Clean, minimal card — no tabs, just the form + history below it
 
 ---
-
-## Cron Job Setup (User Action Required)
-
-For the win-back notification, I'll provide the SQL to schedule a cron job that calls `send-winback-notification` every 6 hours. You'll need to confirm the execution.
 
 ## Files Summary
 
 | File | Change |
 |------|--------|
-| `src/components/SmartInstallBanner.tsx` | New — detect browser, show install prompt |
-| `src/App.tsx` | Add SmartInstallBanner |
-| `supabase/functions/send-winback-notification/index.ts` | New — inactive user push notifications |
-| `src/pages/Recipes.tsx` | Easy cooking age auto-select + polish |
-| `src/pages/Home.tsx` | "Easy recipes" CTA card |
-| `src/components/onboarding/steps/StepMotherName.tsx` | Visual polish |
-| `src/components/onboarding/steps/StepWelcome.tsx` | Update "340+" count |
-| DB cron insert | Schedule win-back every 6h |
+| `src/hooks/usePushNotifications.tsx` | Add timeouts to SW ready, VAPID fetch, push subscribe |
+| `src/components/NotificationPromptModal.tsx` | Add master 25s timeout, force-close on failure |
+| DB Migration | Delete duplicate user_sessions, add UNIQUE(user_id) |
+| `src/hooks/useSessionTracking.tsx` | Replace maybeSingle with upsert |
+| `src/components/admin/NotificationComposer.tsx` | Simplify: title + message + Test + Send only |
 
