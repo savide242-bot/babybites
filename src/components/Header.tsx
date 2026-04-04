@@ -28,7 +28,7 @@ const Header = () => {
     { to: "/scanner", label: t('nav.scanner'), icon: Scan },
     { to: "/reports", label: t('nav.progressReports'), icon: FileText },
     { to: "/shopping", label: t('nav.shoppingList'), icon: ShoppingCart },
-    { to: "/community", label: t('nav.community'), icon: Users },
+    { to: "/bonus", label: "Bonus", icon: Users },
     { to: "/advice", label: t('nav.advice'), icon: Heart },
     { to: "/profile", label: "Profile", icon: UserCircle },
     { to: "/settings", label: t('nav.settings'), icon: Settings },
