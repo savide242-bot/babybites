@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/recipes", icon: BookOpen, label: "Recipes" },
   { to: "/planner", icon: Calendar, label: "Planner" },
+  { to: "/bonus", icon: Gift, label: "Bonus" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
 
