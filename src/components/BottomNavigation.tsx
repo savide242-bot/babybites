@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calendar, User } from "lucide-react";
+import { Home, BookOpen, Calendar, Gift, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef, RefObject } from "react";
 
