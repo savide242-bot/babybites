@@ -33,7 +33,7 @@ const Recipes = lazy(() => import("./pages/Recipes"));
 const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
 const MealPlanner = lazy(() => import("./pages/MealPlanner"));
 const Advice = lazy(() => import("./pages/Advice"));
-const Community = lazy(() => import("./pages/Community"));
+const Bonus = lazy(() => import("./pages/Bonus"));
 const GrowthTracker = lazy(() => import("./pages/GrowthTracker"));
 const FoodAnalyzer = lazy(() => import("./pages/FoodAnalyzer"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -122,7 +122,8 @@ const AppContent = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/planner" element={<MealPlanner />} />
           <Route path="/advice" element={<Advice />} />
-          <Route path="/community" element={<Community />} />
+          <Route path="/bonus" element={<Bonus />} />
+          <Route path="/community" element={<Bonus />} />
           <Route path="/growth" element={<GrowthTracker />} />
           <Route path="/scanner" element={<FoodAnalyzer />} />
           <Route path="/settings" element={<Settings />} />

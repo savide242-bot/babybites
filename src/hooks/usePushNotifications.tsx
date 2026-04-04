@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
@@ -25,7 +25,6 @@ const getIOSVersion = (): number => {
   return match ? parseInt(match[1], 10) : 0;
 };
 
-// Helper: wrap a promise with a timeout
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms);
@@ -38,33 +37,21 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 
 const fetchVapidPublicKey = async (): Promise<string | null> => {
   try {
-    console.log('🔑 Fetching VAPID public key...');
     const { data, error } = await withTimeout(
       supabase.functions.invoke('get-vapid-key'),
       5000,
       'VAPID key fetch'
     );
-    if (error) {
-      console.error('❌ Error fetching VAPID key:', error);
-      return null;
-    }
-    if (!data?.vapidPublicKey) {
-      console.error('❌ No VAPID key in response:', data);
-      return null;
-    }
-    console.log('✅ VAPID key received, length:', data.vapidPublicKey.length);
+    if (error || !data?.vapidPublicKey) return null;
     return data.vapidPublicKey;
-  } catch (error) {
-    console.error('💥 Error in fetchVapidPublicKey:', error);
+  } catch {
     return null;
   }
 };
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; ++i) {
@@ -82,17 +69,8 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return window.btoa(binary);
 }
 
-async function subscribePushManager(registration: ServiceWorkerRegistration, vapidKey: string): Promise<PushSubscription> {
-  const applicationServerKey = urlBase64ToUint8Array(vapidKey);
-  return await withTimeout(
-    (registration as any).pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: applicationServerKey,
-    }),
-    15000,
-    'Push subscription'
-  );
-}
+// Singleton lock to prevent concurrent subscription attempts
+let isSubscribing = false;
 
 export const usePushNotifications = () => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
@@ -103,21 +81,22 @@ export const usePushNotifications = () => {
     iosVersion: 0,
     canReceiveNotifications: true,
   });
+  const checkedRef = useRef(false);
 
   useEffect(() => {
     const iOS = isIOSDevice();
     const standalone = isStandalonePWA();
     const version = getIOSVersion();
     const canReceiveNotifications = !iOS || (standalone && version >= 16);
-    
+
     setIosStatus({ isIOS: iOS, isStandalone: standalone, iosVersion: version, canReceiveNotifications });
 
     const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setIsSupported(supported && canReceiveNotifications);
-    
-    console.log('📱 Push notifications check:', { browserSupport: supported, iOS, standalone, version, canReceiveNotifications, finalSupported: supported && canReceiveNotifications });
 
-    if (supported && canReceiveNotifications) {
+    // Only check existing subscription once, and do NOT auto-subscribe
+    if (supported && canReceiveNotifications && !checkedRef.current) {
+      checkedRef.current = true;
       checkExistingSubscription();
     }
   }, []);
@@ -126,83 +105,70 @@ export const usePushNotifications = () => {
     try {
       const registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
       const existingSub = await (registration as any).pushManager.getSubscription();
-
       if (existingSub) {
-        console.log('✅ Found existing push subscription');
         setSubscription(existingSub);
-        await saveSubscription(existingSub);
-      } else if (Notification.permission === 'granted') {
-        console.log('🔄 Permission granted but no subscription — auto-subscribing...');
-        try {
-          const vapidKey = await fetchVapidPublicKey();
-          if (vapidKey) {
-            const newSub = await subscribePushManager(registration, vapidKey);
-            console.log('✅ Auto-subscribed successfully');
-            setSubscription(newSub);
-            await saveSubscription(newSub);
-          }
-        } catch (autoSubError) {
-          console.error('❌ Auto-subscribe failed:', autoSubError);
-        }
-      } else {
-        console.log('📭 No existing push subscription found');
       }
-    } catch (error) {
-      console.error('❌ Error checking subscription:', error);
+    } catch {
+      // Silently fail — don't block the app
     }
   };
 
   const subscribeToPushNotifications = async (): Promise<boolean> => {
-    console.log('🔔 Starting push notification subscription...');
-
-    if (!isSupported) {
-      console.error('❌ Push notifications not supported');
-      toast({ title: "Not Supported", description: "Push notifications are not supported in your browser.", variant: "destructive" });
+    // Singleton lock — prevent concurrent attempts from multiple components
+    if (isSubscribing) {
       return false;
     }
+    isSubscribing = true;
 
     try {
-      // Step 1: Request permission
-      console.log('🔐 Requesting notification permission...');
-      const permission = await Notification.requestPermission();
-      console.log('🔐 Permission result:', permission);
-
-      if (permission !== 'granted') {
-        toast({ title: "Permission Denied", description: "Please enable notifications in your browser settings to receive meal reminders.", variant: "destructive" });
+      if (!isSupported) {
+        toast({ title: "Not Supported", description: "Push notifications are not supported in your browser.", variant: "destructive" });
         return false;
       }
 
-      // Step 2: Get service worker with timeout
-      console.log('⚙️ Getting service worker registration...');
-      const registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
-      console.log('✅ Service worker ready');
-
-      // Step 3: Unsubscribe existing to ensure fresh VAPID key
-      const existingSub = await (registration as any).pushManager.getSubscription();
-      if (existingSub) {
-        console.log('🔄 Unsubscribing old subscription...');
-        await existingSub.unsubscribe();
+      // Step 1: Request permission
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast({ title: "Permission Denied", description: "Please enable notifications in your browser settings.", variant: "destructive" });
+        return false;
       }
 
-      // Step 4: Fetch VAPID key with timeout
-      console.log('🔑 Fetching VAPID key...');
+      // Step 2: Get service worker
+      let registration: ServiceWorkerRegistration;
+      try {
+        registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
+      } catch {
+        toast({ title: "Service Worker Error", description: "Could not initialize the notification service. Try refreshing the page.", variant: "destructive" });
+        return false;
+      }
+
+      // Step 3: Unsubscribe existing (ensure fresh VAPID key)
+      try {
+        const existingSub = await (registration as any).pushManager.getSubscription();
+        if (existingSub) await existingSub.unsubscribe();
+      } catch { /* ignore */ }
+
+      // Step 4: Fetch VAPID key
       const vapidKey = await fetchVapidPublicKey();
       if (!vapidKey) {
-        console.error('❌ Failed to get VAPID key');
-        toast({ title: "Configuration Error", description: "Could not fetch notification keys. Please try again.", variant: "destructive" });
+        toast({ title: "Configuration Error", description: "Could not fetch notification keys. Please try again later.", variant: "destructive" });
         return false;
       }
 
-      // Step 5: Create push subscription with timeout
-      console.log('📱 Creating push subscription...');
+      // Step 5: Create push subscription
       let sub: PushSubscription;
       try {
-        sub = await subscribePushManager(registration, vapidKey);
-        console.log('✅ Push subscription created');
-        console.log('📍 Endpoint:', sub.endpoint.substring(0, 60) + '...');
-      } catch (subscribeError) {
-        console.error('❌ Push subscribe failed:', subscribeError);
-        const msg = subscribeError instanceof Error ? subscribeError.message : "Could not enable push notifications.";
+        const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+        sub = await withTimeout(
+          (registration as any).pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          }),
+          15000,
+          'Push subscription'
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Could not enable push notifications.";
         toast({ title: "Subscription Failed", description: msg, variant: "destructive" });
         return false;
       }
@@ -210,10 +176,8 @@ export const usePushNotifications = () => {
       setSubscription(sub);
 
       // Step 6: Save to database
-      console.log('💾 Saving subscription...');
       const saved = await saveSubscription(sub);
       if (!saved) {
-        console.error('❌ Failed to save subscription');
         toast({ title: "Save Failed", description: "Could not save notification settings. Please try again.", variant: "destructive" });
         return false;
       }
@@ -224,31 +188,25 @@ export const usePushNotifications = () => {
       // Step 8: Update timezone
       await updateUserTimezone();
 
-      console.log('🎉 Push notification subscription complete!');
       toast({ title: "Notifications Enabled", description: "You'll receive meal reminders at your scheduled times!" });
       return true;
     } catch (error) {
-      console.error('💥 Error in subscribeToPushNotifications:', error);
-      const msg = error instanceof Error ? error.message : "Could not enable push notifications. Please try again.";
+      const msg = error instanceof Error ? error.message : "Could not enable push notifications.";
       toast({ title: "Error", description: msg, variant: "destructive" });
       return false;
+    } finally {
+      isSubscribing = false;
     }
   };
 
   const saveSubscription = async (sub: PushSubscription): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn('⚠️ No user found, cannot save subscription');
-        return false;
-      }
+      if (!user) return false;
 
       const p256dh = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
-      if (!p256dh || !auth) {
-        console.error('❌ Missing encryption keys');
-        return false;
-      }
+      if (!p256dh || !auth) return false;
 
       const subscriptionData = {
         user_id: user.id,
@@ -259,26 +217,14 @@ export const usePushNotifications = () => {
         }
       };
 
-      console.log('📦 Saving subscription for user:', user.id);
-
-      // Delete existing subscriptions for this user first
+      // Delete existing subscriptions for this user
       await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-
-      // Also delete any existing subscription with same endpoint (different user edge case)
+      // Delete any with same endpoint (different user edge case)
       await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-
       // Insert new
-      const { data, error } = await supabase.from('push_subscriptions').insert(subscriptionData).select();
-
-      if (error) {
-        console.error('❌ Database insert error:', error);
-        return false;
-      }
-
-      console.log('✅ Push subscription saved:', data);
-      return true;
-    } catch (error) {
-      console.error('💥 Error in saveSubscription:', error);
+      const { error } = await supabase.from('push_subscriptions').insert(subscriptionData).select();
+      return !error;
+    } catch {
       return false;
     }
   };
@@ -287,17 +233,12 @@ export const usePushNotifications = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { data: existingMealTimes } = await supabase
+      const { data: existing } = await supabase
         .from('baby_meal_times').select('id').eq('user_id', user.id).limit(1);
-
-      if (existingMealTimes && existingMealTimes.length > 0) return;
-
+      if (existing && existing.length > 0) return;
       const mealTimesToInsert = DEFAULT_MEAL_TIMES.map(mt => ({ ...mt, user_id: user.id }));
       await supabase.from('baby_meal_times').insert(mealTimesToInsert);
-    } catch (error) {
-      console.error('💥 Error in ensureDefaultMealTimes:', error);
-    }
+    } catch { /* ignore */ }
   };
 
   const updateUserTimezone = async () => {
@@ -306,9 +247,7 @@ export const usePushNotifications = () => {
       if (!user) return;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       await supabase.from('profiles').update({ timezone }).eq('id', user.id);
-    } catch (error) {
-      console.error('💥 Error in updateUserTimezone:', error);
-    }
+    } catch { /* ignore */ }
   };
 
   const unsubscribeFromPushNotifications = async () => {
@@ -321,9 +260,7 @@ export const usePushNotifications = () => {
         await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
       }
       toast({ title: "Unsubscribed", description: "You won't receive push notifications anymore." });
-    } catch (error) {
-      console.error('Error unsubscribing:', error);
-    }
+    } catch { /* ignore */ }
   };
 
   return { isSupported, subscription, subscribeToPushNotifications, unsubscribeFromPushNotifications, iosStatus };

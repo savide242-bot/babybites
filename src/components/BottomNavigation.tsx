@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calendar, User } from "lucide-react";
+import { Home, BookOpen, Calendar, Gift, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef, RefObject } from "react";
 
@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/recipes", icon: BookOpen, label: "Recipes" },
   { to: "/planner", icon: Calendar, label: "Planner" },
+  { to: "/bonus", icon: Gift, label: "Bonus" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
 
