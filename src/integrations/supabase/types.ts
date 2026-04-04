@@ -547,6 +547,33 @@ export type Database = {
         }
         Relationships: []
       }
+      food_introduction_progress: {
+        Row: {
+          created_at: string
+          food_key: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          food_key: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          food_key?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       forum_posts: {
         Row: {
           comments_count: number | null
