@@ -313,6 +313,20 @@ export interface PickySection {
 
 export const pickyEaterGuide: PickySection[] = [
   {
+    id: 'why-refuse',
+    title: '🧠 Why Babies Refuse Food',
+    icon: '🧠',
+    content: [
+      '**Food refusal is developmentally normal.** Between 12–24 months, toddlers are developing independence. Saying "no" to food is the same as saying "no" to putting on shoes — it\'s about autonomy, not the food itself.',
+      '**Neophobia (fear of new foods) peaks at 18–24 months.** This is an evolutionary survival mechanism. Ancient toddlers who refused unfamiliar plants were less likely to be poisoned. Your toddler\'s brain is doing exactly what it\'s designed to do.',
+      '**Sensory sensitivity is real.** Some babies are genuinely overwhelmed by certain textures, temperatures, or smells. This isn\'t "being difficult" — their nervous system is processing sensory input differently.',
+      '**Appetite naturally fluctuates.** Toddlers eat in cycles. A week of eating everything is often followed by a week of eating almost nothing. Growth rate slows dramatically after age 1, so caloric needs decrease too.',
+      '**Teething, illness, and tiredness reduce appetite.** A baby cutting molars may reject all solid food for 3–5 days. This is temporary and will resolve on its own.',
+      '**Pressure backfires — always.** Every study on forced feeding shows it increases food refusal long-term. The more you push, the more they resist. Relaxing is genuinely the most effective strategy.',
+      '**It takes 10–30 exposures before a baby accepts a new food.** One rejection doesn\'t mean they hate it. It means they need to see, touch, smell, and taste it many more times.',
+    ]
+  },
+  {
     id: 'tonight',
     title: '🍽️ What To Do Tonight',
     icon: '⚡',
@@ -324,6 +338,21 @@ export const pickyEaterGuide: PickySection[] = [
       '**Offer the food, then look away.** Staring at a baby while they decide whether to eat creates performance anxiety — even in toddlers.',
       '**Let them touch, lick, squish, and play with food.** Sensory exploration is a critical step before eating. Squishing a blueberry is progress.',
       '**End the meal after 20–25 minutes.** If they haven\'t eaten, calmly remove the plate. No drama, no replacement meals. "All done? Okay, we\'ll eat again at snack time."',
+    ]
+  },
+  {
+    id: 'table-response',
+    title: '🪑 How To Respond at the Table',
+    icon: '🪑',
+    content: [
+      '**Stay calm and neutral.** Your facial expression matters. If you look frustrated, anxious, or disappointed when they refuse food, they learn that mealtimes are stressful.',
+      '**Don\'t clean their face during the meal.** Constant wiping teaches them that mess = bad. Let them be messy until the meal is over.',
+      '**Sit together as a family.** Even if you\'re not eating the same thing, being at the table together normalizes eating. Eating alone in a high chair while parents stand around watching is not normal eating behavior.',
+      '**Remove distractions.** No TV, no tablets, no toys at the table. These teach "eating is boring, I need entertainment to get through it" — not the lesson you want.',
+      '**Serve food family-style when possible.** Letting toddlers serve themselves from shared bowls gives them control and increases willingness to try foods.',
+      '**If they throw food: stay neutral.** Say "food stays on the table" once, then ignore further throwing. If it continues, the meal is over. No anger, no drama.',
+      '**Never force, bribe, or negotiate.** "One more bite and you can leave" teaches them that eating is a chore to endure, not an enjoyable activity.',
+      '**Model positive eating.** Say things like "Mmm, this chicken is really juicy" instead of "this is healthy, you should eat it." Describe taste and texture, not health benefits.',
     ]
   },
   {
@@ -354,6 +383,49 @@ export const pickyEaterGuide: PickySection[] = [
     ]
   },
   {
+    id: 'texture-transitions',
+    title: '🧈 Texture Transitions',
+    icon: '🧈',
+    content: [
+      '**Texture progression is not linear.** Some babies handle lumpy food at 8 months, then refuse anything but purees at 10 months. This is normal and temporary.',
+      '**Bridge textures gradually.** If baby only accepts smooth purees, try: smooth → slightly thick → mashed with fork → soft lumps → chopped small → finger food.',
+      '**Mix textures strategically.** Add tiny soft lumps into a smooth puree they already accept. Gradually increase the lump ratio over weeks.',
+      '**Crunchy can be easier than soft.** Paradoxically, many babies who reject mushy textures will happily eat crunchy foods (toast, rice cakes, lightly toasted bread). Try crunchy before giving up.',
+      '**Cold/frozen textures can help.** Frozen banana, frozen yogurt drops, or cold cucumber sticks provide different sensory input that some babies prefer.',
+      '**Let them self-feed.** Babies who control what goes in their mouth are less likely to gag on textures. Spoon-fed babies don\'t get to control pace or amount.',
+      '**If gagging is frequent:** check that food is soft enough (should squish between your fingers), pieces are the right size, and baby is sitting upright. Persistent gagging warrants a pediatrician visit.',
+    ]
+  },
+  {
+    id: 'appetite',
+    title: '📊 Appetite Fluctuations',
+    icon: '📊',
+    content: [
+      '**Toddler appetite is wildly inconsistent — and that\'s normal.** One day they eat everything in sight; the next day, three bites of bread is the whole meal.',
+      '**Growth rate slows after age 1.** Babies triple their birth weight in year 1, but only gain 2–3kg in year 2. Less growth = less hunger. This is biology, not pickiness.',
+      '**Evaluate nutrition over a week, not a day.** If you zoom out and look at what your toddler ate across 7 days, you\'ll usually find a reasonable balance — even if individual days look terrible.',
+      '**Illness suppresses appetite for days.** After a cold, stomach bug, or ear infection, appetite can take 5–7 days to return to normal. Don\'t panic.',
+      '**Heat reduces appetite.** In hot weather, toddlers naturally eat less and drink more. Offer lighter, water-rich foods (watermelon, cucumber, yogurt).',
+      '**Emotional changes affect eating.** New daycare, a new sibling, travel, or changes in routine can temporarily reduce appetite. Consistency and patience resolve this.',
+      '**Trust their hunger cues.** Pushing food when they\'re not hungry teaches them to override their own satiety signals. This can contribute to unhealthy eating patterns later.',
+    ]
+  },
+  {
+    id: 'teething-sickness',
+    title: '🤒 Teething & Sickness Setbacks',
+    icon: '🤒',
+    content: [
+      '**Teething pain peaks with molars (12–24 months).** These large teeth cause significantly more discomfort than front teeth. Cold, soft foods are usually most accepted during teething.',
+      '**Best teething foods:** cold yogurt, chilled fruit puree, frozen banana, cold cucumber sticks, breast milk popsicles, chilled applesauce.',
+      '**Avoid hard or crunchy foods during active teething.** Even if baby normally loves toast or crackers, swollen gums make crunchy foods painful.',
+      '**After stomach bugs:** reintroduce solids slowly. Start with bland, easily digestible foods: banana, rice, applesauce, dry toast. Don\'t worry about variety for the first 2–3 days.',
+      '**Respiratory illness (colds, croup):** nasal congestion makes eating uncomfortable because babies can\'t breathe through their mouth while eating. Clear their nose before meals. Offer softer, mushier foods that require less chewing.',
+      '**Antibiotics affect appetite and taste.** Some antibiotics temporarily alter taste perception and reduce appetite. Offer strong-flavored foods (cheese, mild curry) that can compete with the medicine taste.',
+      '**After recovery, pickiness may temporarily increase.** This is normal. They\'ve learned that refusing food gets more attention/different food during illness. Return to normal routines within 2–3 days of recovery.',
+      '**Red flag:** If appetite doesn\'t return within 1 week after illness resolves, contact your pediatrician.',
+    ]
+  },
+  {
     id: 'portions',
     title: '📏 Portion Strategy',
     icon: '📐',
@@ -379,6 +451,23 @@ export const pickyEaterGuide: PickySection[] = [
       '**Instead of "You loved this yesterday, why won\'t you eat it?"** → "That\'s okay, we\'ll have it again another time."',
       '**Instead of "You\'re being so difficult"** → Take a breath. Remind yourself: food refusal is developmentally normal and is NOT a reflection of your parenting.',
       '**When grandparents or family pressure:** → "We\'re letting her decide how much to eat. Her doctor says she\'s growing perfectly. Thank you for caring!"',
+      '**When they only want one food for days:** → "I see you really love pasta! I\'ll keep offering it. I\'m also putting some chicken next to it — you can eat it or not."',
+      '**When they cry at mealtimes:** → "I can see you\'re upset. It\'s okay. The food will be here when you\'re ready. Would you like to sit with me or take a break?"',
+    ]
+  },
+  {
+    id: 'what-not-to-do',
+    title: '🚫 What NOT To Do',
+    icon: '🚫',
+    content: [
+      '**Never force food into their mouth.** This creates lasting negative associations with eating and can cause food aversion that takes months to undo.',
+      '**Never use food as reward or punishment.** "No dessert until you eat your veggies" teaches them vegetables are punishment. Serve dessert alongside the meal or don\'t serve it at all.',
+      '**Never make a separate "kid meal."** If the family eats pasta and chicken, baby gets pasta and chicken (adjusted texture/size). Short-order cooking teaches them they can always get something else.',
+      '**Never restrict specific foods as "bad."** Labeling foods as bad or unhealthy creates food guilt and often leads to binge eating of those foods when they have access.',
+      '**Never compare their eating to siblings or friends.** "Your brother ate all his vegetables at your age" creates shame, not motivation.',
+      '**Never negotiate.** "Three more bites and you\'re done" puts you in a power struggle. The only person who should decide when they\'re full is the child.',
+      '**Never distract to get food in.** Airplane games, TV, or phone while spooning food in teaches them to eat mindlessly, not to recognize hunger and fullness.',
+      '**Never threaten consequences.** "If you don\'t eat dinner, no bedtime story" connects food with punishment and breeds resentment around meals.',
     ]
   },
   {
@@ -397,6 +486,36 @@ export const pickyEaterGuide: PickySection[] = [
     ]
   },
   {
+    id: 'routines',
+    title: '🕐 Routines That Reduce Refusal',
+    icon: '🕐',
+    content: [
+      '**Fixed meal and snack times.** Serve meals at roughly the same times every day. Predictability reduces anxiety around food.',
+      '**Structure: 3 meals + 2 snacks.** Space them 2–2.5 hours apart. This is enough time for genuine hunger to build between eating occasions.',
+      '**Water only between meals.** Milk, juice, and snacks between scheduled eating times fill up tiny stomachs and reduce appetite at meals.',
+      '**Same seat, same place.** Consistency in where they sit helps them understand "this is eating time." Avoid eating on the go, in the car, or while walking.',
+      '**Start small, build up.** If mealtimes are currently a battleground, start with just 5 minutes at the table. Gradually extend to 15–20 minutes over several weeks.',
+      '**Announce meals in advance.** "In 5 minutes we\'re going to have lunch" gives them time to transition from play. Abruptly stopping play for food creates resistance.',
+      '**End meals gracefully.** "I can see you\'re done. Let\'s clean up together." Involving them in clearing their plate (even just carrying a napkin to the bin) creates a positive end to the meal.',
+      '**Consistent bedtime routine helps meals.** Overtired toddlers eat worse. Ensuring adequate sleep (12–14 hours total for 1–2 year olds) directly improves mealtime behavior.',
+    ]
+  },
+  {
+    id: 'food-jag-recovery',
+    title: '🔂 Recovery After Food Jags',
+    icon: '🔂',
+    content: [
+      '**What is a food jag?** When your toddler only wants one specific food for days or weeks — like eating only crackers, only pasta, or only bananas.',
+      '**Food jags are normal and almost always temporary.** Most resolve on their own within 1–3 weeks if handled calmly.',
+      '**Don\'t eliminate the preferred food.** Continue offering it alongside other options. Suddenly removing it creates panic and worsens the jag.',
+      '**Gradually reduce the preferred food.** If they want 6 crackers, serve 4 crackers + 2 other items. Next week, 3 crackers + 3 other items.',
+      '**Serve the jag food in new ways.** If they only want plain pasta, try pasta with a tiny bit of butter, then pasta with cheese sprinkles, then pasta with a thin sauce. Micro-changes.',
+      '**Model eating different foods.** Sit next to them eating something different. Comment on your food positively: "This chicken is so good" — without asking them to try it.',
+      '**Don\'t panic about nutrition.** A toddler eating only bread for a week will not develop malnutrition. Their body has reserves. Stress about nutrition creates more feeding problems.',
+      '**If a food jag lasts more than 4 weeks with fewer than 5 accepted foods total,** consult your pediatrician or a feeding therapist.',
+    ]
+  },
+  {
     id: 'red-flags',
     title: '🚩 When To Seek Professional Help',
     icon: '⚕️',
@@ -409,7 +528,9 @@ export const pickyEaterGuide: PickySection[] = [
       '**Extreme distress at mealtimes.** Crying, screaming, or leaving the table at every meal goes beyond normal pickiness.',
       '**Not progressing past purees by 10 months.** If baby refuses any texture beyond smooth purees after consistent exposure.',
       '**Difficulty chewing or swallowing.** Coughing frequently during meals, food falling out of mouth consistently, or inability to manage age-appropriate textures.',
-      '**Who to contact:** Start with your pediatrician. They may refer you to a pediatric feeding therapist (speech-language pathologist specializing in feeding) or occupational therapist. Early intervention is very effective.',
+      '**Drooling excessively past 18 months.** While some drooling is normal during teething, excessive ongoing drooling can indicate oral motor difficulties.',
+      '**Food anxiety or fear.** If your child shows genuine fear responses to food (crying when food is placed near them, refusing to sit at the table), this may indicate ARFID (Avoidant/Restrictive Food Intake Disorder).',
+      '**Who to contact:** Start with your pediatrician. They may refer you to a pediatric feeding therapist (speech-language pathologist specializing in feeding) or occupational therapist. Early intervention is very effective — the earlier you address feeding difficulties, the faster they resolve.',
     ]
   }
 ];
