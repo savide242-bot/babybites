@@ -1,138 +1,168 @@
 
-Objetivo: corrigir de vez a subscrição/delivery de push notifications no app publicado e adicionar uma nova aba “Bonus” realmente útil, toda em inglês, com conteúdo detalhado e persistência onde fizer sentido.
+Objetivo: corrigir de vez o fluxo de push notifications no app publicado e refazer a experiência da aba Bonus para ficar organizada, com navegação por detalhe e conteúdo muito mais útil.
 
-1. O que encontrei
-- O problema de push não parece ser só “browser settings”. No código atual há várias entradas a tentar mexer no mesmo fluxo: modal global, Home, Settings, Welcome modal e auto-resubscribe.
-- O hook `usePushNotifications` é instanciado em vários componentes ao mesmo tempo e já faz efeitos automáticos no mount. Isso é um forte candidato a corrida/conflito entre tentativas de subscrição.
-- O app hoje mostra mensagens genéricas como “enable notifications in browser” mesmo quando a falha pode ser do próprio fluxo interno.
-- O save da subscrição ainda é frágil: apaga e volta a inserir, em vez de fazer um registo controlado + validação + teste real.
-- Não apareceram hits recentes nas funções de push nos logs consultados, o que reforça que muita falha está a acontecer antes mesmo do backend receber a subscrição.
+1. Diagnóstico real do problema de notificações
+- O backend de reminders está a correr, mas os logs mostram `4 no-sub`, ou seja: os lembretes não estão a falhar no cron; estão a falhar antes, porque os utilizadores nem chegam a ficar gravados em `push_subscriptions`.
+- Também não há logs recentes em `get-vapid-key`, `test-push-notification` e `send-meal-reminder`, o que confirma que a falha principal está no cliente antes do registo/salvamento/teste.
+- Hoje existem demasiados pontos a disparar o mesmo fluxo:
+  - `NotificationPromptModal`
+  - `useAutoResubscribe`
+  - `WelcomeModal`
+  - `Home`
+  - `Settings`
+  - `NotificationPreferences`
+- Isso cria corrida entre prompts, subscribe, unsubscribe e save.
+- Além disso, `saveSubscription()` apaga e reinsere o registo, engole erros, e o hook marca `subscription` local antes de confirmar que o backend guardou e que o teste real funcionou.
 
 2. Plano para corrigir Push Notifications
-2.1 Centralizar o fluxo
-- Transformar a lógica de push numa única fonte de verdade, para impedir múltiplas subscrições concorrentes.
-- Remover tentativas automáticas espalhadas que hoje competem entre si.
-- Manter apenas um fluxo controlado para:
+2.1 Unificar o fluxo
+- Transformar `usePushNotifications.tsx` numa fonte única de verdade, com estado explícito:
+  - `idle`
+  - `requesting_permission`
+  - `preparing_service_worker`
+  - `subscribing`
+  - `saving`
+  - `testing`
+  - `ready`
+  - `error`
+- Centralizar toda a lógica de:
   1) pedir permissão
-  2) confirmar service worker ativo
-  3) criar/renovar subscrição
-  4) guardar no backend
-  5) validar com teste real
+  2) garantir service worker pronto
+  3) obter/criar subscription
+  4) persistir no backend
+  5) testar entrega real
 
-2.2 Tornar o erro explícito e útil
-- Separar claramente os erros por etapa:
-  - permissão negada
-  - service worker não pronto
-  - `pushManager.subscribe()` falhou
-  - gravação da subscrição falhou
-  - teste de entrega falhou
-- Parar de culpar o browser com mensagem genérica quando o erro for do app.
-- Mostrar estado real no Settings: permission, browser subscription, backend subscription, last test result.
+2.2 Eliminar concorrência
+- Remover autosubscribe agressivo do `NotificationPromptModal` quando `Notification.permission === 'granted'`.
+- Impedir que `useAutoResubscribe` concorra com clique manual do utilizador.
+- Fazer `WelcomeModal`, `Home`, `Settings` e `NotificationPreferences` apenas chamarem um mesmo método central, sem repetir `requestPermission()` fora do hook.
+- Garantir que só existe uma tentativa ativa por utilizador/sessão.
 
-2.3 Validar a subscrição de ponta a ponta
-- Depois de guardar a subscrição com sucesso, disparar um teste real para o próprio utilizador.
-- Só marcar como “ativado” quando:
-  - a subscrição estiver no browser
-  - o registo existir no backend
-  - o teste push responder com sucesso
-- Se o teste falhar, mostrar instrução concreta para repetir/reparar, em vez de deixar o utilizador preso num estado falso.
+2.3 Corrigir persistência da subscription
+- Refazer `saveSubscription()` para:
+  - validar `p256dh` e `auth`
+  - guardar com estratégia segura (`upsert`/substituição controlada), sem sequência frágil de deletes
+  - devolver erro detalhado
+- Só marcar notificações como ativadas depois de:
+  - existir subscription no browser
+  - existir registo no backend
+  - teste de push retornar sucesso
 
-2.4 Fortalecer o backend de push
-- Uniformizar as funções de push para usar sempre artwork/app icon da BabyBites automaticamente.
-- Garantir URLs absolutas nos payloads de notificação para evitar falhas em alguns dispositivos/PWAs.
-- Rever `test-push-notification`, `send-meal-reminder`, `notify-all-users` e `notify-update` para o mesmo padrão de payload e limpeza de subscrições expiradas.
-- Manter o composer admin simples: título + mensagem + “Test on Me” + “Send to All”, com branding da app aplicado automaticamente.
+2.4 Teste real obrigatório após ativação
+- Logo após guardar a subscription, invocar `test-push-notification`.
+- Se o teste falhar:
+  - mostrar erro específico
+  - não deixar a UI em falso positivo
+  - orientar re-registo/reparo automaticamente quando possível
 
-2.5 Áreas do app a ajustar
-- `src/hooks/usePushNotifications.tsx`
-- `src/components/NotificationPromptModal.tsx`
-- `src/components/NotificationPreferences.tsx`
-- `src/pages/Home.tsx`
-- `src/pages/Settings.tsx`
-- `src/components/auth/WelcomeModal.tsx`
-- `src/hooks/useAutoResubscribe.tsx`
-- funções de backend relacionadas a push
-- possivelmente `public/sw-listener.js` se eu precisar alinhar o comportamento do click/ícone e feedback
+2.5 Melhorar feedback ao utilizador
+- Parar de mostrar mensagem genérica tipo “enable notifications in your browser” quando o utilizador já aceitou.
+- Mostrar erro por etapa:
+  - permission denied
+  - service worker not ready
+  - vapid fetch failed
+  - subscribe failed
+  - save failed
+  - delivery test failed
+- Em `NotificationPreferences`, mostrar diagnóstico real:
+  - browser permission
+  - browser subscription
+  - backend subscription
+  - last delivery test
+  - enabled meal reminders
 
-3. Plano para a nova aba “Bonus”
-3.1 Estrutura
-- Criar uma nova página `/bonus`.
-- Trocar a navegação “Community” por “Bonus” no menu principal.
-- Manter `/community` como alias/redirect para `/bonus` para não quebrar links antigos.
-- Todo o conteúdo desta área ficará em inglês, como pediu.
+2.6 Reforçar envio e branding admin
+- Manter o composer simples: título + mensagem + botão de teste + botão enviar para todos.
+- Ajustar funções de envio para usar sempre branding/app icon automaticamente.
+- Rever coerência entre:
+  - `test-push-notification`
+  - `send-meal-reminder`
+  - `notify-all-users`
+  - `check-meal-reminders`
 
-3.2 Bonus 1: Private nutrition support group
-- Criar um cartão premium, discreto e elegante.
-- Ao abrir, terá apenas a explicação curta e um botão camuflado/subtil para entrar no grupo:
-  `https://chat.whatsapp.com/BF1UCtY4julCp0jz44NqKJ`
-- Não será um banner gritante tipo WhatsApp community atual; será mais reservado.
+3. Plano para refazer a aba Bonus
+3.1 Nova estrutura de navegação
+- Deixar de usar expansão em cascata.
+- Transformar a Bonus num hub com navegação por níveis:
+  - nível 1: lista das grandes secções
+  - nível 2: detalhe da secção escolhida
+  - nível 3 (quando fizer sentido): detalhe do item individual
+- Cada item abre uma vista própria com botão “Back”, em vez de abrir tudo por baixo.
 
-3.3 Bonus 2: Food Introduction Checklist
-- Isto não será só texto; será uma ferramenta útil.
-- Criar checklist interativa por faixas etárias, com alimentos organizados por stage.
-- Cada alimento poderá ter estado como:
-  - Not introduced
-  - Introduced
-  - Loved it
-  - Retry later
-  - Watch reaction
-- Incluir notas úteis em inglês por alimento/grupo:
+3.2 Checklist organizada
+- Primeiro ecrã: stages por idade.
+- Ao clicar num stage: abrir ecrã desse stage.
+- Dentro do stage: lista de categorias/alimentos.
+- Ao clicar num alimento: abrir detalhe do alimento com:
   - best form to serve
   - texture guidance
-  - allergen watch-outs
-  - how often to repeat
-  - what to offer next
-- Guardar progresso por utilizador no backend para não perder dados entre sessões/dispositivos.
+  - allergen notes
+  - repeat advice
+  - next-step suggestion
+  - controlos de estado
+- Manter gravação do progresso no backend.
 
-3.4 Bonus 3: Ready-made menus by age
-- Criar secções detalhadas por fase etária do bebé.
-- Cada fase terá um plano semanal completo, não resumido:
-  - breakfast
-  - lunch
-  - dinner
-  - snack ideas where appropriate
-  - prep notes
-  - swap options
-  - texture adjustments
-- Sempre que possível, ligar aos recipes já existentes e ao planner.
-- Destacar automaticamente o menu mais adequado à idade atual do bebé.
+3.3 Menus mais premium
+- Aplicar a mesma lógica de drill-down:
+  - lista de planos por idade
+  - clique abre plano detalhado
+  - dentro do plano, cada dia pode abrir numa subview limpa
+- Melhorar layout para leitura mobile:
+  - cards mais claros
+  - menos conteúdo esmagado
+  - secções de prep/swaps/texture visualmente separadas
 
-3.5 Bonus 4: Suggestions for picky babies
-- Criar um guia realmente prático, não superficial.
-- Estruturar em inglês com blocos acionáveis:
+3.4 Picky Eaters muito mais completo
+- Expandir fortemente o conteúdo em inglês, com secções mais profundas e realmente úteis:
+  - why babies refuse food
   - what to do tonight
-  - 7-day reset approach
-  - how to re-offer refused foods
-  - portion strategy
-  - pressure-free scripts parents can use
-  - sensory-friendly serving ideas
-  - red flags for professional help
-- Reaproveitar a base do conteúdo de Advice onde fizer sentido, mas expandir bastante para virar um bônus próprio e mais valioso.
+  - how to respond at the table
+  - 7-day reset
+  - repetition strategy
+  - texture transitions
+  - appetite fluctuations
+  - teething/sickness setbacks
+  - portion examples by stage
+  - pressure-free phrases parents can say
+  - what not to do
+  - when to seek professional help
+  - recovery after food jags
+  - routines that reduce refusal
+- Estruturar em blocos acionáveis, não em texto corrido genérico.
 
-4. Backend e segurança
-- Adicionar uma nova tabela para progresso da checklist alimentar, ligada ao utilizador com RLS correta.
-- Cada utilizador só poderá ver/editar o próprio progresso.
-- Não preciso de mexer em permissões admin para essa parte.
+4. Ficheiros a alterar
+- `src/hooks/usePushNotifications.tsx`
+- `src/hooks/useAutoResubscribe.tsx`
+- `src/components/NotificationPromptModal.tsx`
+- `src/components/NotificationPreferences.tsx`
+- `src/components/auth/WelcomeModal.tsx`
+- `src/pages/Home.tsx`
+- `src/pages/Settings.tsx`
+- `supabase/functions/test-push-notification/index.ts`
+- `supabase/functions/send-meal-reminder/index.ts`
+- `supabase/functions/notify-all-users/index.ts`
+- `src/pages/Bonus.tsx`
+- `src/data/bonusContent.ts`
 
-5. Ficheiros prováveis
-- `src/App.tsx`
-- `src/components/Header.tsx`
-- nova página `src/pages/Bonus.tsx`
-- possivelmente substituir/reaproveitar `src/pages/Community.tsx`
-- novo ficheiro de conteúdo estruturado para os bônus
-- migração para progresso da checklist
-- ficheiros de push listados acima
+5. Resultado esperado
+- Ao aceitar notificações no site publicado, o utilizador fica realmente subscrito, gravado no backend e recebe teste real.
+- Os meal reminders voltam a funcionar porque deixam de existir utilizadores “sem subscription”.
+- A Bonus deixa de parecer “tudo aberto ao mesmo tempo” e passa a ter navegação limpa, com abrir detalhe e voltar.
+- A secção Picky Eaters passa a entregar conteúdo muito mais sério, prático e valioso.
 
 6. Validação final
-- Testar no app publicado:
-  1) abrir prompt de notificação
-  2) aceitar
-  3) confirmar criação da subscrição no backend
-  4) receber push de teste fora do app
-  5) enviar push pelo admin e confirmar entrega real
-- Testar também o fluxo de reminders com horários guardados.
-- Testar a nova aba Bonus em mobile, incluindo:
-  - abertura do botão discreto do grupo
-  - persistência da checklist
-  - menus por idade
-  - leitura confortável do conteúdo detalhado
+- Testar no site publicado:
+  1) clicar ativar notificações
+  2) aceitar no browser
+  3) confirmar registo em `push_subscriptions`
+  4) disparar `test-push-notification`
+  5) confirmar receção fora do app
+  6) confirmar envio admin para todos
+  7) confirmar reminder automático no horário
+- Testar Bonus em mobile:
+  - abrir secção
+  - entrar no detalhe
+  - voltar
+  - persistir checklist
+  - ler menus sem poluição visual
+  - validar nova profundidade do conteúdo picky eaters
