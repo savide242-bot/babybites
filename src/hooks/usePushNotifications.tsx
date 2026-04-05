@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 const DEFAULT_MEAL_TIMES = [
   { meal_type: 'breakfast', preferred_hour: 7, preferred_minute: 30, enabled: true },
@@ -10,20 +10,10 @@ const DEFAULT_MEAL_TIMES = [
   { meal_type: 'dinner', preferred_hour: 18, preferred_minute: 0, enabled: true },
 ];
 
-const isIOSDevice = (): boolean => {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-};
+export type PushState = 'idle' | 'requesting_permission' | 'preparing_sw' | 'subscribing' | 'saving' | 'testing' | 'ready' | 'error';
 
-const isStandalonePWA = (): boolean => {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         (navigator as any).standalone === true;
-};
-
-const getIOSVersion = (): number => {
-  if (!isIOSDevice()) return 0;
-  const match = navigator.userAgent.match(/OS (\d+)_/);
-  return match ? parseInt(match[1], 10) : 0;
-};
+// ── Singleton lock: only one subscription attempt at a time across all hook instances ──
+let globalSubscribing = false;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -35,169 +25,162 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
-const fetchVapidPublicKey = async (): Promise<string | null> => {
-  try {
-    const { data, error } = await withTimeout(
-      supabase.functions.invoke('get-vapid-key'),
-      5000,
-      'VAPID key fetch'
-    );
-    if (error || !data?.vapidPublicKey) return null;
-    return data.vapidPublicKey;
-  } catch {
-    return null;
-  }
-};
-
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
   return outputArray;
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
   return window.btoa(binary);
 }
 
-// Singleton lock to prevent concurrent subscription attempts
-let isSubscribing = false;
+const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+const isStandalonePWA = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+const getIOSVersion = () => { const m = navigator.userAgent.match(/OS (\d+)_/); return m ? parseInt(m[1], 10) : 0; };
 
 export const usePushNotifications = () => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
-  const [iosStatus, setIosStatus] = useState({
-    isIOS: false,
-    isStandalone: false,
-    iosVersion: 0,
-    canReceiveNotifications: true,
-  });
+  const [pushState, setPushState] = useState<PushState>('idle');
+  const [lastError, setLastError] = useState<string | null>(null);
   const checkedRef = useRef(false);
 
   useEffect(() => {
     const iOS = isIOSDevice();
     const standalone = isStandalonePWA();
     const version = getIOSVersion();
-    const canReceiveNotifications = !iOS || (standalone && version >= 16);
+    const canReceive = !iOS || (standalone && version >= 16);
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && canReceive;
+    setIsSupported(supported);
 
-    setIosStatus({ isIOS: iOS, isStandalone: standalone, iosVersion: version, canReceiveNotifications });
-
-    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-    setIsSupported(supported && canReceiveNotifications);
-
-    // Only check existing subscription once, and do NOT auto-subscribe
-    if (supported && canReceiveNotifications && !checkedRef.current) {
+    if (supported && !checkedRef.current) {
       checkedRef.current = true;
-      checkExistingSubscription();
+      checkExistingSub();
     }
   }, []);
 
-  const checkExistingSubscription = async () => {
+  const checkExistingSub = async () => {
     try {
-      const registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
-      const existingSub = await (registration as any).pushManager.getSubscription();
-      if (existingSub) {
-        setSubscription(existingSub);
+      const reg = await withTimeout(navigator.serviceWorker.ready, 8000, 'SW ready check');
+      const sub = await (reg as any).pushManager.getSubscription();
+      if (sub) {
+        setSubscription(sub);
+        setPushState('ready');
       }
-    } catch {
-      // Silently fail — don't block the app
-    }
+    } catch { /* silent */ }
   };
 
-  const subscribeToPushNotifications = async (): Promise<boolean> => {
-    // Singleton lock — prevent concurrent attempts from multiple components
-    if (isSubscribing) {
+  const subscribeToPushNotifications = useCallback(async (): Promise<boolean> => {
+    if (globalSubscribing) {
+      console.log('🔒 Push: another subscription attempt is in progress, skipping');
       return false;
     }
-    isSubscribing = true;
+    globalSubscribing = true;
+    setLastError(null);
 
     try {
       if (!isSupported) {
-        toast({ title: "Not Supported", description: "Push notifications are not supported in your browser.", variant: "destructive" });
+        toast.error("Push notifications aren't supported in this browser.");
         return false;
       }
 
-      // Step 1: Request permission
+      // Step 1: Permission
+      setPushState('requesting_permission');
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        toast({ title: "Permission Denied", description: "Please enable notifications in your browser settings.", variant: "destructive" });
+        setPushState('error');
+        setLastError('permission_denied');
+        toast.error("Notification permission denied. Please enable it in your browser settings.");
         return false;
       }
 
-      // Step 2: Get service worker
+      // Step 2: Service Worker
+      setPushState('preparing_sw');
       let registration: ServiceWorkerRegistration;
       try {
         registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
       } catch {
-        toast({ title: "Service Worker Error", description: "Could not initialize the notification service. Try refreshing the page.", variant: "destructive" });
+        setPushState('error');
+        setLastError('sw_not_ready');
+        toast.error("Service worker not ready. Try refreshing the page.");
         return false;
       }
 
-      // Step 3: Unsubscribe existing (ensure fresh VAPID key)
+      // Step 3: Unsubscribe stale, fetch VAPID, subscribe
       try {
         const existingSub = await (registration as any).pushManager.getSubscription();
         if (existingSub) await existingSub.unsubscribe();
       } catch { /* ignore */ }
 
-      // Step 4: Fetch VAPID key
-      const vapidKey = await fetchVapidPublicKey();
-      if (!vapidKey) {
-        toast({ title: "Configuration Error", description: "Could not fetch notification keys. Please try again later.", variant: "destructive" });
+      setPushState('subscribing');
+      let vapidKey: string;
+      try {
+        const { data, error } = await withTimeout(supabase.functions.invoke('get-vapid-key'), 5000, 'VAPID fetch');
+        if (error || !data?.vapidPublicKey) throw new Error('VAPID key not returned');
+        vapidKey = data.vapidPublicKey;
+      } catch {
+        setPushState('error');
+        setLastError('vapid_failed');
+        toast.error("Could not fetch notification keys. Please try again later.");
         return false;
       }
 
-      // Step 5: Create push subscription
       let sub: PushSubscription;
       try {
-        const applicationServerKey = urlBase64ToUint8Array(vapidKey);
         sub = await withTimeout(
-          (registration as any).pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey,
-          }),
+          (registration as any).pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) }),
           15000,
-          'Push subscription'
+          'Push subscribe'
         );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Could not enable push notifications.";
-        toast({ title: "Subscription Failed", description: msg, variant: "destructive" });
+        setPushState('error');
+        setLastError('subscribe_failed');
+        toast.error(err instanceof Error ? err.message : "Could not create push subscription.");
         return false;
+      }
+
+      // Step 4: Save to backend
+      setPushState('saving');
+      const saved = await saveSubscription(sub);
+      if (!saved) {
+        setPushState('error');
+        setLastError('save_failed');
+        toast.error("Could not save subscription to server. Please try again.");
+        return false;
+      }
+
+      // Step 5: Test delivery
+      setPushState('testing');
+      const testOk = await testDelivery();
+      if (!testOk) {
+        // Saved but test failed — still mark as ready since sub is valid
+        console.warn('⚠️ Test push failed, but subscription saved successfully');
       }
 
       setSubscription(sub);
+      setPushState('ready');
 
-      // Step 6: Save to database
-      const saved = await saveSubscription(sub);
-      if (!saved) {
-        toast({ title: "Save Failed", description: "Could not save notification settings. Please try again.", variant: "destructive" });
-        return false;
-      }
+      // Side effects
+      await Promise.allSettled([ensureDefaultMealTimes(), updateUserTimezone()]);
 
-      // Step 7: Ensure default meal times
-      await ensureDefaultMealTimes();
-
-      // Step 8: Update timezone
-      await updateUserTimezone();
-
-      toast({ title: "Notifications Enabled", description: "You'll receive meal reminders at your scheduled times!" });
+      toast.success("🔔 Notifications enabled! You'll receive meal reminders.");
       return true;
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Could not enable push notifications.";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+      setPushState('error');
+      setLastError('unknown');
+      toast.error(error instanceof Error ? error.message : "Could not enable notifications.");
       return false;
     } finally {
-      isSubscribing = false;
+      globalSubscribing = false;
     }
-  };
+  }, [isSupported]);
 
   const saveSubscription = async (sub: PushSubscription): Promise<boolean> => {
     try {
@@ -206,25 +189,52 @@ export const usePushNotifications = () => {
 
       const p256dh = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
-      if (!p256dh || !auth) return false;
+      if (!p256dh || !auth) {
+        console.error('Missing p256dh or auth keys from subscription');
+        return false;
+      }
 
-      const subscriptionData = {
+      const subData = {
         user_id: user.id,
         endpoint: sub.endpoint,
-        keys: {
-          p256dh: arrayBufferToBase64(p256dh),
-          auth: arrayBufferToBase64(auth)
-        }
+        keys: { p256dh: arrayBufferToBase64(p256dh), auth: arrayBufferToBase64(auth) },
       };
 
-      // Delete existing subscriptions for this user
-      await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-      // Delete any with same endpoint (different user edge case)
+      // Delete all existing for this user, then insert fresh
+      const { error: delErr } = await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
+      if (delErr) console.warn('Delete old subs failed:', delErr.message);
+
+      // Also delete by endpoint (edge case: different user, same browser)
       await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-      // Insert new
-      const { error } = await supabase.from('push_subscriptions').insert(subscriptionData).select();
-      return !error;
-    } catch {
+
+      const { error: insertErr } = await supabase.from('push_subscriptions').insert(subData);
+      if (insertErr) {
+        console.error('Insert subscription failed:', insertErr.message);
+        return false;
+      }
+
+      console.log('✅ Subscription saved to backend');
+      return true;
+    } catch (err) {
+      console.error('Save subscription error:', err);
+      return false;
+    }
+  };
+
+  const testDelivery = async (): Promise<boolean> => {
+    try {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke('test-push-notification'),
+        10000,
+        'Test push'
+      );
+      if (error) {
+        console.warn('Test push invocation error:', error);
+        return false;
+      }
+      return data?.success === true;
+    } catch (err) {
+      console.warn('Test delivery failed:', err);
       return false;
     }
   };
@@ -233,11 +243,9 @@ export const usePushNotifications = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data: existing } = await supabase
-        .from('baby_meal_times').select('id').eq('user_id', user.id).limit(1);
+      const { data: existing } = await supabase.from('baby_meal_times').select('id').eq('user_id', user.id).limit(1);
       if (existing && existing.length > 0) return;
-      const mealTimesToInsert = DEFAULT_MEAL_TIMES.map(mt => ({ ...mt, user_id: user.id }));
-      await supabase.from('baby_meal_times').insert(mealTimesToInsert);
+      await supabase.from('baby_meal_times').insert(DEFAULT_MEAL_TIMES.map(mt => ({ ...mt, user_id: user.id })));
     } catch { /* ignore */ }
   };
 
@@ -255,13 +263,19 @@ export const usePushNotifications = () => {
     try {
       await subscription.unsubscribe();
       setSubscription(null);
+      setPushState('idle');
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-      }
-      toast({ title: "Unsubscribed", description: "You won't receive push notifications anymore." });
+      if (user) await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
+      toast.success("Notifications disabled.");
     } catch { /* ignore */ }
   };
 
-  return { isSupported, subscription, subscribeToPushNotifications, unsubscribeFromPushNotifications, iosStatus };
+  return {
+    isSupported,
+    subscription,
+    pushState,
+    lastError,
+    subscribeToPushNotifications,
+    unsubscribeFromPushNotifications,
+  };
 };

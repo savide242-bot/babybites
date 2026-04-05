@@ -7,61 +7,36 @@ import { supabase } from '@/integrations/supabase/client';
 
 const VAPID_VERSION = 'v2';
 const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
-const MASTER_TIMEOUT_MS = 25000;
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isActivating, setIsActivating] = useState(false);
-  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
+  const { subscribeToPushNotifications, isSupported, pushState } = usePushNotifications();
+  const isActivating = pushState === 'requesting_permission' || pushState === 'preparing_sw' || pushState === 'subscribing' || pushState === 'saving' || pushState === 'testing';
 
   useEffect(() => {
     const checkShouldPrompt = async () => {
       if (!isSupported) return;
-
-      const activated = localStorage.getItem(STORAGE_KEY);
-      if (activated === 'true') return;
-
+      if (localStorage.getItem(STORAGE_KEY) === 'true') return;
       if (Notification.permission === 'granted') {
-        const success = await subscribeToPushNotifications();
-        if (success) {
-          localStorage.setItem(STORAGE_KEY, 'true');
-        }
+        // Already granted — don't prompt, auto-resubscribe handles this
+        localStorage.setItem(STORAGE_KEY, 'true');
         return;
       }
-
       if (Notification.permission === 'denied') return;
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      setTimeout(() => setIsOpen(true), 1500);
+      setTimeout(() => setIsOpen(true), 2000);
     };
-
     checkShouldPrompt();
   }, [isSupported]);
 
   const handleActivate = async () => {
-    setIsActivating(true);
-
-    // Master timeout: force-close after 25s if subscription hangs
-    const timeout = setTimeout(() => {
-      setIsActivating(false);
-      setIsOpen(false);
-    }, MASTER_TIMEOUT_MS);
-
-    try {
-      const success = await subscribeToPushNotifications();
-      if (success) {
-        localStorage.setItem(STORAGE_KEY, 'true');
-      }
-    } finally {
-      clearTimeout(timeout);
-      setIsActivating(false);
-      setIsOpen(false);
+    const success = await subscribeToPushNotifications();
+    if (success) {
+      localStorage.setItem(STORAGE_KEY, 'true');
     }
-  };
-
-  const handleMaybeLater = () => {
     setIsOpen(false);
   };
 
@@ -96,31 +71,14 @@ export const NotificationPromptModal = () => {
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 mt-4">
-          <Button 
-            onClick={handleActivate} 
-            size="lg"
-            disabled={isActivating}
-            className="w-full text-base font-semibold"
-          >
+          <Button onClick={handleActivate} size="lg" disabled={isActivating} className="w-full text-base font-semibold">
             {isActivating ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Activating...
-              </>
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Activating...</>
             ) : (
-              <>
-                <Bell className="mr-2 h-5 w-5" />
-                Activate Reminders
-              </>
+              <><Bell className="mr-2 h-5 w-5" />Activate Reminders</>
             )}
           </Button>
-          <Button 
-            onClick={handleMaybeLater}
-            variant="outline"
-            size="lg"
-            disabled={isActivating}
-            className="w-full"
-          >
+          <Button onClick={() => setIsOpen(false)} variant="outline" size="lg" disabled={isActivating} className="w-full">
             Maybe Later
           </Button>
         </div>
