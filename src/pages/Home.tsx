@@ -10,8 +10,7 @@ import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { BellRing, Flame, Trophy, BookOpen, ChevronRight, Lightbulb, ChefHat } from "lucide-react";
+import { Flame, Trophy, BookOpen, ChevronRight, Lightbulb, ChefHat } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -22,8 +21,6 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState<{ current_streak: number; total_points: number } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const { isSupported, subscription, subscribeToPushNotifications } = usePushNotifications();
-  const [notifLoading, setNotifLoading] = useState(false);
 
   const recipeOfDayRef = useRef<HTMLDivElement>(null);
   const checkinWidgetRef = useRef<HTMLDivElement>(null);
@@ -146,45 +143,7 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── NOTIFICATION CTA (subtle) ── */}
-        {!isLoading && isSupported && !subscription && (
-          <motion.button
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={async () => {
-              if (notifLoading) return;
-              setNotifLoading(true);
-              try {
-                console.log('🏠 Home: Starting notification subscription...');
-                const success = await subscribeToPushNotifications();
-                console.log('🏠 Home: Subscription result:', success);
-                if (success) {
-                  toast.success("🔔 Notifications enabled!");
-                } else {
-                  toast.error("Could not enable notifications. Check browser settings.");
-                }
-              } catch (err) {
-                console.error('🏠 Home: Subscription error:', err);
-                toast.error("Something went wrong. Please try again.");
-              } finally {
-                setNotifLoading(false);
-              }
-            }}
-            disabled={notifLoading}
-            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-muted/60 border border-border/50 active:scale-[0.98] transition-transform"
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <BellRing className="w-3.5 h-3.5 text-primary" />
-            </div>
-            <div className="text-left flex-1">
-              <p className="font-medium text-xs text-foreground">Enable Notifications</p>
-              <p className="text-[10px] text-muted-foreground">Meal reminders & daily tips</p>
-            </div>
-            {notifLoading && (
-              <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-            )}
-          </motion.button>
-        )}
+        {/* Notification prompt is handled by NotificationPromptModal globally */}
 
         {/* ── STATS ── */}
         {!isLoading && (
