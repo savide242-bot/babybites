@@ -17,6 +17,17 @@ const CHUNK_ERROR_PATTERNS = [
   'error loading dynamically imported module',
 ];
 
+// Global guard: when true, PWA recovery will NOT unregister service workers
+let _pushFlowActive = false;
+
+export function setPushFlowActive(active: boolean): void {
+  _pushFlowActive = active;
+}
+
+export function isPushFlowActive(): boolean {
+  return _pushFlowActive;
+}
+
 function isChunkLoadError(message: string): boolean {
   const lowerMessage = message.toLowerCase();
   return CHUNK_ERROR_PATTERNS.some(pattern => 
@@ -45,6 +56,12 @@ function setCooldown(): void {
 }
 
 export async function performPWARecovery(): Promise<void> {
+  // GUARD: Never nuke service workers while push subscription is in progress
+  if (_pushFlowActive) {
+    console.log('🔧 PWA Recovery: Push flow active, skipping SW cleanup');
+    return;
+  }
+
   console.log('🔧 PWA Recovery: Starting cache cleanup...');
   
   try {

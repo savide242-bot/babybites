@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { setPushFlowActive } from '@/utils/pwaRecovery';
 
 const DEFAULT_MEAL_TIMES = [
   { meal_type: 'breakfast', preferred_hour: 7, preferred_minute: 30, enabled: true },
@@ -45,6 +46,104 @@ const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !(wind
 const isStandalonePWA = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
 const getIOSVersion = () => { const m = navigator.userAgent.match(/OS (\d+)_/); return m ? parseInt(m[1], 10) : 0; };
 
+/**
+ * Robustly acquire a ServiceWorkerRegistration with an active worker.
+ * Instead of just waiting on navigator.serviceWorker.ready (which can hang),
+ * we check existing registrations, force-activate waiting workers, or
+ * manually register the SW if none exist.
+ */
+async function acquireServiceWorker(): Promise<ServiceWorkerRegistration> {
+  console.log('🔔 Push: Acquiring service worker...');
+  
+  // Step 1: Check existing registrations
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  console.log('🔔 Push: Found', registrations.length, 'registrations');
+  
+  // Find one with an active worker
+  for (const reg of registrations) {
+    if (reg.active) {
+      console.log('🔔 Push: Found active SW, scope:', reg.scope);
+      return reg;
+    }
+  }
+  
+  // Step 2: Check if any registration has a waiting worker — force activate it
+  for (const reg of registrations) {
+    if (reg.waiting) {
+      console.log('🔔 Push: Found waiting SW, sending skipWaiting...');
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      // Wait for it to become active
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('skipWaiting activation timeout')), 5000);
+        const check = () => {
+          if (reg.active) {
+            clearTimeout(timeout);
+            resolve();
+          } else {
+            setTimeout(check, 200);
+          }
+        };
+        check();
+      });
+      if (reg.active) {
+        console.log('🔔 Push: SW activated after skipWaiting');
+        return reg;
+      }
+    }
+  }
+  
+  // Step 3: Check for installing worker
+  for (const reg of registrations) {
+    if (reg.installing) {
+      console.log('🔔 Push: Found installing SW, waiting for activation...');
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('SW install timeout')), 10000);
+        reg.installing!.addEventListener('statechange', function handler() {
+          if (reg.active) {
+            clearTimeout(timeout);
+            reg.installing?.removeEventListener('statechange', handler);
+            resolve();
+          }
+        });
+      });
+      if (reg.active) return reg;
+    }
+  }
+  
+  // Step 4: No usable registration — manually register
+  console.log('🔔 Push: No active SW found, registering /sw.js manually...');
+  const newReg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+  
+  // Wait for the new worker to activate
+  const worker = newReg.installing || newReg.waiting || newReg.active;
+  if (newReg.active) {
+    console.log('🔔 Push: Newly registered SW is already active');
+    return newReg;
+  }
+  
+  if (worker) {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('New SW activation timeout')), 15000);
+      worker.addEventListener('statechange', function handler() {
+        if (worker.state === 'activated' || newReg.active) {
+          clearTimeout(timeout);
+          worker.removeEventListener('statechange', handler);
+          resolve();
+        }
+      });
+    });
+  }
+  
+  if (!newReg.active) {
+    // Last resort: try navigator.serviceWorker.ready with a timeout
+    console.log('🔔 Push: Falling back to navigator.serviceWorker.ready...');
+    const readyReg = await withTimeout(navigator.serviceWorker.ready, 8000, 'SW ready fallback');
+    return readyReg;
+  }
+  
+  return newReg;
+}
+
 export const usePushNotifications = () => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSupported, setIsSupported] = useState(false);
@@ -68,11 +167,16 @@ export const usePushNotifications = () => {
 
   const checkExistingSub = async () => {
     try {
-      const reg = await withTimeout(navigator.serviceWorker.ready, 8000, 'SW ready check');
-      const sub = await (reg as any).pushManager.getSubscription();
-      if (sub) {
-        setSubscription(sub);
-        setPushState('ready');
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        if (reg.active) {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            setSubscription(sub);
+            setPushState('ready');
+            return;
+          }
+        }
       }
     } catch { /* silent */ }
   };
@@ -83,6 +187,7 @@ export const usePushNotifications = () => {
       return false;
     }
     globalSubscribing = true;
+    setPushFlowActive(true); // Prevent pwaRecovery from nuking SW
     setLastError(null);
 
     try {
@@ -93,7 +198,9 @@ export const usePushNotifications = () => {
 
       // Step 1: Permission
       setPushState('requesting_permission');
+      console.log('🔔 Push Step 1: Requesting permission...');
       const permission = await Notification.requestPermission();
+      console.log('🔔 Push Step 1: Permission result:', permission);
       if (permission !== 'granted') {
         setPushState('error');
         setLastError('permission_denied');
@@ -101,12 +208,15 @@ export const usePushNotifications = () => {
         return false;
       }
 
-      // Step 2: Service Worker
+      // Step 2: Service Worker — robust acquisition
       setPushState('preparing_sw');
+      console.log('🔔 Push Step 2: Acquiring service worker...');
       let registration: ServiceWorkerRegistration;
       try {
-        registration = await withTimeout(navigator.serviceWorker.ready, 10000, 'Service worker ready');
-      } catch {
+        registration = await withTimeout(acquireServiceWorker(), 20000, 'Service worker acquisition');
+        console.log('🔔 Push Step 2: SW acquired, scope:', registration.scope, 'active:', !!registration.active);
+      } catch (err) {
+        console.error('🔔 Push Step 2 FAILED:', err);
         setPushState('error');
         setLastError('sw_not_ready');
         toast.error("Service worker not ready. Try refreshing the page.");
@@ -115,31 +225,49 @@ export const usePushNotifications = () => {
 
       // Step 3: Unsubscribe stale, fetch VAPID, subscribe
       try {
-        const existingSub = await (registration as any).pushManager.getSubscription();
-        if (existingSub) await existingSub.unsubscribe();
+        const existingSub = await registration.pushManager.getSubscription();
+        if (existingSub) {
+          console.log('🔔 Push Step 3: Unsubscribing stale subscription...');
+          await existingSub.unsubscribe();
+        }
       } catch { /* ignore */ }
 
       setPushState('subscribing');
+      console.log('🔔 Push Step 3: Fetching VAPID key...');
       let vapidKey: string;
       try {
-        const { data, error } = await withTimeout(supabase.functions.invoke('get-vapid-key'), 5000, 'VAPID fetch');
-        if (error || !data?.vapidPublicKey) throw new Error('VAPID key not returned');
+        const { data, error } = await withTimeout(supabase.functions.invoke('get-vapid-key'), 8000, 'VAPID fetch');
+        if (error || !data?.vapidPublicKey) {
+          console.error('🔔 Push Step 3: VAPID error:', error, 'data:', data);
+          throw new Error('VAPID key not returned');
+        }
         vapidKey = data.vapidPublicKey;
-      } catch {
+        console.log('🔔 Push Step 3: VAPID key received, length:', vapidKey.length);
+      } catch (err) {
+        console.error('🔔 Push Step 3 VAPID FAILED:', err);
         setPushState('error');
         setLastError('vapid_failed');
         toast.error("Could not fetch notification keys. Please try again later.");
         return false;
       }
 
+      console.log('🔔 Push Step 3: Subscribing to push manager...');
       let sub: PushSubscription;
       try {
         sub = await withTimeout(
-          (registration as any).pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) }),
+          registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) }),
           15000,
           'Push subscribe'
         );
+        // Validate keys immediately
+        const p256dh = sub.getKey('p256dh');
+        const auth = sub.getKey('auth');
+        if (!p256dh || !auth) {
+          throw new Error('Subscription created but missing p256dh or auth keys');
+        }
+        console.log('🔔 Push Step 3: Subscription created, endpoint:', sub.endpoint.substring(0, 60) + '...');
       } catch (err) {
+        console.error('🔔 Push Step 3 SUBSCRIBE FAILED:', err);
         setPushState('error');
         setLastError('subscribe_failed');
         toast.error(err instanceof Error ? err.message : "Could not create push subscription.");
@@ -148,6 +276,7 @@ export const usePushNotifications = () => {
 
       // Step 4: Save to backend
       setPushState('saving');
+      console.log('🔔 Push Step 4: Saving subscription to backend...');
       const saved = await saveSubscription(sub);
       if (!saved) {
         setPushState('error');
@@ -155,13 +284,16 @@ export const usePushNotifications = () => {
         toast.error("Could not save subscription to server. Please try again.");
         return false;
       }
+      console.log('🔔 Push Step 4: Subscription saved successfully');
 
       // Step 5: Test delivery
       setPushState('testing');
+      console.log('🔔 Push Step 5: Testing push delivery...');
       const testOk = await testDelivery();
       if (!testOk) {
-        // Saved but test failed — still mark as ready since sub is valid
         console.warn('⚠️ Test push failed, but subscription saved successfully');
+      } else {
+        console.log('🔔 Push Step 5: Test push delivered successfully!');
       }
 
       setSubscription(sub);
@@ -173,24 +305,29 @@ export const usePushNotifications = () => {
       toast.success("🔔 Notifications enabled! You'll receive meal reminders.");
       return true;
     } catch (error) {
+      console.error('🔔 Push UNEXPECTED ERROR:', error);
       setPushState('error');
       setLastError('unknown');
       toast.error(error instanceof Error ? error.message : "Could not enable notifications.");
       return false;
     } finally {
       globalSubscribing = false;
+      setPushFlowActive(false);
     }
   }, [isSupported]);
 
   const saveSubscription = async (sub: PushSubscription): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) {
+        console.error('🔔 Save: No authenticated user');
+        return false;
+      }
 
       const p256dh = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
       if (!p256dh || !auth) {
-        console.error('Missing p256dh or auth keys from subscription');
+        console.error('🔔 Save: Missing p256dh or auth keys from subscription');
         return false;
       }
 
@@ -200,23 +337,34 @@ export const usePushNotifications = () => {
         keys: { p256dh: arrayBufferToBase64(p256dh), auth: arrayBufferToBase64(auth) },
       };
 
-      // Delete all existing for this user, then insert fresh
-      const { error: delErr } = await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-      if (delErr) console.warn('Delete old subs failed:', delErr.message);
-
+      // Clean approach: delete old subs for this user, then insert fresh
+      // Delete by user_id first
+      await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
       // Also delete by endpoint (edge case: different user, same browser)
       await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
 
       const { error: insertErr } = await supabase.from('push_subscriptions').insert(subData);
       if (insertErr) {
-        console.error('Insert subscription failed:', insertErr.message);
+        console.error('🔔 Save: Insert failed:', insertErr.message);
         return false;
       }
 
-      console.log('✅ Subscription saved to backend');
+      // Verify the insert actually worked
+      const { data: verify, error: verifyErr } = await supabase
+        .from('push_subscriptions')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+      
+      if (verifyErr || !verify || verify.length === 0) {
+        console.error('🔔 Save: Verification failed — row not found after insert');
+        return false;
+      }
+
+      console.log('✅ Subscription saved and verified in backend');
       return true;
     } catch (err) {
-      console.error('Save subscription error:', err);
+      console.error('🔔 Save subscription error:', err);
       return false;
     }
   };
@@ -229,12 +377,13 @@ export const usePushNotifications = () => {
         'Test push'
       );
       if (error) {
-        console.warn('Test push invocation error:', error);
+        console.warn('🔔 Test push invocation error:', error);
         return false;
       }
+      console.log('🔔 Test push result:', data);
       return data?.success === true;
     } catch (err) {
-      console.warn('Test delivery failed:', err);
+      console.warn('🔔 Test delivery failed:', err);
       return false;
     }
   };
