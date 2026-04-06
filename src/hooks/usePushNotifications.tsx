@@ -255,7 +255,7 @@ export const usePushNotifications = () => {
       let sub: PushSubscription;
       try {
         sub = await withTimeout(
-          registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) }),
+          registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource }),
           15000,
           'Push subscribe'
         );
