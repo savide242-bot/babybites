@@ -20,7 +20,6 @@ const SmartInstallBanner = () => {
     const wasDismissed = localStorage.getItem('install_banner_dismissed');
     if (wasDismissed) {
       const dismissedAt = parseInt(wasDismissed, 10);
-      // Show again after 3 days
       if (Date.now() - dismissedAt < 3 * 24 * 60 * 60 * 1000) {
         setDismissed(true);
       }
@@ -38,39 +37,38 @@ const SmartInstallBanner = () => {
       const { outcome } = await installPrompt.userChoice;
       if (outcome === 'accepted') {
         setDismissed(true);
+        localStorage.setItem('install_banner_dismissed', Date.now().toString());
       }
     }
   };
 
-  // Don't show if already installed, dismissed, or in standalone mode
   if (isInstalled || isStandalone || dismissed) return null;
 
-  // Show only if we have a Chrome install prompt OR if on iOS Safari
   const showForChrome = !!installPrompt;
   const showForIOS = isIOS;
 
   if (!showForChrome && !showForIOS) return null;
 
   return (
-    <div className="fixed bottom-20 left-3 right-3 z-50 animate-fade-in lg:bottom-4 lg:left-auto lg:right-4 lg:max-w-sm">
-      <div className="relative bg-card border border-border/60 rounded-2xl shadow-xl p-4">
+    <div className="fixed bottom-20 left-2 right-2 z-50 animate-fade-in lg:bottom-4 lg:left-auto lg:right-4 lg:max-w-sm">
+      <div className="relative bg-gradient-to-r from-primary/95 to-accent/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/20">
         <button
           onClick={handleDismiss}
-          className="absolute top-2.5 right-2.5 p-1 rounded-full hover:bg-muted/80 text-muted-foreground"
+          className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-white/20 text-white/80 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-3 pr-6">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
-            <span className="text-xl">🍼</span>
+          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 shadow-lg">
+            <span className="text-2xl">🍼</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-foreground">Install BabyBites</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="font-bold text-sm text-white">Download BabyBites</p>
+            <p className="text-xs text-white/80 mt-0.5">
               {isIOS
-                ? 'Tap the share button below, then "Add to Home Screen"'
-                : 'Get meal reminders and quick access from your home screen'}
+                ? 'Tap Share → "Add to Home Screen"'
+                : 'Quick access & push notifications from your home screen'}
             </p>
           </div>
         </div>
@@ -79,16 +77,16 @@ const SmartInstallBanner = () => {
           <Button
             onClick={handleInstall}
             size="sm"
-            className="w-full mt-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white gap-2"
+            className="w-full mt-3 rounded-xl bg-white text-primary hover:bg-white/90 font-bold gap-2 shadow-lg h-11"
           >
             <Download className="w-4 h-4" />
-            Add to Home Screen
+            Install App — It's Free
           </Button>
         )}
 
         {isIOS && !showForChrome && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-xl p-2.5">
-            <Share className="w-4 h-4 shrink-0 text-primary" />
+          <div className="mt-3 flex items-center gap-2 text-xs text-white/90 bg-white/15 rounded-xl p-3">
+            <Share className="w-5 h-5 shrink-0" />
             <span>Tap <strong>Share</strong> → <strong>Add to Home Screen</strong></span>
           </div>
         )}
