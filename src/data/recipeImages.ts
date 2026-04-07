@@ -69,6 +69,16 @@ import recipe382TroutSweetPotatoDill from "@/assets/recipes/recipe-382-trout-swe
 import recipe383BeetrootOrangeGinger from "@/assets/recipes/recipe-383-beetroot-orange-ginger.webp";
 import recipe384BuckwheatAppleCinnamon from "@/assets/recipes/recipe-384-buckwheat-apple-cinnamon.webp";
 import recipe385SalmonAvocadoCucumber from "@/assets/recipes/recipe-385-salmon-avocado-cucumber.webp";
+import recipe386CauliflowerPotatoTurmeric from "@/assets/recipes/recipe-386-cauliflower-potato-turmeric.webp";
+import recipe387PearRicottaCardamom from "@/assets/recipes/recipe-387-pear-ricotta-cardamom.webp";
+import recipe388SweetPotatoPeanutButterBanana from "@/assets/recipes/recipe-388-sweet-potato-peanut-butter-banana.webp";
+import recipe389CourgetteCornMildCheddar from "@/assets/recipes/recipe-389-courgette-corn-mild-cheddar.webp";
+import recipe390StewedPlumVanillaOats from "@/assets/recipes/recipe-390-stewed-plum-vanilla-oats.webp";
+import recipe391PumpkinChickpeaSage from "@/assets/recipes/recipe-391-pumpkin-chickpea-sage.webp";
+import recipe392WatermelonCucumberMint from "@/assets/recipes/recipe-392-watermelon-cucumber-mint.webp";
+import recipe393LentilSpinachCoconut from "@/assets/recipes/recipe-393-lentil-spinach-coconut.webp";
+import recipe394RoastedTomatoBasilWhiteBean from "@/assets/recipes/recipe-394-roasted-tomato-basil-white-bean.webp";
+import recipe395AppleWalnutCinnamonOatBake from "@/assets/recipes/recipe-395-apple-walnut-cinnamon-oat-bake.webp";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
@@ -902,16 +912,16 @@ const recipeImageMap: Record<string, string> = {
   "383": recipe383BeetrootOrangeGinger,
   "384": recipe384BuckwheatAppleCinnamon,
   "385": recipe385SalmonAvocadoCucumber,
-  "386": sweetPotatoCarrot,
-  "387": sweetPotatoCarrot,
-  "388": sweetPotatoCarrot,
-  "389": sweetPotatoCarrot,
-  "390": sweetPotatoCarrot,
-  "391": sweetPotatoCarrot,
-  "392": sweetPotatoCarrot,
-  "393": sweetPotatoCarrot,
-  "394": sweetPotatoCarrot,
-  "395": sweetPotatoCarrot,
+  "386": recipe386CauliflowerPotatoTurmeric,
+  "387": recipe387PearRicottaCardamom,
+  "388": recipe388SweetPotatoPeanutButterBanana,
+  "389": recipe389CourgetteCornMildCheddar,
+  "390": recipe390StewedPlumVanillaOats,
+  "391": recipe391PumpkinChickpeaSage,
+  "392": recipe392WatermelonCucumberMint,
+  "393": recipe393LentilSpinachCoconut,
+  "394": recipe394RoastedTomatoBasilWhiteBean,
+  "395": recipe395AppleWalnutCinnamonOatBake,
 };
 
 // Keyword to ID mapping for backward compatibility
