@@ -56,6 +56,13 @@ import recipe369EdamamePear from "@/assets/recipes/recipe-369-edamame-pear.webp"
 import recipe370PolentaPearVanilla from "@/assets/recipes/recipe-370-polenta-pear-vanilla.webp";
 import recipe371EggSpinachRicotta from "@/assets/recipes/recipe-371-egg-spinach-ricotta.webp";
 import recipe372SweetPotatoLentilCoconut from "@/assets/recipes/recipe-372-sweet-potato-lentil-coconut.webp";
+import recipe373BananaTahiniDate from "@/assets/recipes/recipe-373-banana-tahini-date.webp";
+import recipe374PeaMintFeta from "@/assets/recipes/recipe-374-pea-mint-feta.webp";
+import recipe375RedPepperLentil from "@/assets/recipes/recipe-375-red-pepper-lentil.webp";
+import recipe376OatAlmondStrawberry from "@/assets/recipes/recipe-376-oat-almond-strawberry.webp";
+import recipe377ButternutChickenLemon from "@/assets/recipes/recipe-377-butternut-chicken-lemon.webp";
+import recipe378QuinoaBroccoliCheddar from "@/assets/recipes/recipe-378-quinoa-broccoli-cheddar.webp";
+import recipe379MangoCoconutChia from "@/assets/recipes/recipe-379-mango-coconut-chia.webp";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
@@ -876,13 +883,13 @@ const recipeImageMap: Record<string, string> = {
  "370": recipe370PolentaPearVanilla,
  "371": recipe371EggSpinachRicotta,
  "372": recipe372SweetPotatoLentilCoconut,
-  "373": sweetPotatoCarrot,
-  "374": sweetPotatoCarrot,
-  "375": sweetPotatoCarrot,
-  "376": sweetPotatoCarrot,
-  "377": sweetPotatoCarrot,
-  "378": sweetPotatoCarrot,
-  "379": sweetPotatoCarrot,
+   "373": recipe373BananaTahiniDate,
+   "374": recipe374PeaMintFeta,
+   "375": recipe375RedPepperLentil,
+   "376": recipe376OatAlmondStrawberry,
+   "377": recipe377ButternutChickenLemon,
+   "378": recipe378QuinoaBroccoliCheddar,
+   "379": recipe379MangoCoconutChia,
   "380": sweetPotatoCarrot,
   "381": sweetPotatoCarrot,
   "382": sweetPotatoCarrot,
