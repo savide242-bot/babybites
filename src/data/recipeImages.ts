@@ -29,6 +29,11 @@ import recipe342MangoYogurtBowl from "@/assets/recipes/recipe-342-mango-yogurt-b
 import recipe343CheesyBroccoliBites from "@/assets/recipes/recipe-343-cheesy-broccoli-bites.jpg";
 import recipe344AppleCinnamonOats from "@/assets/recipes/recipe-344-apple-cinnamon-oats.jpg";
 import recipe345PbBananaFingers from "@/assets/recipes/recipe-345-pb-banana-fingers.jpg";
+import recipe346BeetrootPear from "@/assets/recipes/recipe-346-beetroot-pear.png";
+import recipe347CarrotOrangeGinger from "@/assets/recipes/recipe-347-carrot-orange-ginger.png";
+import recipe348CourgetteCheddar from "@/assets/recipes/recipe-348-courgette-cheddar.png";
+import recipe349ParsnipAppleThyme from "@/assets/recipes/recipe-349-parsnip-apple-thyme.png";
+import recipe350LentilTomatoCumin from "@/assets/recipes/recipe-350-lentil-tomato-cumin.png";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
@@ -822,11 +827,11 @@ const recipeImageMap: Record<string, string> = {
   "343": recipe343CheesyBroccoliBites,
   "344": recipe344AppleCinnamonOats,
   "345": recipe345PbBananaFingers,
-  "346": sweetPotatoCarrot,
-  "347": sweetPotatoCarrot,
-  "348": sweetPotatoCarrot,
-  "349": sweetPotatoCarrot,
-  "350": sweetPotatoCarrot,
+  "346": recipe346BeetrootPear,
+  "347": recipe347CarrotOrangeGinger,
+  "348": recipe348CourgetteCheddar,
+  "349": recipe349ParsnipAppleThyme,
+  "350": recipe350LentilTomatoCumin,
   "351": sweetPotatoCarrot,
   "352": sweetPotatoCarrot,
   "353": sweetPotatoCarrot,
