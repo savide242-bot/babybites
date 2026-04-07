@@ -63,6 +63,12 @@ import recipe376OatAlmondStrawberry from "@/assets/recipes/recipe-376-oat-almond
 import recipe377ButternutChickenLemon from "@/assets/recipes/recipe-377-butternut-chicken-lemon.webp";
 import recipe378QuinoaBroccoliCheddar from "@/assets/recipes/recipe-378-quinoa-broccoli-cheddar.webp";
 import recipe379MangoCoconutChia from "@/assets/recipes/recipe-379-mango-coconut-chia.webp";
+import recipe380TurkeyCourgetteParmesan from "@/assets/recipes/recipe-380-turkey-courgette-parmesan.webp";
+import recipe381ButterbeanRoastCarrotCumin from "@/assets/recipes/recipe-381-butterbean-roast-carrot-cumin.webp";
+import recipe382TroutSweetPotatoDill from "@/assets/recipes/recipe-382-trout-sweet-potato-dill.webp";
+import recipe383BeetrootOrangeGinger from "@/assets/recipes/recipe-383-beetroot-orange-ginger.webp";
+import recipe384BuckwheatAppleCinnamon from "@/assets/recipes/recipe-384-buckwheat-apple-cinnamon.webp";
+import recipe385SalmonAvocadoCucumber from "@/assets/recipes/recipe-385-salmon-avocado-cucumber.webp";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
@@ -890,12 +896,12 @@ const recipeImageMap: Record<string, string> = {
    "377": recipe377ButternutChickenLemon,
    "378": recipe378QuinoaBroccoliCheddar,
    "379": recipe379MangoCoconutChia,
-  "380": sweetPotatoCarrot,
-  "381": sweetPotatoCarrot,
-  "382": sweetPotatoCarrot,
-  "383": sweetPotatoCarrot,
-  "384": sweetPotatoCarrot,
-  "385": sweetPotatoCarrot,
+  "380": recipe380TurkeyCourgetteParmesan,
+  "381": recipe381ButterbeanRoastCarrotCumin,
+  "382": recipe382TroutSweetPotatoDill,
+  "383": recipe383BeetrootOrangeGinger,
+  "384": recipe384BuckwheatAppleCinnamon,
+  "385": recipe385SalmonAvocadoCucumber,
   "386": sweetPotatoCarrot,
   "387": sweetPotatoCarrot,
   "388": sweetPotatoCarrot,
