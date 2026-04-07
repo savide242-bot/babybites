@@ -1,59 +1,133 @@
 
 
-# Plan: Fix Push Notifications + Add 50 New Recipes
+# Plan: Smart Age-Based System, Shopping List Sync, Notifications Fix, Performance & Admin Upgrade
 
-## Part 1: Fix Push Notification Subscription (the real problem)
-
-**Root cause confirmed**: Zero logs in `get-vapid-key` — the client never reaches the VAPID step. It dies at `navigator.serviceWorker.ready`.
-
-Why it fails:
-- VitePWA uses `registerType: "prompt"` + `skipWaiting: false` — the SW can be stuck in "waiting" state
-- `pwaRecovery.ts` unregisters ALL service workers on any chunk load error, nuking the SW mid-flow
-- `navigator.serviceWorker.ready` can hang indefinitely if no active SW exists after recovery
-
-**Fix in `usePushNotifications.tsx`** (Step 2 — SW acquisition):
-- Instead of just waiting on `navigator.serviceWorker.ready`, first check `navigator.serviceWorker.getRegistrations()`
-- If no registration exists or none has an active worker, manually register the SW via `navigator.serviceWorker.register('/sw.js')` and wait for it to activate
-- If a registration exists with a waiting worker, call `skipWaiting()` on it to force activation
-- Add detailed console logging at each step so failures are traceable
-
-**Fix in `pwaRecovery.ts`**:
-- Export a global `pushFlowActive` flag
-- Set it to `true` during the subscription flow in `usePushNotifications`
-- In `performPWARecovery()`, skip SW unregistration if the flag is active
-
-**Fix in `saveSubscription()`**:
-- Replace the fragile delete-then-insert with a proper upsert pattern using `onConflict: 'endpoint'` or similar, so the subscription is reliably persisted
+This plan addresses all 8 requests in priority order, grouped into logical implementation phases.
 
 ---
 
-## Part 2: Add 50 New Recipes (IDs 346–395)
+## Phase 1: Smart Age-Based Recipe Sorting (Requests 1 & 2)
 
-The user uploaded a complete JSON file with 50 recipes. The task is:
+**Goal**: Recipes page and Meal Planner automatically adapt to baby's age.
 
-1. **Create `src/data/recipes346-395.ts`** — Convert the JSON to the app's TypeScript format matching existing recipe files (like `recipes341-345.ts`). Each recipe gets:
-   - `id`: "346" through "395" (JSON ids 1-50 mapped to 346-395)
-   - `title`, `description` (from `why_good_for_baby`), `ageGroup`, `category`, `prepTime`, `servings`
-   - `image: getRecipeImageById(id)` — will use hash fallback until AI images are generated
-   - `ingredients` as `string[]` (combine quantity + unit + item)
-   - `instructions` as `string[]`
-   - `nutrition` in the app format (calories, protein, carbs, fat, fiber, vitamins)
-   - `allergens` from `allergy_info`
-   - `storage`, `healthBenefits` (from `why_good_for_baby`), `servingGuidance`
+### Recipes Page (`src/pages/Recipes.tsx`)
+- On mount, fetch baby's birth date from profile and calculate age in months
+- Auto-set `selectedAge` filter to the baby's age group (e.g., "6-9 months")
+- Within the filtered results, sort recipes: easiest first (by prepTime + ingredient count), harder ones after
+- Show a "Recommended for [Baby Name]" section at top with age-matched recipes
+- Other age groups still accessible below, but baby's age comes first by default
 
-2. **Update `src/data/recipes.ts`** — Import and spread `recipes346to395`
-
-3. **Update `src/data/recipeImages.ts`** — Add IDs 346–395 to `recipeImageMap` using hash-based fallback images (existing images from the pool) until unique AI images are generated later
+### Meal Planner (`src/utils/mealPlanGenerator.ts`)
+- Already has `getRecipesForAge()` logic — verify it's correctly using the profile's `baby_birth_date`
+- Ensure `generateWeeklyMealPlan` always passes the real baby age, not a hardcoded default
 
 ---
 
-## Files to change
+## Phase 2: Shopping List Sync with Meal Planner (Request 3)
 
-| File | Change |
-|------|--------|
-| `src/hooks/usePushNotifications.tsx` | Robust SW acquisition: check registrations, force-register if needed, skipWaiting on waiting SW |
-| `src/utils/pwaRecovery.ts` | Add `pushFlowActive` guard to prevent SW nuke during push flow |
-| `src/data/recipes346-395.ts` | **New**: 50 recipes converted from JSON |
-| `src/data/recipes.ts` | Import + spread new recipe array |
-| `src/data/recipeImages.ts` | Add entries 346–395 to image map |
+**Goal**: Shopping list ingredients come directly from the current week's meal plan recipes.
+
+### Current State
+- `syncShoppingListFromMealPlans` in `src/utils/shoppingListSync.ts` already does this correctly — it fetches `meal_plans` for the current week, maps `recipe_id` to ingredients, and syncs to `shopping_list_items`
+- The ShoppingList page calls `syncShoppingListFromMealPlans` on load
+
+### Fix
+- Verify that when the meal planner generates/regenerates a plan, it triggers a shopping list re-sync
+- Add a "Sync from Meal Plan" button on the shopping list page if auto-sync isn't reflecting changes
+- Debug: check if `week_start_date` calculation matches between meal planner and shopping list sync
+
+---
+
+## Phase 3: Push Notifications Architecture Fix (Requests 4 & 7)
+
+**Goal**: Notifications work end-to-end — subscription, delivery, and admin broadcast.
+
+### Browser Subscription Fix (`src/hooks/usePushNotifications.tsx`)
+- Review the `acquireServiceWorker` flow for common failure points
+- Add better error recovery: if subscription fails, clear stale registrations and retry
+- Ensure the VAPID key fetch has proper error handling
+- Add diagnostic logging to identify where the flow breaks
+
+### Admin Broadcast Fix (`supabase/functions/notify-all-users/index.ts`)
+- Verify the edge function deploys correctly and CORS headers are present
+- Test the function end-to-end using `curl_edge_functions`
+- Ensure the `NotificationComposer` properly invokes the function with auth headers
+
+### Service Worker
+- Verify `sw-listener.js` handles push events correctly
+- Ensure `sw.js` (workbox) doesn't interfere with push subscription
+
+---
+
+## Phase 4: Performance Optimization (Request 5)
+
+**Goal**: Ultra-fast loading, all images optimized.
+
+### Image Optimization
+- Scan `src/assets/` for remaining `.jpg` and `.png` files used in recipe cards
+- Convert all to WebP format using a batch script
+- Update all imports in `recipeImages.ts` to use `.webp` versions
+- Add `loading="lazy"` and `decoding="async"` to all recipe card images (already has `loading="lazy"`)
+
+### Bundle Optimization
+- Already uses lazy loading for routes — verify all heavy pages are lazy-loaded
+- Check for any large inline data or unused imports
+- Ensure recipe data files aren't all bundled together if only a subset is needed
+
+---
+
+## Phase 5: Smart Install Banner (Request 8)
+
+**Goal**: Show download/install button when user is in browser, hide after install.
+
+### Current State
+- `SmartInstallBanner.tsx` exists and handles Chrome install prompt + iOS instructions
+- Already hides when installed or in standalone mode
+
+### Enhancement
+- Make the banner more prominent (sticky bottom bar instead of dismissible)
+- When user installs (detected via `display-mode: standalone`), auto-hide permanently
+- Add a prominent "Download App" button in the header or bottom nav for browser users
+
+---
+
+## Phase 6: Admin Panel Enhancement (Request 9)
+
+**Goal**: Comprehensive admin dashboard with detailed user analytics and activity tracking.
+
+### New Admin Features
+1. **User Activity Detail View**: Click on any user to see their full activity — recipes viewed, tabs visited, meal plans created, last active time
+2. **Enhanced Metrics Dashboard**: 
+   - Daily/Weekly/Monthly Active Users (DAU/WAU/MAU)
+   - Recipe popularity rankings
+   - Meal plan completion rates
+   - Notification delivery success rates
+   - User retention cohorts
+3. **Activity Feed**: Real-time feed of user actions (recipe views, meal plans, check-ins)
+4. **Better Notification Management**: Segment users by activity level, send targeted notifications
+
+### Database
+- The `activity_logs` table exists but may need more granular tracking
+- Enhance `useSessionTracking` to log page views and key actions to `activity_logs`
+- Create a new admin view component that queries these logs per user
+
+### Implementation
+- Add new admin tabs or expand existing ones
+- Create `UserActivityDetail` component showing per-user analytics
+- Add charts for retention, engagement trends, recipe popularity
+
+---
+
+## Technical Summary
+
+| Phase | Files Modified | Priority |
+|-------|---------------|----------|
+| 1 - Age-based recipes | `Recipes.tsx`, `mealPlanGenerator.ts` | High |
+| 2 - Shopping list sync | `shoppingListSync.ts`, `ShoppingList.tsx` | High |
+| 3 - Notifications fix | `usePushNotifications.tsx`, edge functions | High |
+| 4 - Performance | `recipeImages.ts`, asset conversion | Medium |
+| 5 - Install banner | `SmartInstallBanner.tsx`, `Header.tsx` | Medium |
+| 6 - Admin upgrade | Admin components, `useSessionTracking.tsx` | Medium |
+
+Each phase is independent and can be implemented sequentially. Phases 1-3 are the highest priority as they directly impact user experience and core functionality.
 
