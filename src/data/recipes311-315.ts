@@ -1,3 +1,5 @@
+import recipe314AvocadoMangoSmoothieBowl from "@/assets/recipes/recipe-314-avocado-mango-smoothie-bowl.webp";
+
 export const recipes311to315 = [
   {
     id: "311",
@@ -110,7 +112,7 @@ export const recipes311to315 = [
     category: "Smoothie",
     prepTime: "5 min",
     servings: "1 bowl",
-    image: "",
+    image: recipe314AvocadoMangoSmoothieBowl,
     ingredients: [
       "1/2 ripe avocado",
       "1/2 cup frozen mango chunks",
