@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter, ChevronDown, Download, Loader2, Baby } from "lucide-react";
+import { Search, Clock, Heart, History, Eye, Sparkles, TrendingUp, Zap, Utensils, ChefHat, Filter, ChevronDown, Download, Loader2, Baby, Star } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -17,8 +17,26 @@ import { EmptyRecipes } from "@/components/empty-states";
 import { hapticFeedback } from "@/utils/haptic";
 import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { differenceInMonths } from "date-fns";
 
 const BATCH_SIZE = 30;
+
+// Calculate difficulty score for sorting (lower = easier)
+const getDifficultyScore = (recipe: typeof recipes[0]): number => {
+  const prepMinutes = parseInt(recipe.prepTime) || 30;
+  const ingredientCount = recipe.ingredients.length;
+  return prepMinutes * 2 + ingredientCount * 3;
+};
+
+// Get age group from months
+const getAgeGroupFromMonths = (months: number): string => {
+  if (months < 6) return "0-6 months";
+  if (months < 9) return "6-9 months";
+  if (months < 12) return "9-12 months";
+  if (months < 18) return "12-18 months";
+  return "18-24 months";
+};
 
 // Pure CSS recipe card - no framer-motion per card
 const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite }: {
@@ -52,19 +70,18 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               src={recipe.image}
               alt={recipe.title}
               loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             />
             
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-500" />
             
-            {/* Shine sweep on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             
             {isFav && (
               <div className="absolute inset-0 rounded-2xl ring-2 ring-primary/50 ring-inset pointer-events-none" />
             )}
             
-            {/* Top left badges */}
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {isNew && (
                 <Badge className="bg-gradient-to-r from-accent to-orange-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0 animate-pulse">
@@ -86,7 +103,6 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               )}
             </div>
             
-            {/* Age badge + Favorite */}
             <div className="absolute top-2 right-2 flex items-center gap-1">
               <Badge className="bg-white/90 backdrop-blur-sm text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-lg border-0">
                 {recipe.ageGroup}
@@ -105,7 +121,6 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               </Button>
             </div>
 
-            {/* Perfect match */}
             {isCompatible && hasPrefs && (
               <div className="absolute top-10 left-1/2 -translate-x-1/2">
                 <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
@@ -115,7 +130,6 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               </div>
             )}
             
-            {/* Bottom content */}
             <div className="absolute bottom-0 left-0 right-0 p-3">
               <h3 className="text-white font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-lg">
                 {recipe.title}
@@ -156,6 +170,28 @@ const Recipes = () => {
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [easyCookingMode, setEasyCookingMode] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [babyAgeMonths, setBabyAgeMonths] = useState<number | null>(null);
+  const [babyName, setBabyName] = useState<string>("");
+  const [ageAutoSet, setAgeAutoSet] = useState(false);
+
+  // Fetch baby profile for age-based sorting
+  useEffect(() => {
+    const fetchBabyAge = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('baby_birth_date, baby_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profile?.baby_birth_date) {
+        const months = differenceInMonths(new Date(), new Date(profile.baby_birth_date));
+        setBabyAgeMonths(Math.max(0, months));
+        setBabyName(profile.baby_name || '');
+      }
+    };
+    fetchBabyAge();
+  }, []);
 
   useEffect(() => {
     const ageParam = searchParams.get('age');
@@ -163,6 +199,7 @@ const Recipes = () => {
       const decodedAge = decodeURIComponent(ageParam);
       if (ageGroups.includes(decodedAge)) {
         setSelectedAge(decodedAge);
+        setAgeAutoSet(true);
       }
     }
     const easyParam = searchParams.get('easy');
@@ -170,6 +207,15 @@ const Recipes = () => {
       setEasyCookingMode(true);
     }
   }, [searchParams]);
+
+  // Auto-set age filter based on baby's age (only if no URL param overrides it)
+  useEffect(() => {
+    if (babyAgeMonths !== null && !ageAutoSet && selectedAge === "All Ages") {
+      const babyAgeGroup = getAgeGroupFromMonths(babyAgeMonths);
+      setSelectedAge(babyAgeGroup);
+      setAgeAutoSet(true);
+    }
+  }, [babyAgeMonths, ageAutoSet, selectedAge]);
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -184,6 +230,7 @@ const Recipes = () => {
     return prepMinutes <= 15 && recipe.ingredients.length <= 6;
   }, []);
 
+  // Smart filtered and sorted recipes
   const filteredRecipes = useMemo(() => {
     let result = recipes.filter((recipe) => {
       const matchesSearch = searchQuery === "" || 
@@ -201,11 +248,23 @@ const Recipes = () => {
 
     if (easyCookingMode) {
       result = result.filter(isEasyRecipe);
-      result.sort((a, b) => (parseInt(a.prepTime) || 0) - (parseInt(b.prepTime) || 0));
     }
+
+    // Sort by difficulty (easiest first)
+    result.sort((a, b) => getDifficultyScore(a) - getDifficultyScore(b));
 
     return result;
   }, [searchQuery, selectedAge, selectedCategory, dietaryFilters, easyCookingMode, isEasyRecipe]);
+
+  // "Recommended for baby" section — age-matched recipes sorted easiest first
+  const recommendedRecipes = useMemo(() => {
+    if (babyAgeMonths === null || babyAgeMonths < 6) return [];
+    const babyAgeGroup = getAgeGroupFromMonths(babyAgeMonths);
+    return recipes
+      .filter(r => r.ageGroup === babyAgeGroup)
+      .sort((a, b) => getDifficultyScore(a) - getDifficultyScore(b))
+      .slice(0, 10);
+  }, [babyAgeMonths]);
 
   const visibleRecipes = useMemo(() => {
     return filteredRecipes.slice(0, visibleCount);
@@ -257,7 +316,6 @@ const Recipes = () => {
     setIsExporting(true);
     toast.info('Generating eBook with photos... This may take a moment.');
     
-    // Defer to let the toast render
     setTimeout(() => {
       try {
         exportRecipeEbook(recipes as any);
@@ -329,7 +387,7 @@ const Recipes = () => {
                 Easy Cooking
               </Button>
 
-              <Select value={selectedAge} onValueChange={setSelectedAge}>
+              <Select value={selectedAge} onValueChange={(val) => { setSelectedAge(val); setAgeAutoSet(true); }}>
                 <SelectTrigger className="rounded-full text-xs sm:text-sm h-9 sm:h-10 min-w-[100px] sm:min-w-[120px] border-primary/20 bg-background shadow-sm flex-shrink-0">
                   <SelectValue placeholder={t('recipes.selectAge')} />
                 </SelectTrigger>
@@ -361,6 +419,54 @@ const Recipes = () => {
             </div>
           </div>
         </div>
+
+        {/* Recommended for Baby - Smart age-based section */}
+        {recommendedRecipes.length > 0 && selectedAge !== "All Ages" && babyName && (
+          <div className="mb-6 sm:mb-8 animate-fade-in">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold">Recommended for {babyName}</h2>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    {babyAgeMonths} months • Easiest recipes first
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-gradient-to-r from-primary/10 to-accent/10 text-primary border-primary/20 text-[10px] sm:text-xs">
+                <Baby className="h-3 w-3 mr-1" />
+                {getAgeGroupFromMonths(babyAgeMonths!)}
+              </Badge>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+              <div className="flex gap-3 overflow-x-auto scrollbar-hide px-1 py-2">
+                {recommendedRecipes.map((recipe, index) => {
+                  const recipeTags = getRecipeDietaryTags(recipe.id);
+                  return (
+                    <div key={recipe.id} className="flex-shrink-0 w-36 sm:w-44">
+                      <RecipeCard 
+                        recipe={recipe} 
+                        index={index}
+                        isFav={isFavorite(recipe.id)}
+                        isCompatible={isRecipeCompatible(recipeTags)}
+                        isNew={isNewRecipe(recipe.id)}
+                        isPopular={isPopularRecipe(recipe.id)}
+                        isQuick={parseInt(recipe.prepTime) <= 15}
+                        hasPrefs={preferences.length > 0}
+                        onToggleFavorite={handleToggleFavorite}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Recently Viewed */}
         {!historyLoading && recentRecipes.length > 0 && (
@@ -459,6 +565,7 @@ const Recipes = () => {
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore
+            {selectedAge !== "All Ages" && <span className="text-primary font-medium"> • Easiest first</span>}
           </p>
         </div>
 
@@ -485,7 +592,6 @@ const Recipes = () => {
               })}
             </div>
             
-            {/* Infinite scroll trigger + manual load more */}
             {hasMore && (
               <div ref={loadMoreRef} className="flex justify-center py-8">
                 <Button
