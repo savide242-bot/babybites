@@ -34,6 +34,14 @@ import recipe347CarrotOrangeGinger from "@/assets/recipes/recipe-347-carrot-oran
 import recipe348CourgetteCheddar from "@/assets/recipes/recipe-348-courgette-cheddar.png";
 import recipe349ParsnipAppleThyme from "@/assets/recipes/recipe-349-parsnip-apple-thyme.png";
 import recipe350LentilTomatoCumin from "@/assets/recipes/recipe-350-lentil-tomato-cumin.png";
+import recipe351MilletBanana from "@/assets/recipes/recipe-351-millet-banana.png";
+import recipe352BroccoliWhiteBean from "@/assets/recipes/recipe-352-broccoli-white-bean.png";
+import recipe353PeachVanillaYogurt from "@/assets/recipes/recipe-353-peach-vanilla-yogurt.png";
+import recipe354TurnipSweetPotatoApple from "@/assets/recipes/recipe-354-turnip-sweet-potato-apple.png";
+import recipe355AubergineTomato from "@/assets/recipes/recipe-355-aubergine-tomato.png";
+import recipe356CodCarrotDill from "@/assets/recipes/recipe-356-cod-carrot-dill.png";
+import recipe357AvocadoCourgetteLime from "@/assets/recipes/recipe-357-avocado-courgette-lime.png";
+import recipe358AmaranthPeach from "@/assets/recipes/recipe-358-amaranth-peach.png";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
@@ -832,14 +840,14 @@ const recipeImageMap: Record<string, string> = {
   "348": recipe348CourgetteCheddar,
   "349": recipe349ParsnipAppleThyme,
   "350": recipe350LentilTomatoCumin,
-  "351": sweetPotatoCarrot,
-  "352": sweetPotatoCarrot,
-  "353": sweetPotatoCarrot,
-  "354": sweetPotatoCarrot,
-  "355": sweetPotatoCarrot,
-  "356": sweetPotatoCarrot,
-  "357": sweetPotatoCarrot,
-  "358": sweetPotatoCarrot,
+  "351": recipe351MilletBanana,
+  "352": recipe352BroccoliWhiteBean,
+  "353": recipe353PeachVanillaYogurt,
+  "354": recipe354TurnipSweetPotatoApple,
+  "355": recipe355AubergineTomato,
+  "356": recipe356CodCarrotDill,
+  "357": recipe357AvocadoCourgetteLime,
+  "358": recipe358AmaranthPeach,
   "359": sweetPotatoCarrot,
   "360": sweetPotatoCarrot,
   "361": sweetPotatoCarrot,
