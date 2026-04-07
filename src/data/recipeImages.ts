@@ -42,6 +42,13 @@ import recipe355AubergineTomato from "@/assets/recipes/recipe-355-aubergine-toma
 import recipe356CodCarrotDill from "@/assets/recipes/recipe-356-cod-carrot-dill.png";
 import recipe357AvocadoCourgetteLime from "@/assets/recipes/recipe-357-avocado-courgette-lime.png";
 import recipe358AmaranthPeach from "@/assets/recipes/recipe-358-amaranth-peach.png";
+import recipe359FennelPearPotato from "@/assets/recipes/recipe-359-fennel-pear-potato.png";
+import recipe360BlackBeanSweetPotato from "@/assets/recipes/recipe-360-black-bean-sweet-potato.png";
+import recipe361OatRaspberryCoconut from "@/assets/recipes/recipe-361-oat-raspberry-coconut.png";
+import recipe362LambRosemaryRoot from "@/assets/recipes/recipe-362-lamb-rosemary-root.png";
+import recipe363WatercressPotatoPear from "@/assets/recipes/recipe-363-watercress-potato-pear.png";
+import recipe364PapayaCarrotCoconut from "@/assets/recipes/recipe-364-papaya-carrot-coconut.png";
+import recipe365JerusalemArtichokeApple from "@/assets/recipes/recipe-365-jerusalem-artichoke-apple.png";
 import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
 import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
@@ -848,13 +855,13 @@ const recipeImageMap: Record<string, string> = {
   "356": recipe356CodCarrotDill,
   "357": recipe357AvocadoCourgetteLime,
   "358": recipe358AmaranthPeach,
-  "359": sweetPotatoCarrot,
-  "360": sweetPotatoCarrot,
-  "361": sweetPotatoCarrot,
-  "362": sweetPotatoCarrot,
-  "363": sweetPotatoCarrot,
-  "364": sweetPotatoCarrot,
-  "365": sweetPotatoCarrot,
+  "359": recipe359FennelPearPotato,
+  "360": recipe360BlackBeanSweetPotato,
+  "361": recipe361OatRaspberryCoconut,
+  "362": recipe362LambRosemaryRoot,
+  "363": recipe363WatercressPotatoPear,
+  "364": recipe364PapayaCarrotCoconut,
+  "365": recipe365JerusalemArtichokeApple,
   "366": sweetPotatoCarrot,
   "367": sweetPotatoCarrot,
   "368": sweetPotatoCarrot,
