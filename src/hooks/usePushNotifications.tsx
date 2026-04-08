@@ -194,7 +194,6 @@ export const usePushNotifications = () => {
       try {
         const existingSub = await registration.pushManager.getSubscription();
         if (existingSub) {
-          // Check if it has valid keys
           const p256dh = existingSub.getKey('p256dh');
           const auth = existingSub.getKey('auth');
           if (p256dh && auth) {
@@ -204,7 +203,7 @@ export const usePushNotifications = () => {
             await existingSub.unsubscribe();
             sub = await registration.pushManager.subscribe({
               userVisibleOnly: true,
-              applicationServerKey: urlBase64ToUint8Array(vapidKey),
+              applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
             });
           }
         } else {
