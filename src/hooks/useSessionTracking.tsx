@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
 
@@ -21,8 +21,27 @@ const getDeviceInfo = () => {
   return `${browser} on ${os}`;
 };
 
+// Debounce activity log writes
+let lastLoggedRoute = '';
+let lastLogTime = 0;
+const LOG_DEBOUNCE_MS = 5000;
+
 export const useSessionTracking = () => {
   const location = useLocation();
+
+  // Log activity event to activity_logs (for admin visibility)
+  const logActivity = useCallback(async (actionType: string, details?: Record<string, any>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        action_type: actionType,
+        action_details: details || {},
+      });
+    } catch { /* silent */ }
+  }, []);
 
   useEffect(() => {
     const trackSession = async () => {
@@ -33,30 +52,19 @@ export const useSessionTracking = () => {
       const now = new Date().toISOString();
 
       try {
-        // Auto-detect and update user's timezone
+        // Auto-detect timezone
         const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        supabase
-          .from('profiles')
-          .update({ timezone: detectedTimezone })
-          .eq('id', user.id)
-          .then(() => {});
+        supabase.from('profiles').update({ timezone: detectedTimezone }).eq('id', user.id).then(() => {});
 
-        // Upsert session — uses UNIQUE(user_id) constraint
+        // Upsert session
         await supabase
           .from('user_sessions')
           .upsert(
-            {
-              user_id: user.id,
-              last_login: now,
-              last_active: now,
-              total_sessions: 1,
-              device_info: deviceInfo,
-            },
+            { user_id: user.id, last_login: now, last_active: now, total_sessions: 1, device_info: deviceInfo },
             { onConflict: 'user_id' }
           );
 
-        // Note: upsert with onConflict doesn't support incrementing,
-        // so we do a separate update to bump total_sessions for existing users
+        // Bump total_sessions
         const { data: existing } = await supabase
           .from('user_sessions')
           .select('total_sessions')
@@ -69,6 +77,9 @@ export const useSessionTracking = () => {
             .update({ total_sessions: existing.total_sessions + 1 })
             .eq('user_id', user.id);
         }
+
+        // Log session start
+        logActivity('session_start', { device: deviceInfo, route: location.pathname });
       } catch (error) {
         console.error('Error tracking session:', error);
       }
@@ -90,18 +101,25 @@ export const useSessionTracking = () => {
     return () => clearInterval(activityInterval);
   }, []);
 
-  // Update last_active on every route change
+  // Log page views on route change (debounced)
   useEffect(() => {
+    const now = Date.now();
+    if (location.pathname === lastLoggedRoute && now - lastLogTime < LOG_DEBOUNCE_MS) return;
+    lastLoggedRoute = location.pathname;
+    lastLogTime = now;
+
     const updateActivity = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase
-          .from('user_sessions')
-          .update({ last_active: new Date().toISOString() })
-          .eq('user_id', user.id);
-      }
+      if (!user) return;
+      
+      await supabase.from('user_sessions').update({ last_active: new Date().toISOString() }).eq('user_id', user.id);
+      
+      // Log page view for admin analytics
+      logActivity('page_view', { path: location.pathname });
     };
 
     updateActivity();
-  }, [location.pathname]);
+  }, [location.pathname, logActivity]);
+
+  return { logActivity };
 };
