@@ -18,6 +18,9 @@ export function useAutoResubscribe() {
     const check = async () => {
       hasChecked.current = true;
       if (Notification.permission !== 'granted') return;
+      // Don't auto-resubscribe if the modal hasn't been dismissed yet
+      const VAPID_VERSION = 'v2';
+      if (localStorage.getItem(`push_notifications_activated_${VAPID_VERSION}`) !== 'true') return;
 
       try {
         const { data: { user } } = await supabase.auth.getUser();

@@ -1,10 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
+import { isPushFlowActive } from '@/utils/pwaRecovery';
 
 export const useServiceWorkerUpdate = () => {
   const [needRefresh, setNeedRefresh] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   const activateUpdate = useCallback((worker: ServiceWorker) => {
+    if (isPushFlowActive()) {
+      console.log('🔄 Skipping SW update — push flow active');
+      return;
+    }
     console.log('🔄 Auto-activating update...');
     worker.postMessage({ type: 'SKIP_WAITING' });
   }, []);

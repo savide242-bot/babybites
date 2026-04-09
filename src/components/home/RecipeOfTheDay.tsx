@@ -20,6 +20,8 @@ const RecipeOfTheDay = ({ recipe, babyName }: RecipeOfTheDayProps) => {
             <img
               src={getRecipeImageById(recipe.id)}
               alt={recipe.title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
             <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
