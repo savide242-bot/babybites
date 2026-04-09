@@ -56,12 +56,12 @@ async function acquireServiceWorker(): Promise<ServiceWorkerRegistration> {
     if (reg.waiting) {
       console.log('🔔 Push: Activating waiting SW...');
       reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 1500));
       if (reg.active) return reg;
     }
   }
 
-  // Strategy 3: Register fresh SW and wait for ready
+  // Strategy 3: Register fresh SW
   console.log('🔔 Push: Registering fresh /sw.js...');
   try {
     await navigator.serviceWorker.register('/sw.js', { scope: '/' });
@@ -70,9 +70,14 @@ async function acquireServiceWorker(): Promise<ServiceWorkerRegistration> {
     await navigator.serviceWorker.register('/sw-listener.js', { scope: '/' });
   }
 
-  // Wait for ready — this is the most reliable way
-  console.log('🔔 Push: Waiting for navigator.serviceWorker.ready...');
-  const readyReg = await navigator.serviceWorker.ready;
+  // Wait for ready with a 10s timeout — don't hang forever
+  console.log('🔔 Push: Waiting for navigator.serviceWorker.ready (10s timeout)...');
+  const readyReg = await Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('SW ready timeout after 10s')), 10000)
+    ),
+  ]);
   console.log('🔔 Push: SW ready! scope:', readyReg.scope);
   return readyReg;
 }
@@ -123,16 +128,16 @@ export const usePushNotifications = () => {
     setPushFlowActive(true);
     setLastError(null);
 
-    // Master safety timeout — force-close after 30s no matter what
+    // Master safety timeout — force-close after 15s no matter what
     const masterTimeout = setTimeout(() => {
       if (globalSubscribing) {
-        console.warn('🔔 Push: Master timeout reached (30s)');
+        console.warn('🔔 Push: Master timeout reached (15s)');
         globalSubscribing = false;
         setPushFlowActive(false);
         setPushState('error');
         setLastError('timeout');
       }
-    }, 30000);
+    }, 15000);
 
     try {
       if (!isSupported) {

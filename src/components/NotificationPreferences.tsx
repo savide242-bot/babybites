@@ -369,46 +369,7 @@ export function NotificationPreferences() {
           });
       }
 
-      // Auto-subscribe to push notifications if supported
-
-      if (isSupported) {
-        if (Notification.permission === 'granted') {
-          await subscribeToPushNotifications();
-        } else if (Notification.permission === 'default') {
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            await subscribeToPushNotifications();
-          }
-        }
-      }
-
-      // Send confirmation notification with SOUND
-      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('mother_name')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          const motherName = profile?.mother_name || '';
-          
-          await registration.showNotification('✅ Notification System Activated!', {
-            body: `Hi ${motherName}! Your meal reminders are now scheduled for your timezone (${userTimezone}).`,
-            icon: '/icon-192x192.png',
-            badge: '/icon-192x192.png',
-            tag: 'notification-activated',
-            requireInteraction: false,
-            silent: false,
-            data: { url: '/settings' }
-          });
-        } catch (notifError) {
-          console.error('Failed to send confirmation notification:', notifError);
-        }
-      }
-
+      // Save succeeded — update UI immediately
       setInitialPrefs(prefs);
       setInitialTimezone(userTimezone);
       setIsSaved(true);
@@ -418,7 +379,24 @@ export function NotificationPreferences() {
         title: "✅ Preferences Saved",
         description: `Your notification times have been updated for timezone ${userTimezone}!`,
       });
-      
+
+      // Fire-and-forget: try push subscription as a non-blocking side-effect
+      if (isSupported) {
+        (async () => {
+          try {
+            let permission = Notification.permission;
+            if (permission === 'default') {
+              permission = await Notification.requestPermission();
+            }
+            if (permission === 'granted') {
+              await subscribeToPushNotifications();
+            }
+          } catch (e) {
+            console.warn('Push subscription side-effect failed:', e);
+          }
+        })();
+      }
+
       // Refresh diagnostics
       await loadDiagnostics();
     } catch (error) {
