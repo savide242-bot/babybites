@@ -313,6 +313,8 @@ const FirstDay = () => {
                   <img
                     src={getRecipeImageById(recipe.id)}
                     alt={recipe.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>

@@ -140,6 +140,8 @@ export const RecipePickerModal = ({
         <img
           src={getRecipeImage([recipe.id, recipe.title])}
           alt={recipe.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform"
         />
         {badge && (
@@ -272,6 +274,8 @@ export const RecipePickerModal = ({
                       <img
                         src={getRecipeImage([recipe.id, recipe.title])}
                         alt={recipe.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
