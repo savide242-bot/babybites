@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Bell, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -10,18 +10,15 @@ const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
 
 const STEP_LABELS: Record<string, string> = {
   requesting_permission: 'Requesting permission...',
-  preparing_sw: 'Preparing notification service...',
-  subscribing: 'Setting up subscription...',
+  subscribing: 'Setting up notifications...',
   saving: 'Saving preferences...',
-  testing: 'Almost done...',
 };
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [failed, setFailed] = useState(false);
   const { subscribeToPushNotifications, isSupported, pushState, lastError } = usePushNotifications();
-  const isActivating = pushState === 'requesting_permission' || pushState === 'preparing_sw' || pushState === 'subscribing' || pushState === 'saving' || pushState === 'testing';
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const isActivating = pushState === 'requesting_permission' || pushState === 'subscribing' || pushState === 'saving';
 
   useEffect(() => {
     const checkShouldPrompt = async () => {
@@ -32,37 +29,21 @@ export const NotificationPromptModal = () => {
         return;
       }
       if (Notification.permission === 'denied') return;
-
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
       setTimeout(() => setIsOpen(true), 2000);
     };
     checkShouldPrompt();
   }, [isSupported]);
 
-  // Watch for error state
   useEffect(() => {
-    if (pushState === 'error') {
-      setFailed(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-    } else if (pushState === 'ready') {
-      setFailed(false);
-    }
+    if (pushState === 'error') setFailed(true);
+    else if (pushState === 'ready') setFailed(false);
   }, [pushState]);
 
   const handleActivate = async () => {
     setFailed(false);
-    // Visual timeout — if not done in 12s, show error
-    timerRef.current = setTimeout(() => {
-      if (pushState !== 'ready' && pushState !== 'idle') {
-        setFailed(true);
-      }
-    }, 12000);
-
     const success = await subscribeToPushNotifications();
-    if (timerRef.current) clearTimeout(timerRef.current);
-
     if (success) {
       localStorage.setItem(STORAGE_KEY, 'true');
       setIsOpen(false);
@@ -105,20 +86,18 @@ export const NotificationPromptModal = () => {
         </DialogHeader>
 
         <div className="flex flex-col gap-3 mt-4">
-          {/* Step feedback */}
           {isActivating && stepLabel && (
             <p className="text-center text-sm text-muted-foreground animate-pulse">{stepLabel}</p>
           )}
 
-          {/* Error state with retry */}
           {failed && !isActivating && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               <span>
                 {lastError === 'permission_denied'
                   ? 'Permission denied. Enable notifications in your browser settings.'
-                  : lastError === 'timeout'
-                  ? 'The request timed out. Please try again.'
+                  : lastError === 'sw_not_ready'
+                  ? 'Service not ready. Refresh the page and try again.'
                   : 'Something went wrong. Please try again.'}
               </span>
             </div>
