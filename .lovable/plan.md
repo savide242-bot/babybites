@@ -1,52 +1,55 @@
 
 
-# Fix: Notificações Travadas + Otimização de Imagens
+# Fix: Receitas 404 + Notificações que nunca funcionam
 
-## Problema 1: "Edit Meal Reminders" fica a processar para sempre
+## Problema 1: Receitas dão 404
 
-**Causa raiz**: `NotificationPreferences.handleSave()` (linha 374-383) chama `subscribeToPushNotifications()` de forma **síncrona** durante o save. Se a subscrição push trava (ex: service worker não pronto), o botão "Saving..." fica preso até o timeout de 30s.
+**Causa raiz encontrada**: Em `src/components/home/WhatToCookWidget.tsx` linha 110, o botão "Let's Cook This!" navega para `/recipes/${id}` (plural) em vez de `/recipe/${id}` (singular). A rota definida em `App.tsx` é `/recipe/:id`. Resultado: 404 imediato.
 
-**Fix**: Desacoplar a gravação dos horários da subscrição push.
-- Salvar horários e timezone primeiro (operação rápida no DB)
-- Mostrar sucesso ao utilizador imediatamente
-- Tentar subscrição push como side-effect não-bloqueante (fire-and-forget com toast de resultado)
+**Fix**: Mudar `/recipes/${recommendation.id}` para `/recipe/${recommendation.id}` — uma linha.
 
-**Ficheiro**: `src/components/NotificationPreferences.tsx` — refactor `handleSave`
+---
 
-## Problema 2: "Service Worker not ready" na subscrição push
+## Problema 2: Notificações nunca completam — sempre processam
 
-**Causa raiz**: `acquireServiceWorker()` chama `navigator.serviceWorker.ready` que pode ficar pendurado indefinidamente em certos cenários (SW em estado inconsistente, conflito com auto-update). O master timeout de 30s é demasiado longo para UX.
+**Causa raiz real identificada** (depois de analisar todo o fluxo):
 
-**Fixes**:
-1. **`usePushNotifications.tsx`**: Adicionar timeout de 10s específico ao `navigator.serviceWorker.ready` em vez de depender apenas do master timeout de 30s
-2. **`usePushNotifications.tsx`**: Se já existe permissão granted + SW ready com subscription válida, reutilizar directamente sem re-registar
-3. **`usePushNotifications.tsx`**: Reduzir master timeout para 15s
-4. **`vite.config.ts`**: Mudar `devOptions.enabled` para `false` — impede SW de correr no preview iframe do Lovable, evitando conflitos
-5. **`useServiceWorkerUpdate.tsx`**: Verificar `isPushFlowActive()` antes de fazer `SKIP_WAITING` ou reload, para não interromper subscrição em curso
+1. **`esbuild.drop: ['console', 'debugger']` em produção** (vite.config.ts linha 14) — Remove TODOS os `console.log`, `console.error` e `console.warn` do bundle de produção. Isto significa que TODOS os diagnósticos do fluxo push são invisíveis e qualquer erro é silenciosamente engolido.
 
-## Problema 3: Conflito useAutoResubscribe + NotificationPromptModal
+2. **`navigator.serviceWorker.ready` pode nunca resolver** — Em produção, VitePWA regista o SW com `registerType: "prompt"`. Se o utilizador não aceitar a atualização do SW (prompt que aparece via `useServiceWorkerUpdate`), o worker pode ficar em estado `waiting` indefinidamente, e `navigator.serviceWorker.ready` só resolve quando há um worker `active`. O timeout de 10s dispara, o master timeout de 15s dispara, e o utilizador vê "processing forever".
 
-Ambos podem tentar `subscribeToPushNotifications()` quase ao mesmo tempo. O `globalSubscribing` lock protege, mas o segundo chamador falha silenciosamente.
+3. **Race condition com master timeout** — Quando o master timeout (15s) dispara, ele marca `globalSubscribing = false`, mas a Promise do `acquireServiceWorker` continua pendente em background. Ao tentar novamente, pode haver estados inconsistentes.
 
-**Fix**: Garantir que `useAutoResubscribe` só corre depois do modal ter sido tratado (verificar storage key antes de tentar).
+4. **O fluxo é demasiado longo e frágil**: permissão → SW → VAPID → subscribe → save → test = 6 passos síncronos, qualquer falha silenciosa trava tudo.
 
-## Performance: Imagens sem `loading="lazy"`
+**Fix completo**:
 
-Vários componentes carregam imagens sem lazy loading:
-- `DailyActionCard.tsx` (2 `<img>` sem lazy)
-- `RecipeDetail.tsx` (hero image sem lazy)
-- `MealCard.tsx` (background image sem lazy)
-- `RecipeOfTheDay.tsx` (sem lazy)
-- `RecipePickerModal.tsx` (2 `<img>` sem lazy)
-- `FirstDay.tsx` (sem lazy)
+### a) `vite.config.ts`
+- Remover `console` do `esbuild.drop` em produção — manter apenas `debugger`. Isto permite que os logs de diagnóstico do push apareçam na consola do browser real do utilizador, facilitando debug futuro.
 
-**Fix**: Adicionar `loading="lazy" decoding="async"` a todos os `<img>` nestes ficheiros.
+### b) `usePushNotifications.tsx` — Reescrever `acquireServiceWorker` para ser mais resiliente
+- Usar `navigator.serviceWorker.ready` SEM timeout como fallback principal (se já há SW active, retorna imediato)
+- Antes de tentar registar um novo SW, verificar se já existe um registration com `active` worker
+- Se `navigator.serviceWorker.controller` existe, usar o registration dele directamente
+- Adicionar AbortController pattern para cancelar limpo quando master timeout dispara
+- Reduzir complexidade: se permissão já está granted E já existe subscription válida no browser, reutilizar directamente sem re-registar nada
 
-## Ordem de implementação
+### c) `NotificationPromptModal.tsx`
+- Mostrar feedback por etapa ao utilizador (ex: "Requesting permission...", "Preparing...", "Almost done...")
+- Se falhar, mostrar botão "Try Again" em vez de fechar o modal
+- Adicionar timeout visual de 8s — se não completou, mostrar mensagem de erro amigável com opção de retry
 
-1. `vite.config.ts` — devOptions.enabled: false
-2. `usePushNotifications.tsx` — timeout no SW ready, reduzir master timeout
-3. `useServiceWorkerUpdate.tsx` — guard durante push flow
-4. `NotificationPreferences.tsx` — desacoplar save de push subscription
-5. Todos os componentes com `<img>` — lazy loading
+### d) `useServiceWorkerUpdate.tsx`
+- Verificar `isPushFlowActive()` antes de qualquer `skipWaiting` para não interromper subscrição ativa (já implementado, verificar que funciona)
+
+---
+
+## Ficheiros a modificar
+
+| Ficheiro | Alteração |
+|----------|-----------|
+| `src/components/home/WhatToCookWidget.tsx` | `/recipes/` → `/recipe/` (1 linha) |
+| `vite.config.ts` | Remover `'console'` do `esbuild.drop` |
+| `src/hooks/usePushNotifications.tsx` | Reescrever acquireServiceWorker + simplificar fluxo |
+| `src/components/NotificationPromptModal.tsx` | Feedback por etapa + retry button |
 
