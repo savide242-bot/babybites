@@ -1,24 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Bell, Loader2 } from 'lucide-react';
+import { Bell, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
 const VAPID_VERSION = 'v2';
 const STORAGE_KEY = `push_notifications_activated_${VAPID_VERSION}`;
 
+const STEP_LABELS: Record<string, string> = {
+  requesting_permission: 'Requesting permission...',
+  preparing_sw: 'Preparing notification service...',
+  subscribing: 'Setting up subscription...',
+  saving: 'Saving preferences...',
+  testing: 'Almost done...',
+};
+
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { subscribeToPushNotifications, isSupported, pushState } = usePushNotifications();
+  const [failed, setFailed] = useState(false);
+  const { subscribeToPushNotifications, isSupported, pushState, lastError } = usePushNotifications();
   const isActivating = pushState === 'requesting_permission' || pushState === 'preparing_sw' || pushState === 'subscribing' || pushState === 'saving' || pushState === 'testing';
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     const checkShouldPrompt = async () => {
       if (!isSupported) return;
       if (localStorage.getItem(STORAGE_KEY) === 'true') return;
       if (Notification.permission === 'granted') {
-        // Already granted — don't prompt, auto-resubscribe handles this
         localStorage.setItem(STORAGE_KEY, 'true');
         return;
       }
@@ -32,15 +41,39 @@ export const NotificationPromptModal = () => {
     checkShouldPrompt();
   }, [isSupported]);
 
+  // Watch for error state
+  useEffect(() => {
+    if (pushState === 'error') {
+      setFailed(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    } else if (pushState === 'ready') {
+      setFailed(false);
+    }
+  }, [pushState]);
+
   const handleActivate = async () => {
+    setFailed(false);
+    // Visual timeout — if not done in 12s, show error
+    timerRef.current = setTimeout(() => {
+      if (pushState !== 'ready' && pushState !== 'idle') {
+        setFailed(true);
+      }
+    }, 12000);
+
     const success = await subscribeToPushNotifications();
+    if (timerRef.current) clearTimeout(timerRef.current);
+
     if (success) {
       localStorage.setItem(STORAGE_KEY, 'true');
+      setIsOpen(false);
+    } else {
+      setFailed(true);
     }
-    setIsOpen(false);
   };
 
   if (!isSupported) return null;
+
+  const stepLabel = STEP_LABELS[pushState] || '';
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!isActivating) setIsOpen(open); }}>
@@ -70,14 +103,42 @@ export const NotificationPromptModal = () => {
             </p>
           </DialogDescription>
         </DialogHeader>
+
         <div className="flex flex-col gap-3 mt-4">
-          <Button onClick={handleActivate} size="lg" disabled={isActivating} className="w-full text-base font-semibold">
-            {isActivating ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Activating...</>
-            ) : (
-              <><Bell className="mr-2 h-5 w-5" />Activate Reminders</>
-            )}
-          </Button>
+          {/* Step feedback */}
+          {isActivating && stepLabel && (
+            <p className="text-center text-sm text-muted-foreground animate-pulse">{stepLabel}</p>
+          )}
+
+          {/* Error state with retry */}
+          {failed && !isActivating && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <span>
+                {lastError === 'permission_denied'
+                  ? 'Permission denied. Enable notifications in your browser settings.'
+                  : lastError === 'timeout'
+                  ? 'The request timed out. Please try again.'
+                  : 'Something went wrong. Please try again.'}
+              </span>
+            </div>
+          )}
+
+          {failed && !isActivating ? (
+            <Button onClick={handleActivate} size="lg" className="w-full text-base font-semibold gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Try Again
+            </Button>
+          ) : (
+            <Button onClick={handleActivate} size="lg" disabled={isActivating} className="w-full text-base font-semibold">
+              {isActivating ? (
+                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />{stepLabel || 'Activating...'}</>
+              ) : (
+                <><Bell className="mr-2 h-5 w-5" />Activate Reminders</>
+              )}
+            </Button>
+          )}
+
           <Button onClick={() => setIsOpen(false)} variant="outline" size="lg" disabled={isActivating} className="w-full">
             Maybe Later
           </Button>
