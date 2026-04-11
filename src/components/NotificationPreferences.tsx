@@ -80,7 +80,7 @@ export function NotificationPreferences() {
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
   
   const { toast } = useToast();
-  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
+  const { isSupported } = usePushNotifications();
 
   useEffect(() => {
     loadPreferences();
@@ -379,23 +379,6 @@ export function NotificationPreferences() {
         title: "✅ Preferences Saved",
         description: `Your notification times have been updated for timezone ${userTimezone}!`,
       });
-
-      // Fire-and-forget: try push subscription as a non-blocking side-effect
-      if (isSupported) {
-        (async () => {
-          try {
-            let permission = Notification.permission;
-            if (permission === 'default') {
-              permission = await Notification.requestPermission();
-            }
-            if (permission === 'granted') {
-              await subscribeToPushNotifications();
-            }
-          } catch (e) {
-            console.warn('Push subscription side-effect failed:', e);
-          }
-        })();
-      }
 
       // Refresh diagnostics
       await loadDiagnostics();

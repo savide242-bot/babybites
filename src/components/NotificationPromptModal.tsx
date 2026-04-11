@@ -14,6 +14,17 @@ const STEP_LABELS: Record<string, string> = {
   saving: 'Saving preferences...',
 };
 
+const isBlockedPreviewContext = () => {
+  const hostname = window.location.hostname;
+  const isPreviewHost = hostname.includes('id-preview--') || hostname.includes('lovableproject.com');
+
+  try {
+    return isPreviewHost || window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -96,6 +107,8 @@ export const NotificationPromptModal = () => {
               <span>
                 {lastError === 'permission_denied'
                   ? 'Permission denied. Enable notifications in your browser settings.'
+                  : lastError === 'preview_blocked'
+                  ? 'No preview do editor isto não funciona. Teste no app publicado.'
                   : lastError === 'sw_not_ready'
                   ? 'Service not ready. Refresh the page and try again.'
                   : 'Something went wrong. Please try again.'}
