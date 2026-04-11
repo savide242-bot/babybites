@@ -80,7 +80,7 @@ export function NotificationPreferences() {
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
   
   const { toast } = useToast();
-  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
+  const { isSupported } = usePushNotifications();
 
   useEffect(() => {
     loadPreferences();

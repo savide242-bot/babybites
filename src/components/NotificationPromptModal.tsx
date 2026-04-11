@@ -14,6 +14,17 @@ const STEP_LABELS: Record<string, string> = {
   saving: 'Saving preferences...',
 };
 
+const isBlockedPreviewContext = () => {
+  const hostname = window.location.hostname;
+  const isPreviewHost = hostname.includes('id-preview--') || hostname.includes('lovableproject.com');
+
+  try {
+    return isPreviewHost || window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [failed, setFailed] = useState(false);

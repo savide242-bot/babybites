@@ -32,6 +32,17 @@ const DEFAULT_MEAL_TIMES = [
   { meal_type: 'dinner', preferred_hour: 18, preferred_minute: 0, enabled: true },
 ];
 
+const isBlockedPreviewContext = () => {
+  const hostname = window.location.hostname;
+  const isPreviewHost = hostname.includes('id-preview--') || hostname.includes('lovableproject.com');
+
+  try {
+    return isPreviewHost || window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
 let isSubscribing = false;
 
 /**
