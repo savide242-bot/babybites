@@ -144,7 +144,7 @@ export const usePushNotifications = () => {
       if (!sub) {
         sub = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidData.vapidPublicKey),
+          applicationServerKey: urlBase64ToUint8Array(vapidData.vapidPublicKey) as BufferSource,
         });
       }
       if (!sub.getKey('p256dh') || !sub.getKey('auth')) {
