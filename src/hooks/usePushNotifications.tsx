@@ -83,6 +83,13 @@ export const usePushNotifications = () => {
     setLastError(null);
 
     try {
+      if (isBlockedPreviewContext()) {
+        setPushState('error');
+        setLastError('preview_blocked');
+        toast.error('Push notifications only work on the published app, not inside preview.');
+        return false;
+      }
+
       if (!isSupported) {
         toast.error("Push notifications aren't supported in this browser.");
         return false;

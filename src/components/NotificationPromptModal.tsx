@@ -107,6 +107,8 @@ export const NotificationPromptModal = () => {
               <span>
                 {lastError === 'permission_denied'
                   ? 'Permission denied. Enable notifications in your browser settings.'
+                  : lastError === 'preview_blocked'
+                  ? 'No preview do editor isto não funciona. Teste no app publicado.'
                   : lastError === 'sw_not_ready'
                   ? 'Service not ready. Refresh the page and try again.'
                   : 'Something went wrong. Please try again.'}
