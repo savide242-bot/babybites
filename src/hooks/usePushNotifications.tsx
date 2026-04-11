@@ -36,50 +36,74 @@ const isStandalonePWA = () => window.matchMedia('(display-mode: standalone)').ma
 const getIOSVersion = () => { const m = navigator.userAgent.match(/OS (\d+)_/); return m ? parseInt(m[1], 10) : 0; };
 
 /**
- * Robust SW acquisition — uses navigator.serviceWorker.ready as the primary mechanism
- * with progressive fallbacks. Never times out prematurely.
+ * Resilient SW acquisition with multiple strategies and clean abort.
  */
-async function acquireServiceWorker(): Promise<ServiceWorkerRegistration> {
-  console.log('🔔 Push: Acquiring service worker...');
+async function acquireServiceWorker(signal?: AbortSignal): Promise<ServiceWorkerRegistration> {
+  const check = () => { if (signal?.aborted) throw new Error('Aborted'); };
 
-  // Strategy 1: If there's already an active registration with pushManager, use it immediately
-  const registrations = await navigator.serviceWorker.getRegistrations();
-  for (const reg of registrations) {
-    if (reg.active && reg.pushManager) {
-      console.log('🔔 Push: Found existing active SW with pushManager');
+  console.log('🔔 SW: Starting acquisition...');
+
+  // 1. Use controller's registration if available (instant)
+  if (navigator.serviceWorker.controller) {
+    console.log('🔔 SW: Controller exists, getting registration...');
+    const reg = await navigator.serviceWorker.getRegistration(navigator.serviceWorker.controller.scriptURL);
+    if (reg?.active?.state === 'activated' && reg.pushManager) {
+      console.log('🔔 SW: Using controller registration');
       return reg;
     }
   }
+  check();
 
-  // Strategy 2: Force-activate any waiting workers
+  // 2. Check all registrations for an active one
+  const registrations = await navigator.serviceWorker.getRegistrations();
   for (const reg of registrations) {
-    if (reg.waiting) {
-      console.log('🔔 Push: Activating waiting SW...');
-      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      await new Promise(r => setTimeout(r, 1500));
-      if (reg.active) return reg;
+    if (reg.active && reg.pushManager) {
+      console.log('🔔 SW: Found active registration');
+      return reg;
     }
   }
+  check();
 
-  // Strategy 3: Register fresh SW
-  console.log('🔔 Push: Registering fresh /sw.js...');
+  // 3. Force-activate any waiting workers
+  for (const reg of registrations) {
+    if (reg.waiting) {
+      console.log('🔔 SW: Force-activating waiting worker...');
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      // Wait briefly for activation
+      await new Promise<void>((resolve) => {
+        const onStateChange = () => {
+          if (reg.active) { resolve(); }
+        };
+        reg.waiting?.addEventListener('statechange', onStateChange);
+        setTimeout(resolve, 2000);
+      });
+      check();
+      if (reg.active && reg.pushManager) return reg;
+    }
+  }
+  check();
+
+  // 4. Register fresh SW
+  console.log('🔔 SW: No active SW found, registering fresh...');
   try {
     await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-  } catch (e) {
-    console.log('🔔 Push: /sw.js registration failed, trying sw-listener.js...');
+  } catch {
+    console.log('🔔 SW: /sw.js failed, trying sw-listener.js...');
     await navigator.serviceWorker.register('/sw-listener.js', { scope: '/' });
   }
+  check();
 
-  // Wait for ready with a 10s timeout — don't hang forever
-  console.log('🔔 Push: Waiting for navigator.serviceWorker.ready (10s timeout)...');
-  const readyReg = await Promise.race([
+  // 5. Wait for ready — race against abort signal
+  console.log('🔔 SW: Waiting for ready...');
+  const reg = await Promise.race([
     navigator.serviceWorker.ready,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('SW ready timeout after 10s')), 10000)
-    ),
+    new Promise<never>((_, reject) => {
+      const timer = setTimeout(() => reject(new Error('SW ready timeout (10s)')), 10000);
+      signal?.addEventListener('abort', () => { clearTimeout(timer); reject(new Error('Aborted')); });
+    }),
   ]);
-  console.log('🔔 Push: SW ready! scope:', readyReg.scope);
-  return readyReg;
+  console.log('🔔 SW: Ready!');
+  return reg;
 }
 
 export const usePushNotifications = () => {
@@ -88,6 +112,7 @@ export const usePushNotifications = () => {
   const [pushState, setPushState] = useState<PushState>('idle');
   const [lastError, setLastError] = useState<string | null>(null);
   const checkedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const iOS = isIOSDevice();
@@ -121,17 +146,23 @@ export const usePushNotifications = () => {
 
   const subscribeToPushNotifications = useCallback(async (): Promise<boolean> => {
     if (globalSubscribing) {
-      console.log('🔒 Push: another subscription attempt is in progress');
+      console.log('🔒 Push: already in progress');
       return false;
     }
     globalSubscribing = true;
     setPushFlowActive(true);
     setLastError(null);
 
-    // Master safety timeout — force-close after 15s no matter what
-    const masterTimeout = setTimeout(() => {
+    // Abort controller for clean cancellation
+    abortRef.current?.abort();
+    const abort = new AbortController();
+    abortRef.current = abort;
+
+    // Master safety timeout
+    const masterTimer = setTimeout(() => {
       if (globalSubscribing) {
-        console.warn('🔔 Push: Master timeout reached (15s)');
+        console.warn('🔔 Push: Master timeout (15s)');
+        abort.abort();
         globalSubscribing = false;
         setPushFlowActive(false);
         setPushState('error');
@@ -145,128 +176,113 @@ export const usePushNotifications = () => {
         return false;
       }
 
-      // Step 1: Permission — if already granted, skip the prompt entirely
+      // Step 1: Permission
       setPushState('requesting_permission');
-      console.log('🔔 Step 1: Checking permission...');
+      console.log('🔔 Step 1: Permission check...');
       let permission = Notification.permission;
       if (permission === 'default') {
         permission = await Notification.requestPermission();
       }
-      console.log('🔔 Step 1: Permission =', permission);
       if (permission !== 'granted') {
         setPushState('error');
         setLastError('permission_denied');
-        toast.error("Notification permission denied. Please enable it in your browser settings.");
+        toast.error("Notification permission denied. Enable it in browser settings.");
         return false;
       }
+      if (abort.signal.aborted) throw new Error('Aborted');
 
-      // Step 2: Service Worker — robust acquisition with no artificial timeout
+      // Step 2: Service Worker
       setPushState('preparing_sw');
-      console.log('🔔 Step 2: Acquiring service worker...');
+      console.log('🔔 Step 2: SW acquisition...');
       let registration: ServiceWorkerRegistration;
       try {
-        registration = await acquireServiceWorker();
-        console.log('🔔 Step 2: SW acquired, active:', !!registration.active);
-      } catch (err) {
-        console.error('🔔 Step 2 FAILED:', err);
+        registration = await acquireServiceWorker(abort.signal);
+      } catch (err: any) {
+        console.error('🔔 Step 2 FAILED:', err?.message);
+        if (abort.signal.aborted) throw err;
         setPushState('error');
         setLastError('sw_not_ready');
-        toast.error("Could not prepare the notification service. Please refresh the page and try again.");
+        toast.error("Could not prepare notifications. Please refresh and try again.");
         return false;
       }
 
-      // Step 3: Fetch VAPID key and subscribe to push
+      // Step 3: VAPID + Subscribe
       setPushState('subscribing');
-      console.log('🔔 Step 3: Fetching VAPID key...');
+      console.log('🔔 Step 3: VAPID + subscribe...');
       let vapidKey: string;
       try {
         const { data, error } = await supabase.functions.invoke('get-vapid-key');
-        if (error || !data?.vapidPublicKey) {
-          throw new Error('VAPID key not returned');
-        }
+        if (error || !data?.vapidPublicKey) throw new Error('No VAPID key');
         vapidKey = data.vapidPublicKey;
-        console.log('🔔 Step 3: VAPID key OK, length:', vapidKey.length);
       } catch (err) {
         console.error('🔔 Step 3 VAPID FAILED:', err);
         setPushState('error');
         setLastError('vapid_failed');
-        toast.error("Could not fetch notification keys. Please try again later.");
+        toast.error("Could not fetch notification keys. Try again later.");
         return false;
       }
+      if (abort.signal.aborted) throw new Error('Aborted');
 
-      // Reuse existing valid subscription if endpoint matches current VAPID
       let sub: PushSubscription;
       try {
-        const existingSub = await registration.pushManager.getSubscription();
-        if (existingSub) {
-          const p256dh = existingSub.getKey('p256dh');
-          const auth = existingSub.getKey('auth');
-          if (p256dh && auth) {
-            console.log('🔔 Step 3: Reusing existing valid subscription');
-            sub = existingSub;
-          } else {
-            await existingSub.unsubscribe();
-            sub = await registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
-            });
-          }
+        const existing = await registration.pushManager.getSubscription();
+        if (existing?.getKey('p256dh') && existing?.getKey('auth')) {
+          console.log('🔔 Step 3: Reusing existing subscription');
+          sub = existing;
         } else {
+          if (existing) await existing.unsubscribe();
           sub = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
           });
         }
-
-        const p256dh = sub.getKey('p256dh');
-        const auth = sub.getKey('auth');
-        if (!p256dh || !auth) {
-          throw new Error('Subscription missing encryption keys');
-        }
-        console.log('🔔 Step 3: Subscription ready, endpoint:', sub.endpoint.substring(0, 60) + '...');
+        if (!sub.getKey('p256dh') || !sub.getKey('auth')) throw new Error('Missing keys');
       } catch (err) {
         console.error('🔔 Step 3 SUBSCRIBE FAILED:', err);
         setPushState('error');
         setLastError('subscribe_failed');
-        toast.error("Could not create push subscription. Please try again.");
+        toast.error("Could not create push subscription. Try again.");
         return false;
       }
+      if (abort.signal.aborted) throw new Error('Aborted');
 
-      // Step 4: Save to backend
+      // Step 4: Save
       setPushState('saving');
-      console.log('🔔 Step 4: Saving subscription...');
+      console.log('🔔 Step 4: Saving...');
       const saved = await saveSubscription(sub);
       if (!saved) {
         setPushState('error');
         setLastError('save_failed');
-        toast.error("Could not save subscription. Please try again.");
+        toast.error("Could not save subscription. Try again.");
         return false;
       }
 
-      // Step 5: Test delivery (non-blocking — don't fail if test fails)
+      // Step 5: Test (non-blocking)
       setPushState('testing');
-      console.log('🔔 Step 5: Testing delivery...');
       const testOk = await testDelivery();
-      if (!testOk) {
-        console.warn('⚠️ Test push failed, but subscription saved successfully');
-      }
+      if (!testOk) console.warn('⚠️ Test push failed but subscription saved');
 
       setSubscription(sub);
       setPushState('ready');
 
-      // Side effects (non-blocking)
+      // Side effects
       Promise.allSettled([ensureDefaultMealTimes(), updateUserTimezone()]);
-
       toast.success("🔔 Notifications enabled! You'll receive meal reminders.");
       return true;
-    } catch (error) {
-      console.error('🔔 Push UNEXPECTED ERROR:', error);
-      setPushState('error');
-      setLastError('unknown');
+    } catch (error: any) {
+      if (error?.message === 'Aborted') {
+        console.log('🔔 Push: Flow was aborted/timed out');
+      } else {
+        console.error('🔔 Push UNEXPECTED:', error);
+      }
+      if (pushState !== 'error') {
+        setPushState('error');
+        setLastError('unknown');
+      }
       toast.error("Could not enable notifications. Please try again.");
       return false;
     } finally {
-      clearTimeout(masterTimeout);
+      clearTimeout(masterTimer);
       globalSubscribing = false;
       setPushFlowActive(false);
     }
@@ -276,7 +292,6 @@ export const usePushNotifications = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
-
       const p256dh = sub.getKey('p256dh');
       const auth = sub.getKey('auth');
       if (!p256dh || !auth) return false;
@@ -287,24 +302,14 @@ export const usePushNotifications = () => {
         keys: { p256dh: arrayBufferToBase64(p256dh), auth: arrayBufferToBase64(auth) },
       };
 
-      // Clean: delete old, insert fresh
       await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
       await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-      const { error: insertErr } = await supabase.from('push_subscriptions').insert(subData);
-      if (insertErr) {
-        console.error('🔔 Save: Insert failed:', insertErr.message);
-        return false;
-      }
+      const { error } = await supabase.from('push_subscriptions').insert(subData);
+      if (error) { console.error('🔔 Save insert failed:', error.message); return false; }
 
-      // Verify
-      const { data: verify } = await supabase
-        .from('push_subscriptions')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-      if (!verify || verify.length === 0) return false;
-
-      console.log('✅ Subscription saved and verified');
+      const { data: verify } = await supabase.from('push_subscriptions').select('id').eq('user_id', user.id).limit(1);
+      if (!verify?.length) return false;
+      console.log('✅ Subscription saved');
       return true;
     } catch (err) {
       console.error('🔔 Save error:', err);
@@ -317,9 +322,7 @@ export const usePushNotifications = () => {
       const { data, error } = await supabase.functions.invoke('test-push-notification');
       if (error) return false;
       return data?.success === true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   };
 
   const ensureDefaultMealTimes = async () => {
@@ -327,7 +330,7 @@ export const usePushNotifications = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: existing } = await supabase.from('baby_meal_times').select('id').eq('user_id', user.id).limit(1);
-      if (existing && existing.length > 0) return;
+      if (existing?.length) return;
       await supabase.from('baby_meal_times').insert(DEFAULT_MEAL_TIMES.map(mt => ({ ...mt, user_id: user.id })));
     } catch { /* ignore */ }
   };
@@ -353,12 +356,5 @@ export const usePushNotifications = () => {
     } catch { /* ignore */ }
   };
 
-  return {
-    isSupported,
-    subscription,
-    pushState,
-    lastError,
-    subscribeToPushNotifications,
-    unsubscribeFromPushNotifications,
-  };
+  return { isSupported, subscription, pushState, lastError, subscribeToPushNotifications, unsubscribeFromPushNotifications };
 };

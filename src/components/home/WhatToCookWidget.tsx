@@ -107,7 +107,7 @@ const WhatToCookWidget = ({ babyAgeMonths, babyName }: WhatToCookWidgetProps) =>
         <Button
           size="sm"
           className="flex-1 gap-1"
-          onClick={() => navigate(`/recipes/${recommendation.id}`)}
+          onClick={() => navigate(`/recipe/${recommendation.id}`)}
         >
           Let's Cook This! 🍳
         </Button>
