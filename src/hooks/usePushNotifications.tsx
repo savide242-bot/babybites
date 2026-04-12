@@ -26,28 +26,13 @@ function bufToB64(buf: ArrayBuffer): string {
   return btoa(String.fromCharCode(...new Uint8Array(buf)));
 }
 
-/** True when running inside the Lovable preview iframe — push APIs are blocked here. */
 function isPreview(): boolean {
   const h = location.hostname;
   if (h.includes('id-preview--') || h.includes('lovableproject.com')) return true;
   try { return self !== top; } catch { return true; }
 }
 
-/** Wrap a promise with a hard timeout. */
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`TIMEOUT:${label}`)), ms);
-    promise.then(
-      (v) => { clearTimeout(timer); resolve(v); },
-      (e) => { clearTimeout(timer); reject(e); },
-    );
-  });
-}
-
-// Prevent double-click
-let _busy = false;
-
-// ── Default meal times to seed on first activation ─────────────────
+// ── Default meal times ─────────────────────────────────────────────
 const DEFAULT_MEALS = [
   { meal_type: 'breakfast', preferred_hour: 7, preferred_minute: 30, enabled: true },
   { meal_type: 'morning-snack', preferred_hour: 10, preferred_minute: 0, enabled: true },
@@ -62,14 +47,13 @@ export function usePushNotifications() {
   const [lastError, setLastError] = useState<PushError | null>(null);
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
 
-  // Feature-detect once
   const isSupported =
     typeof window !== 'undefined' &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window;
 
-  // On mount, silently check for existing subscription
+  // Check existing subscription on mount (silent)
   useEffect(() => {
     if (!isSupported) return;
     navigator.serviceWorker.ready
@@ -80,117 +64,94 @@ export function usePushNotifications() {
       .catch(() => {});
   }, [isSupported]);
 
-  // ── Main subscribe function ────────────────────────────────────
+  // ── Subscribe: simple, no-hang flow ────────────────────────────
   const subscribe = useCallback(async (): Promise<boolean> => {
-    if (_busy) return false;
-    _busy = true;
-    setPushState('working');
-    setLastError(null);
-
-    const fail = (err: PushError): false => {
-      setPushState('error');
-      setLastError(err);
-      _busy = false;
+    if (!isSupported) return false;
+    if (isPreview()) {
+      console.warn('[push] blocked in preview context');
       return false;
-    };
+    }
 
     try {
-      // 0. Guard: preview context
-      if (isPreview()) return fail('preview_blocked');
-
-      // 0b. Guard: browser support
-      if (!isSupported) return fail('unsupported');
-
-      // ── STEP 1: Permission (instant — browser native prompt) ───
-      console.log('[push] 1/4 permission');
-      let perm = Notification.permission;
-      if (perm === 'default') {
-        perm = await withTimeout(Notification.requestPermission(), 30_000, 'permission');
+      // 1. Ask permission (browser native prompt — instant)
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        console.log('[push] permission denied by user');
+        return false;
       }
-      if (perm !== 'granted') return fail('permission_denied');
 
-      // ── STEP 2: Service Worker (max 10s) ───────────────────────
-      console.log('[push] 2/4 service worker');
+      // 2. Get service worker (use existing or register)
       let reg: ServiceWorkerRegistration;
       try {
-        reg = await withTimeout(navigator.serviceWorker.ready, 10_000, 'sw_ready');
+        reg = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('sw_timeout')), 8000)),
+        ]);
       } catch {
-        // Fallback: register manually
         try {
           await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-          reg = await withTimeout(navigator.serviceWorker.ready, 8_000, 'sw_manual');
+          reg = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise<never>((_, rej) => setTimeout(() => rej(new Error('sw_timeout2')), 6000)),
+          ]);
         } catch {
-          return fail('sw_failed');
+          console.error('[push] service worker failed');
+          return false;
         }
       }
 
-      // ── STEP 3: VAPID key + PushManager.subscribe (max 10s) ───
-      console.log('[push] 3/4 vapid + subscribe');
-      const { data: vapid, error: vapidErr } = await withTimeout(
-        supabase.functions.invoke('get-vapid-key'),
-        10_000,
-        'vapid',
-      );
-      if (vapidErr || !vapid?.vapidPublicKey) return fail('vapid_failed');
+      // 3. Get VAPID key
+      const { data: vapid, error: vapidErr } = await supabase.functions.invoke('get-vapid-key');
+      if (vapidErr || !vapid?.vapidPublicKey) {
+        console.error('[push] vapid key failed');
+        return false;
+      }
 
-      // Re-use existing browser subscription if valid
+      // 4. Subscribe to push (re-use existing if valid)
       let sub = await reg.pushManager.getSubscription();
       if (sub && (!sub.getKey('p256dh') || !sub.getKey('auth'))) {
         await sub.unsubscribe();
         sub = null;
       }
       if (!sub) {
-        try {
-          sub = await withTimeout(
-            reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: b64ToUint8(vapid.vapidPublicKey) as BufferSource,
-            }),
-            10_000,
-            'push_subscribe',
-          );
-        } catch {
-          return fail('subscribe_failed');
-        }
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: b64ToUint8(vapid.vapidPublicKey) as BufferSource,
+        });
       }
-      if (!sub?.getKey('p256dh') || !sub?.getKey('auth')) return fail('subscribe_failed');
+      if (!sub?.getKey('p256dh') || !sub?.getKey('auth')) return false;
 
-      // ── STEP 4: Save to DB (max 8s) ───────────────────────────
-      console.log('[push] 4/4 saving');
+      // 5. Save to database
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return fail('no_user');
+      if (!user) return false;
 
-      const payload = {
+      await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
+      const { error: insertErr } = await supabase.from('push_subscriptions').insert({
         user_id: user.id,
         endpoint: sub.endpoint,
         keys: {
           p256dh: bufToB64(sub.getKey('p256dh')!),
           auth: bufToB64(sub.getKey('auth')!),
         },
-      };
+      });
+      if (insertErr) {
+        console.error('[push] save failed:', insertErr);
+        return false;
+      }
 
-      // Replace old subs, insert new
-      await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-      const { error: insertErr } = await supabase.from('push_subscriptions').insert(payload);
-      if (insertErr) return fail('save_failed');
-
-      // ── Done! ─────────────────────────────────────────────────
+      // Done
       setSubscription(sub);
       setPushState('ready');
-      _busy = false;
 
-      // Side-effects (fire-and-forget)
+      // Fire-and-forget side effects
       seedMealTimesIfNeeded(user.id);
       saveTimezone(user.id);
       supabase.functions.invoke('test-push-notification').catch(() => {});
 
       return true;
-    } catch (err: any) {
-      console.error('[push] unexpected:', err);
-      if (err?.message?.startsWith('TIMEOUT:')) return fail('timeout');
-      return fail('unknown');
-    } finally {
-      _busy = false;
+    } catch (err) {
+      console.error('[push] unexpected error:', err);
+      return false;
     }
   }, [isSupported]);
 
@@ -202,7 +163,7 @@ export function usePushNotifications() {
       setPushState('idle');
       const { data: { user } } = await supabase.auth.getUser();
       if (user) await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-    } catch { /* ignore */ }
+    } catch { /* silent */ }
   }, [subscription]);
 
   return {
@@ -215,18 +176,18 @@ export function usePushNotifications() {
   };
 }
 
-// ── Fire-and-forget helpers ──────────────────────────────────────
+// ── Silent helpers ──────────────────────────────────────────────────
 async function seedMealTimesIfNeeded(uid: string) {
   try {
     const { data } = await supabase.from('baby_meal_times').select('id').eq('user_id', uid).limit(1);
     if (data?.length) return;
     await supabase.from('baby_meal_times').insert(DEFAULT_MEALS.map((m) => ({ ...m, user_id: uid })));
-  } catch { /* ignore */ }
+  } catch { /* silent */ }
 }
 
 async function saveTimezone(uid: string) {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     await supabase.from('profiles').update({ timezone: tz }).eq('id', uid);
-  } catch { /* ignore */ }
+  } catch { /* silent */ }
 }
