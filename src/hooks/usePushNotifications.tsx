@@ -171,12 +171,8 @@ export function usePushNotifications() {
 
       // Replace old subs, insert new
       await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-      const insertResult = await withTimeout(
-        supabase.from('push_subscriptions').insert(payload).select(),
-        8_000,
-        'db_insert',
-      );
-      if (insertResult.error) return fail('save_failed');
+      const { error: insertErr } = await supabase.from('push_subscriptions').insert(payload);
+      if (insertErr) return fail('save_failed');
 
       // ── Done! ─────────────────────────────────────────────────
       setSubscription(sub);
