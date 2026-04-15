@@ -1,261 +1,63 @@
-// Custom service worker listener for BabyBites PWA
-// This file is imported by the main Workbox SW
+// Push notification service worker listener for BabyBites PWA
 
-// Handle skip waiting message - only when explicitly requested
+// Handle skip waiting
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('SW: Received SKIP_WAITING, activating...');
     self.skipWaiting();
   }
 });
 
 // Claim clients on activation
 self.addEventListener('activate', (event) => {
-  console.log('SW: Activating and claiming clients');
   event.waitUntil(self.clients.claim());
 });
 
-// Enhanced fetch handler for offline support
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
-  
-  // Parse URL safely
-  let url;
-  try {
-    url = new URL(request.url);
-  } catch (e) {
-    return;
-  }
-  
-  // Handle API and Supabase requests with offline fallback
-  if (url.pathname.includes('/api/') || 
-      url.hostname.includes('supabase') ||
-      url.pathname.includes('/rest/') ||
-      url.pathname.includes('/functions/')) {
-    
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          // Clone and cache successful responses
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open('api-cache').then(cache => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(async () => {
-          // Try to return cached response
-          const cached = await caches.match(request);
-          if (cached) {
-            console.log('SW: Serving cached API response for:', url.pathname);
-            return cached;
-          }
-          
-          // Return offline JSON fallback
-          console.log('SW: Returning offline fallback for:', url.pathname);
-          return new Response(
-            JSON.stringify({ 
-              offline: true, 
-              message: 'You are offline. Some features may be limited.',
-              cached: false
-            }),
-            {
-              status: 503,
-              headers: { 
-                'Content-Type': 'application/json',
-                'X-Offline-Response': 'true'
-              }
-            }
-          );
-        })
-    );
-    return;
-  }
-  
-  // For navigation and other requests, let Workbox handle with its caching strategies
-});
-
-// Handle push notifications with enhanced iOS support and detailed logging
+// Push notification handler
 self.addEventListener('push', (event) => {
-  const timestamp = new Date().toISOString();
-  console.log(`📬 [SW-PUSH ${timestamp}] Push event received`);
-  console.log('📬 [SW-PUSH] Event:', event);
-  console.log('📬 [SW-PUSH] Has data:', !!event.data);
-  
-  let data = {
-    title: 'BabyBites Notification',
-    body: 'You have a new notification',
-    icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-    badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png'
-  };
+  if (!event.data) return;
 
+  let data;
   try {
-    if (event.data) {
-      console.log('📬 [SW-PUSH] Data bytes:', event.data.arrayBuffer ? 'present' : 'missing');
-      
-      // Try to parse as JSON first
-      try {
-        const payload = event.data.json();
-        data = { ...data, ...payload };
-        console.log('📬 [SW-PUSH] Parsed JSON payload successfully');
-        console.log('📬 [SW-PUSH] Title:', data.title);
-        console.log('📬 [SW-PUSH] Body:', data.body);
-      } catch (jsonError) {
-        console.log('📬 [SW-PUSH] JSON parse failed, trying text...');
-        // If JSON fails, try as text
-        const text = event.data.text();
-        console.log('📬 [SW-PUSH] Raw text:', text);
-        
-        // Try to parse the text as JSON
-        try {
-          const parsed = JSON.parse(text);
-          data = { ...data, ...parsed };
-          console.log('📬 [SW-PUSH] Parsed text as JSON successfully');
-        } catch {
-          console.log('📬 [SW-PUSH] Using text as body');
-          data.body = text;
-        }
-      }
-    } else {
-      console.log('📬 [SW-PUSH] No data in push event');
-    }
-  } catch (e) {
-    console.error('📬 [SW-PUSH] Error processing push data:', e);
+    data = event.data.json();
+  } catch {
+    data = { title: 'BabyBites', body: event.data.text() };
   }
-
-  // Detect iOS to avoid unsupported notification options
-  const isIOS = /iPad|iPhone|iPod/.test(self.navigator?.userAgent || '') || 
-    (self.navigator?.platform === 'MacIntel' && self.navigator?.maxTouchPoints > 1);
-
-  const tag = data.tag || `notification-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
 
   const options = {
     body: data.body || 'You have a new notification',
-    icon: data.icon || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-    badge: data.badge || 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-    tag: tag,
-    data: data.data || { url: '/' },
-    silent: false,
+    icon: data.icon || '/icon-192x192.png',
+    badge: data.badge || '/icon-72x72.png',
+    vibrate: [200, 100, 200],
+    tag: data.tag || `notification-${Date.now()}`,
+    data: { url: data.url || data.data?.url || '/' },
+    actions: [
+      { action: 'open', title: 'Open' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ]
   };
 
-  // Only add properties supported by the platform
-  if (!isIOS) {
-    options.requireInteraction = data.requireInteraction !== false;
-    options.vibrate = [200, 100, 200];
-    options.renotify = true;
-  }
-
-  // Add actions if provided
-  if (data.actions && Array.isArray(data.actions)) {
-    options.actions = data.actions;
-  }
-
-  console.log('📬 [SW-PUSH] Calling showNotification with:');
-  console.log('📬 [SW-PUSH] - Title:', data.title);
-  console.log('📬 [SW-PUSH] - Options:', JSON.stringify(options));
-
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
-      .then(() => {
-        console.log('📬 [SW-PUSH] ✅ showNotification succeeded!');
-        // Try to notify clients that notification was shown
-        self.clients.matchAll().then(clients => {
-          console.log('📬 [SW-PUSH] Active clients:', clients.length);
-          clients.forEach(client => {
-            client.postMessage({ 
-              type: 'PUSH_NOTIFICATION_SHOWN', 
-              title: data.title,
-              timestamp 
-            });
-          });
-        });
-      })
-      .catch(err => {
-        console.error('📬 [SW-PUSH] ❌ showNotification failed:', err);
-        console.error('📬 [SW-PUSH] Error name:', err.name);
-        console.error('📬 [SW-PUSH] Error message:', err.message);
-      })
+    self.registration.showNotification(data.title || 'BabyBites', options)
   );
 });
 
-// Handle notification clicks
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('SW: Notification clicked:', event);
   event.notification.close();
 
-  const action = event.action;
-  const notificationData = event.notification.data || {};
+  if (event.action === 'dismiss') return;
+
+  const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
-    (async () => {
-      // Handle specific actions
-      if (action === 'update') {
-        // Trigger app update
-        const windowClients = await self.clients.matchAll({ type: 'window' });
-        windowClients.forEach(client => {
-          client.postMessage({ type: 'APP_UPDATE_REQUESTED' });
-        });
-        
-        // Open app
-        if (windowClients.length > 0) {
-          await windowClients[0].focus();
-        } else {
-          await self.clients.openWindow('/');
-        }
-        return;
-      }
-
-      if (action === 'later') {
-        console.log('SW: User chose to update later');
-        return;
-      }
-
-      if (action === 'view') {
-        const url = notificationData.recipeUrl || '/recipes';
-        const windowClients = await self.clients.matchAll({ type: 'window' });
-        
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
         for (const client of windowClients) {
           if ('focus' in client) {
-            await client.focus();
-            client.postMessage({ type: 'NAVIGATE', url });
-            return;
+            return client.focus();
           }
         }
-        await self.clients.openWindow(url);
-        return;
-      }
-
-      // Default: Open the URL from notification data or home
-      const urlToOpen = notificationData.url || '/';
-      const windowClients = await self.clients.matchAll({ type: 'window' });
-
-      // Try to find and focus an existing window
-      for (const client of windowClients) {
-        if ('focus' in client) {
-          await client.focus();
-          if (urlToOpen !== '/') {
-            client.postMessage({ type: 'NAVIGATE', url: urlToOpen });
-          }
-          return;
-        }
-      }
-
-      // No existing window, open a new one
-      await self.clients.openWindow(urlToOpen);
-    })()
+        return clients.openWindow(urlToOpen);
+      })
   );
 });
-
-// Handle notification close
-self.addEventListener('notificationclose', (event) => {
-  console.log('SW: Notification closed:', event.notification.tag);
-});
-
-console.log('SW: Custom listener loaded v2.0 - iOS enhanced');

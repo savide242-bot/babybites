@@ -5,14 +5,12 @@ import { Bell } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
-const VAPID_VERSION = 'v3';
-const STORAGE_KEY = `push_activated_${VAPID_VERSION}`;
+const STORAGE_KEY = 'push_prompt_shown_v4';
 
 export const NotificationPromptModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { subscribeToPushNotifications, isSupported } = usePushNotifications();
+  const { subscribe, isSupported } = usePushNotifications();
 
-  // Show modal once after 2s if not yet activated
   useEffect(() => {
     if (!isSupported) return;
     if (localStorage.getItem(STORAGE_KEY) === 'true') return;
@@ -31,15 +29,10 @@ export const NotificationPromptModal = () => {
   }, [isSupported]);
 
   const handleActivate = async () => {
-    // Close modal immediately — no spinners, no waiting
     setIsOpen(false);
-
-    // Everything happens silently in the background
-    const ok = await subscribeToPushNotifications();
-    if (ok) {
-      localStorage.setItem(STORAGE_KEY, 'true');
-    }
-    // If it fails or user denies — nothing happens, modal is already closed
+    localStorage.setItem(STORAGE_KEY, 'true');
+    // Run silently in background
+    await subscribe();
   };
 
   const handleDismiss = () => {
@@ -65,14 +58,12 @@ export const NotificationPromptModal = () => {
               Get gentle reminders throughout the day for your baby's meals:
             </p>
             <ul className="text-left space-y-2 text-sm">
-              <li>🍳 <strong>Breakfast</strong> at 8:00 AM</li>
-              <li>🥗 <strong>Lunch</strong> at 12:30 PM</li>
-              <li>🍌 <strong>Snack</strong> at 4:00 PM</li>
-              <li>🍽️ <strong>Dinner</strong> at 7:00 PM</li>
+              <li>🍳 <strong>Breakfast</strong> — 7:00</li>
+              <li>🍎 <strong>Morning Snack</strong> — 10:00</li>
+              <li>🥗 <strong>Lunch</strong> — 12:00</li>
+              <li>🍌 <strong>Afternoon Snack</strong> — 15:00</li>
+              <li>🍽️ <strong>Dinner</strong> — 19:00</li>
             </ul>
-            <p className="text-sm text-muted-foreground">
-              You can customize these times in Settings anytime!
-            </p>
           </DialogDescription>
         </DialogHeader>
 
