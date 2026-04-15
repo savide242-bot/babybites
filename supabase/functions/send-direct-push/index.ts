@@ -16,10 +16,18 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { user_id, title, body } = await req.json();
+    const { user_id, email, title, body } = await req.json();
 
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: 'user_id required' }), {
+    let resolvedUserId = user_id as string | undefined;
+
+    if (!resolvedUserId && email) {
+      const { data: usersPage, error: usersError } = await supabase.auth.admin.listUsers();
+      if (usersError) throw usersError;
+      resolvedUserId = usersPage.users.find((user) => user.email?.toLowerCase() === String(email).toLowerCase())?.id;
+    }
+
+    if (!resolvedUserId) {
+      return new Response(JSON.stringify({ error: 'user_id or valid email required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -35,39 +43,45 @@ Deno.serve(async (req) => {
 
     const { data: subscriptions } = await supabase
       .from('push_subscriptions')
-      .select('*')
-      .eq('user_id', user_id);
+      .select('id, endpoint, p256dh, auth, user_id')
+      .eq('user_id', resolvedUserId);
 
     if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ error: 'No subscriptions found' }), {
+      return new Response(JSON.stringify({ error: 'No subscriptions found', user_id: resolvedUserId }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const sub = subscriptions[0];
-    const result = await sendWebPushNotification(
-      {
-        id: sub.id,
-        endpoint: sub.endpoint,
-        keys: sub.keys as { p256dh: string; auth: string },
-      },
-      {
-        title: title || '🎉 Teste BabyBites!',
-        body: body || 'As tuas notificações estão a funcionar! 🍎',
-        icon: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-        badge: 'https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png',
-        tag: 'test-notification',
-      },
-      vapidKeys.publicKey,
-      vapidKeys.privateKey
-    );
+    const results = [];
+    for (const sub of subscriptions) {
+      const result = await sendWebPushNotification(
+        {
+          id: sub.id,
+          user_id: sub.user_id,
+          endpoint: sub.endpoint,
+          keys: { p256dh: sub.p256dh, auth: sub.auth },
+        },
+        {
+          title: title || '🎉 Teste BabyBites!',
+          body: body || 'As tuas notificações estão a funcionar! 🍎',
+          icon: 'https://babybites.lovable.app/icon-192x192.png',
+          badge: 'https://babybites.lovable.app/icon-192x192.png',
+          tag: `test-notification-${Date.now()}`,
+          data: { url: '/' },
+        },
+        vapidKeys.publicKey,
+        vapidKeys.privateKey
+      );
 
-    if (result.expired) {
-      await supabase.from('push_subscriptions').delete().eq('id', sub.id);
+      if (result.expired) {
+        await supabase.from('push_subscriptions').delete().eq('id', sub.id);
+      }
+
+      results.push({ subscriptionId: sub.id, ...result });
     }
 
-    return new Response(JSON.stringify({ result }), {
+    return new Response(JSON.stringify({ user_id: resolvedUserId, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
