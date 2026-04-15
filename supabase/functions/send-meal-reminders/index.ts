@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
   try {
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')?.replace(/^["']|["']$/g, '').trim();
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')?.replace(/^["']|["']$/g, '').trim();
-    const vapidMailto = Deno.env.get('VAPID_MAILTO') || 'mailto:hello@babybites.app';
+    let vapidMailto = Deno.env.get('VAPID_MAILTO') || 'mailto:hello@babybites.app';
+    if (!vapidMailto.startsWith('mailto:')) vapidMailto = `mailto:${vapidMailto}`;
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       return new Response(JSON.stringify({ error: 'VAPID keys not configured' }),
