@@ -1,55 +1,96 @@
 
 
-# Fix: Receitas 404 + Notificações que nunca funcionam
+# Rebuild Push Notifications from Scratch
 
-## Problema 1: Receitas dão 404
+## What's wrong now
 
-**Causa raiz encontrada**: Em `src/components/home/WhatToCookWidget.tsx` linha 110, o botão "Let's Cook This!" navega para `/recipes/${id}` (plural) em vez de `/recipe/${id}` (singular). A rota definida em `App.tsx` é `/recipe/:id`. Resultado: 404 imediato.
+The current system has a complex custom VAPID/encryption implementation (`_shared/webpush.ts` — 400 lines of manual crypto), the frontend fetches the VAPID key via an edge function call (extra network hop that can fail), and the `push_subscriptions` table stores keys as a nested JSON object (`{p256dh, auth}`) instead of flat columns. The `check-meal-reminders` edge function depends on `baby_meal_times` table for scheduling, adding unnecessary complexity. All of this creates fragile chains where any link can silently fail.
 
-**Fix**: Mudar `/recipes/${recommendation.id}` para `/recipe/${recommendation.id}` — uma linha.
+## What the new system looks like
+
+```text
+User clicks "Ativar" → Browser asks permission → granted?
+  YES → Register SW → Subscribe with VAPID key → Save to DB → Done (modal closes)
+  NO  → Modal closes, nothing saved
+
+pg_cron (every hour) → Edge Function → check user timezone → match meal hour → send push via web-push npm library
+```
+
+## Plan
+
+### 1. Alter `push_subscriptions` table
+Drop the current `keys` (jsonb) column, add `p256dh` (text), `auth` (text), `timezone` (text) columns, add unique constraint on `(user_id, endpoint)`. Keep existing RLS policies.
+
+### 2. Rewrite `public/sw.js`
+Create a clean, standalone service worker file at `public/sw.js` with only two event listeners:
+- `push` — parse JSON, call `showNotification`
+- `notificationclick` — close notification, open/focus app window
+
+No fetch interception, no caching, no complex logging. The existing `sw-listener.js` (imported by Workbox) stays for PWA caching — this new `sw.js` is specifically for push.
+
+**Wait** — there's a conflict. The Vite PWA plugin already generates a `sw.js` in the build output. The push service worker code currently lives in `sw-listener.js` which is imported by the Workbox-generated SW. So we keep the push handlers in `sw-listener.js` but simplify them drastically.
+
+### 3. Rewrite `usePushNotifications.tsx`
+Clean, simple hook matching the user's spec:
+- `urlBase64ToUint8Array` helper
+- States: `isSubscribed`, `isLoading`, `error`
+- `subscribe()`: request permission → register SW → subscribe with `VITE_VAPID_PUBLIC_KEY` env var (no edge function call) → upsert to DB with flat columns
+- `unsubscribe()`: unsubscribe from push manager → delete from DB
+- Preview guard (instant return, no processing)
+
+### 4. Add `VITE_VAPID_PUBLIC_KEY` to frontend
+Since secrets show `VAPID_PUBLIC_KEY` is already set, we need to also expose it as a build-time env var. We'll use the `get-vapid-key` edge function on first subscribe only as fallback, but primarily use the env var.
+
+**Problem**: We can't set `VITE_*` env vars directly — the `.env` is auto-managed. So we keep the edge function approach for getting the VAPID key but make it bulletproof, OR we hardcode the public key (it's a public key, safe to embed).
+
+**Decision**: Fetch VAPID public key from the existing `get-vapid-key` edge function (it works — already deployed). This is one simple fetch, no processing hang.
+
+### 5. Rewrite `NotificationPromptModal.tsx`
+Simple modal:
+- Click "Ativar" → close modal immediately → call `subscribe()` silently in background
+- Click "Mais tarde" → close modal
+- No spinners, no error states in UI, no retry buttons
+
+### 6. Rewrite `send-meal-reminders` edge function
+New edge function using `npm:web-push` library (not custom crypto):
+- Read all subscriptions with timezone
+- Check which meal hour matches current local hour
+- Send push via `webpush.sendNotification()`
+- Clean up expired (410) subscriptions
+- No dependency on `baby_meal_times` table — use fixed schedule (7, 10, 12, 15, 19)
+
+### 7. Add `VAPID_MAILTO` secret
+Need to add this secret for the `web-push` library.
+
+### 8. Update cron job
+Existing cron `check-meal-reminders-5min` calls `check-meal-reminders`. We'll update it to call the new `send-meal-reminders` function hourly instead (every hour at minute 0).
+
+### 9. Clean up consumers
+Update `Settings.tsx`, `NotificationPreferences.tsx`, `useAutoResubscribe.tsx`, `IOSPushSetup.tsx` to use the new hook API (`isSubscribed`, `subscribe`, `unsubscribe` instead of `subscribeToPushNotifications`, etc.).
+
+### 10. Simplify `sw-listener.js`
+Strip down to just: push handler + notificationclick handler + skip-waiting + activate. Remove all the verbose logging and complex parsing.
 
 ---
 
-## Problema 2: Notificações nunca completam — sempre processam
+## Files to modify/create
 
-**Causa raiz real identificada** (depois de analisar todo o fluxo):
+| File | Action |
+|------|--------|
+| `push_subscriptions` table | Migration: add p256dh, auth, timezone columns; drop keys column |
+| `public/sw-listener.js` | Simplify push + click handlers |
+| `src/hooks/usePushNotifications.tsx` | Full rewrite |
+| `src/components/NotificationPromptModal.tsx` | Simplify |
+| `supabase/functions/send-meal-reminders/index.ts` | Full rewrite with npm:web-push |
+| `src/hooks/useAutoResubscribe.tsx` | Update to new API |
+| `src/pages/Settings.tsx` | Update hook usage |
+| `src/components/NotificationPreferences.tsx` | Update hook usage |
+| `src/pages/IOSPushSetup.tsx` | Update hook usage |
+| Cron job | Update to hourly schedule calling send-meal-reminders |
 
-1. **`esbuild.drop: ['console', 'debugger']` em produção** (vite.config.ts linha 14) — Remove TODOS os `console.log`, `console.error` e `console.warn` do bundle de produção. Isto significa que TODOS os diagnósticos do fluxo push são invisíveis e qualquer erro é silenciosamente engolido.
-
-2. **`navigator.serviceWorker.ready` pode nunca resolver** — Em produção, VitePWA regista o SW com `registerType: "prompt"`. Se o utilizador não aceitar a atualização do SW (prompt que aparece via `useServiceWorkerUpdate`), o worker pode ficar em estado `waiting` indefinidamente, e `navigator.serviceWorker.ready` só resolve quando há um worker `active`. O timeout de 10s dispara, o master timeout de 15s dispara, e o utilizador vê "processing forever".
-
-3. **Race condition com master timeout** — Quando o master timeout (15s) dispara, ele marca `globalSubscribing = false`, mas a Promise do `acquireServiceWorker` continua pendente em background. Ao tentar novamente, pode haver estados inconsistentes.
-
-4. **O fluxo é demasiado longo e frágil**: permissão → SW → VAPID → subscribe → save → test = 6 passos síncronos, qualquer falha silenciosa trava tudo.
-
-**Fix completo**:
-
-### a) `vite.config.ts`
-- Remover `console` do `esbuild.drop` em produção — manter apenas `debugger`. Isto permite que os logs de diagnóstico do push apareçam na consola do browser real do utilizador, facilitando debug futuro.
-
-### b) `usePushNotifications.tsx` — Reescrever `acquireServiceWorker` para ser mais resiliente
-- Usar `navigator.serviceWorker.ready` SEM timeout como fallback principal (se já há SW active, retorna imediato)
-- Antes de tentar registar um novo SW, verificar se já existe um registration com `active` worker
-- Se `navigator.serviceWorker.controller` existe, usar o registration dele directamente
-- Adicionar AbortController pattern para cancelar limpo quando master timeout dispara
-- Reduzir complexidade: se permissão já está granted E já existe subscription válida no browser, reutilizar directamente sem re-registar nada
-
-### c) `NotificationPromptModal.tsx`
-- Mostrar feedback por etapa ao utilizador (ex: "Requesting permission...", "Preparing...", "Almost done...")
-- Se falhar, mostrar botão "Try Again" em vez de fechar o modal
-- Adicionar timeout visual de 8s — se não completou, mostrar mensagem de erro amigável com opção de retry
-
-### d) `useServiceWorkerUpdate.tsx`
-- Verificar `isPushFlowActive()` antes de qualquer `skipWaiting` para não interromper subscrição ativa (já implementado, verificar que funciona)
-
----
-
-## Ficheiros a modificar
-
-| Ficheiro | Alteração |
-|----------|-----------|
-| `src/components/home/WhatToCookWidget.tsx` | `/recipes/` → `/recipe/` (1 linha) |
-| `vite.config.ts` | Remover `'console'` do `esbuild.drop` |
-| `src/hooks/usePushNotifications.tsx` | Reescrever acquireServiceWorker + simplificar fluxo |
-| `src/components/NotificationPromptModal.tsx` | Feedback por etapa + retry button |
+## Important notes
+- VAPID keys already exist as secrets
+- Need to add `VAPID_MAILTO` secret
+- Push only works on published domain (babybites.lovable.app), never in preview
+- The `web-push` npm library handles all VAPID signing and payload encryption — no custom crypto needed
 
