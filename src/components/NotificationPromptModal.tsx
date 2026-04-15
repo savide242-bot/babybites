@@ -30,9 +30,13 @@ export const NotificationPromptModal = () => {
 
   const handleActivate = async () => {
     setIsOpen(false);
-    localStorage.setItem(STORAGE_KEY, 'true');
-    // Run silently in background
-    await subscribe();
+    const success = await subscribe();
+    if (success) {
+      localStorage.setItem(STORAGE_KEY, 'true');
+      return;
+    }
+
+    setTimeout(() => setIsOpen(true), 300);
   };
 
   const handleDismiss = () => {
