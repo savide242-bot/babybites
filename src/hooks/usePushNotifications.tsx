@@ -1,193 +1,137 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// ── Types ──────────────────────────────────────────────────────────
-export type PushState = 'idle' | 'working' | 'ready' | 'error';
-export type PushError =
-  | 'unsupported'
-  | 'preview_blocked'
-  | 'permission_denied'
-  | 'sw_failed'
-  | 'vapid_failed'
-  | 'subscribe_failed'
-  | 'save_failed'
-  | 'timeout'
-  | 'no_user'
-  | 'unknown';
-
-// ── Helpers ────────────────────────────────────────────────────────
-function b64ToUint8(base64: string): Uint8Array {
-  const pad = '='.repeat((4 - (base64.length % 4)) % 4);
-  const raw = atob((base64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray.buffer as ArrayBuffer;
 }
 
-function bufToB64(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+function isPreviewEnv(): boolean {
+  try {
+    if (window.self !== window.top) return true;
+    if (window.location.hostname.includes('lovableproject.com')) return true;
+    if (window.location.hostname.includes('id-preview')) return true;
+  } catch { return true; }
+  return false;
 }
 
-function isPreview(): boolean {
-  const h = location.hostname;
-  if (h.includes('id-preview--') || h.includes('lovableproject.com')) return true;
-  try { return self !== top; } catch { return true; }
-}
-
-// ── Default meal times ─────────────────────────────────────────────
-const DEFAULT_MEALS = [
-  { meal_type: 'breakfast', preferred_hour: 7, preferred_minute: 30, enabled: true },
-  { meal_type: 'morning-snack', preferred_hour: 10, preferred_minute: 0, enabled: true },
-  { meal_type: 'lunch', preferred_hour: 12, preferred_minute: 30, enabled: true },
-  { meal_type: 'afternoon-snack', preferred_hour: 15, preferred_minute: 30, enabled: true },
-  { meal_type: 'dinner', preferred_hour: 18, preferred_minute: 0, enabled: true },
-];
-
-// ── Hook ───────────────────────────────────────────────────────────
 export function usePushNotifications() {
-  const [pushState, setPushState] = useState<PushState>('idle');
-  const [lastError, setLastError] = useState<PushError | null>(null);
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isSupported =
-    typeof window !== 'undefined' &&
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window;
+  const isSupported = typeof window !== 'undefined' 
+    && 'serviceWorker' in navigator 
+    && 'PushManager' in window 
+    && 'Notification' in window;
 
-  // Check existing subscription on mount (silent)
   useEffect(() => {
     if (!isSupported) return;
-    navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => {
-        if (sub) { setSubscription(sub); setPushState('ready'); }
-      })
-      .catch(() => {});
+    (async () => {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) return;
+        const sub = await reg.pushManager.getSubscription();
+        setIsSubscribed(!!sub);
+      } catch { /* silent */ }
+    })();
   }, [isSupported]);
 
-  // ── Subscribe: simple, no-hang flow ────────────────────────────
   const subscribe = useCallback(async (): Promise<boolean> => {
-    if (!isSupported) return false;
-    if (isPreview()) {
-      console.warn('[push] blocked in preview context');
-      return false;
-    }
+    if (!isSupported) { setError('Push notifications not supported'); return false; }
+    if (isPreviewEnv()) { setError('Test on published domain'); return false; }
+
+    setIsLoading(true);
+    setError(null);
 
     try {
-      // 1. Ask permission (browser native prompt — instant)
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') {
-        console.log('[push] permission denied by user');
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') { setError('Permission denied'); return false; }
+
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      }
+      await navigator.serviceWorker.ready;
+
+      const { data: vapidData, error: vapidError } = await supabase.functions.invoke('get-vapid-key');
+      if (vapidError || !vapidData?.vapidPublicKey) {
+        setError('Failed to get notification key');
+        return false;
+      }
+      const vapidKey = vapidData.vapidPublicKey.replace(/^["']|["']$/g, '').trim();
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+
+      const subJson = subscription.toJSON();
+      if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
+        setError('Invalid subscription');
         return false;
       }
 
-      // 2. Get service worker (use existing or register)
-      let reg: ServiceWorkerRegistration;
-      try {
-        reg = await Promise.race([
-          navigator.serviceWorker.ready,
-          new Promise<never>((_, rej) => setTimeout(() => rej(new Error('sw_timeout')), 8000)),
-        ]);
-      } catch {
-        try {
-          await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-          reg = await Promise.race([
-            navigator.serviceWorker.ready,
-            new Promise<never>((_, rej) => setTimeout(() => rej(new Error('sw_timeout2')), 6000)),
-          ]);
-        } catch {
-          console.error('[push] service worker failed');
-          return false;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setError('Not authenticated'); return false; }
+
+      const { error: dbError } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: user.id,
+          endpoint: subJson.endpoint!,
+          p256dh: subJson.keys.p256dh,
+          auth: subJson.keys.auth,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        } as any, { onConflict: 'user_id,endpoint' });
+
+      if (dbError) { setError('Failed to save subscription'); console.error(dbError); return false; }
+
+      await supabase.from('profiles').update({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }).eq('id', user.id);
+
+      setIsSubscribed(true);
+      console.log('✅ Push subscription saved successfully');
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Unknown error');
+      console.error('Push subscription error:', err);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isSupported]);
+
+  const unsubscribe = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await sub.unsubscribe();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('user_id', user.id)
+              .eq('endpoint', sub.endpoint);
+          }
         }
       }
-
-      // 3. Get VAPID key
-      const { data: vapid, error: vapidErr } = await supabase.functions.invoke('get-vapid-key');
-      if (vapidErr || !vapid?.vapidPublicKey) {
-        console.error('[push] vapid key failed');
-        return false;
-      }
-
-      // 4. Subscribe to push (re-use existing if valid)
-      let sub = await reg.pushManager.getSubscription();
-      if (sub && (!sub.getKey('p256dh') || !sub.getKey('auth'))) {
-        await sub.unsubscribe();
-        sub = null;
-      }
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: b64ToUint8(vapid.vapidPublicKey) as BufferSource,
-        });
-      }
-      if (!sub?.getKey('p256dh') || !sub?.getKey('auth')) return false;
-
-      // 5. Save to database
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-      const { error: insertErr } = await supabase.from('push_subscriptions').insert({
-        user_id: user.id,
-        endpoint: sub.endpoint,
-        keys: {
-          p256dh: bufToB64(sub.getKey('p256dh')!),
-          auth: bufToB64(sub.getKey('auth')!),
-        },
-      });
-      if (insertErr) {
-        console.error('[push] save failed:', insertErr);
-        return false;
-      }
-
-      // Done
-      setSubscription(sub);
-      setPushState('ready');
-
-      // Fire-and-forget side effects
-      seedMealTimesIfNeeded(user.id);
-      saveTimezone(user.id);
-      supabase.functions.invoke('test-push-notification').catch(() => {});
-
-      return true;
-    } catch (err) {
-      console.error('[push] unexpected error:', err);
-      return false;
+      setIsSubscribed(false);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isSupported]);
+  }, []);
 
-  // ── Unsubscribe ───────────────────────────────────────────────
-  const unsubscribe = useCallback(async () => {
-    try {
-      if (subscription) await subscription.unsubscribe();
-      setSubscription(null);
-      setPushState('idle');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
-    } catch { /* silent */ }
-  }, [subscription]);
-
-  return {
-    isSupported,
-    pushState,
-    lastError,
-    subscription,
-    subscribeToPushNotifications: subscribe,
-    unsubscribeFromPushNotifications: unsubscribe,
-  };
-}
-
-// ── Silent helpers ──────────────────────────────────────────────────
-async function seedMealTimesIfNeeded(uid: string) {
-  try {
-    const { data } = await supabase.from('baby_meal_times').select('id').eq('user_id', uid).limit(1);
-    if (data?.length) return;
-    await supabase.from('baby_meal_times').insert(DEFAULT_MEALS.map((m) => ({ ...m, user_id: uid })));
-  } catch { /* silent */ }
-}
-
-async function saveTimezone(uid: string) {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    await supabase.from('profiles').update({ timezone: tz }).eq('id', uid);
-  } catch { /* silent */ }
+  return { isSubscribed, isLoading, error, subscribe, unsubscribe, isSupported };
 }

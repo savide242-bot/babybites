@@ -30,7 +30,7 @@ interface ChecklistItem {
 }
 
 const IOSPushSetup = () => {
-  const { isSupported, subscribeToPushNotifications } = usePushNotifications();
+  const { isSupported, subscribe: subscribeToPushNotifications } = usePushNotifications();
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [isChecking, setIsChecking] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
