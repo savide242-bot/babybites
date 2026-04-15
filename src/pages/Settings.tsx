@@ -38,7 +38,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { forceUpdate, needRefresh } = useServiceWorkerUpdate();
   const { preferences, togglePreference, hasPreference, loading } = useDietaryPreferences();
-  const { isSupported, subscription, subscribeToPushNotifications, unsubscribeFromPushNotifications } = usePushNotifications();
+  const { isSupported, isSubscribed: subscription, subscribe: subscribeToPushNotifications, unsubscribe: unsubscribeFromPushNotifications } = usePushNotifications();
   const { isAdmin } = useAdminRole();
   
   // Auto-resubscribe to push notifications if subscription was lost
@@ -121,7 +121,7 @@ const Settings = () => {
   const handleToggleNotifications = async (enabled: boolean) => {
     if (enabled) {
       const success = await subscribeToPushNotifications();
-      setUpdateNotifications(success);
+      setUpdateNotifications(!!success);
     } else {
       await unsubscribeFromPushNotifications();
       setUpdateNotifications(false);
