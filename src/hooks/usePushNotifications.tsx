@@ -43,6 +43,39 @@ export function usePushNotifications() {
     })();
   }, [isSupported]);
 
+  const persistSubscription = useCallback(async (subscription: PushSubscription, userId: string) => {
+    const subJson = subscription.toJSON();
+    if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
+      setError('Invalid subscription');
+      return false;
+    }
+
+    const { error: dbError } = await supabase
+      .from('push_subscriptions')
+      .upsert({
+        user_id: userId,
+        endpoint: subJson.endpoint,
+        p256dh: subJson.keys.p256dh,
+        auth: subJson.keys.auth,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      } as any, { onConflict: 'user_id,endpoint' });
+
+    if (dbError) {
+      setError('Failed to save subscription');
+      console.error(dbError);
+      return false;
+    }
+
+    await supabase
+      .from('profiles')
+      .update({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+      .eq('id', userId);
+
+    setIsSubscribed(true);
+    console.log('✅ Push subscription saved successfully');
+    return true;
+  }, []);
+
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!isSupported) { setError('Push notifications not supported'); return false; }
     if (isPreviewEnv()) { setError('Test on published domain'); return false; }
@@ -58,7 +91,7 @@ export function usePushNotifications() {
       if (!registration) {
         registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
       }
-      await navigator.serviceWorker.ready;
+      registration = await navigator.serviceWorker.ready;
 
       const { data: vapidData, error: vapidError } = await supabase.functions.invoke('get-vapid-key');
       if (vapidError || !vapidData?.vapidPublicKey) {
@@ -67,37 +100,18 @@ export function usePushNotifications() {
       }
       const vapidKey = vapidData.vapidPublicKey.replace(/^["']|["']$/g, '').trim();
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
-
-      const subJson = subscription.toJSON();
-      if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
-        setError('Invalid subscription');
-        return false;
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        });
       }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setError('Not authenticated'); return false; }
 
-      const { error: dbError } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          user_id: user.id,
-          endpoint: subJson.endpoint!,
-          p256dh: subJson.keys.p256dh,
-          auth: subJson.keys.auth,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        } as any, { onConflict: 'user_id,endpoint' });
-
-      if (dbError) { setError('Failed to save subscription'); console.error(dbError); return false; }
-
-      await supabase.from('profiles').update({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }).eq('id', user.id);
-
-      setIsSubscribed(true);
-      console.log('✅ Push subscription saved successfully');
-      return true;
+      return await persistSubscription(subscription, user.id);
     } catch (err: any) {
       setError(err.message || 'Unknown error');
       console.error('Push subscription error:', err);
@@ -105,7 +119,7 @@ export function usePushNotifications() {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported]);
+  }, [isSupported, persistSubscription]);
 
   const unsubscribe = useCallback(async () => {
     setIsLoading(true);

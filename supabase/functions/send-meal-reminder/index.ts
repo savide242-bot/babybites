@@ -30,7 +30,9 @@ Deno.serve(async (req) => {
     );
 
     // Get push subscriptions
-    let query = supabaseClient.from("push_subscriptions").select("*");
+    let query = supabaseClient
+      .from("push_subscriptions")
+      .select("id, user_id, endpoint, p256dh, auth");
     if (targetUserId) {
       query = query.eq("user_id", targetUserId);
     }
@@ -56,10 +58,16 @@ Deno.serve(async (req) => {
     const expiredIds: string[] = [];
 
     for (const sub of subscriptions) {
+      if (!sub.p256dh || !sub.auth) {
+        failedCount++;
+        console.error(`❌ Invalid subscription keys for user=${sub.user_id?.substring(0, 8)}`);
+        continue;
+      }
+
       const pushSub: PushSubscription = {
         id: sub.id,
         endpoint: sub.endpoint,
-        keys: sub.keys as { p256dh: string; auth: string },
+        keys: { p256dh: sub.p256dh, auth: sub.auth },
       };
 
       const result = await sendWebPushNotification(pushSub, notification, vapidKeys.publicKey, vapidKeys.privateKey);

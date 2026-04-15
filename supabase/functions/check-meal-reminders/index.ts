@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
 
     const [{ data: profiles }, { data: allSubs }] = await Promise.all([
       supabase.from('profiles').select('id, baby_name, timezone').in('id', userIds),
-      supabase.from('push_subscriptions').select('*'),
+      supabase.from('push_subscriptions').select('id, user_id, endpoint, p256dh, auth, timezone'),
     ]);
 
     const profileMap = new Map((profiles || []).map(p => [p.id, p]));
@@ -172,7 +172,17 @@ Deno.serve(async (req) => {
       };
 
       for (const sub of subs) {
-        const pushSub: PushSubscription = { id: sub.id, endpoint: sub.endpoint, keys: sub.keys };
+        if (!sub.p256dh || !sub.auth) {
+          failedCount++;
+          console.error(`  ❌ Invalid subscription keys for user=${mt.user_id.substring(0,8)} sub=${sub.id}`);
+          continue;
+        }
+
+        const pushSub: PushSubscription = {
+          id: sub.id,
+          endpoint: sub.endpoint,
+          keys: { p256dh: sub.p256dh, auth: sub.auth },
+        };
 
         let success = false;
         for (let attempt = 1; attempt <= 2; attempt++) {
