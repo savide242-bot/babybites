@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import BannedScreen from "@/components/BannedScreen";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -10,10 +11,6 @@ interface PrivateRouteProps {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/**
- * Ensures a profile row exists for the user. If not, creates one with defaults.
- * This prevents onboarding loops when the trigger fails or is delayed.
- */
 const ensureUserProfile = async (user: User): Promise<void> => {
   const { data: existing } = await supabase
     .from("profiles")
@@ -21,9 +18,8 @@ const ensureUserProfile = async (user: User): Promise<void> => {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (existing) return; // Profile exists
+  if (existing) return;
 
-  // Create profile with defaults from user metadata
   const fullName =
     user.user_metadata?.full_name ||
     user.user_metadata?.name ||
@@ -45,7 +41,6 @@ const ensureUserProfile = async (user: User): Promise<void> => {
 };
 
 const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
-  // New accounts can briefly have no profile row yet (trigger delay)
   const delays = [0, 200, 400, 800];
 
   for (const delay of delays) {
@@ -69,8 +64,20 @@ const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
     return hasIncompleteProfile;
   }
 
-  // If we still can't read a profile, force onboarding rather than showing a blank app.
   return true;
+};
+
+const checkBanStatus = async (userId: string): Promise<{ banned: boolean; reason?: string | null }> => {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_banned, banned_reason")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profile?.is_banned) {
+    return { banned: true, reason: profile.banned_reason };
+  }
+  return { banned: false };
 };
 
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
@@ -82,10 +89,11 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [profileChecking, setProfileChecking] = useState(false);
 
-  // IMPORTANT: listener first, then getSession (prevents missing events)
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState<string | null>(null);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      // Synchronous state updates only (no Supabase calls here)
       setSession(newSession);
     });
 
@@ -97,7 +105,6 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Defer profile checks to a separate effect (avoid deadlocks)
   useEffect(() => {
     const isOnOnboardingPage = location.pathname === "/onboarding";
     const isOnFirstDayPage = location.pathname === "/first-day";
@@ -106,10 +113,10 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     if (!session?.user) {
       setNeedsOnboarding(false);
       setProfileChecking(false);
+      setIsBanned(false);
       return;
     }
 
-    // Never block rendering onboarding or first-day pages
     if (isOnOnboardingPage || isOnFirstDayPage) {
       setNeedsOnboarding(false);
       setProfileChecking(false);
@@ -120,9 +127,20 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     setProfileChecking(true);
 
     (async () => {
-      // Ensure profile exists before checking if onboarding is needed
-      await ensureUserProfile(session.user);
+      // Check ban status FIRST
+      const banStatus = await checkBanStatus(session.user.id);
+      if (cancelled) return;
       
+      if (banStatus.banned) {
+        setIsBanned(true);
+        setBanReason(banStatus.reason || null);
+        // Sign out the banned user
+        await supabase.auth.signOut();
+        setProfileChecking(false);
+        return;
+      }
+
+      await ensureUserProfile(session.user);
       const needs = await fetchNeedsOnboarding(session.user.id);
       if (!cancelled) setNeedsOnboarding(needs);
     })()
@@ -134,6 +152,11 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
       cancelled = true;
     };
   }, [authReady, session?.user?.id, location.pathname]);
+
+  // Show banned screen — this persists even after sign out
+  if (isBanned) {
+    return <BannedScreen reason={banReason} />;
+  }
 
   if (!authReady || profileChecking) {
     return (
