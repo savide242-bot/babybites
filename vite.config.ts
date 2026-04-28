@@ -17,8 +17,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      // Use "prompt" to avoid automatic updates that can cause white screen
-      registerType: "prompt",
+      registerType: "autoUpdate",
       injectRegister: 'auto',
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
@@ -49,9 +48,8 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,jpg,jpeg,webp,svg,gif}"],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB
-        // CRITICAL: Don't skip waiting automatically - prevents white screen on new installs
-        skipWaiting: false,
-        clientsClaim: false, // Don't claim clients immediately either
+        skipWaiting: true,
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/~oauth/],
