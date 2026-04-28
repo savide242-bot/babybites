@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     // Get users with push subscriptions
     const { data: subscriptions, error: subError } = await supabase
       .from("push_subscriptions")
-      .select("user_id, endpoint, keys");
+      .select("user_id, endpoint, p256dh, auth");
 
     if (subError || !subscriptions?.length) {
       return new Response(JSON.stringify({ message: "No subscriptions found" }), {
