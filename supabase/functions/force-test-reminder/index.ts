@@ -102,12 +102,16 @@ Deno.serve(async (req) => {
 
     for (const sub of subscriptions) {
       console.log(`📤 Sending to: ${sub.endpoint.substring(0, 60)}...`);
-      
+      if (!sub.p256dh || !sub.auth) {
+        console.warn('⏭️ Skipping subscription without p256dh/auth:', sub.id);
+        continue;
+      }
+
       const pushSub: PushSubscription = {
         id: sub.id,
         user_id: sub.user_id,
         endpoint: sub.endpoint,
-        keys: sub.keys,
+        keys: { p256dh: sub.p256dh, auth: sub.auth },
       };
 
       const result = await sendWebPushNotification(

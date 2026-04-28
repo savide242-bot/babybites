@@ -90,11 +90,18 @@ Deno.serve(async (req) => {
       data: { url: '/', timestamp: Date.now() },
     };
 
+    if (!sub.p256dh || !sub.auth) {
+      return new Response(
+        JSON.stringify({ error: 'Subscription is missing encryption keys. Re-enable notifications.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const pushSub: PushSubscription = {
       id: sub.id,
       user_id: sub.user_id,
       endpoint: sub.endpoint,
-      keys: sub.keys as { p256dh: string; auth: string },
+      keys: { p256dh: sub.p256dh, auth: sub.auth },
     };
 
     const result = await sendWebPushNotification(

@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
         if (vapidKeys) {
           const { data: subscriptions } = await supabase
             .from('push_subscriptions')
-            .select('id, user_id, endpoint, keys')
+            .select('id, user_id, endpoint, p256dh, auth')
             .eq('user_id', profile.id);
 
           if (subscriptions && subscriptions.length > 0) {
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
                 id: sub.id,
                 user_id: sub.user_id,
                 endpoint: sub.endpoint,
-                keys: sub.keys as { p256dh: string; auth: string },
+                keys: { p256dh: sub.p256dh, auth: sub.auth },
               };
 
               const result = await sendWebPushNotification(

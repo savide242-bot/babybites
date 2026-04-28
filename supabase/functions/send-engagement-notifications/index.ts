@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
       // Get all users with push subscriptions
       const { data: subscriptions } = await supabase
         .from('push_subscriptions')
-        .select('id, user_id, endpoint, keys');
+        .select('id, user_id, endpoint, p256dh, auth');
 
       if (!subscriptions || subscriptions.length === 0) {
         return new Response(JSON.stringify({ message: 'No subscriptions found', results }), {
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
             id: sub.id,
             user_id: sub.user_id,
             endpoint: sub.endpoint,
-            keys: sub.keys as { p256dh: string; auth: string },
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
           };
 
           const result = await sendWebPushNotification(
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
 
           const { data: sub } = await supabase
             .from('push_subscriptions')
-            .select('id, user_id, endpoint, keys')
+            .select('id, user_id, endpoint, p256dh, auth')
             .eq('user_id', streak.user_id)
             .maybeSingle();
 
@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
               id: sub.id,
               user_id: sub.user_id,
               endpoint: sub.endpoint,
-              keys: sub.keys as { p256dh: string; auth: string },
+              keys: { p256dh: sub.p256dh, auth: sub.auth },
             };
 
             const result = await sendWebPushNotification(
@@ -218,7 +218,7 @@ Deno.serve(async (req) => {
 
             const { data: sub } = await supabase
               .from('push_subscriptions')
-              .select('id, user_id, endpoint, keys')
+              .select('id, user_id, endpoint, p256dh, auth')
               .eq('user_id', progress.user_id)
               .maybeSingle();
 
@@ -236,7 +236,7 @@ Deno.serve(async (req) => {
                 id: sub.id,
                 user_id: sub.user_id,
                 endpoint: sub.endpoint,
-                keys: sub.keys as { p256dh: string; auth: string },
+                keys: { p256dh: sub.p256dh, auth: sub.auth },
               };
 
               const result = await sendWebPushNotification(

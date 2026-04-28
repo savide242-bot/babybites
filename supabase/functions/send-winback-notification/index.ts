@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     // Get users with push subscriptions
     const { data: subscriptions, error: subError } = await supabase
       .from("push_subscriptions")
-      .select("user_id, endpoint, keys");
+      .select("user_id, endpoint, p256dh, auth");
 
     if (subError || !subscriptions?.length) {
       return new Response(JSON.stringify({ message: "No subscriptions found" }), {
@@ -96,9 +96,10 @@ Deno.serve(async (req) => {
       const msg = messages[Math.floor(Math.random() * messages.length)];
 
       for (const sub of userSubs) {
+        if (!sub.p256dh || !sub.auth) continue;
         try {
           const result = await sendWebPushNotification(
-            { endpoint: sub.endpoint, keys: sub.keys as any },
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } } as any,
             {
               title: msg.title,
               body: msg.body,

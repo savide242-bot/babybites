@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     // Get all push subscriptions
     const { data: subscriptions, error } = await supabase
       .from("push_subscriptions")
-      .select("id, user_id, endpoint, keys");
+      .select("id, user_id, endpoint, p256dh, auth");
 
     if (error) {
       throw error;
@@ -71,11 +71,15 @@ Deno.serve(async (req) => {
 
     // Send to each subscription
     for (const sub of subscriptions) {
+      if (!sub.p256dh || !sub.auth) {
+        failCount++;
+        continue;
+      }
       const pushSub: PushSubscription = {
         id: sub.id,
         user_id: sub.user_id,
         endpoint: sub.endpoint,
-        keys: sub.keys as { p256dh: string; auth: string },
+        keys: { p256dh: sub.p256dh, auth: sub.auth },
       };
 
       const result = await sendWebPushNotification(

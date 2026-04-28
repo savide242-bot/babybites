@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       id: sub.id,
       user_id: sub.user_id,
       endpoint_preview: sub.endpoint?.slice(0, 50) + "...",
-      has_keys: !!sub.keys?.p256dh && !!sub.keys?.auth,
+      has_keys: !!sub.p256dh && !!sub.auth,
       created_at: sub.created_at,
       updated_at: sub.updated_at,
     })) || [];

@@ -149,8 +149,9 @@ Deno.serve(async (req) => {
     let failed = 0;
 
     for (const sub of subscriptions) {
+      if (!sub.p256dh || !sub.auth) { failed++; continue; }
       try {
-        const pushSub: PushSubscription = { endpoint: sub.endpoint, keys: sub.keys as any };
+        const pushSub: PushSubscription = { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } } as any;
         const result = await sendWebPushNotification(pushSub, payload, vapidKeys.publicKey, vapidKeys.privateKey);
         if (result.success) sent++;
         else {

@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     // Fetch push subscriptions based on segment
     let query = supabase
       .from('push_subscriptions')
-      .select('id, user_id, endpoint, keys');
+      .select('id, user_id, endpoint, p256dh, auth');
 
     // Apply segment filter if needed
     if (payload.segment === 'active') {
@@ -141,11 +141,16 @@ Deno.serve(async (req) => {
 
     // Send to each subscription using the unified module
     for (const sub of subscriptions) {
+      if (!sub.p256dh || !sub.auth) {
+        failCount++;
+        continue;
+      }
+
       const pushSub: PushSubscription = {
         id: sub.id,
         user_id: sub.user_id,
         endpoint: sub.endpoint,
-        keys: sub.keys as { p256dh: string; auth: string },
+        keys: { p256dh: sub.p256dh, auth: sub.auth },
       };
 
       const result = await sendWebPushNotification(
