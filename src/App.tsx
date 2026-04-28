@@ -121,7 +121,7 @@ const AppContent = () => {
           <Route path="/planner" element={<MealPlanner />} />
           <Route path="/advice" element={<Advice />} />
           <Route path="/bonus" element={<Bonus />} />
-          <Route path="/community" element={<Bonus />} />
+          
           <Route path="/growth" element={<GrowthTracker />} />
           <Route path="/scanner" element={<FoodAnalyzer />} />
           <Route path="/settings" element={<Settings />} />
