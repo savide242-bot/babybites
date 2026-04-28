@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     // Fetch push subscriptions based on segment
     let query = supabase
       .from('push_subscriptions')
-      .select('id, user_id, endpoint, keys');
+      .select('id, user_id, endpoint, p256dh, auth');
 
     // Apply segment filter if needed
     if (payload.segment === 'active') {
