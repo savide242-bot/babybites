@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     // Get all push subscriptions
     const { data: subscriptions, error } = await supabase
       .from("push_subscriptions")
-      .select("id, user_id, endpoint, keys");
+      .select("id, user_id, endpoint, p256dh, auth");
 
     if (error) {
       throw error;
