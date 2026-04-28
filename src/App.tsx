@@ -18,7 +18,6 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import PrivateRoute from "./components/PrivateRoute";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import { NotificationPromptModal } from "@/components/NotificationPromptModal";
 import BirthdayCelebrationModal from "@/components/BirthdayCelebrationModal";
 import BottomNavigation from "@/components/BottomNavigation";
 import OfflineIndicator from "@/components/OfflineIndicator";
@@ -105,7 +104,6 @@ const AppContent = () => {
       {!isFullscreenRoute && <OfflineIndicator />}
       {!isFullscreenRoute && <WhatsAppButton />}
       {!isFullscreenRoute && <SmartInstallBanner />}
-      {!isFullscreenRoute && <NotificationPromptModal />}
       {!isFullscreenRoute && (
         <BottomNavigation navRefs={{ 
           recipes: recipesNavRef, 

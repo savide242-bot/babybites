@@ -1,15 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { isPushFlowActive } from '@/utils/pwaRecovery';
 
 export const useServiceWorkerUpdate = () => {
   const [needRefresh, setNeedRefresh] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   const activateUpdate = useCallback((worker: ServiceWorker) => {
-    if (isPushFlowActive()) {
-      console.log('🔄 Skipping SW update — push flow active');
-      return;
-    }
     console.log('🔄 Auto-activating update...');
     worker.postMessage({ type: 'SKIP_WAITING' });
   }, []);
@@ -40,9 +35,9 @@ export const useServiceWorkerUpdate = () => {
           }
         };
 
-        // Check sooner (10s) and more frequently (every 2 min)
-        setTimeout(safeUpdateCheck, 10000);
-        updateCheckInterval = setInterval(safeUpdateCheck, 2 * 60 * 1000);
+        // Force every client to pick up new published versions quickly.
+        setTimeout(safeUpdateCheck, 1000);
+        updateCheckInterval = setInterval(safeUpdateCheck, 60 * 1000);
 
         // Also check immediately when coming back online
         const onOnline = () => {
