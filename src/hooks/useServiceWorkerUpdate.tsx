@@ -28,16 +28,24 @@ export const useServiceWorkerUpdate = () => {
               await reg.update();
             }
           } catch (error: unknown) {
-            const err = error as { name?: string };
-            if (err?.name !== 'InvalidStateError') {
+            const err = error as { name?: string; message?: string };
+            const msg = err?.message || '';
+            // Silently swallow transient errors caused by edge proxy redirects
+            // and benign state errors. These are NOT user-actionable.
+            const benign =
+              err?.name === 'InvalidStateError' ||
+              msg.includes('redirect') ||
+              msg.includes('non-2xx') ||
+              msg.includes('non 2xx');
+            if (!benign) {
               console.error('Update check failed:', error);
             }
           }
         };
 
-        // Force every client to pick up new published versions quickly.
-        setTimeout(safeUpdateCheck, 1000);
-        updateCheckInterval = setInterval(safeUpdateCheck, 60 * 1000);
+        // Check periodically — 5 min is plenty and reduces error noise.
+        setTimeout(safeUpdateCheck, 2000);
+        updateCheckInterval = setInterval(safeUpdateCheck, 5 * 60 * 1000);
 
         // Also check immediately when coming back online
         const onOnline = () => {

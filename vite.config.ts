@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: 'auto',
+      injectRegister: 'script',
       includeAssets: ["favicon.ico", "robots.txt"],
       manifest: {
         name: "BabyBites - Baby Nutrition & Meal Planning",
