@@ -1,96 +1,84 @@
+# Plano: Correção SW + Alinhamento Total com a VSL
 
+## Parte 1 — Bug crítico: "Service Worker returned non-2xx" em produção
 
-# Rebuild Push Notifications from Scratch
+**Causa raiz:**
+- `index.html` tem `<meta http-equiv="Cache-Control" content="no-cache, no-store">` que confunde o registo do SW (a especificação proíbe redirects no script SW e o proxy Lovable revalida com headers próprios).
+- `useServiceWorkerUpdate` chama `reg.update()` a cada 60s — quando o `/sw.js` devolve qualquer 3xx (redirect do edge), o browser dispara o erro.
+- `injectRegister: 'auto'` regista também via `registerSW.js` que pode entrar em conflito.
 
-## What's wrong now
+**Correções:**
+1. Remover as 3 meta tags `Cache-Control / Pragma / Expires` do `<head>` em `index.html` (não controlam SW e são contraproducentes — o proxy Lovable já serve os headers corretos).
+2. Em `useServiceWorkerUpdate.tsx`:
+   - Engolir silenciosamente erros do tipo `TypeError: ...behind a redirect...` e `script resource is behind a redirect` (são transientes do edge proxy).
+   - Aumentar o intervalo de update de 60s → 5min para reduzir ruído.
+   - Manter o `controllerchange` reload (essencial para auto-update).
+3. Em `vite.config.ts`: trocar `injectRegister: 'auto'` por `'script'` para usar apenas um caminho de registo.
 
-The current system has a complex custom VAPID/encryption implementation (`_shared/webpush.ts` — 400 lines of manual crypto), the frontend fetches the VAPID key via an edge function call (extra network hop that can fail), and the `push_subscriptions` table stores keys as a nested JSON object (`{p256dh, auth}`) instead of flat columns. The `check-meal-reminders` edge function depends on `baby_meal_times` table for scheduling, adding unnecessary complexity. All of this creates fragile chains where any link can silently fail.
+## Parte 2 — Alinhar o app 100% com a VSL
 
-## What the new system looks like
+A VSL promete uma **expert chamada Emily Harter** (nutricionista pediátrica) e entregáveis específicos. A maioria já existe, mas há gaps a fechar.
 
-```text
-User clicks "Ativar" → Browser asks permission → granted?
-  YES → Register SW → Subscribe with VAPID key → Save to DB → Done (modal closes)
-  NO  → Modal closes, nothing saved
+### 2.1 — Persona da Expert (mudança global)
 
-pg_cron (every hour) → Edge Function → check user timezone → match meal hour → send push via web-push npm library
-```
+Atualizar todas as referências de "Dr. NutriExpert" para **"Emily Harter, Pediatric Nutritionist"** em:
+- `src/components/WhatsAppButton.tsx` e Support flows
+- `src/pages/Advice.tsx` (assinatura dos artigos)
+- `src/components/auth/WelcomeModal.tsx`
+- Qualquer copy que diga "Dr." ou "expert"
+- Atualizar memória `mem://brand/voice-and-terminology` para refletir Emily Harter
 
-## Plan
+### 2.2 — Conteúdo educativo dos 3 erros (NOVO)
 
-### 1. Alter `push_subscriptions` table
-Drop the current `keys` (jsonb) column, add `p256dh` (text), `auth` (text), `timezone` (text) columns, add unique constraint on `(user_id, endpoint)`. Keep existing RLS policies.
+Criar página/secção **"The 3 Hidden Mistakes"** acessível a partir do Home com 3 cards:
+- **Mistake 1:** Iron + Calcium together (oats+milk, spinach+cheese)
+- **Mistake 2:** Sweet foods before main meal (fruit/yogurt/juice timing)
+- **Mistake 3:** Texture window 8–10 months
 
-### 2. Rewrite `public/sw.js`
-Create a clean, standalone service worker file at `public/sw.js` with only two event listeners:
-- `push` — parse JSON, call `showNotification`
-- `notificationclick` — close notification, open/focus app window
+Cada card abre detalhe educativo com a base científica (OMS, AAP). Adicionar widget de destaque no Home para captar a mãe na primeira sessão.
 
-No fetch interception, no caching, no complex logging. The existing `sw-listener.js` (imported by Workbox) stays for PWA caching — this new `sw.js` is specifically for push.
+### 2.3 — Smart Combination Checker (NOVO — diferencial da VSL)
 
-**Wait** — there's a conflict. The Vite PWA plugin already generates a `sw.js` in the build output. The push service worker code currently lives in `sw-listener.js` which is imported by the Workbox-generated SW. So we keep the push handlers in `sw-listener.js` but simplify them drastically.
+Pequeno widget no Recipe Detail e no Meal Planner que mostra um aviso quando uma refeição combina **ferro + cálcio** ou tem **doce antes do principal**. Usa tags já existentes em `recipeDietaryTags.ts` + nova lista de alimentos ricos em ferro/cálcio.
 
-### 3. Rewrite `usePushNotifications.tsx`
-Clean, simple hook matching the user's spec:
-- `urlBase64ToUint8Array` helper
-- States: `isSubscribed`, `isLoading`, `error`
-- `subscribe()`: request permission → register SW → subscribe with `VITE_VAPID_PUBLIC_KEY` env var (no edge function call) → upsert to DB with flat columns
-- `unsubscribe()`: unsubscribe from push manager → delete from DB
-- Preview guard (instant return, no processing)
+### 2.4 — Verificações de entregáveis prometidos
 
-### 4. Add `VITE_VAPID_PUBLIC_KEY` to frontend
-Since secrets show `VAPID_PUBLIC_KEY` is already set, we need to also expose it as a build-time env var. We'll use the `get-vapid-key` edge function on first subscribe only as fallback, but primarily use the env var.
+| VSL promete | Estado atual | Ação |
+|---|---|---|
+| 300+ recipes 6–36m | ✅ Existe (recipes 1–395) | Verificar copy do landing/home diz "300+" |
+| Weekly Meal Planner | ✅ Existe | OK |
+| Food Safety Scanner (ler rótulo) | ⚠️ FoodAnalyzer existe (analisa pratos), mas VSL fala de **scan de rótulo de produto** | Adicionar modo "Scan Label" ao FoodAnalyzer com prompt específico para ingredientes/idade |
+| Growth Tracker + WHO curves | ✅ Existe | OK |
+| Exclusive Support Group (Emily responde) | ⚠️ Só WhatsApp button | Garantir que o WhatsApp link e copy reforça "direct line to Emily Harter" |
+| Progress Reports nutricionais | ✅ Existe (ProgressReports.tsx) | OK |
+| Smart Shopping List | ✅ Existe | OK |
+| Phase Expert Tips | ⚠️ Existe via Advice mas não por fase do bebé | Garantir filtro por idade no Advice (já existe baby_age) |
+| Bonus: Postpartum Recovery Guide | ❌ NÃO EXISTE | Adicionar 1 secção dentro de `/bonus` com guia simples de recuperação pós-parto (texto/PDF, 5–8 tópicos) |
 
-**Problem**: We can't set `VITE_*` env vars directly — the `.env` is auto-managed. So we keep the edge function approach for getting the VAPID key but make it bulletproof, OR we hardcode the public key (it's a public key, safe to embed).
+### 2.5 — Copy & onboarding
 
-**Decision**: Fetch VAPID public key from the existing `get-vapid-key` edge function (it works — already deployed). This is one simple fetch, no processing hang.
+- Atualizar `Onboarding` welcome step para mencionar Emily Harter e os "3 erros".
+- Atualizar `Home` com banner "Welcome from Emily" no primeiro login.
+- Garantir que o tagline em todo lado é coerente com a VSL ("smart food combinations for every phase").
 
-### 5. Rewrite `NotificationPromptModal.tsx`
-Simple modal:
-- Click "Ativar" → close modal immediately → call `subscribe()` silently in background
-- Click "Mais tarde" → close modal
-- No spinners, no error states in UI, no retry buttons
+## Tecnicidades
 
-### 6. Rewrite `send-meal-reminders` edge function
-New edge function using `npm:web-push` library (not custom crypto):
-- Read all subscriptions with timezone
-- Check which meal hour matches current local hour
-- Send push via `webpush.sendNotification()`
-- Clean up expired (410) subscriptions
-- No dependency on `baby_meal_times` table — use fixed schedule (7, 10, 12, 15, 19)
+- Migração SQL: nenhuma necessária (usa tabelas existentes).
+- Sem novos secrets.
+- Sem novas dependências.
+- Edge functions: ajuste pequeno em `analyze-food` para suportar modo `label_scan` (ingredientes + idade).
 
-### 7. Add `VAPID_MAILTO` secret
-Need to add this secret for the `web-push` library.
+## Ficheiros principais a tocar
 
-### 8. Update cron job
-Existing cron `check-meal-reminders-5min` calls `check-meal-reminders`. We'll update it to call the new `send-meal-reminders` function hourly instead (every hour at minute 0).
+- `index.html`, `vite.config.ts`, `src/hooks/useServiceWorkerUpdate.tsx`
+- `src/pages/Home.tsx`, `src/pages/Bonus.tsx`, `src/pages/FoodAnalyzer.tsx`, `src/pages/Advice.tsx`
+- `src/components/WhatsAppButton.tsx`, `src/components/auth/WelcomeModal.tsx`
+- Novo: `src/pages/MistakesGuide.tsx` (ou secção em Advice) + componente `SmartCombinationWarning.tsx`
+- Novo: `src/data/postpartumRecoveryGuide.ts`
+- `supabase/functions/analyze-food/index.ts` (modo label scan)
 
-### 9. Clean up consumers
-Update `Settings.tsx`, `NotificationPreferences.tsx`, `useAutoResubscribe.tsx`, `IOSPushSetup.tsx` to use the new hook API (`isSubscribed`, `subscribe`, `unsubscribe` instead of `subscribeToPushNotifications`, etc.).
+## Fora de escopo
 
-### 10. Simplify `sw-listener.js`
-Strip down to just: push handler + notificationclick handler + skip-waiting + activate. Remove all the verbose logging and complex parsing.
-
----
-
-## Files to modify/create
-
-| File | Action |
-|------|--------|
-| `push_subscriptions` table | Migration: add p256dh, auth, timezone columns; drop keys column |
-| `public/sw-listener.js` | Simplify push + click handlers |
-| `src/hooks/usePushNotifications.tsx` | Full rewrite |
-| `src/components/NotificationPromptModal.tsx` | Simplify |
-| `supabase/functions/send-meal-reminders/index.ts` | Full rewrite with npm:web-push |
-| `src/hooks/useAutoResubscribe.tsx` | Update to new API |
-| `src/pages/Settings.tsx` | Update hook usage |
-| `src/components/NotificationPreferences.tsx` | Update hook usage |
-| `src/pages/IOSPushSetup.tsx` | Update hook usage |
-| Cron job | Update to hourly schedule calling send-meal-reminders |
-
-## Important notes
-- VAPID keys already exist as secrets
-- Need to add `VAPID_MAILTO` secret
-- Push only works on published domain (babybites.lovable.app), never in preview
-- The `web-push` npm library handles all VAPID signing and payload encryption — no custom crypto needed
-
+- Sistema de pagamento / paywall ($29.99) — não foi pedido.
+- Timer de countdown da oferta — pertence à landing, não ao app.
+- Mudar layout/aesthetic geral (fica o Premium Gold atual).
