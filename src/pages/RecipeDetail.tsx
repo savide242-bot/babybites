@@ -15,6 +15,7 @@ import { DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
 import { useTodaysMealStatus } from "@/hooks/useTodaysMealStatus";
 import { motion } from "framer-motion";
 import { exportRecipePDF } from "@/utils/recipePDFExport";
+import SmartCombinationWarning from "@/components/SmartCombinationWarning";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
@@ -423,6 +424,9 @@ const RecipeDetail = () => {
               ))}
             </CardContent>
           </Card>
+          <div className="mt-4">
+            <SmartCombinationWarning ingredients={recipe.ingredients} />
+          </div>
         </motion.div>
 
         {/* Instructions Section */}

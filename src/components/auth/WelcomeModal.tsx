@@ -49,16 +49,16 @@ const WelcomeModal = ({ userId, userName }: WelcomeModalProps) => {
               Welcome to BabyBites, {userName}! 💕
             </h2>
             <p className="text-muted-foreground">
-              We're so excited to have you here! Let's start your baby's nutrition journey.
+              I'm Emily Harter, pediatric nutritionist. Let's start your baby's nutrition journey — the right way.
             </p>
           </div>
           <div className="bg-mint/10 rounded-lg p-4 space-y-2 w-full text-left">
-            <p className="font-semibold text-sm">🍎 Quick Start Tips:</p>
+            <p className="font-semibold text-sm">🍎 Your starter kit:</p>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Explore 200+ nutritious recipes</li>
-              <li>• Plan your weekly meals</li>
-              <li>• Track your baby's growth</li>
-              <li>• Connect with 10,000+ moms</li>
+              <li>• 300+ recipes built with smart food combinations</li>
+              <li>• Weekly meal planner — no more guessing</li>
+              <li>• Food safety scanner & growth tracker</li>
+              <li>• Direct support from me &amp; my team</li>
             </ul>
           </div>
           <Button onClick={handleClose} size="lg" className="w-full bg-gradient-to-r from-mint to-primary hover:from-mint-glow hover:to-primary-glow text-white">

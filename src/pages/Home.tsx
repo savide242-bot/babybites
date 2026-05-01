@@ -10,7 +10,7 @@ import { useEngagement } from "@/hooks/useEngagement";
 import { useAppTour } from "@/hooks/useAppTour";
 import { toast } from "sonner";
 import { RewardAnimation, useReward } from "@/components/ui/reward-animation";
-import { Flame, Trophy, BookOpen, ChevronRight, Lightbulb, ChefHat } from "lucide-react";
+import { Flame, Trophy, BookOpen, ChevronRight, Lightbulb, ChefHat, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -301,6 +301,33 @@ const Home = () => {
                       <p className="text-sm font-bold text-foreground">New to cooking?</p>
                       <p className="text-xs text-muted-foreground">
                         Easy recipes ready in under 15 min — no experience needed
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                </Link>
+              </motion.div>
+            )}
+
+            {/* ── 3 HIDDEN MISTAKES (VSL hook) ── */}
+            {!isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.29 }}
+              >
+                <Link
+                  to="/mistakes"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/20 active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">The 3 Hidden Mistakes</p>
+                      <p className="text-xs text-muted-foreground">
+                        Most moms make them daily — without knowing
                       </p>
                     </div>
                   </div>
