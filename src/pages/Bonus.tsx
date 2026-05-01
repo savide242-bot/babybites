@@ -406,6 +406,53 @@ const Bonus = () => {
     );
   };
 
+  // ════════ POSTPARTUM RECOVERY LIST ════════
+  const renderRecoveryList = () => (
+    <PageTransition>
+      <BackButton onClick={() => setView({ type: 'hub' })} />
+      <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
+        <Heart className="h-5 w-5 text-rose-500" /> Postpartum Recovery Guide
+      </h2>
+      <p className="text-xs text-muted-foreground mb-4">
+        A bonus from Emily Harter — because mothers also deserve care.
+      </p>
+      <div className="space-y-2">
+        {postpartumRecoveryGuide.map((section) => (
+          <button key={section.id} onClick={() => setView({ type: 'recovery-detail', sectionId: section.id })}
+            className="w-full flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-card hover:bg-muted/30 transition-colors text-left active:scale-[0.98]">
+            <span className="text-xl shrink-0">{section.icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">{section.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{section.summary}</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </button>
+        ))}
+      </div>
+    </PageTransition>
+  );
+
+  // ════════ POSTPARTUM RECOVERY DETAIL ════════
+  const renderRecoveryDetail = (sectionId: string) => {
+    const section = postpartumRecoveryGuide.find(s => s.id === sectionId);
+    if (!section) return null;
+    return (
+      <PageTransition>
+        <BackButton onClick={() => setView({ type: 'recovery-list' })} />
+        <h2 className="text-lg font-bold mb-1">{section.icon} {section.title}</h2>
+        <p className="text-sm text-muted-foreground italic mb-4">{section.summary}</p>
+        <ul className="space-y-3">
+          {section.body.map((p, i) => (
+            <li key={i} className="text-sm text-foreground/85 leading-relaxed flex gap-2">
+              <span className="text-rose-500 mt-1.5 text-xs">●</span>
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+      </PageTransition>
+    );
+  };
+
   return (
     <div className="min-h-screen pt-12 pb-24 lg:pb-8 bg-gradient-to-b from-background via-peach/5 to-background">
       <div className="container max-w-2xl px-4">
