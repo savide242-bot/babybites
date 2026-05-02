@@ -27,19 +27,11 @@ export const useServiceWorkerUpdate = () => {
             if (reg.active && navigator.serviceWorker.controller) {
               await reg.update();
             }
-          } catch (error: unknown) {
-            const err = error as { name?: string; message?: string };
-            const msg = err?.message || '';
-            // Silently swallow transient errors caused by edge proxy redirects
-            // and benign state errors. These are NOT user-actionable.
-            const benign =
-              err?.name === 'InvalidStateError' ||
-              msg.includes('redirect') ||
-              msg.includes('non-2xx') ||
-              msg.includes('non 2xx');
-            if (!benign) {
-              console.error('Update check failed:', error);
-            }
+          } catch {
+            // Silently swallow ALL update errors. The most common one in production
+            // is "script resource is behind a redirect" from the edge proxy, which
+            // is transient and not user-actionable. Any other error here is also
+            // recoverable on the next interval — never spam the console.
           }
         };
 
