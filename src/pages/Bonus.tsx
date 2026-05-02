@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, MessageCircle, CheckSquare, CalendarDays, Baby, ChevronRight, ExternalLink, ArrowLeft, Heart } from 'lucide-react';
+import { Gift, MessageCircle, CheckSquare, CalendarDays, Baby, ChevronRight, ExternalLink, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { foodChecklistData, readyMadeMenus, pickyEaterGuide, type AgeStage, type FoodItem, type AgeMealPlan, type PickySection } from '@/data/bonusContent';
-import { postpartumRecoveryGuide } from '@/data/postpartumRecoveryGuide';
 import { differenceInMonths } from 'date-fns';
 
 // ── Navigation types ──
@@ -20,9 +19,7 @@ type View =
   | { type: 'menu-detail'; planIndex: number }
   | { type: 'menu-day'; planIndex: number; dayIndex: number }
   | { type: 'picky-list' }
-  | { type: 'picky-detail'; sectionId: string }
-  | { type: 'recovery-list' }
-  | { type: 'recovery-detail'; sectionId: string };
+  | { type: 'picky-detail'; sectionId: string };
 
 const statusOptions = [
   { value: 'not_introduced', label: '—', color: 'bg-muted text-muted-foreground' },
@@ -100,8 +97,6 @@ const Bonus = () => {
       case 'menu-day': return renderMenuDay(view.planIndex, view.dayIndex);
       case 'picky-list': return renderPickyList();
       case 'picky-detail': return renderPickyDetail(view.sectionId);
-      case 'recovery-list': return renderRecoveryList();
-      case 'recovery-detail': return renderRecoveryDetail(view.sectionId);
     }
   };
 
@@ -114,7 +109,6 @@ const Bonus = () => {
           { icon: <CheckSquare className="h-5 w-5 text-blue-600" />, title: 'Food Introduction Checklist', desc: 'Track every food by age stage', onClick: () => setView({ type: 'checklist-stages' }) },
           { icon: <CalendarDays className="h-5 w-5 text-purple-600" />, title: 'Ready-Made Menus by Age', desc: 'Full weekly meal plans, ready to go', onClick: () => setView({ type: 'menus-list' }) },
           { icon: <Baby className="h-5 w-5 text-accent" />, title: 'Picky Eater Strategies', desc: 'Practical help when baby refuses food', onClick: () => setView({ type: 'picky-list' }) },
-          { icon: <Heart className="h-5 w-5 text-rose-500" />, title: 'Postpartum Recovery Guide', desc: 'Bonus from Emily — because mothers also deserve care', onClick: () => setView({ type: 'recovery-list' }) },
         ].map((item, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <button onClick={item.onClick} className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-border/40 bg-card hover:bg-muted/30 transition-colors text-left active:scale-[0.98]">
@@ -402,53 +396,6 @@ const Bonus = () => {
             }} />
           ))}
         </div>
-      </PageTransition>
-    );
-  };
-
-  // ════════ POSTPARTUM RECOVERY LIST ════════
-  const renderRecoveryList = () => (
-    <PageTransition>
-      <BackButton onClick={() => setView({ type: 'hub' })} />
-      <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
-        <Heart className="h-5 w-5 text-rose-500" /> Postpartum Recovery Guide
-      </h2>
-      <p className="text-xs text-muted-foreground mb-4">
-        A bonus from Emily Harter — because mothers also deserve care.
-      </p>
-      <div className="space-y-2">
-        {postpartumRecoveryGuide.map((section) => (
-          <button key={section.id} onClick={() => setView({ type: 'recovery-detail', sectionId: section.id })}
-            className="w-full flex items-center gap-3 p-4 rounded-2xl border border-border/40 bg-card hover:bg-muted/30 transition-colors text-left active:scale-[0.98]">
-            <span className="text-xl shrink-0">{section.icon}</span>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">{section.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{section.summary}</p>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          </button>
-        ))}
-      </div>
-    </PageTransition>
-  );
-
-  // ════════ POSTPARTUM RECOVERY DETAIL ════════
-  const renderRecoveryDetail = (sectionId: string) => {
-    const section = postpartumRecoveryGuide.find(s => s.id === sectionId);
-    if (!section) return null;
-    return (
-      <PageTransition>
-        <BackButton onClick={() => setView({ type: 'recovery-list' })} />
-        <h2 className="text-lg font-bold mb-1">{section.icon} {section.title}</h2>
-        <p className="text-sm text-muted-foreground italic mb-4">{section.summary}</p>
-        <ul className="space-y-3">
-          {section.body.map((p, i) => (
-            <li key={i} className="text-sm text-foreground/85 leading-relaxed flex gap-2">
-              <span className="text-rose-500 mt-1.5 text-xs">●</span>
-              <span>{p}</span>
-            </li>
-          ))}
-        </ul>
       </PageTransition>
     );
   };

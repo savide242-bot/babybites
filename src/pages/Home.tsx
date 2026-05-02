@@ -1,8 +1,11 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+
+// Static count to avoid pulling the full recipes dataset (~13k lines) into the Home chunk.
+// Keep in sync with the actual count in src/data/recipes.ts (≈395 recipes).
+const TOTAL_RECIPES_COUNT = 395;
 import WhatToCookWidget from "@/components/home/WhatToCookWidget";
 import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
 import AppTour from "@/components/onboarding/AppTour";
