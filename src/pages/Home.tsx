@@ -220,7 +220,7 @@ const Home = () => {
                 <BookOpen className="w-4.5 h-4.5 text-mint" />
               </div>
               <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{recipes.length}</p>
+                <p className="text-lg font-extrabold text-foreground leading-none">{TOTAL_RECIPES_COUNT}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">recipes</p>
               </div>
             </Link>
@@ -355,7 +355,7 @@ const Home = () => {
                     <div>
                       <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
                       <p className="text-xs text-muted-foreground">
-                        {recipes.length}+ recipes perfect for {babyName || "your baby"}
+                        {TOTAL_RECIPES_COUNT}+ recipes perfect for {babyName || "your baby"}
                       </p>
                     </div>
                   </div>
