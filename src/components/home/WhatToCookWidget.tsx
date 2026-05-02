@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { recipes } from "@/data/recipes";
+import type { Recipe } from "@/data/recipes";
 import { RefreshCw, ChefHat, Clock } from "lucide-react";
 import { getRecipeImageById } from "@/data/recipeImages";
 
@@ -20,13 +20,27 @@ const getMealTimeOfDay = (): string => {
 
 const WhatToCookWidget = ({ babyAgeMonths, babyName }: WhatToCookWidgetProps) => {
   const [shuffleCount, setShuffleCount] = useState(0);
+  const [recipes, setRecipes] = useState<Recipe[] | null>(null);
   const navigate = useNavigate();
 
   const mealTime = getMealTimeOfDay();
   const displayName = babyName || "your baby";
 
+  // Lazy-load the (heavy) recipes dataset only when this widget actually mounts on Home.
+  // Defer until idle so it never blocks the initial paint or tab navigation.
+  useEffect(() => {
+    if (babyAgeMonths < 6) return;
+    const idle = (cb: () => void) =>
+      "requestIdleCallback" in window
+        ? (window as any).requestIdleCallback(cb, { timeout: 1500 })
+        : setTimeout(cb, 200);
+    idle(() => {
+      import("@/data/recipes").then((m) => setRecipes(m.recipes));
+    });
+  }, [babyAgeMonths]);
+
   const recommendation = useMemo(() => {
-    if (babyAgeMonths < 6) return null;
+    if (babyAgeMonths < 6 || !recipes) return null;
 
     let ageGroup = "6-9 months";
     if (babyAgeMonths >= 9 && babyAgeMonths < 12) ageGroup = "9-12 months";
@@ -56,7 +70,7 @@ const WhatToCookWidget = ({ babyAgeMonths, babyName }: WhatToCookWidgetProps) =>
     const topCandidates = scored.slice(0, Math.max(10, scored.length));
     const index = (shuffleCount + new Date().getDate()) % topCandidates.length;
     return topCandidates[index]?.recipe;
-  }, [babyAgeMonths, mealTime, shuffleCount]);
+  }, [babyAgeMonths, mealTime, shuffleCount, recipes]);
 
   if (!recommendation || babyAgeMonths < 6) return null;
 

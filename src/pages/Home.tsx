@@ -1,8 +1,11 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { recipes } from "@/data/recipes";
 import { differenceInMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+
+// Static count to avoid pulling the full recipes dataset (~13k lines) into the Home chunk.
+// Keep in sync with the actual count in src/data/recipes.ts (≈395 recipes).
+const TOTAL_RECIPES_COUNT = 395;
 import WhatToCookWidget from "@/components/home/WhatToCookWidget";
 import AgeCategoryCircles from "@/components/home/AgeCategoryCircles";
 import AppTour from "@/components/onboarding/AppTour";
@@ -217,7 +220,7 @@ const Home = () => {
                 <BookOpen className="w-4.5 h-4.5 text-mint" />
               </div>
               <div>
-                <p className="text-lg font-extrabold text-foreground leading-none">{recipes.length}</p>
+                <p className="text-lg font-extrabold text-foreground leading-none">{TOTAL_RECIPES_COUNT}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">recipes</p>
               </div>
             </Link>
@@ -352,7 +355,7 @@ const Home = () => {
                     <div>
                       <p className="text-sm font-bold text-foreground">Explore All Recipes</p>
                       <p className="text-xs text-muted-foreground">
-                        {recipes.length}+ recipes perfect for {babyName || "your baby"}
+                        {TOTAL_RECIPES_COUNT}+ recipes perfect for {babyName || "your baby"}
                       </p>
                     </div>
                   </div>
