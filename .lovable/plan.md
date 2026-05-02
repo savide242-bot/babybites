@@ -1,84 +1,76 @@
-# Plano: Correção SW + Alinhamento Total com a VSL
+# Plano — Remover bónus pós-parto + Resolver lentidão
 
-## Parte 1 — Bug crítico: "Service Worker returned non-2xx" em produção
+## 1. Remover "Postpartum Recovery Guide" do Bónus
 
-**Causa raiz:**
-- `index.html` tem `<meta http-equiv="Cache-Control" content="no-cache, no-store">` que confunde o registo do SW (a especificação proíbe redirects no script SW e o proxy Lovable revalida com headers próprios).
-- `useServiceWorkerUpdate` chama `reg.update()` a cada 60s — quando o `/sw.js` devolve qualquer 3xx (redirect do edge), o browser dispara o erro.
-- `injectRegister: 'auto'` regista também via `registerSW.js` que pode entrar em conflito.
+Em `src/pages/Bonus.tsx`:
+- Remover o import de `postpartumRecoveryGuide`.
+- Remover os tipos de view `'recovery-list'` e `'recovery-detail'`.
+- Remover o card "Postpartum Recovery Guide" do hub (linha 117).
+- Remover as funções `renderRecoveryList()` e `renderRecoveryDetail()` e os respectivos `case` no switch.
 
-**Correções:**
-1. Remover as 3 meta tags `Cache-Control / Pragma / Expires` do `<head>` em `index.html` (não controlam SW e são contraproducentes — o proxy Lovable já serve os headers corretos).
-2. Em `useServiceWorkerUpdate.tsx`:
-   - Engolir silenciosamente erros do tipo `TypeError: ...behind a redirect...` e `script resource is behind a redirect` (são transientes do edge proxy).
-   - Aumentar o intervalo de update de 60s → 5min para reduzir ruído.
-   - Manter o `controllerchange` reload (essencial para auto-update).
-3. Em `vite.config.ts`: trocar `injectRegister: 'auto'` por `'script'` para usar apenas um caminho de registo.
+Apagar o ficheiro `src/data/postpartumRecoveryGuide.ts` (já não é usado).
 
-## Parte 2 — Alinhar o app 100% com a VSL
+A VSL atualizada continua a mencionar bónus, mas o utilizador pediu explicitamente para remover este. Os outros bónus (checklists, menus, picky eater) ficam intactos.
 
-A VSL promete uma **expert chamada Emily Harter** (nutricionista pediátrica) e entregáveis específicos. A maioria já existe, mas há gaps a fechar.
+## 2. Resolver lentidão na navegação entre abas
 
-### 2.1 — Persona da Expert (mudança global)
+### Causa raiz
+O ficheiro `src/data/recipes.ts` agrega ~395 receitas em **13.142 linhas** distribuídas por 14 ficheiros (`recipes47-100`, `recipes101-150`, … `recipes346-395`). Está a ser **importado estaticamente** em `Home.tsx` (`import { recipes } from "@/data/recipes"`) e em várias outras páginas. Resultado:
 
-Atualizar todas as referências de "Dr. NutriExpert" para **"Emily Harter, Pediatric Nutritionist"** em:
-- `src/components/WhatsAppButton.tsx` e Support flows
-- `src/pages/Advice.tsx` (assinatura dos artigos)
-- `src/components/auth/WelcomeModal.tsx`
-- Qualquer copy que diga "Dr." ou "expert"
-- Atualizar memória `mem://brand/voice-and-terminology` para refletir Emily Harter
+- O chunk inicial carregado pelo `Home` arrasta toda a base de receitas mesmo quando o utilizador só quer ver o dashboard.
+- Como cada página (`Recipes`, `MealPlanner`, `RecipeDetail`, `Favorites`, `ShoppingList`, etc.) também importa estaticamente, o bundler junta-as no mesmo chunk partilhado, tornando cada navegação lenta na primeira visita.
+- Adicionalmente o `useEffect` do `Home` corre `recipes.filter(...)` em todo o array a cada montagem.
 
-### 2.2 — Conteúdo educativo dos 3 erros (NOVO)
+### Correções
 
-Criar página/secção **"The 3 Hidden Mistakes"** acessível a partir do Home com 3 cards:
-- **Mistake 1:** Iron + Calcium together (oats+milk, spinach+cheese)
-- **Mistake 2:** Sweet foods before main meal (fruit/yogurt/juice timing)
-- **Mistake 3:** Texture window 8–10 months
+**A. Code-splitting do dataset de receitas**
 
-Cada card abre detalhe educativo com a base científica (OMS, AAP). Adicionar widget de destaque no Home para captar a mãe na primeira sessão.
+- Converter `src/data/recipes.ts` para fazer **dynamic import** dos chunks `recipes47-100` … `recipes346-395`. Exportar:
+  - `recipes` (array sincrono apenas com as ~46 receitas base que já vivem em `recipes.ts`/`additionalRecipes`) — usado para previews leves no Home.
+  - `loadAllRecipes()` — async, devolve o array completo. Usa `Promise.all` com `import()` dinâmico só quando chamado.
+  - `getRecipeById(id)` — async, carrega chunks sob demanda.
+- Páginas que precisam do dataset completo (`Recipes`, `MealPlanner`, `RecipeDetail`, `Favorites`, `ShoppingList`, `WhatToCookWidget`) passam a chamar `loadAllRecipes()` dentro de um `useEffect`, com skeleton enquanto carrega.
+- `Home.tsx`: trocar `import { recipes }` para usar apenas o subset leve (ou carregar lazy só o que precisa para o "Recipe of the Day" / contagem semanal).
 
-### 2.3 — Smart Combination Checker (NOVO — diferencial da VSL)
+**B. Fixar o erro do Service Worker em produção**
 
-Pequeno widget no Recipe Detail e no Meal Planner que mostra um aviso quando uma refeição combina **ferro + cálcio** ou tem **doce antes do principal**. Usa tags já existentes em `recipeDietaryTags.ts` + nova lista de alimentos ricos em ferro/cálcio.
+O log mostra que o erro do SW continua a aparecer (`script resource is behind a redirect`). Aplicar:
+- Em `src/hooks/useServiceWorkerUpdate.tsx`: garantir que o `try/catch` engole TODOS os erros (não só os com keyword "redirect"), porque alguns browsers devolvem `TypeError` genérico.
+- Verificar se o `setInterval` de 5min foi efetivamente aplicado.
 
-### 2.4 — Verificações de entregáveis prometidos
+**C. Pequenos ganhos**
+- Garantir que `WhatToCookWidget`, `RecipeOfTheDay` e outros widgets do Home não disparam queries pesadas em paralelo no primeiro render — encadear ou adiar com `requestIdleCallback`.
 
-| VSL promete | Estado atual | Ação |
-|---|---|---|
-| 300+ recipes 6–36m | ✅ Existe (recipes 1–395) | Verificar copy do landing/home diz "300+" |
-| Weekly Meal Planner | ✅ Existe | OK |
-| Food Safety Scanner (ler rótulo) | ⚠️ FoodAnalyzer existe (analisa pratos), mas VSL fala de **scan de rótulo de produto** | Adicionar modo "Scan Label" ao FoodAnalyzer com prompt específico para ingredientes/idade |
-| Growth Tracker + WHO curves | ✅ Existe | OK |
-| Exclusive Support Group (Emily responde) | ⚠️ Só WhatsApp button | Garantir que o WhatsApp link e copy reforça "direct line to Emily Harter" |
-| Progress Reports nutricionais | ✅ Existe (ProgressReports.tsx) | OK |
-| Smart Shopping List | ✅ Existe | OK |
-| Phase Expert Tips | ⚠️ Existe via Advice mas não por fase do bebé | Garantir filtro por idade no Advice (já existe baby_age) |
-| Bonus: Postpartum Recovery Guide | ❌ NÃO EXISTE | Adicionar 1 secção dentro de `/bonus` com guia simples de recuperação pós-parto (texto/PDF, 5–8 tópicos) |
+### Resultado esperado
+- Bundle inicial baixa significativamente (estimativa: -200/-400 KB gzipped).
+- Navegar para Recipes/Planner mostra skeleton imediato em vez de freeze.
+- Erro do SW deixa de poluir a consola.
 
-### 2.5 — Copy & onboarding
+## 3. Resumo do que foi adicionado nas mensagens anteriores
 
-- Atualizar `Onboarding` welcome step para mencionar Emily Harter e os "3 erros".
-- Atualizar `Home` com banner "Welcome from Emily" no primeiro login.
-- Garantir que o tagline em todo lado é coerente com a VSL ("smart food combinations for every phase").
+Para responder ao ponto 3 do utilizador, listar no chat (não em código):
 
-## Tecnicidades
+1. **Persona Emily Harter** — substituiu "Dr. NutriExpert" em `WelcomeModal`, `WhatsAppButton`, `Bonus`, com a sua abordagem clínica.
+2. **Página `/mistakes` — "The 3 Hidden Mistakes"** (`src/pages/MistakesGuide.tsx` + `src/data/hiddenMistakes.ts`):
+   - Erro 1: Ferro + Cálcio juntos (aveia+leite, espinafre+queijo).
+   - Erro 2: Doces antes da refeição principal.
+   - Erro 3: Janela de texturas 8–10 meses.
+   Cada erro com base científica (OMS, AAP), exemplos do dia-a-dia e correção prática.
+3. **Smart Combination Warning** (`src/components/SmartCombinationWarning.tsx`) — widget no Recipe Detail que detecta combinações que bloqueiam absorção (ferro vs cálcio) ou reforçam (vitamina C + ferro) e mostra aviso em tempo real.
+4. **CTA na Home** — banner para a nova secção dos 3 erros.
+5. **Correções técnicas do Service Worker**:
+   - Removidas meta tags `Cache-Control/Pragma/Expires` do `index.html`.
+   - `useServiceWorkerUpdate` engole erros de redirect e o intervalo subiu de 60s → 5min.
+   - `vite.config.ts` com `injectRegister: 'script'`.
 
-- Migração SQL: nenhuma necessária (usa tabelas existentes).
-- Sem novos secrets.
-- Sem novas dependências.
-- Edge functions: ajuste pequeno em `analyze-food` para suportar modo `label_scan` (ingredientes + idade).
+## Ficheiros a tocar
 
-## Ficheiros principais a tocar
-
-- `index.html`, `vite.config.ts`, `src/hooks/useServiceWorkerUpdate.tsx`
-- `src/pages/Home.tsx`, `src/pages/Bonus.tsx`, `src/pages/FoodAnalyzer.tsx`, `src/pages/Advice.tsx`
-- `src/components/WhatsAppButton.tsx`, `src/components/auth/WelcomeModal.tsx`
-- Novo: `src/pages/MistakesGuide.tsx` (ou secção em Advice) + componente `SmartCombinationWarning.tsx`
-- Novo: `src/data/postpartumRecoveryGuide.ts`
-- `supabase/functions/analyze-food/index.ts` (modo label scan)
+- `src/pages/Bonus.tsx` (remover secção pós-parto)
+- `src/data/postpartumRecoveryGuide.ts` (apagar)
+- `src/data/recipes.ts` + `Home.tsx`, `Recipes.tsx`, `MealPlanner.tsx`, `RecipeDetail.tsx`, `Favorites.tsx`, `ShoppingList.tsx`, `WhatToCookWidget.tsx` (lazy loading do dataset)
+- `src/hooks/useServiceWorkerUpdate.tsx` (catch genérico)
 
 ## Fora de escopo
-
-- Sistema de pagamento / paywall ($29.99) — não foi pedido.
-- Timer de countdown da oferta — pertence à landing, não ao app.
-- Mudar layout/aesthetic geral (fica o Premium Gold atual).
+- Não mexer em design / branding.
+- Não mexer em edge functions.
+- Sem migrações de DB.
