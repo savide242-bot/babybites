@@ -291,8 +291,8 @@ const RecipeDetail = () => {
                 return <Badge key={tag} variant="outline" className={`rounded-full bg-white/10 backdrop-blur-sm ${option?.color || ''}`}>{option?.label}</Badge>;
               })}
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{recipe.title}</h1>
-            <p className="text-muted-foreground text-sm md:text-base max-w-2xl">{recipe.description}</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
+            <p className="text-muted-foreground text-sm md:text-base max-w-2xl">{tt(`recipe:${recipe.id}:description`, recipe.description)}</p>
           </motion.div>
         </div>
       </div>
