@@ -191,7 +191,7 @@ const RecipeDetail = () => {
         <audio ref={musicRef} src="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" loop preload="auto" />
         <div className="p-6">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">{recipe.title}</h1>
+            <h1 className="text-3xl font-bold">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
             <div className="flex items-center gap-3">
               <Button onClick={toggleMusic} variant="ghost" size="sm" className="text-white hover:bg-white/20 gap-2">
                 {musicPlaying ? <>🎵 Music On</> : <>🔇 Music Off</>}
@@ -223,7 +223,7 @@ const RecipeDetail = () => {
               <h2 className="text-2xl font-bold text-white mb-4">Ingredients ({servings} servings)</h2>
               <ul className="space-y-3">
                 {recipe.ingredients.map((ingredient, index) => (
-                  <li key={index} className="text-xl text-gray-200">• {scaleIngredient(ingredient)}</li>
+                  <li key={index} className="text-xl text-gray-200">• {scaleIngredient(tt(`recipe:${recipe.id}:ing:${index}`, ingredient))}</li>
                 ))}
               </ul>
             </CardContent>
@@ -236,7 +236,7 @@ const RecipeDetail = () => {
                   <div key={index} className={`flex gap-4 p-4 rounded-lg transition-all ${completedSteps.has(index) ? 'bg-primary/20 opacity-60' : 'bg-gray-700/50'}`}>
                     <Checkbox id={`step-cook-${index}`} checked={completedSteps.has(index)} onCheckedChange={() => toggleStep(index)} className="mt-1 h-6 w-6" />
                     <label htmlFor={`step-cook-${index}`} className={`text-xl cursor-pointer text-white ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>
-                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>{instruction}
+                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}
                     </label>
                   </div>
                 ))}
