@@ -16,6 +16,7 @@ import { useTodaysMealStatus } from "@/hooks/useTodaysMealStatus";
 import { motion } from "framer-motion";
 import { exportRecipePDF } from "@/utils/recipePDFExport";
 import SmartCombinationWarning from "@/components/SmartCombinationWarning";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
@@ -27,6 +28,16 @@ const RecipeDetail = () => {
   const { toggleFavorite, isFavorite } = useFavorites();
   const { trackRecipeView } = useRecipeHistory();
   const { isInTodaysPlan, isPrepared, mealType, markAsPrepared, isLoading: mealStatusLoading } = useTodaysMealStatus(id);
+
+  // Build translation items for this recipe (title, description, ingredients, instructions)
+  const translationItems = recipe ? [
+    { key: `recipe:${recipe.id}:title`, text: recipe.title },
+    { key: `recipe:${recipe.id}:description`, text: recipe.description },
+    ...recipe.ingredients.map((ing, i) => ({ key: `recipe:${recipe.id}:ing:${i}`, text: ing })),
+    ...recipe.instructions.map((ins, i) => ({ key: `recipe:${recipe.id}:ins:${i}`, text: ins })),
+  ] : [];
+  const { map: tx } = useTranslatedContent(translationItems);
+  const tt = (key: string, fallback: string) => tx[key] || fallback;
   
   // State management
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
