@@ -533,6 +533,7 @@ const Recipes = () => {
                     isQuick={parseInt(recipe.prepTime) <= 15}
                     hasPrefs={preferences.length > 0}
                     onToggleFavorite={handleToggleFavorite}
+                    displayTitle={titleMap[`recipe:${recipe.id}:title`]}
                   />
                 );
               })}
