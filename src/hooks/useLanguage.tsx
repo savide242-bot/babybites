@@ -198,6 +198,32 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     if (language === 'es') ensureUITranslated('es');
   }, [language, ensureUITranslated]);
 
+  // Sync language from logged-in user preferences (existing users)
+  useEffect(() => {
+    const sync = async (userId: string) => {
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('language')
+        .eq('user_id', userId)
+        .maybeSingle();
+      const dbLang = (data?.language === 'es' || data?.language === 'en') ? data.language as Language : null;
+      if (dbLang) {
+        setLanguageState(dbLang);
+        try {
+          localStorage.setItem(STORAGE_KEY, dbLang);
+          localStorage.setItem('language_chosen', '1');
+        } catch {}
+      }
+    };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) sync(session.user.id);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (s?.user) sync(s.user.id);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const setLanguage = useCallback(async (lang: Language) => {
     setLanguageState(lang);
     try { localStorage.setItem(STORAGE_KEY, lang); } catch {}
