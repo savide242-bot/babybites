@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import ChangePasswordSection from '@/components/auth/ChangePasswordSection';
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/glass-card';
+import LanguageCard from '@/components/settings/LanguageCard';
 
 // Animation variants
 const containerVariants = {
