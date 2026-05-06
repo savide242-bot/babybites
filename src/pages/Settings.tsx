@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import ChangePasswordSection from '@/components/auth/ChangePasswordSection';
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/glass-card';
+import LanguageCard from '@/components/settings/LanguageCard';
 
 // Animation variants
 const containerVariants = {
@@ -186,21 +187,7 @@ const Settings = () => {
           animate="visible"
         >
           <motion.div variants={itemVariants}>
-            <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-mint/5 pb-4">
-                <CardTitle className="text-base">🌐 Language</CardTitle>
-                <CardDescription>Application language settings</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="flex items-center justify-between p-3.5 bg-muted/50 rounded-xl border border-border/30">
-                  <div>
-                    <p className="font-medium text-sm">Current Language</p>
-                    <p className="text-xs text-muted-foreground">The app is available in English</p>
-                  </div>
-                  <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-3">English</Badge>
-                </div>
-              </CardContent>
-            </Card>
+            <LanguageCard />
           </motion.div>
 
           <motion.div variants={itemVariants}>

@@ -1,20 +1,22 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-type Language = 'en';
+export type Language = 'en' | 'es';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => Promise<void>;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
   isLoading: boolean;
+  translateMany: (items: { key: string; text: string }[]) => Promise<Record<string, string>>;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations: Record<string, string> = {
+const enTranslations: Record<string, string> = {
   // Home
   'home.hero.title': 'Healthy Nutrition for Your Baby',
-  'home.hero.subtitle': 'Expert guidance, recipes, and tracking tools for your little one\'s nutrition journey',
+  'home.hero.subtitle': "Expert guidance, recipes, and tracking tools for your little one's nutrition journey",
   'home.hero.getStarted': 'Get Started',
   'home.stats.recipes': 'Recipes',
   'home.stats.parents': 'Happy Parents',
@@ -25,7 +27,7 @@ const translations: Record<string, string> = {
   'home.features.recipes': 'Healthy Recipes',
   'home.features.recipesDesc': 'Age-appropriate meal ideas',
   'home.features.growth': 'Growth Tracker',
-  'home.features.growthDesc': 'Monitor your baby\'s development',
+  'home.features.growthDesc': "Monitor your baby's development",
   'home.features.scanner': 'Food Scanner',
   'home.features.scannerDesc': 'Check food safety instantly',
   'home.features.community': 'Community',
@@ -33,8 +35,8 @@ const translations: Record<string, string> = {
   'home.cta.title': 'Start Your Journey Today',
   'home.cta.subtitle': 'Join thousands of parents providing the best nutrition for their babies',
   'home.cta.button': 'Get Started Now',
-  
-  // Header
+
+  // Header / Nav
   'nav.home': 'Home',
   'nav.recipes': 'Recipes',
   'nav.planner': 'Meal Planner',
@@ -44,219 +46,45 @@ const translations: Record<string, string> = {
   'nav.shoppingList': 'Shopping List',
   'nav.community': 'Community',
   'nav.advice': 'Advice',
+  'nav.bonus': 'Bonus',
   'nav.chat': 'Chat',
   'nav.settings': 'Settings',
-  
-  // Progress Reports
-  'progressReports.title': 'Progress Reports',
-  'progressReports.subtitle': 'Track your baby\'s nutritional evolution and growth',
-  'progressReports.exportPDF': 'Export PDF',
-  'progressReports.share': 'Share',
-  'progressReports.growthEvolution': 'Growth Evolution',
-  'progressReports.nutritionalDistribution': 'Nutritional Distribution (Last 30 days)',
-  'progressReports.currentWeight': 'Current Weight',
-  'progressReports.currentHeight': 'Current Height',
-  'progressReports.mealsThisMonth': 'Meals This Month',
-  'progressReports.noData': 'No Data Available',
-  'progressReports.noDataDescription': 'Start tracking your baby\'s growth and meals to see detailed reports',
-  'progressReports.addData': 'Add Data',
-  'progressReports.weightKg': 'Weight (kg)',
-  'progressReports.heightCm': 'Height (cm)',
-  'progressReports.mealCount': 'Number of meals',
-  'progressReports.reportExported': 'Report Exported',
-  'progressReports.reportExportedDesc': 'The report was successfully exported to PDF format!',
-  'progressReports.shareReport': 'Share Report',
-  'progressReports.shareReportDesc': 'You can share this report with your pediatrician or nutritionist',
-  'progressReports.insightWeightGain': 'Excellent progress! Baby gained {weight}kg since last record',
-  'progressReports.insightMealsWeek': '{count} meals recorded this week - great consistency!',
-  'progressReports.insightVeggies': 'Fantastic! {percentage}% of meals include vegetables',
-  'progressReports.insightProtein': 'Excellent average protein intake: {amount}g per meal',
-  'progressReports.insightVariety': 'Great variety! {count} different recipes this month',
-  'progressReports.insightDefault1': 'Keep logging meals to generate personalized insights!',
-  'progressReports.insightDefault2': 'Track your baby\'s growth regularly for better results',
-  
-  // Shopping List
-  'shoppingList.title': 'Smart Shopping List',
-  'shoppingList.subtitle': 'Automatically generated based on your weekly planner',
-  'shoppingList.progress': 'Shopping Progress',
-  'shoppingList.exportPDF': 'Export PDF',
-  'shoppingList.shareWhatsApp': 'Share WhatsApp',
-  'shoppingList.emptyList': 'Empty List',
-  'shoppingList.emptyListDesc': 'Add recipes to your weekly planner to automatically generate the shopping list',
-  'shoppingList.goToPlanner': 'Go to Planner',
-  'shoppingList.from': 'From:',
-  'shoppingList.substitute': 'Substitute',
-  'shoppingList.tipsTitle': 'Shopping Tips',
-  'shoppingList.tip1': 'Buy organic products whenever possible for babies',
-  'shoppingList.tip2': 'Always check expiration dates',
-  'shoppingList.tip3': 'Prefer seasonal fruits and vegetables',
-  'shoppingList.tip4': 'Use the \'Substitute\' function for healthier alternatives',
-  'shoppingList.tip5': 'Freeze extra portions to save time',
-  'shoppingList.listExported': 'List Exported',
-  'shoppingList.listExportedDesc': 'The shopping list was successfully exported to PDF format!',
-  'shoppingList.substitutions': 'Suggested Substitutions',
-  'shoppingList.substitutionsFor': 'For {ingredient}: {subs}',
-  'shoppingList.noSubstitutions': 'No Substitutions',
-  'shoppingList.noSubstitutionsDesc': 'No common substitutions found for this ingredient',
-  'shoppingList.categories.vegetables': 'Vegetables',
-  'shoppingList.categories.fruits': 'Fruits',
-  'shoppingList.categories.proteins': 'Proteins',
-  'shoppingList.categories.cereals': 'Cereals',
-  'shoppingList.categories.dairy': 'Dairy',
-  'shoppingList.categories.others': 'Others',
-  
+  'nav.favorites': 'Favorites',
+  'nav.profile': 'Profile',
+  'nav.diary': 'Food Diary',
+  'nav.achievements': 'Achievements',
+
+  // Common
+  'common.back': 'Back',
+  'common.next': 'Next',
+  'common.save': 'Save',
+  'common.cancel': 'Cancel',
+  'common.delete': 'Delete',
+  'common.edit': 'Edit',
+  'common.loading': 'Loading...',
+  'common.continue': 'Continue',
+  'common.close': 'Close',
+  'common.yes': 'Yes',
+  'common.no': 'No',
+  'common.search': 'Search',
+
   // Settings
   'settings.title': 'Settings',
   'settings.language': 'Language',
+  'settings.languageDesc': 'Choose your preferred language',
   'settings.changeLanguage': 'Change Language',
   'settings.currentLanguage': 'Current Language',
   'settings.save': 'Save Changes',
   'settings.saving': 'Saving...',
   'settings.saved': 'Settings saved successfully!',
-  
-  // Meal Planner
-  'planner.title': 'Weekly Meal Planner',
-  'planner.subtitle': 'Plan your baby\'s meals for the week',
-  'planner.suggestions': 'AI Suggestions',
-  'planner.custom': 'Custom Plan',
-  'planner.generateSuggestions': 'Generate 7-Day Plan',
-  'planner.breakfast': 'Breakfast',
-  'planner.lunch': 'Lunch',
-  'planner.dinner': 'Dinner',
-  'planner.snack': 'Snack',
-  'planner.addMeal': 'Add meal',
-  'planner.monday': 'Monday',
-  'planner.tuesday': 'Tuesday',
-  'planner.wednesday': 'Wednesday',
-  'planner.thursday': 'Thursday',
-  'planner.friday': 'Friday',
-  'planner.saturday': 'Saturday',
-  'planner.sunday': 'Sunday',
-  
-  // Growth Tracker
-  'growth.title': 'Growth Tracker',
-  'growth.babyName': 'Baby Name',
-  'growth.weight': 'Weight (kg)',
-  'growth.height': 'Height (cm)',
-  'growth.milestone': 'Milestone',
-  'growth.notes': 'Notes',
-  'growth.addRecord': 'Add Growth Record',
-  'growth.mealType': 'Meal Type',
-  'growth.recipeTitle': 'Recipe',
-  'growth.calories': 'Calories',
-  'growth.addMeal': 'Add Meal Log',
-  'growth.chart': 'Growth Chart',
-  
-  // Recipes
-  'recipes.title': 'Recipe Library',
-  'recipes.subtitle': 'Browse our collection of pediatrician-approved recipes designed for babies aged 6-24 months',
-  'recipes.search': 'Search recipes...',
-  'recipes.selectAge': 'Select age group',
-  'recipes.selectCategory': 'Select category',
-  'recipes.showing': 'Showing',
-  'recipes.recipe': 'recipe',
-  'recipes.recipes': 'recipes',
-  'recipes.viewRecipe': 'View Recipe',
-  'recipes.noResults': 'No recipes found',
-  'recipes.noResultsDesc': 'Try adjusting your filters or search query',
-  'recipes.clearFilters': 'Clear Filters',
-  'recipes.backToRecipes': 'Back to Recipes',
-  'recipes.recipeNotFound': 'Recipe not found',
-  'recipes.addToPlanner': 'Add to Meal Planner',
-  'recipes.ingredients': 'Ingredients',
-  'recipes.instructions': 'Instructions',
-  'recipes.nutrition': 'Nutrition Information',
-  'recipes.calories': 'Calories',
-  'recipes.protein': 'Protein',
-  'recipes.carbs': 'Carbs',
-  'recipes.fat': 'Fat',
-  'recipes.fiber': 'Fiber',
-  'recipes.vitamins': 'Key Vitamins & Minerals',
-  'recipes.allergens': 'Allergen Information',
-  'recipes.allergensDesc': 'This recipe contains the following common allergens:',
-  'recipes.storage': 'Storage Tips',
-  'recipes.addedToPlanner': 'Added to meal planner!',
-  'recipes.addedToPlannerDesc': 'has been added to your meal planner.',
-  'recipes.healthBenefits': 'Health Benefits',
-  'recipes.servingGuidance': 'Serving Recommendations',
-  
-  // Scanner
-  'scanner.title': 'Barcode Scanner',
-  'scanner.subtitle': 'Scan products to check if they\'re safe for your baby',
-  'scanner.barcode': 'Product Barcode',
-  'scanner.enterBarcode': 'Enter barcode number',
-  'scanner.scan': 'Scan',
-  'scanner.scanning': 'Scanning...',
-  'scanner.useCamera': 'Use Camera to Scan',
-  'scanner.cameraDesc': 'Point your camera at the barcode',
-  'scanner.cameraScanning': 'Camera Scanning',
-  'scanner.positionBarcode': 'Position the barcode within the highlighted area',
-  'scanner.safe': 'Safe for Babies',
-  'scanner.caution': 'Use with Caution',
-  'scanner.safetyInfo': 'Safety Information',
-  'scanner.suggested': 'Suggested Recipes',
-  'scanner.howItWorks': 'How it works',
-  'scanner.step1': 'Enter or scan the barcode of any grocery product',
-  'scanner.step2': 'Our system checks the ingredients against baby safety guidelines',
-  'scanner.step3': 'Get instant feedback on safety and allergen information',
-  'scanner.step4': 'Discover recipes that use safe ingredients',
-  'scanner.missingBarcode': 'Missing barcode',
-  'scanner.enterBarcodeError': 'Please enter a barcode',
-  'scanner.cameraError': 'Camera Error',
-  'scanner.cameraErrorDesc': 'Could not access camera. Please check permissions.',
-  
-  // Community
-  'community.title': 'Parent Community',
-  'community.subtitle': 'Share experiences, ask questions, and connect with other parents',
-  'community.newPost': 'New Post',
-  'community.createPost': 'Create New Post',
-  'community.postTitle': 'Post title...',
-  'community.postContent': 'Share your thoughts, questions, or experiences...',
-  'community.post': 'Post',
-  'community.cancel': 'Cancel',
-  'community.anonymous': 'Anonymous',
-  'community.verifiedPediatrician': 'Verified Pediatrician',
-  'community.signInRequired': 'Sign in required',
-  'community.signInToPost': 'Please sign in to create posts',
-  'community.signInToLike': 'Please sign in to like posts',
-  'community.validationError': 'Validation Error',
-  'community.error': 'Error',
-  'community.postError': 'Failed to create post',
-  'community.success': 'Success',
-  'community.postSuccess': 'Post created successfully!',
-  'community.signInToComment': 'Please sign in to comment on posts',
-  'community.addComment': 'Add a comment...',
-  
-  // Advice
-  'advice.title': 'Parents\' Advice Hub',
-  'advice.subtitle': 'Expert guidance from pediatricians and nutritionists to support your baby\'s feeding journey',
-  'advice.disclaimer': 'Medical Disclaimer:',
-  'advice.disclaimerText': 'The information provided in this advice hub is for educational purposes only and should not replace professional medical advice. Always consult with your pediatrician or healthcare provider before making decisions about your baby\'s nutrition and health.',
-  
-  // Chat
-  'chat.title': 'Smart Assistant',
-  'chat.subtitle': 'Your warm and intelligent baby nutrition assistant',
-  'chat.welcome': 'Hey Mom! 👋 I\'m your baby nutrition assistant! I\'m here to help you with recipes, meal planning, parenting advice, and everything about feeding your little one. What can I help you with today?',
-  'chat.placeholder': 'Ask me about recipes, nutrition, parenting advice...',
-  'chat.tryAsking': '💡 Try asking: "What\'s a good breakfast for my 8-month-old?" or "My baby won\'t eat vegetables"',
-  'chat.signInRequired': 'Sign in required',
-  'chat.signInToChat': 'Please sign in to use the assistant',
-  'chat.error': 'I\'m sorry, I\'m having trouble connecting right now. Please try again in a moment!',
-  'chat.notAuthenticated': 'Please sign in to continue chatting.',
-  
-  // Install PWA
-  'install.title': 'Install BabyBites',
-  'install.description': 'Get the best experience with our mobile app',
-  'install.nativeExperience': 'Native App Experience',
-  'install.nativeExperienceDesc': 'Full-screen mode with smooth transitions and mobile-optimized interface',
-  'install.offlineAccess': 'Offline Access',
-  'install.offlineAccessDesc': 'Access recipes and key features even without internet connection',
-  'install.fastLoading': 'Lightning Fast',
-  'install.fastLoadingDesc': 'Instant loading with smart caching for better performance',
-  'install.installNow': 'Install Now',
-  'install.manualInstall': 'Manual Installation',
-  'install.iosInstructions': 'Tap the Share button in Safari, then tap \'Add to Home Screen\'',
-  'install.androidInstructions': 'Tap the menu (three dots) in your browser, then tap \'Install app\' or \'Add to Home screen\'',
+
+  // Language picker
+  'language.choose': 'Choose your language',
+  'language.chooseDesc': 'Select the language you prefer to use BabyBites',
+  'language.english': 'English',
+  'language.spanish': 'Spanish',
+  'language.continue': 'Continue',
+  'language.translating': 'Preparing your language...',
 
   // Auth
   'auth.signIn': 'Sign In',
@@ -270,27 +98,185 @@ const translations: Record<string, string> = {
   'auth.orContinueWith': 'Or continue with',
   'auth.continueWithGoogle': 'Continue with Google',
   'auth.haveAccount': 'Already have an account?',
-  'auth.noAccount': 'Don\'t have an account?',
+  'auth.noAccount': "Don't have an account?",
   'auth.signUpSuccess': 'Account created successfully!',
   'auth.signInSuccess': 'Signed in successfully!',
   'auth.error': 'An error occurred',
   'auth.googleError': 'Failed to sign in with Google',
+
+  // Recipes
+  'recipes.title': 'Recipe Library',
+  'recipes.subtitle': 'Browse our collection of pediatrician-approved recipes for babies aged 6-24 months',
+  'recipes.search': 'Search recipes...',
+  'recipes.viewRecipe': 'View Recipe',
+  'recipes.ingredients': 'Ingredients',
+  'recipes.instructions': 'Instructions',
+  'recipes.nutrition': 'Nutrition Information',
+  'recipes.addToPlanner': 'Add to Meal Planner',
+  'recipes.backToRecipes': 'Back to Recipes',
+  'recipes.noResults': 'No recipes found',
+  'recipes.clearFilters': 'Clear Filters',
+
+  // Meal Planner
+  'planner.title': 'Weekly Meal Planner',
+  'planner.subtitle': "Plan your baby's meals for the week",
+  'planner.breakfast': 'Breakfast',
+  'planner.lunch': 'Lunch',
+  'planner.dinner': 'Dinner',
+  'planner.snack': 'Snack',
+  'planner.monday': 'Monday',
+  'planner.tuesday': 'Tuesday',
+  'planner.wednesday': 'Wednesday',
+  'planner.thursday': 'Thursday',
+  'planner.friday': 'Friday',
+  'planner.saturday': 'Saturday',
+  'planner.sunday': 'Sunday',
+
+  // Welcome modal
+  'welcome.title': 'Welcome to BabyBites, {name}!',
+  'welcome.subtitle': "I'm Emily Harter, pediatric nutritionist. Let's start your baby's nutrition journey — the right way.",
+  'welcome.starterKit': 'Your starter kit:',
+  'welcome.feature1': '300+ recipes built with smart food combinations',
+  'welcome.feature2': 'Weekly meal planner — no more guessing',
+  'welcome.feature3': 'Food safety scanner & growth tracker',
+  'welcome.feature4': 'Direct support from me & my team',
+  'welcome.start': 'Start Exploring',
+};
+
+const STORAGE_KEY = 'app_language';
+const CACHE_PREFIX = 'i18n_cache_v1_';
+
+const getCache = (lang: Language): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + lang);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+};
+const setCache = (lang: Language, data: Record<string, string>) => {
+  try { localStorage.setItem(CACHE_PREFIX + lang, JSON.stringify(data)); } catch {}
 };
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language] = useState<Language>('en');
-  const [isLoading] = useState(false);
+  const [language, setLanguageState] = useState<Language>(() => {
+    const saved = (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) as Language | null;
+    return saved === 'es' || saved === 'en' ? saved : 'en';
+  });
+  const [esCache, setEsCache] = useState<Record<string, string>>(() => getCache('es'));
+  const [isLoading, setIsLoading] = useState(false);
 
-  const setLanguage = async () => {
-    // App is English-only, no-op
-  };
+  // Pre-translate UI dictionary on first switch to es
+  const ensureUITranslated = useCallback(async (lang: Language) => {
+    if (lang === 'en') return;
+    const cached = getCache(lang);
+    const missingKeys = Object.keys(enTranslations).filter(k => !cached[k]);
+    if (missingKeys.length === 0) {
+      setEsCache(cached);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const items = missingKeys.map(k => ({ key: `ui:${k}`, text: enTranslations[k] }));
+      const { data, error } = await supabase.functions.invoke('translate-content', {
+        body: { items, targetLanguage: lang },
+      });
+      if (error) throw error;
+      const next = { ...cached };
+      missingKeys.forEach(k => {
+        const tx = data?.translations?.[`ui:${k}`];
+        if (tx) next[k] = tx;
+      });
+      setCache(lang, next);
+      setEsCache(next);
+    } catch (e) {
+      console.error('UI translation failed', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const t = (key: string): string => {
-    return translations[key] || key;
-  };
+  useEffect(() => {
+    if (language === 'es') ensureUITranslated('es');
+  }, [language, ensureUITranslated]);
+
+  // Sync language from logged-in user preferences (existing users)
+  useEffect(() => {
+    const sync = async (userId: string) => {
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('language')
+        .eq('user_id', userId)
+        .maybeSingle();
+      const dbLang = (data?.language === 'es' || data?.language === 'en') ? data.language as Language : null;
+      if (dbLang) {
+        setLanguageState(dbLang);
+        try {
+          localStorage.setItem(STORAGE_KEY, dbLang);
+          localStorage.setItem('language_chosen', '1');
+        } catch {}
+      }
+    };
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) sync(session.user.id);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      if (s?.user) sync(s.user.id);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const setLanguage = useCallback(async (lang: Language) => {
+    setLanguageState(lang);
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch {}
+    // Persist to user prefs if signed in
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase.from('user_preferences').upsert(
+          { user_id: session.user.id, language: lang },
+          { onConflict: 'user_id' }
+        );
+      }
+    } catch (e) { console.error(e); }
+    if (lang === 'es') await ensureUITranslated('es');
+  }, [ensureUITranslated]);
+
+  const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
+    let raw: string;
+    if (language === 'es') {
+      raw = esCache[key] ?? enTranslations[key] ?? key;
+    } else {
+      raw = enTranslations[key] ?? key;
+    }
+    if (vars) {
+      Object.entries(vars).forEach(([k, v]) => {
+        raw = raw.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+      });
+    }
+    return raw;
+  }, [language, esCache]);
+
+  const translateMany = useCallback(async (items: { key: string; text: string }[]): Promise<Record<string, string>> => {
+    if (language === 'en' || items.length === 0) {
+      const out: Record<string, string> = {};
+      items.forEach(i => out[i.key] = i.text);
+      return out;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-content', {
+        body: { items, targetLanguage: language },
+      });
+      if (error) throw error;
+      return data?.translations ?? {};
+    } catch (e) {
+      console.error('translateMany failed', e);
+      const out: Record<string, string> = {};
+      items.forEach(i => out[i.key] = i.text);
+      return out;
+    }
+  }, [language]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isLoading }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isLoading, translateMany }}>
       {children}
     </LanguageContext.Provider>
   );

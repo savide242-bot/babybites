@@ -16,6 +16,7 @@ import { useTodaysMealStatus } from "@/hooks/useTodaysMealStatus";
 import { motion } from "framer-motion";
 import { exportRecipePDF } from "@/utils/recipePDFExport";
 import SmartCombinationWarning from "@/components/SmartCombinationWarning";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 
 const RecipeDetail = () => {
   const { t } = useLanguage();
@@ -27,6 +28,16 @@ const RecipeDetail = () => {
   const { toggleFavorite, isFavorite } = useFavorites();
   const { trackRecipeView } = useRecipeHistory();
   const { isInTodaysPlan, isPrepared, mealType, markAsPrepared, isLoading: mealStatusLoading } = useTodaysMealStatus(id);
+
+  // Build translation items for this recipe (title, description, ingredients, instructions)
+  const translationItems = recipe ? [
+    { key: `recipe:${recipe.id}:title`, text: recipe.title },
+    { key: `recipe:${recipe.id}:description`, text: recipe.description },
+    ...recipe.ingredients.map((ing, i) => ({ key: `recipe:${recipe.id}:ing:${i}`, text: ing })),
+    ...recipe.instructions.map((ins, i) => ({ key: `recipe:${recipe.id}:ins:${i}`, text: ins })),
+  ] : [];
+  const { map: tx } = useTranslatedContent(translationItems);
+  const tt = (key: string, fallback: string) => tx[key] || fallback;
   
   // State management
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -180,7 +191,7 @@ const RecipeDetail = () => {
         <audio ref={musicRef} src="https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" loop preload="auto" />
         <div className="p-6">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">{recipe.title}</h1>
+            <h1 className="text-3xl font-bold">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
             <div className="flex items-center gap-3">
               <Button onClick={toggleMusic} variant="ghost" size="sm" className="text-white hover:bg-white/20 gap-2">
                 {musicPlaying ? <>🎵 Music On</> : <>🔇 Music Off</>}
@@ -212,7 +223,7 @@ const RecipeDetail = () => {
               <h2 className="text-2xl font-bold text-white mb-4">Ingredients ({servings} servings)</h2>
               <ul className="space-y-3">
                 {recipe.ingredients.map((ingredient, index) => (
-                  <li key={index} className="text-xl text-gray-200">• {scaleIngredient(ingredient)}</li>
+                  <li key={index} className="text-xl text-gray-200">• {scaleIngredient(tt(`recipe:${recipe.id}:ing:${index}`, ingredient))}</li>
                 ))}
               </ul>
             </CardContent>
@@ -225,7 +236,7 @@ const RecipeDetail = () => {
                   <div key={index} className={`flex gap-4 p-4 rounded-lg transition-all ${completedSteps.has(index) ? 'bg-primary/20 opacity-60' : 'bg-gray-700/50'}`}>
                     <Checkbox id={`step-cook-${index}`} checked={completedSteps.has(index)} onCheckedChange={() => toggleStep(index)} className="mt-1 h-6 w-6" />
                     <label htmlFor={`step-cook-${index}`} className={`text-xl cursor-pointer text-white ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>
-                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>{instruction}
+                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}
                     </label>
                   </div>
                 ))}
@@ -280,8 +291,8 @@ const RecipeDetail = () => {
                 return <Badge key={tag} variant="outline" className={`rounded-full bg-white/10 backdrop-blur-sm ${option?.color || ''}`}>{option?.label}</Badge>;
               })}
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{recipe.title}</h1>
-            <p className="text-muted-foreground text-sm md:text-base max-w-2xl">{recipe.description}</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
+            <p className="text-muted-foreground text-sm md:text-base max-w-2xl">{tt(`recipe:${recipe.id}:description`, recipe.description)}</p>
           </motion.div>
         </div>
       </div>
@@ -419,7 +430,7 @@ const RecipeDetail = () => {
               {recipe.ingredients.map((ingredient, index) => (
                 <div key={index} className={`flex items-center gap-4 px-5 py-4 ${index !== recipe.ingredients.length - 1 ? 'border-b border-border/50' : ''}`}>
                   <div className="h-3 w-3 rounded-full bg-gradient-to-br from-primary to-secondary flex-shrink-0" />
-                  <span className="text-foreground">{scaleIngredient(ingredient)}</span>
+                  <span className="text-foreground">{scaleIngredient(tt(`recipe:${recipe.id}:ing:${index}`, ingredient))}</span>
                 </div>
               ))}
             </CardContent>
@@ -450,7 +461,7 @@ const RecipeDetail = () => {
                     <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${completedSteps.has(index) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                       {completedSteps.has(index) ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
                     </div>
-                    <p className={`text-foreground leading-relaxed ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>{instruction}</p>
+                    <p className={`text-foreground leading-relaxed ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}</p>
                   </div>
                 </CardContent>
               </Card>

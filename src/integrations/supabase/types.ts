@@ -238,6 +238,30 @@ export type Database = {
           },
         ]
       }
+      content_translations: {
+        Row: {
+          content_key: string
+          created_at: string
+          id: string
+          language: string
+          translated_text: string
+        }
+        Insert: {
+          content_key: string
+          created_at?: string
+          id?: string
+          language: string
+          translated_text: string
+        }
+        Update: {
+          content_key?: string
+          created_at?: string
+          id?: string
+          language?: string
+          translated_text?: string
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
