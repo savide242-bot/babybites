@@ -38,7 +38,7 @@ const getAgeGroupFromMonths = (months: number): string => {
 };
 
 // Pure CSS recipe card
-const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite }: {
+const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite, displayTitle }: {
   recipe: typeof recipes[0];
   showViewCount?: boolean;
   viewCount?: number;
@@ -50,6 +50,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
   isQuick: boolean;
   hasPrefs: boolean;
   onToggleFavorite: (id: string) => void;
+  displayTitle?: string;
 }) => {
   return (
     <div
@@ -126,7 +127,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
             
             <div className="absolute bottom-0 left-0 right-0 p-3">
               <h3 className="text-white font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-lg">
-                {recipe.title}
+                {displayTitle || recipe.title}
               </h3>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
