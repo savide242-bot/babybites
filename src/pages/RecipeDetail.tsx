@@ -430,7 +430,7 @@ const RecipeDetail = () => {
               {recipe.ingredients.map((ingredient, index) => (
                 <div key={index} className={`flex items-center gap-4 px-5 py-4 ${index !== recipe.ingredients.length - 1 ? 'border-b border-border/50' : ''}`}>
                   <div className="h-3 w-3 rounded-full bg-gradient-to-br from-primary to-secondary flex-shrink-0" />
-                  <span className="text-foreground">{scaleIngredient(ingredient)}</span>
+                  <span className="text-foreground">{scaleIngredient(tt(`recipe:${recipe.id}:ing:${index}`, ingredient))}</span>
                 </div>
               ))}
             </CardContent>
@@ -461,7 +461,7 @@ const RecipeDetail = () => {
                     <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${completedSteps.has(index) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                       {completedSteps.has(index) ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
                     </div>
-                    <p className={`text-foreground leading-relaxed ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>{instruction}</p>
+                    <p className={`text-foreground leading-relaxed ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}</p>
                   </div>
                 </CardContent>
               </Card>
