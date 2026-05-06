@@ -9,6 +9,7 @@ import { recipes, ageGroups, categories } from "@/data/recipes";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
+import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { useDietaryPreferences, DietaryTag } from "@/hooks/useDietaryPreferences";
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
@@ -250,6 +251,13 @@ const Recipes = () => {
   }, [filteredRecipes, visibleCount]);
 
   const hasMore = visibleCount < filteredRecipes.length;
+
+  // Translate visible recipe titles to active language (cached on backend)
+  const titleItems = useMemo(
+    () => visibleRecipes.map(r => ({ key: `recipe:${r.id}:title`, text: r.title })),
+    [visibleRecipes]
+  );
+  const { map: titleMap } = useTranslatedContent(titleItems);
 
   // Intersection observer for infinite scroll
   useEffect(() => {
