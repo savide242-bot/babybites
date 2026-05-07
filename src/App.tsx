@@ -158,22 +158,22 @@ const LanguageGate = ({ children }: { children: React.ReactNode }) => {
 
 const AppWrapper = () => {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route path="/language" element={<LanguageChoice />} />
-        <Route path="/auth" element={<LanguageGate><Auth /></LanguageGate>} />
-        <Route path="/auth/reset-password" element={<ResetPassword />} />
-        <Route path="/*" element={
-          <LanguageGate>
-            <PrivateRoute>
-              <AutoTranslateLayer>
+    <AutoTranslateLayer>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/language" element={<LanguageChoice />} />
+          <Route path="/auth" element={<LanguageGate><Auth /></LanguageGate>} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+          <Route path="/*" element={
+            <LanguageGate>
+              <PrivateRoute>
                 <AppContent />
-              </AutoTranslateLayer>
-            </PrivateRoute>
-          </LanguageGate>
-        } />
-      </Routes>
-    </Suspense>
+              </PrivateRoute>
+            </LanguageGate>
+          } />
+        </Routes>
+      </Suspense>
+    </AutoTranslateLayer>
   );
 };
 
