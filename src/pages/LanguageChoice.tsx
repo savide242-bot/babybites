@@ -13,7 +13,6 @@ const LanguageChoice = () => {
   const choose = async (lang: Language) => {
     setBusy(lang);
     await setLanguage(lang);
-    try { localStorage.setItem('language_chosen', '1'); } catch {}
     navigate('/auth');
   };
 

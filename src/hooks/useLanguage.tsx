@@ -211,7 +211,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         setLanguageState(dbLang);
         try {
           localStorage.setItem(STORAGE_KEY, dbLang);
-          localStorage.setItem('language_chosen', '1');
         } catch {}
       }
     };
