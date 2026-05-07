@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
       // Batch in groups of 30 to stay within token budgets
-      const BATCH = 30;
+      const BATCH = 60;
       for (let i = 0; i < missing.length; i += BATCH) {
         const chunk = missing.slice(i, i + BATCH);
         const numbered = chunk.map((it, idx) => `[${idx}] ${it.text}`).join("\n---\n");
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             model: "google/gemini-3-flash-preview",
             messages: [
-              { role: "system", content: `You are a professional translator for a baby nutrition app. Translate each numbered text into ${LANG_NAMES[targetLanguage] ?? targetLanguage}. Keep brand names (BabyBites, Emily Harter), proper nouns, units, emojis. Preserve markdown and line breaks. Use a warm, expert, motherly tone. Output ONLY a JSON object: { "0": "...", "1": "...", ... } with no extra commentary.` },
+              { role: "system", content: `You are a professional translator for a baby nutrition app. Translate each numbered text into ${LANG_NAMES[targetLanguage] ?? targetLanguage}. RULES: 1) If the input is already in the target language, return it unchanged. 2) Keep brand names (BabyBites, Emily Harter), proper nouns, units (g, ml, oz), emojis, numbers, percentages, and URLs unchanged. 3) Preserve markdown, punctuation and line breaks exactly. 4) Use a warm, expert, motherly tone. 5) Never add commentary, prefixes, or quotes. Output ONLY a JSON object: { "0": "...", "1": "...", ... }` },
               { role: "user", content: numbered },
             ],
             response_format: { type: "json_object" },
