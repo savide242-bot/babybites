@@ -24,6 +24,7 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import SmartInstallBanner from "@/components/SmartInstallBanner";
+import AutoTranslateLayer from "@/components/AutoTranslateLayer";
 
 // Lazy load heavy pages for better initial bundle size
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -146,8 +147,10 @@ const AppContent = () => {
 
 const LanguageGate = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const chosen = typeof window !== 'undefined' && localStorage.getItem('language_chosen') === '1';
-  if (!chosen && location.pathname !== '/language') {
+  // Only force language picker for brand-new visitors with no saved preference.
+  // Existing users (logged in OR previously chose a language) skip it entirely.
+  const hasChosen = typeof window !== 'undefined' && !!localStorage.getItem('app_language');
+  if (!hasChosen && location.pathname !== '/language') {
     return <Navigate to="/language" replace />;
   }
   return <>{children}</>;
@@ -163,7 +166,9 @@ const AppWrapper = () => {
         <Route path="/*" element={
           <LanguageGate>
             <PrivateRoute>
-              <AppContent />
+              <AutoTranslateLayer>
+                <AppContent />
+              </AutoTranslateLayer>
             </PrivateRoute>
           </LanguageGate>
         } />
