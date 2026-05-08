@@ -357,6 +357,17 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       });
       setCache(lang, next);
       setEsCache(next);
+      // Also write a source-text → translation map so the DOM AutoTranslateLayer
+      // can apply these translations to ANY matching text node anywhere in the app.
+      try {
+        const sourceMap: Record<string, string> = {};
+        Object.keys(next).forEach(k => {
+          const src = enTranslations[k];
+          if (src && next[k]) sourceMap[src] = next[k];
+        });
+        localStorage.setItem('i18n_source_map_es', JSON.stringify(sourceMap));
+        window.dispatchEvent(new Event('i18n-source-updated'));
+      } catch {}
     } catch (e) {
       console.error('UI translation failed', e);
     } finally {
