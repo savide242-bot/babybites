@@ -1,118 +1,57 @@
-# Plan: 100% Spanish, Smart Gate & Repair Fix
 
-## Problemas a resolver
+## Diagnóstico
 
-1. **Cobertura parcial em espanhol** — só algumas páginas (Home, Recipes, RecipeDetail, Settings) foram envolvidas com `useT`. Tudo o resto (Onboarding, MealPlanner, Advice, Bonus, Mistakes, FoodAnalyzer, GrowthTracker, ProgressReports, ShoppingList, Profile, Achievements, FoodDiary, Auth, modais, widgets, navegação, toasts, botões, alertas) continua em inglês.
-2. **Bug "Repair App"** — o `AppErrorBoundary` aparece com texto inglês fixo e o botão de "reparar" às vezes dispara em situações não-críticas (qualquer erro no React = ecrã cheio). Precisa ser menos agressivo + traduzido.
-3. **Language gate força utilizadores existentes a escolher** — `localStorage.language_chosen` é por dispositivo, então quem fizer logout / abrir noutro browser cai sempre no `/language`. Não queres isso.
+A infraestrutura bilingue já existe:
+- `AutoTranslateLayer` envolve a app inteira em `App.tsx` (auth, modais, toasts incluídos).
+- `LanguageCard` **já está renderizado em `src/pages/Settings.tsx` (linha 190)** — o seletor existe; provavelmente não foi visto por estar mais abaixo na página.
+- Edge function `translate-content` usa Gemini + cache em DB.
 
-## Estratégia (a parte importante)
+O problema real: **muito conteúdo continua em inglês** porque a camada atual tem lacunas:
 
-Traduzir manualmente ~30 ficheiros com centenas de strings cada é inviável e vai ficar sempre incompleto. Vou usar uma **camada de tradução automática DOM-level** combinada com o dicionário estático que já existe.
+1. **Primeira renderização fica em inglês** até o batch HTTP voltar (250ms debounce + ~1–2s de rede). O utilizador vê inglês, depois "pisca" para espanhol — em telas rápidas (toasts, modais) já fechou antes de traduzir.
+2. **Strings curtas ignoradas** (`< 2 chars`) e botões com 1 palavra podem cair em casos limite.
+3. **Sem pré-aquecimento por rota**: ao navegar para uma página nova, espera-se sempre o roundtrip.
+4. **Atributos limitados** a `placeholder, aria-label, title, alt` — falta `value` de inputs read-only, `data-tooltip`, etc.
+5. **Sonner/Radix Toast** usam portais; já estão em `document.body`, mas o observer pode demorar a apanhar antes do toast desaparecer (auto-dismiss 4s).
+6. **Dicionário estático (`useT`)**: muitos componentes já usam `t('key')` mas só ~30 ficheiros — o resto depende 100% do auto-translate.
 
-### Como funciona
+## O que vou fazer
 
-- Novo componente raiz **`AutoTranslateLayer`** que envolve a app inteira.
-- Quando o idioma activo é `es`:
-  1. Faz scan dos nós de texto visíveis no DOM (via `MutationObserver`).
-  2. Recolhe strings inglesas únicas (ignora números, emails, URLs, código).
-  3. Manda em batch para a edge function `translate-content` (que já existe e já tem cache em DB).
-  4. Substitui o `textContent` do nó pela tradução.
-  5. Cache em `localStorage` (`auto_tx_es`) → segunda visita = instantâneo, sem flicker.
-- Quando o idioma é `en` → não faz nada (zero overhead).
-- Atributos especiais traduzidos também: `placeholder`, `aria-label`, `title`, `alt`.
-- Excluímos nós marcados com `data-no-translate` (nomes próprios, marcas, código).
+### 1. Reforçar `AutoTranslateLayer`
+- Reduzir debounce de 250ms para **80ms** e aumentar batch para 80 itens.
+- Fazer **flush imediato (sem debounce)** quando a fila ultrapassa 20 itens (modais/toasts).
+- Re-scan automático em cada mudança de `location.pathname` (hook adicional dentro do layer via `useLocation`).
+- Adicionar atributos: `data-placeholder`, `data-label`, `value` (apenas em `<button>` e `<option>`).
+- Re-escanear portais explicitamente (`[data-radix-portal], [data-sonner-toaster], #radix-*`) num intervalo curto após cada mutação.
+- Persistir cache em duas camadas: `localStorage` (rápido) + tentar pré-carregar do DB ao arrancar (uma chamada `translate-content` com itens vazios → devolve nada, mas warm-up do cliente).
 
-### Vantagens
+### 2. Pré-aquecimento de UI crítica (`useLanguage.tsx`)
+- Expandir o dicionário interno `enTranslations` com **todas as strings críticas de auth, toasts, modais, navegação, botões comuns** (~150 entradas extras: erros de auth, mensagens de "saved", "deleted", "error", botões "Login/Sign up/Continue with Google", textos do `WelcomeModal`, `LogoutConfirmDialog`, `BannedScreen`, etc.).
+- Ao mudar para `es`, o `ensureUITranslated` traduz tudo de uma vez e guarda em `localStorage` — sessões seguintes são instantâneas.
+- Não exige refactor dos componentes: o `AutoTranslateLayer` lê o cache `i18n_cache_v1_es` como fonte adicional ao mapear `text → translation` no DOM.
 
-- Cobertura **100%** automática, incluindo páginas e componentes que ainda não tocámos e os que vierem a ser adicionados no futuro.
-- Custo único: cada string nova é traduzida 1× e fica em cache permanente (DB + localStorage).
-- Não tenho de re-tocar 30 ficheiros nem manter um dicionário gigantesco.
-- O dicionário estático actual continua a funcionar (tem prioridade) — usado para strings de alto tráfego onde queremos controlo total da tradução.
+### 3. Cache partilhado entre `useLanguage` e `AutoTranslateLayer`
+- `AutoTranslateLayer` passa a consultar **dois caches**: `auto_tx_es_v1` (DOM) **e** `i18n_cache_v1_es` (chaves UI mapeadas pelo valor inglês).
+- Ao traduzir UI dictionary, escrever também o mapping `englishText → spanishText` em `auto_tx_es_v1` para que o DOM use imediatamente.
 
-### Limitações honestas
+### 4. Edge function `translate-content`
+- Trocar o modelo de `gemini-3-flash-preview` para `google/gemini-2.5-flash` (mais estável e rápido em JSON estruturado).
+- Adicionar deteção de "já está em espanhol" no prompt (devolver igual) — evita pedidos desnecessários e ruído.
 
-- Primeira visita em espanhol numa página nova: pode haver ~300-800 ms onde texto inglês aparece antes da tradução chegar (mostro um overlay de "Cargando idioma..." apenas na 1ª vez por sessão).
-- Nomes próprios (Emily Harter, BabyBites, marcas) ficam em inglês — a edge function já tem instrução para os preservar.
-- Conteúdo dentro de `<canvas>` ou imagens não é traduzido (esperado).
+### 5. Confirmar/realçar o seletor em Definições
+- O `LanguageCard` já existe; vou movê-lo para **o topo da página `Settings`** (acima de `Dietary Preferences`) com um cabeçalho destacado, para que esteja visível imediatamente.
 
-## Mudanças concretas
+### 6. Mensagem honesta sobre cobertura
+- A tradução por DOM cobre **100% do texto visível**, mas depende de:
+  - **Primeira visita a uma tela em espanhol**: pode haver 0,5–2s onde ainda se vê inglês até a Edge Function responder. Visitas seguintes são instantâneas (cache local).
+  - **Conteúdo dinâmico de receitas e IA** (já tratado por hooks dedicados).
+- Não é "i18n estático puro" porque traduzir manualmente as ~400 chaves restantes em 200+ ficheiros levaria horas e introduziria bugs. A estratégia híbrida (dicionário UI + DOM observer + cache) é mais escalável.
 
-### 1. Smart language gate (`src/App.tsx`)
+## Ficheiros afetados
 
-```text
-Regra nova:
-- Se há sessão Supabase activa → ler language das user_preferences → usar e NUNCA mostrar /language.
-- Se não há sessão E localStorage.app_language existe → usar esse, ir direto para /auth.
-- Se não há sessão E não há localStorage → mostrar /language (apenas novos utilizadores reais).
-- Logout NÃO apaga app_language.
-```
+- **Edit**: `src/components/AutoTranslateLayer.tsx` (debounce, scan por rota, mais atributos, cache partilhado)
+- **Edit**: `src/hooks/useLanguage.tsx` (dicionário expandido, escrita no cache do DOM layer)
+- **Edit**: `src/pages/Settings.tsx` (mover `LanguageCard` para o topo)
+- **Edit**: `supabase/functions/translate-content/index.ts` (modelo + prompt)
 
-Remove `language_chosen` flag — passa a usar a presença de `app_language` directamente.
-
-### 2. Camada de auto-tradução
-
-**Novo:** `src/components/AutoTranslateLayer.tsx`
-- `MutationObserver` no `<body>`.
-- Walker de TextNodes; filtra: vazio, só símbolos, só números, dentro de `<script>/<style>/<code>/<pre>`, ou ancestor com `data-no-translate`.
-- Debounce 200 ms; agrupa strings únicas em batches de 40.
-- Chama `supabase.functions.invoke('translate-content', { items, targetLanguage: 'es' })`.
-- Aplica `node.textContent = translation` preservando whitespace.
-- Também processa atributos: `placeholder`, `aria-label`, `title`, `alt` (selector global por página).
-- Cache local em `localStorage['auto_tx_es']` (Map serializado, com tamanho máximo ~5 MB / LRU simples).
-- Hook `useAutoTranslate()` exposto para forçar re-scan após navegação.
-
-**Editado:** `src/App.tsx` — envolver `<AppContent />` com `<AutoTranslateLayer>`.
-
-### 3. Edge function `translate-content` — pequenos ajustes
-
-- Aceitar batches maiores (até 80 itens) e textos curtos sem desperdiçar tokens.
-- Adicionar instrução ao system prompt: "If the input is already Spanish, return it as-is. Never translate proper nouns or brand names." (evita re-traduzir e estragar.)
-
-### 4. Dicionário estático ampliado (`src/hooks/useLanguage.tsx`)
-
-- Manter como está — o auto-translate complementa, não substitui.
-- Adicionar chaves para o `AppErrorBoundary` (próximo ponto).
-
-### 5. Fix `AppErrorBoundary` ("Repair App" bug)
-
-- Traduzir todas as strings via `t('error.somethingWrong')` etc.
-- Tornar o botão "Repair App" menos visível por defeito: só aparece se o mesmo erro acontecer 2× seguidas (counter em `sessionStorage`). Primeira vez mostra apenas "Recargar".
-- Garantir que `performPWARecovery` não fica preso (timeout 8 s + fallback para reload).
-- Suprimir o boundary para erros conhecidos não-fatais (chunk load errors → recarregar silenciosamente em vez de mostrar ecrã de erro).
-
-### 6. `LanguageChoice.tsx` — pequenos ajustes
-
-- Após escolher → guardar em `app_language`, ir para `/auth`.
-- Remover dependência de `language_chosen`.
-
-## Ficheiros tocados
-
-**Novos:**
-- `src/components/AutoTranslateLayer.tsx`
-- `src/hooks/useAutoTranslate.tsx`
-
-**Editados:**
-- `src/App.tsx` (gate + envolver AutoTranslateLayer)
-- `src/components/AppErrorBoundary.tsx` (traduzido + bug fix)
-- `src/hooks/useLanguage.tsx` (mais chaves para errors + helper para auto cache)
-- `src/pages/LanguageChoice.tsx` (limpar flag antiga)
-- `supabase/functions/translate-content/index.ts` (prompt mais robusto + batch maior)
-
-**Sem mudanças nos restantes 100+ ficheiros** — a camada de auto-tradução trata deles em runtime.
-
-## Custo / performance
-
-- 1ª vez que um user espanhol abre uma página: 1 chamada à edge function (300-800 ms) → depois cache permanente.
-- Páginas seguintes: 0 chamadas se as strings já estiverem em cache.
-- Estimativa total para traduzir o app inteiro: ~$1-3 USD em créditos Lovable AI, pago uma vez por toda a base de utilizadores (cache em DB partilhada).
-
-## Ordem de execução
-
-1. Ajustar edge function (prompt + batch).
-2. Criar `AutoTranslateLayer` + hook.
-3. Corrigir gate em `App.tsx` + `LanguageChoice`.
-4. Corrigir e traduzir `AppErrorBoundary`.
-5. Smoke test: abrir app em espanhol, navegar Home → Recipes → MealPlanner → Advice → Settings, confirmar que tudo aparece traduzido após o primeiro scan.
-
-Confirmas para avançar?
+Sem alterações de schema. Sem mudanças destrutivas.
