@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model: "google/gemini-2.5-flash",
             messages: [
               { role: "system", content: `You are a professional translator for a baby nutrition app. Translate each numbered text into ${LANG_NAMES[targetLanguage] ?? targetLanguage}. RULES: 1) If the input is already in the target language, return it unchanged. 2) Keep brand names (BabyBites, Emily Harter), proper nouns, units (g, ml, oz), emojis, numbers, percentages, and URLs unchanged. 3) Preserve markdown, punctuation and line breaks exactly. 4) Use a warm, expert, motherly tone. 5) Never add commentary, prefixes, or quotes. Output ONLY a JSON object: { "0": "...", "1": "...", ... }` },
               { role: "user", content: numbered },
