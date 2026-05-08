@@ -39,6 +39,24 @@ export function useTranslatedContent(items: { key: string; text: string }[] | nu
       if (cancelled) return;
       setMap(prev => ({ ...prev, ...res }));
       setLoading(false);
+      // Also feed the DOM auto-translate source map so identical strings
+      // appearing anywhere else (and in any future render) translate instantly.
+      try {
+        const raw = localStorage.getItem('i18n_source_map_es');
+        const existing = raw ? JSON.parse(raw) : {};
+        let changed = false;
+        safeItems.forEach(it => {
+          const tx = res[it.key];
+          if (tx && it.text && existing[it.text] !== tx) {
+            existing[it.text] = tx;
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem('i18n_source_map_es', JSON.stringify(existing));
+          window.dispatchEvent(new Event('i18n-source-updated'));
+        }
+      } catch {}
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
