@@ -188,6 +188,11 @@ const Settings = () => {
         >
           <motion.div variants={itemVariants}>
             <LanguageCard />
+            <div className="mt-2 text-right">
+              <a href="/translation-audit" className="text-xs text-muted-foreground underline hover:text-foreground">
+                Auditoría de traducciones · Translation audit
+              </a>
+            </div>
           </motion.div>
 
           <motion.div variants={itemVariants}>
