@@ -37,7 +37,7 @@ export function useTranslatedContent(items: { key: string; text: string }[] | nu
   const initial = useMemo(() => {
     const cache = language === 'es' ? readJson(CONTENT_CACHE_KEY) : {};
     const map: Record<string, string> = {};
-    safeItems.forEach(i => map[i.key] = cache[i.key] || i.text);
+    safeItems.forEach(i => map[i.key] = language === 'es' ? (cache[i.key] || 'Traduciendo…') : i.text);
     return map;
   }, [signature]);
 
