@@ -350,9 +350,9 @@ const RecipeDetail = () => {
               onClick={async () => {
                 const success = await markAsPrepared();
                 if (success && cameFromPlanner) {
-                  toast.success("Meal Prepared!", {
-                    description: "Back to planner?",
-                    action: { label: "Back to Planner", onClick: () => navigate('/meal-planner') },
+                  toast.success(tr(language, "Meal Prepared!", "¡Comida preparada!"), {
+                    description: tr(language, "Back to planner?", "¿Volver al plan?"),
+                    action: { label: tr(language, "Back to Planner", "Volver al plan"), onClick: () => navigate('/meal-planner') },
                     duration: 5000,
                   });
                 }
@@ -361,34 +361,34 @@ const RecipeDetail = () => {
               className="w-full rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all animate-pulse"
             >
               <CheckCircle2 className="mr-2 h-6 w-6" />
-              Mark as Prepared
+              {tr(language, 'Mark as Prepared', 'Marcar como preparada')}
             </Button>
           )}
 
           {isInTodaysPlan && isPrepared && (
             <div className="w-full rounded-2xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 py-4 text-center font-medium flex items-center justify-center gap-2">
               <CheckCircle2 className="h-5 w-5" />
-              Meal Already Prepared!
+              {tr(language, 'Meal Already Prepared!', '¡Comida ya preparada!')}
             </div>
           )}
 
           <Button onClick={() => setCookMode(true)} size="lg" className="w-full rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
             <ChefHat className="mr-2 h-6 w-6" />
-            Enter Cook Mode
+            {tr(language, 'Enter Cook Mode', 'Entrar en modo cocina')}
           </Button>
 
           <div className="grid grid-cols-3 gap-2">
             <Button onClick={handleAddToPlanner} variant="outline" size="lg" className="rounded-2xl py-5 bg-card hover:bg-primary/5 border-primary/20 flex flex-col items-center gap-1.5 h-auto">
               <Calendar className="h-5 w-5 text-primary" />
-              <span className="text-[11px] font-medium">Add to Plan</span>
+              <span className="text-[11px] font-medium">{tr(language, 'Add to Plan', 'Añadir al plan')}</span>
             </Button>
             <Button onClick={handleShareWhatsApp} variant="outline" size="lg" className="rounded-2xl py-5 bg-card hover:bg-mint/5 border-mint/20 flex flex-col items-center gap-1.5 h-auto">
               <Share2 className="h-5 w-5 text-mint" />
-              <span className="text-[11px] font-medium">Share</span>
+              <span className="text-[11px] font-medium">{tr(language, 'Share', 'Compartir')}</span>
             </Button>
             <Button onClick={handleExportPDF} variant="outline" size="lg" className="rounded-2xl py-5 bg-card hover:bg-gold/5 border-gold/20 flex flex-col items-center gap-1.5 h-auto">
               <FileDown className="h-5 w-5 text-gold" />
-              <span className="text-[11px] font-medium">Save PDF</span>
+              <span className="text-[11px] font-medium">{tr(language, 'Save PDF', 'Guardar PDF')}</span>
             </Button>
           </div>
         </motion.div>
