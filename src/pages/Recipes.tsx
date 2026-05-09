@@ -19,6 +19,7 @@ import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInMonths } from "date-fns";
+import { tr, translateAgeGroup, translateCategory, translatePrepTime } from "@/utils/spanishDisplay";
 
 const BATCH_SIZE = 30;
 
@@ -39,8 +40,9 @@ const getAgeGroupFromMonths = (months: number): string => {
 };
 
 // Pure CSS recipe card
-const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite, displayTitle }: {
+const RecipeCard = memo(({ recipe, language, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite, displayTitle }: {
   recipe: typeof recipes[0];
+  language: string;
   showViewCount?: boolean;
   viewCount?: number;
   index?: number;
@@ -69,7 +71,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
           <div className="aspect-square relative overflow-hidden">
             <img
               src={recipe.image}
-              alt={recipe.title}
+              alt={displayTitle || recipe.title}
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -85,24 +87,24 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {isNew && (
                 <Badge className="bg-gradient-to-r from-accent to-orange-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0 animate-pulse">
-                  <Zap className="h-2.5 w-2.5" />New
+                   <Zap className="h-2.5 w-2.5" />{tr(language, 'New', 'Nuevo')}
                 </Badge>
               )}
               {isPopular && !isNew && (
                 <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                  <TrendingUp className="h-2.5 w-2.5" />Popular
+                   <TrendingUp className="h-2.5 w-2.5" />{tr(language, 'Popular', 'Popular')}
                 </Badge>
               )}
               {isQuick && (
                 <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                  <Clock className="h-2.5 w-2.5" />Quick
+                   <Clock className="h-2.5 w-2.5" />{tr(language, 'Quick', 'Rápida')}
                 </Badge>
               )}
             </div>
             
             <div className="absolute top-2 right-2 flex items-center gap-1">
               <Badge className="bg-white/90 backdrop-blur-sm text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-lg border-0">
-                {recipe.ageGroup}
+                 {translateAgeGroup(recipe.ageGroup, language)}
               </Badge>
               <Button
                 size="icon"
@@ -121,7 +123,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
             {isCompatible && hasPrefs && (
               <div className="absolute top-10 left-1/2 -translate-x-1/2">
                 <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
-                  <Sparkles className="h-2.5 w-2.5" />Perfect Match
+                  <Sparkles className="h-2.5 w-2.5" />{tr(language, 'Perfect Match', 'Ideal')}
                 </Badge>
               </div>
             )}
@@ -132,7 +134,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               </h3>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
-                  <Clock className="h-3 w-3" /><span>{recipe.prepTime}</span>
+                  <Clock className="h-3 w-3" /><span>{translatePrepTime(recipe.prepTime, language)}</span>
                 </div>
                 {showViewCount && viewCount > 1 && (
                   <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
