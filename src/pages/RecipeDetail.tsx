@@ -536,7 +536,7 @@ const RecipeDetail = () => {
                   <div>
                     <h3 className="font-semibold text-destructive mb-2">{tr(language, 'Allergen Warning', 'Advertencia de alérgenos')}</h3>
                     <div className="flex flex-wrap gap-2">
-                      {recipe.allergens.map((allergen) => (
+                      {recipe.allergens.map((allergen, index) => (
                         <Badge key={allergen} variant="destructive" className="rounded-full">{tt(`recipe:${recipe.id}:allergen:${index}`, allergen)}</Badge>
                       ))}
                     </div>
@@ -589,8 +589,8 @@ const RecipeDetail = () => {
                   <Users className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Serving Guidance</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{recipe.servingGuidance}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{tr(language, 'Serving Guidance', 'Guía de porciones')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{tt(`recipe:${recipe.id}:servingGuidance`, recipe.servingGuidance)}</p>
                 </div>
               </div>
             </CardContent>
