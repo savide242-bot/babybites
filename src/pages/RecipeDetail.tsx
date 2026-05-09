@@ -68,8 +68,8 @@ const RecipeDetail = () => {
             if (audioRef.current) {
               audioRef.current.play();
             }
-            toast.success("Timer Complete!", {
-              description: "Your cooking timer has finished!",
+            toast.success(tr(language, "Timer Complete!", "¡Temporizador terminado!"), {
+              description: tr(language, "Your cooking timer has finished!", "Tu temporizador de cocina ha finalizado."),
             });
             return 0;
           }
@@ -97,9 +97,9 @@ const RecipeDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Recipe not found</h2>
+          <h2 className="text-2xl font-bold mb-4">{tr(language, "Recipe not found", "Receta no encontrada")}</h2>
           <Button asChild className="rounded-full">
-            <Link to="/recipes">Back to Recipes</Link>
+            <Link to="/recipes">{tr(language, "Back to Recipes", "Volver a recetas")}</Link>
           </Button>
         </div>
       </div>
@@ -117,7 +117,7 @@ const RecipeDetail = () => {
   };
 
   const startTimer = () => {
-    const mins = parseInt(prompt("Enter minutes:") || "0");
+    const mins = parseInt(prompt(tr(language, "Enter minutes:", "Introduce los minutos:")) || "0");
     if (mins > 0) {
       setTotalSeconds(mins * 60);
       setIsTimerRunning(true);
@@ -143,26 +143,26 @@ const RecipeDetail = () => {
   };
 
   const handleAddToPlanner = () => {
-    toast.success("Added to Planner!", {
-      description: `${recipe.title} has been added to your meal plan`,
+    toast.success(tr(language, "Added to Planner!", "¡Añadido al plan!"), {
+      description: tr(language, `${tt(`recipe:${recipe.id}:title`, recipe.title)} has been added to your meal plan`, `${tt(`recipe:${recipe.id}:title`, recipe.title)} se ha añadido a tu plan de comidas`),
     });
   };
 
   const handleExportPDF = () => {
     try {
       exportRecipePDF(recipe);
-      toast.success("Downloading PDF!", { description: `${recipe.title} is being saved` });
+      toast.success(tr(language, "Downloading PDF!", "¡Descargando PDF!"), { description: tr(language, `${tt(`recipe:${recipe.id}:title`, recipe.title)} is being saved`, `${tt(`recipe:${recipe.id}:title`, recipe.title)} se está guardando`) });
     } catch (error) {
-      toast.error("Export Failed", { description: "Could not generate PDF." });
+      toast.error(tr(language, "Export Failed", "Error al exportar"), { description: tr(language, "Could not generate PDF.", "No se pudo generar el PDF.") });
     }
   };
 
   const handleShareWhatsApp = () => {
-    let message = `🍽️ *${recipe.title}*\n\n📌 ${recipe.category} | ${recipe.ageGroup}\n⏱️ ${recipe.prepTime} | 👥 ${recipe.servings}\n\n${recipe.description}\n\n*Ingredients:*\n`;
-    recipe.ingredients.forEach(ing => { message += `• ${ing}\n`; });
+    let message = `🍽️ *${tt(`recipe:${recipe.id}:title`, recipe.title)}*\n\n📌 ${translateCategory(recipe.category, language)} | ${translateAgeGroup(recipe.ageGroup, language)}\n⏱️ ${translatePrepTime(recipe.prepTime, language)} | 👥 ${recipe.servings}\n\n${tt(`recipe:${recipe.id}:description`, recipe.description)}\n\n*${tr(language, 'Ingredients', 'Ingredientes')}:*\n`;
+    recipe.ingredients.forEach((ing, index) => { message += `• ${tt(`recipe:${recipe.id}:ing:${index}`, ing)}\n`; });
     message += `\n📱 Shared from BabyBites`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-    toast.success("Opening WhatsApp", { description: "Recipe is ready to share!" });
+    toast.success(tr(language, "Opening WhatsApp", "Abriendo WhatsApp"), { description: tr(language, "Recipe is ready to share!", "¡La receta está lista para compartir!") });
   };
 
   const [musicPlaying, setMusicPlaying] = useState(false);
