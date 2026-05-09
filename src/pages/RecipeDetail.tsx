@@ -402,8 +402,8 @@ const RecipeDetail = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-foreground">Adjust Servings</h3>
-              <p className="text-sm text-muted-foreground">Scale ingredients automatically</p>
+              <h3 className="font-semibold text-foreground">{tr(language, 'Adjust Servings', 'Ajustar porciones')}</h3>
+              <p className="text-sm text-muted-foreground">{tr(language, 'Scale ingredients automatically', 'Ajusta los ingredientes automáticamente')}</p>
             </div>
             <div className="flex items-center gap-4">
               <Button onClick={() => setServings(Math.max(1, servings - 1))} variant="outline" size="icon" className="rounded-full h-10 w-10" disabled={servings <= 1}>
@@ -428,7 +428,7 @@ const RecipeDetail = () => {
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <span className="text-lg">🥗</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Ingredients</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tr(language, 'Ingredients', 'Ingredientes')}</h2>
           </div>
           <Card className="rounded-2xl shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-0">
@@ -456,7 +456,7 @@ const RecipeDetail = () => {
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center">
               <span className="text-lg">👩‍🍳</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Instructions</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tr(language, 'Instructions', 'Instrucciones')}</h2>
           </div>
           <div className="space-y-3">
             {recipe.instructions.map((instruction, index) => (
@@ -475,7 +475,7 @@ const RecipeDetail = () => {
           {completedSteps.size > 0 && (
             <div className="mt-4 text-center">
               <Badge variant="secondary" className="rounded-full px-4 py-1">
-                {completedSteps.size} of {recipe.instructions.length} steps completed
+                {completedSteps.size} {tr(language, 'of', 'de')} {recipe.instructions.length} {tr(language, 'steps completed', 'pasos completados')}
               </Badge>
             </div>
           )}
@@ -492,7 +492,7 @@ const RecipeDetail = () => {
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center">
               <span className="text-lg">✨</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Nutrition Facts</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tr(language, 'Nutrition Facts', 'Datos nutricionales')}</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {nutritionItems.map((item) => (
@@ -509,7 +509,7 @@ const RecipeDetail = () => {
           </div>
           {recipe.nutrition.vitamins.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-medium text-muted-foreground mb-2">Vitamins & Minerals</p>
+              <p className="text-sm font-medium text-muted-foreground mb-2">{tr(language, 'Vitamins & Minerals', 'Vitaminas y minerales')}</p>
               <div className="flex flex-wrap gap-2">
                 {recipe.nutrition.vitamins.map((vitamin) => (
                   <Badge key={vitamin} variant="outline" className="rounded-full bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">{vitamin}</Badge>
@@ -534,7 +534,7 @@ const RecipeDetail = () => {
                     <AlertCircle className="h-5 w-5 text-destructive" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-destructive mb-2">Allergen Warning</h3>
+                    <h3 className="font-semibold text-destructive mb-2">{tr(language, 'Allergen Warning', 'Advertencia de alérgenos')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {recipe.allergens.map((allergen) => (
                         <Badge key={allergen} variant="destructive" className="rounded-full">{allergen}</Badge>
