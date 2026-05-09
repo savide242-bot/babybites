@@ -537,7 +537,7 @@ const RecipeDetail = () => {
                     <h3 className="font-semibold text-destructive mb-2">{tr(language, 'Allergen Warning', 'Advertencia de alérgenos')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {recipe.allergens.map((allergen) => (
-                        <Badge key={allergen} variant="destructive" className="rounded-full">{allergen}</Badge>
+                        <Badge key={allergen} variant="destructive" className="rounded-full">{tt(`recipe:${recipe.id}:allergen:${index}`, allergen)}</Badge>
                       ))}
                     </div>
                   </div>
@@ -561,8 +561,8 @@ const RecipeDetail = () => {
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Health Benefits</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{recipe.healthBenefits}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{tr(language, 'Health Benefits', 'Beneficios para la salud')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{tt(`recipe:${recipe.id}:healthBenefits`, recipe.healthBenefits)}</p>
                 </div>
               </div>
             </CardContent>
@@ -575,8 +575,8 @@ const RecipeDetail = () => {
                   <Refrigerator className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Storage Tips</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{recipe.storage}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{tr(language, 'Storage Tips', 'Consejos de conservación')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{tt(`recipe:${recipe.id}:storage`, recipe.storage)}</p>
                 </div>
               </div>
             </CardContent>
