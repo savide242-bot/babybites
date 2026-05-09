@@ -458,6 +458,7 @@ const Recipes = () => {
                     <div key={recipe.id} className="flex-shrink-0 w-36 sm:w-44">
                       <RecipeCard 
                         recipe={recipe} 
+                        language={language}
                         showViewCount={true}
                         viewCount={viewData?.view_count || 0}
                         index={index}
@@ -528,6 +529,7 @@ const Recipes = () => {
                   <RecipeCard 
                     key={recipe.id} 
                     recipe={recipe} 
+                    language={language}
                     index={index}
                     isFav={isFavorite(recipe.id)}
                     isCompatible={isRecipeCompatible(recipeTags)}
