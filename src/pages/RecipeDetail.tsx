@@ -17,9 +17,10 @@ import { motion } from "framer-motion";
 import { exportRecipePDF } from "@/utils/recipePDFExport";
 import SmartCombinationWarning from "@/components/SmartCombinationWarning";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { tr, translateAgeGroup, translateCategory, translateDietaryLabel, translatePrepTime } from "@/utils/spanishDisplay";
 
 const RecipeDetail = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,8 +34,12 @@ const RecipeDetail = () => {
   const translationItems = recipe ? [
     { key: `recipe:${recipe.id}:title`, text: recipe.title },
     { key: `recipe:${recipe.id}:description`, text: recipe.description },
+    { key: `recipe:${recipe.id}:healthBenefits`, text: recipe.healthBenefits },
+    { key: `recipe:${recipe.id}:storage`, text: recipe.storage },
+    { key: `recipe:${recipe.id}:servingGuidance`, text: recipe.servingGuidance },
     ...recipe.ingredients.map((ing, i) => ({ key: `recipe:${recipe.id}:ing:${i}`, text: ing })),
     ...recipe.instructions.map((ins, i) => ({ key: `recipe:${recipe.id}:ins:${i}`, text: ins })),
+    ...recipe.allergens.map((allergen, i) => ({ key: `recipe:${recipe.id}:allergen:${i}`, text: allergen })),
   ] : [];
   const { map: tx } = useTranslatedContent(translationItems);
   const tt = (key: string, fallback: string) => tx[key] || fallback;
