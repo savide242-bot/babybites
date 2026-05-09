@@ -521,6 +521,20 @@ const esFallbackTranslations: Record<string, string> = {
   'ui.invalidCredentials': 'Correo o contraseña inválidos',
 };
 
+const seedSourceMap = (translations: Record<string, string>) => {
+  try {
+    const raw = localStorage.getItem('i18n_source_map_es');
+    const sourceMap: Record<string, string> = raw ? JSON.parse(raw) : {};
+    Object.keys(enTranslations).forEach(k => {
+      const src = enTranslations[k];
+      const tx = translations[k] ?? esFallbackTranslations[k];
+      if (src && tx) sourceMap[src] = tx;
+    });
+    localStorage.setItem('i18n_source_map_es', JSON.stringify(sourceMap));
+    window.dispatchEvent(new Event('i18n-source-updated'));
+  } catch {}
+};
+
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) as Language | null;
@@ -533,6 +547,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const ensureUITranslated = useCallback(async (lang: Language) => {
     if (lang === 'en') return;
     const cached = getCache(lang);
+    seedSourceMap({ ...esFallbackTranslations, ...cached });
     const missingKeys = Object.keys(enTranslations).filter(k => !cached[k]);
     if (missingKeys.length === 0) {
       setEsCache(cached);
@@ -552,6 +567,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       });
       setCache(lang, next);
       setEsCache(next);
+      seedSourceMap({ ...esFallbackTranslations, ...next });
       // Also write a source-text → translation map so the DOM AutoTranslateLayer
       // can apply these translations to ANY matching text node anywhere in the app.
       try {
