@@ -142,7 +142,7 @@ const AppContent = () => {
           <Route path="/food-diary" element={<FoodDiary />} />
           <Route path="/ios-push-setup" element={<IOSPushSetup />} />
           <Route path="/mistakes" element={<MistakesGuide />} />
-          <Route path="/translation-audit" element={<TranslationAudit />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
