@@ -256,7 +256,7 @@ const Recipes = () => {
 
   // Translate visible recipe titles to active language (cached on backend)
   const titleItems = useMemo(
-    () => [...visibleRecipes, ...recentRecipes, ...mostViewedRecipes]
+    () => [...visibleRecipes, ...recentRecipes, ...mostViewedRecipes.map(view => recipes.find(r => r.id === view.recipe_id))]
       .filter((recipe, index, all): recipe is typeof recipes[0] => !!recipe && all.findIndex(r => r?.id === recipe.id) === index)
       .map(r => ({ key: `recipe:${r.id}:title`, text: r.title })),
     [visibleRecipes, recentRecipes, mostViewedRecipes]
