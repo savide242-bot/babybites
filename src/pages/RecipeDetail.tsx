@@ -160,7 +160,7 @@ const RecipeDetail = () => {
   const handleShareWhatsApp = () => {
     let message = `🍽️ *${tt(`recipe:${recipe.id}:title`, recipe.title)}*\n\n📌 ${translateCategory(recipe.category, language)} | ${translateAgeGroup(recipe.ageGroup, language)}\n⏱️ ${translatePrepTime(recipe.prepTime, language)} | 👥 ${recipe.servings}\n\n${tt(`recipe:${recipe.id}:description`, recipe.description)}\n\n*${tr(language, 'Ingredients', 'Ingredientes')}:*\n`;
     recipe.ingredients.forEach((ing, index) => { message += `• ${tt(`recipe:${recipe.id}:ing:${index}`, ing)}\n`; });
-    message += `\n📱 Shared from BabyBites`;
+    message += `\n📱 ${tr(language, 'Shared from BabyBites', 'Compartido desde BabyBites')}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     toast.success(tr(language, "Opening WhatsApp", "Abriendo WhatsApp"), { description: tr(language, "Recipe is ready to share!", "¡La receta está lista para compartir!") });
   };
@@ -254,10 +254,10 @@ const RecipeDetail = () => {
   }
 
   const nutritionItems = [
-    { label: 'Calories', value: recipe.nutrition.calories, unit: 'kcal', color: 'from-orange-400 to-red-500', icon: Flame },
-    { label: 'Protein', value: recipe.nutrition.protein, unit: 'g', color: 'from-blue-400 to-cyan-500', icon: ShieldCheck },
-    { label: 'Carbs', value: recipe.nutrition.carbs, unit: 'g', color: 'from-amber-400 to-yellow-500', icon: Sparkles },
-    { label: 'Fat', value: recipe.nutrition.fat, unit: 'g', color: 'from-purple-400 to-pink-500', icon: Leaf },
+    { label: tr(language, 'Calories', 'Calorías'), value: recipe.nutrition.calories, unit: 'kcal', color: 'from-orange-400 to-red-500', icon: Flame },
+    { label: tr(language, 'Protein', 'Proteína'), value: recipe.nutrition.protein, unit: 'g', color: 'from-blue-400 to-cyan-500', icon: ShieldCheck },
+    { label: tr(language, 'Carbs', 'Carbohidratos'), value: recipe.nutrition.carbs, unit: 'g', color: 'from-amber-400 to-yellow-500', icon: Sparkles },
+    { label: tr(language, 'Fat', 'Grasa'), value: recipe.nutrition.fat, unit: 'g', color: 'from-purple-400 to-pink-500', icon: Leaf },
   ];
 
   return (
@@ -273,11 +273,11 @@ const RecipeDetail = () => {
             {cameFromPlanner && (
               <Button onClick={() => navigate('/meal-planner')} size="sm" className="rounded-full bg-primary/90 backdrop-blur-sm shadow-lg">
                 <UtensilsCrossed className="mr-2 h-4 w-4" />
-                Back to Planner
+                {tr(language, 'Back to Planner', 'Volver al plan')}
               </Button>
             )}
             <Button asChild variant="secondary" size="sm" className="rounded-full backdrop-blur-sm shadow-lg">
-              <Link to="/recipes"><ArrowLeft className="mr-2 h-4 w-4" />Recipes</Link>
+              <Link to="/recipes"><ArrowLeft className="mr-2 h-4 w-4" />{tr(language, 'Recipes', 'Recetas')}</Link>
             </Button>
           </div>
           <Button onClick={() => toggleFavorite(recipe.id)} size="icon" variant="secondary" className="rounded-full backdrop-blur-sm shadow-lg h-10 w-10">
