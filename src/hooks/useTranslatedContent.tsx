@@ -1,6 +1,22 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from './useLanguage';
 
+const CONTENT_CACHE_KEY = 'i18n_content_cache_es_v1';
+const SOURCE_MAP_KEY = 'i18n_source_map_es';
+
+const readJson = (key: string): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeJson = (key: string, data: Record<string, string>) => {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+};
+
 /**
  * Translates a list of {key, text} items to the active language.
  * - In English, returns the originals immediately.
@@ -19,8 +35,9 @@ export function useTranslatedContent(items: { key: string; text: string }[] | nu
   );
 
   const initial = useMemo(() => {
+    const cache = language === 'es' ? readJson(CONTENT_CACHE_KEY) : {};
     const map: Record<string, string> = {};
-    safeItems.forEach(i => map[i.key] = i.text);
+    safeItems.forEach(i => map[i.key] = cache[i.key] || i.text);
     return map;
   }, [signature]);
 
@@ -33,19 +50,27 @@ export function useTranslatedContent(items: { key: string; text: string }[] | nu
       setLoading(false);
       return;
     }
+    const cache = readJson(CONTENT_CACHE_KEY);
+    const missing = safeItems.filter(i => !cache[i.key]);
+    if (missing.length === 0) {
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
-    translateMany(safeItems).then(res => {
+    translateMany(missing).then(res => {
       if (cancelled) return;
       setMap(prev => ({ ...prev, ...res }));
       setLoading(false);
+      const nextCache = { ...cache, ...res };
+      writeJson(CONTENT_CACHE_KEY, nextCache);
       // Also feed the DOM auto-translate source map so identical strings
       // appearing anywhere else (and in any future render) translate instantly.
       try {
-        const raw = localStorage.getItem('i18n_source_map_es');
-        const existing = raw ? JSON.parse(raw) : {};
+        const existing = readJson(SOURCE_MAP_KEY);
         let changed = false;
-        safeItems.forEach(it => {
+        missing.forEach(it => {
           const tx = res[it.key];
           if (tx && it.text && existing[it.text] !== tx) {
             existing[it.text] = tx;
@@ -53,7 +78,7 @@ export function useTranslatedContent(items: { key: string; text: string }[] | nu
           }
         });
         if (changed) {
-          localStorage.setItem('i18n_source_map_es', JSON.stringify(existing));
+          writeJson(SOURCE_MAP_KEY, existing);
           window.dispatchEvent(new Event('i18n-source-updated'));
         }
       } catch {}
