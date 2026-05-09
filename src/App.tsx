@@ -50,6 +50,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const FoodDiary = lazy(() => import("./pages/FoodDiary"));
 const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
 const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
+const TranslationAudit = lazy(() => import("./pages/TranslationAudit"));
 
 // Loading fallback for lazy loaded pages
 const PageLoader = () => (
@@ -142,6 +143,7 @@ const AppContent = () => {
           <Route path="/food-diary" element={<FoodDiary />} />
           <Route path="/ios-push-setup" element={<IOSPushSetup />} />
           <Route path="/mistakes" element={<MistakesGuide />} />
+          <Route path="/translation-audit" element={<TranslationAudit />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

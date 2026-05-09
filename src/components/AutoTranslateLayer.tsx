@@ -21,8 +21,18 @@ const UI_CACHE_KEY = 'i18n_cache_v1_es';
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'SVG', 'PATH']);
 const ATTRS = ['placeholder', 'aria-label', 'title', 'alt'] as const;
 const MAX_CACHE_ENTRIES = 8000;
-const FLUSH_DELAY_MS = 80;
-const FLUSH_THRESHOLD = 20;
+const FLUSH_DELAY_MS = 350;
+const FLUSH_THRESHOLD = 60;
+const SCAN_DEBOUNCE_MS = 250;
+
+// Lightweight idle scheduler — keeps main thread free on low-end phones
+const ric: (cb: () => void) => number = (cb) => {
+  const w = window as any;
+  if (typeof w.requestIdleCallback === 'function') {
+    return w.requestIdleCallback(cb, { timeout: 800 });
+  }
+  return window.setTimeout(cb, 1);
+};
 
 const isMostlyAlpha = (s: string) => /[a-zA-Z]{2,}/.test(s);
 const looksLikeUrl = (s: string) => /^https?:\/\//i.test(s) || /^[\w.-]+@[\w.-]+/.test(s);
@@ -236,20 +246,38 @@ const AutoTranslateLayer = ({ children }: { children: ReactNode }) => {
     };
     scanFnRef.current = scan;
 
-    const initial = window.setTimeout(() => scan(document.body), 50);
+    const initial = window.setTimeout(() => ric(() => scan(document.body)), 200);
+
+    // Coalesce mutations into one debounced idle scan to avoid main-thread jank
+    let pendingRoots: Set<Node> = new Set();
+    let mutationTimer: number | null = null;
+    const flushScan = () => {
+      mutationTimer = null;
+      const roots = Array.from(pendingRoots);
+      pendingRoots = new Set();
+      ric(() => {
+        for (const r of roots) {
+          try { scan(r); } catch {}
+        }
+      });
+    };
+    const scheduleScan = (root: Node) => {
+      pendingRoots.add(root);
+      if (mutationTimer != null) return;
+      mutationTimer = window.setTimeout(flushScan, SCAN_DEBOUNCE_MS);
+    };
 
     const observer = new MutationObserver(mutations => {
       for (const m of mutations) {
         if (m.type === 'characterData' && m.target.nodeType === Node.TEXT_NODE) {
-          processTextNode(m.target as Text);
+          // Skip — characterData fires constantly (timers, counters); rely on debounced rescans
         } else if (m.type === 'attributes' && m.target instanceof Element && m.attributeName) {
           if ((ATTRS as readonly string[]).includes(m.attributeName)) {
             processAttr(m.target, m.attributeName);
           }
         } else if (m.type === 'childList') {
           m.addedNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE) processTextNode(node as Text);
-            else if (node.nodeType === Node.ELEMENT_NODE) scan(node);
+            if (node.nodeType === Node.ELEMENT_NODE) scheduleScan(node);
           });
         }
       }
@@ -257,7 +285,6 @@ const AutoTranslateLayer = ({ children }: { children: ReactNode }) => {
     observer.observe(document.body, {
       subtree: true,
       childList: true,
-      characterData: true,
       attributes: true,
       attributeFilter: ATTRS as unknown as string[],
     });
@@ -266,6 +293,7 @@ const AutoTranslateLayer = ({ children }: { children: ReactNode }) => {
     return () => {
       window.clearTimeout(initial);
       if (flushTimerRef.current != null) window.clearTimeout(flushTimerRef.current);
+      if (mutationTimer != null) window.clearTimeout(mutationTimer);
       observer.disconnect();
       observerRef.current = null;
       window.removeEventListener('storage', onStorage);
