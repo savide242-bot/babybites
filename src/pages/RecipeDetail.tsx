@@ -612,12 +612,12 @@ const RecipeDetail = () => {
                     <Timer className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Cooking Timer</h3>
-                    <p className="text-sm text-muted-foreground">Track your cooking time</p>
+                    <h3 className="font-semibold text-foreground">{tr(language, 'Cooking Timer', 'Temporizador de cocina')}</h3>
+                    <p className="text-sm text-muted-foreground">{tr(language, 'Track your cooking time', 'Controla el tiempo de cocción')}</p>
                   </div>
                 </div>
                 {totalSeconds === 0 ? (
-                  <Button onClick={startTimer} className="rounded-full"><Play className="mr-2 h-4 w-4" />Start</Button>
+                  <Button onClick={startTimer} className="rounded-full"><Play className="mr-2 h-4 w-4" />{tr(language, 'Start', 'Iniciar')}</Button>
                 ) : (
                   <div className="flex items-center gap-3">
                     <span className="text-2xl font-bold text-primary">{String(timerMinutes).padStart(2, '0')}:{String(timerSeconds).padStart(2, '0')}</span>
