@@ -441,10 +441,10 @@ const Recipes = () => {
                 <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
                   <History className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h2 className="text-base sm:text-lg font-bold">Recently Viewed</h2>
+                <h2 className="text-base sm:text-lg font-bold">{tr(language, 'Recently Viewed', 'Vistas recientemente')}</h2>
               </div>
               <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">
-                {recentlyViewed.length} {recentlyViewed.length === 1 ? 'recipe' : 'recipes'}
+                {recentlyViewed.length} {recentlyViewed.length === 1 ? tr(language, 'recipe', 'receta') : tr(language, 'recipes', 'recetas')}
               </Badge>
             </div>
 
@@ -483,11 +483,11 @@ const Recipes = () => {
               <div className="mt-3 p-3 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
                 <div className="flex items-center gap-2 text-xs sm:text-sm">
                   <TrendingUp className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-foreground">Most Viewed:</span>
+                  <span className="font-medium text-foreground">{tr(language, 'Most Viewed:', 'Más vistas:')}</span>
                   <span className="text-muted-foreground text-[10px] sm:text-xs truncate">
                     {mostViewedRecipes.slice(0, 3).map((view) => {
                       const recipe = recipes.find(r => r.id === view.recipe_id);
-                      return recipe?.title;
+                       return recipe ? (titleMap[`recipe:${recipe.id}:title`] || recipe.title) : '';
                     }).filter(Boolean).join(', ')}
                   </span>
                 </div>
@@ -504,9 +504,9 @@ const Recipes = () => {
                 <ChefHat className="h-5 w-5 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm text-foreground">Easy Cooking Mode</h3>
+                <h3 className="font-semibold text-sm text-foreground">{tr(language, 'Easy Cooking Mode', 'Modo cocina fácil')}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less.
+                  {tr(language, 'Simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less.', 'Recetas simples que cualquiera puede preparar — máximo 6 ingredientes, listas en 15 minutos o menos.')}
                 </p>
               </div>
             </div>
@@ -516,8 +516,8 @@ const Recipes = () => {
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore
-            {babyAgeGroup && selectedAge === "All Ages" && <span className="text-primary font-medium"> • Sorted for {babyAgeGroup}</span>}
+            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? tr(language, 'delicious recipes', 'recetas deliciosas') : tr(language, 'recipe', 'receta')} {tr(language, 'to explore', 'para explorar')}
+            {babyAgeGroup && selectedAge === "All Ages" && <span className="text-primary font-medium"> • {tr(language, 'Sorted for', 'Ordenadas para')} {translateAgeGroup(babyAgeGroup, language)}</span>}
           </p>
         </div>
 
@@ -554,7 +554,7 @@ const Recipes = () => {
                   className="rounded-full px-6 gap-2 border-primary/20 hover:bg-primary/5"
                 >
                   <ChevronDown className="h-4 w-4" />
-                  Load more ({filteredRecipes.length - visibleCount} remaining)
+                  {tr(language, 'Load more', 'Cargar más')} ({filteredRecipes.length - visibleCount} {tr(language, 'remaining', 'restantes')})
                 </Button>
               </div>
             )}
