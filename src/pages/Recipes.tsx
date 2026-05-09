@@ -256,8 +256,10 @@ const Recipes = () => {
 
   // Translate visible recipe titles to active language (cached on backend)
   const titleItems = useMemo(
-    () => visibleRecipes.map(r => ({ key: `recipe:${r.id}:title`, text: r.title })),
-    [visibleRecipes]
+    () => [...visibleRecipes, ...recentRecipes, ...mostViewedRecipes]
+      .filter((recipe, index, all): recipe is typeof recipes[0] => !!recipe && all.findIndex(r => r?.id === recipe.id) === index)
+      .map(r => ({ key: `recipe:${r.id}:title`, text: r.title })),
+    [visibleRecipes, recentRecipes, mostViewedRecipes]
   );
   const { map: titleMap } = useTranslatedContent(titleItems);
 
@@ -303,18 +305,18 @@ const Recipes = () => {
   const handleExportEbook = useCallback(() => {
     hapticFeedback('light');
     setIsExporting(true);
-    toast.info('Generating eBook with photos... This may take a moment.');
+    toast.info(tr(language, 'Generating eBook with photos... This may take a moment.', 'Generando eBook con fotos... Puede tardar un momento.'));
     setTimeout(() => {
       try {
         exportRecipeEbook(recipes as any);
-        toast.success('eBook generated successfully! 📖');
+        toast.success(tr(language, 'eBook generated successfully! 📖', '¡eBook generado correctamente! 📖'));
       } catch {
-        toast.error('Error generating eBook. Please try again.');
+        toast.error(tr(language, 'Error generating eBook. Please try again.', 'Error al generar el eBook. Inténtalo de nuevo.'));
       } finally {
         setIsExporting(false);
       }
     }, 100);
-  }, []);
+  }, [language]);
 
   // Determine the baby's age group for the banner
   const babyAgeGroup = babyAgeMonths !== null && babyAgeMonths >= 6 ? getAgeGroupFromMonths(babyAgeMonths) : null;
