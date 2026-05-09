@@ -20,7 +20,7 @@ import { useTranslatedContent } from "@/hooks/useTranslatedContent";
 import { tr, translateAgeGroup, translateCategory, translateDietaryLabel, translatePrepTime } from "@/utils/spanishDisplay";
 
 const RecipeDetail = () => {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -199,7 +199,7 @@ const RecipeDetail = () => {
             <h1 className="text-3xl font-bold">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
             <div className="flex items-center gap-3">
               <Button onClick={toggleMusic} variant="ghost" size="sm" className="text-white hover:bg-white/20 gap-2">
-                {musicPlaying ? <>🎵 Music On</> : <>🔇 Music Off</>}
+                {musicPlaying ? <>🎵 {tr(language, 'Music On', 'Música activa')}</> : <>🔇 {tr(language, 'Music Off', 'Música apagada')}</>}
               </Button>
               <Button onClick={() => setCookMode(false)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
                 <X className="h-6 w-6" />
@@ -225,7 +225,7 @@ const RecipeDetail = () => {
           )}
           <Card className="mb-6 bg-gray-800 border-gray-700">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Ingredients ({servings} servings)</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">{tr(language, 'Ingredients', 'Ingredientes')} ({servings} {tr(language, 'servings', 'porciones')})</h2>
               <ul className="space-y-3">
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="text-xl text-gray-200">• {scaleIngredient(tt(`recipe:${recipe.id}:ing:${index}`, ingredient))}</li>
@@ -235,13 +235,13 @@ const RecipeDetail = () => {
           </Card>
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Instructions</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">{tr(language, 'Instructions', 'Instrucciones')}</h2>
               <div className="space-y-6">
                 {recipe.instructions.map((instruction, index) => (
                   <div key={index} className={`flex gap-4 p-4 rounded-lg transition-all ${completedSteps.has(index) ? 'bg-primary/20 opacity-60' : 'bg-gray-700/50'}`}>
                     <Checkbox id={`step-cook-${index}`} checked={completedSteps.has(index)} onCheckedChange={() => toggleStep(index)} className="mt-1 h-6 w-6" />
                     <label htmlFor={`step-cook-${index}`} className={`text-xl cursor-pointer text-white ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>
-                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}
+                      <span className="font-bold text-primary mr-2">{tr(language, 'Step', 'Paso')} {index + 1}:</span>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}
                     </label>
                   </div>
                 ))}
