@@ -264,7 +264,7 @@ const RecipeDetail = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-24 lg:pb-8">
       {/* Hero Section */}
       <div className="relative h-[45vh] min-h-[350px] overflow-hidden">
-        <img src={recipe.image} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img src={recipe.image} alt={tt(`recipe:${recipe.id}:title`, recipe.title)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         
         {/* Navigation */}
@@ -289,11 +289,11 @@ const RecipeDetail = () => {
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex flex-wrap gap-2 mb-3">
-              <Badge className="rounded-full bg-primary/90 text-primary-foreground px-3 py-1">{recipe.category}</Badge>
-              <Badge variant="secondary" className="rounded-full px-3 py-1">{recipe.ageGroup}</Badge>
+              <Badge className="rounded-full bg-primary/90 text-primary-foreground px-3 py-1">{translateCategory(recipe.category, language)}</Badge>
+              <Badge variant="secondary" className="rounded-full px-3 py-1">{translateAgeGroup(recipe.ageGroup, language)}</Badge>
               {getRecipeDietaryTags(recipe.id).map((tag) => {
                 const option = DIETARY_OPTIONS.find(o => o.value === tag);
-                return <Badge key={tag} variant="outline" className={`rounded-full bg-white/10 backdrop-blur-sm ${option?.color || ''}`}>{option?.label}</Badge>;
+                return <Badge key={tag} variant="outline" className={`rounded-full bg-white/10 backdrop-blur-sm ${option?.color || ''}`}>{translateDietaryLabel(option?.label, language)}</Badge>;
               })}
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
@@ -314,9 +314,9 @@ const RecipeDetail = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-primary mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="font-semibold">{recipe.prepTime}</span>
+                <span className="font-semibold">{translatePrepTime(recipe.prepTime, language)}</span>
               </div>
-              <span className="text-xs text-muted-foreground">Prep Time</span>
+              <span className="text-xs text-muted-foreground">{tr(language, 'Prep Time', 'Preparación')}</span>
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="text-center">
@@ -324,7 +324,7 @@ const RecipeDetail = () => {
                 <Users className="h-4 w-4" />
                 <span className="font-semibold">{recipe.servings}</span>
               </div>
-              <span className="text-xs text-muted-foreground">Servings</span>
+              <span className="text-xs text-muted-foreground">{tr(language, 'Servings', 'Porciones')}</span>
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="text-center">
@@ -332,7 +332,7 @@ const RecipeDetail = () => {
                 <Flame className="h-4 w-4" />
                 <span className="font-semibold">{recipe.nutrition.calories}</span>
               </div>
-              <span className="text-xs text-muted-foreground">Calories</span>
+              <span className="text-xs text-muted-foreground">{tr(language, 'Calories', 'Calorías')}</span>
             </div>
           </div>
         </motion.div>
