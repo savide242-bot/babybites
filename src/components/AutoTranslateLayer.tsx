@@ -21,8 +21,18 @@ const UI_CACHE_KEY = 'i18n_cache_v1_es';
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'SVG', 'PATH']);
 const ATTRS = ['placeholder', 'aria-label', 'title', 'alt'] as const;
 const MAX_CACHE_ENTRIES = 8000;
-const FLUSH_DELAY_MS = 80;
-const FLUSH_THRESHOLD = 20;
+const FLUSH_DELAY_MS = 350;
+const FLUSH_THRESHOLD = 60;
+const SCAN_DEBOUNCE_MS = 250;
+
+// Lightweight idle scheduler — keeps main thread free on low-end phones
+const ric: (cb: () => void) => number = (cb) => {
+  const w = window as any;
+  if (typeof w.requestIdleCallback === 'function') {
+    return w.requestIdleCallback(cb, { timeout: 800 });
+  }
+  return window.setTimeout(cb, 1);
+};
 
 const isMostlyAlpha = (s: string) => /[a-zA-Z]{2,}/.test(s);
 const looksLikeUrl = (s: string) => /^https?:\/\//i.test(s) || /^[\w.-]+@[\w.-]+/.test(s);
