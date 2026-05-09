@@ -50,6 +50,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const FoodDiary = lazy(() => import("./pages/FoodDiary"));
 const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
 const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
+const TranslationAudit = lazy(() => import("./pages/TranslationAudit"));
 
 // Loading fallback for lazy loaded pages
 const PageLoader = () => (
