@@ -17,9 +17,10 @@ import { motion } from "framer-motion";
 import { exportRecipePDF } from "@/utils/recipePDFExport";
 import SmartCombinationWarning from "@/components/SmartCombinationWarning";
 import { useTranslatedContent } from "@/hooks/useTranslatedContent";
+import { tr, translateAgeGroup, translateCategory, translateDietaryLabel, translatePrepTime } from "@/utils/spanishDisplay";
 
 const RecipeDetail = () => {
-  const { t } = useLanguage();
+  const { language } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,8 +34,12 @@ const RecipeDetail = () => {
   const translationItems = recipe ? [
     { key: `recipe:${recipe.id}:title`, text: recipe.title },
     { key: `recipe:${recipe.id}:description`, text: recipe.description },
+    { key: `recipe:${recipe.id}:healthBenefits`, text: recipe.healthBenefits },
+    { key: `recipe:${recipe.id}:storage`, text: recipe.storage },
+    { key: `recipe:${recipe.id}:servingGuidance`, text: recipe.servingGuidance },
     ...recipe.ingredients.map((ing, i) => ({ key: `recipe:${recipe.id}:ing:${i}`, text: ing })),
     ...recipe.instructions.map((ins, i) => ({ key: `recipe:${recipe.id}:ins:${i}`, text: ins })),
+    ...recipe.allergens.map((allergen, i) => ({ key: `recipe:${recipe.id}:allergen:${i}`, text: allergen })),
   ] : [];
   const { map: tx } = useTranslatedContent(translationItems);
   const tt = (key: string, fallback: string) => tx[key] || fallback;
@@ -63,8 +68,8 @@ const RecipeDetail = () => {
             if (audioRef.current) {
               audioRef.current.play();
             }
-            toast.success("Timer Complete!", {
-              description: "Your cooking timer has finished!",
+            toast.success(tr(language, "Timer Complete!", "¡Temporizador terminado!"), {
+              description: tr(language, "Your cooking timer has finished!", "Tu temporizador de cocina ha finalizado."),
             });
             return 0;
           }
@@ -92,9 +97,9 @@ const RecipeDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Recipe not found</h2>
+          <h2 className="text-2xl font-bold mb-4">{tr(language, "Recipe not found", "Receta no encontrada")}</h2>
           <Button asChild className="rounded-full">
-            <Link to="/recipes">Back to Recipes</Link>
+            <Link to="/recipes">{tr(language, "Back to Recipes", "Volver a recetas")}</Link>
           </Button>
         </div>
       </div>
@@ -112,7 +117,7 @@ const RecipeDetail = () => {
   };
 
   const startTimer = () => {
-    const mins = parseInt(prompt("Enter minutes:") || "0");
+    const mins = parseInt(prompt(tr(language, "Enter minutes:", "Introduce los minutos:")) || "0");
     if (mins > 0) {
       setTotalSeconds(mins * 60);
       setIsTimerRunning(true);
@@ -138,26 +143,26 @@ const RecipeDetail = () => {
   };
 
   const handleAddToPlanner = () => {
-    toast.success("Added to Planner!", {
-      description: `${recipe.title} has been added to your meal plan`,
+    toast.success(tr(language, "Added to Planner!", "¡Añadido al plan!"), {
+      description: tr(language, `${tt(`recipe:${recipe.id}:title`, recipe.title)} has been added to your meal plan`, `${tt(`recipe:${recipe.id}:title`, recipe.title)} se ha añadido a tu plan de comidas`),
     });
   };
 
   const handleExportPDF = () => {
     try {
       exportRecipePDF(recipe);
-      toast.success("Downloading PDF!", { description: `${recipe.title} is being saved` });
+      toast.success(tr(language, "Downloading PDF!", "¡Descargando PDF!"), { description: tr(language, `${tt(`recipe:${recipe.id}:title`, recipe.title)} is being saved`, `${tt(`recipe:${recipe.id}:title`, recipe.title)} se está guardando`) });
     } catch (error) {
-      toast.error("Export Failed", { description: "Could not generate PDF." });
+      toast.error(tr(language, "Export Failed", "Error al exportar"), { description: tr(language, "Could not generate PDF.", "No se pudo generar el PDF.") });
     }
   };
 
   const handleShareWhatsApp = () => {
-    let message = `🍽️ *${recipe.title}*\n\n📌 ${recipe.category} | ${recipe.ageGroup}\n⏱️ ${recipe.prepTime} | 👥 ${recipe.servings}\n\n${recipe.description}\n\n*Ingredients:*\n`;
-    recipe.ingredients.forEach(ing => { message += `• ${ing}\n`; });
-    message += `\n📱 Shared from BabyBites`;
+    let message = `🍽️ *${tt(`recipe:${recipe.id}:title`, recipe.title)}*\n\n📌 ${translateCategory(recipe.category, language)} | ${translateAgeGroup(recipe.ageGroup, language)}\n⏱️ ${translatePrepTime(recipe.prepTime, language)} | 👥 ${recipe.servings}\n\n${tt(`recipe:${recipe.id}:description`, recipe.description)}\n\n*${tr(language, 'Ingredients', 'Ingredientes')}:*\n`;
+    recipe.ingredients.forEach((ing, index) => { message += `• ${tt(`recipe:${recipe.id}:ing:${index}`, ing)}\n`; });
+    message += `\n📱 ${tr(language, 'Shared from BabyBites', 'Compartido desde BabyBites')}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-    toast.success("Opening WhatsApp", { description: "Recipe is ready to share!" });
+    toast.success(tr(language, "Opening WhatsApp", "Abriendo WhatsApp"), { description: tr(language, "Recipe is ready to share!", "¡La receta está lista para compartir!") });
   };
 
   const [musicPlaying, setMusicPlaying] = useState(false);
@@ -194,7 +199,7 @@ const RecipeDetail = () => {
             <h1 className="text-3xl font-bold">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
             <div className="flex items-center gap-3">
               <Button onClick={toggleMusic} variant="ghost" size="sm" className="text-white hover:bg-white/20 gap-2">
-                {musicPlaying ? <>🎵 Music On</> : <>🔇 Music Off</>}
+                {musicPlaying ? <>🎵 {tr(language, 'Music On', 'Música activa')}</> : <>🔇 {tr(language, 'Music Off', 'Música apagada')}</>}
               </Button>
               <Button onClick={() => setCookMode(false)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
                 <X className="h-6 w-6" />
@@ -220,7 +225,7 @@ const RecipeDetail = () => {
           )}
           <Card className="mb-6 bg-gray-800 border-gray-700">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Ingredients ({servings} servings)</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">{tr(language, 'Ingredients', 'Ingredientes')} ({servings} {tr(language, 'servings', 'porciones')})</h2>
               <ul className="space-y-3">
                 {recipe.ingredients.map((ingredient, index) => (
                   <li key={index} className="text-xl text-gray-200">• {scaleIngredient(tt(`recipe:${recipe.id}:ing:${index}`, ingredient))}</li>
@@ -230,13 +235,13 @@ const RecipeDetail = () => {
           </Card>
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Instructions</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">{tr(language, 'Instructions', 'Instrucciones')}</h2>
               <div className="space-y-6">
                 {recipe.instructions.map((instruction, index) => (
                   <div key={index} className={`flex gap-4 p-4 rounded-lg transition-all ${completedSteps.has(index) ? 'bg-primary/20 opacity-60' : 'bg-gray-700/50'}`}>
                     <Checkbox id={`step-cook-${index}`} checked={completedSteps.has(index)} onCheckedChange={() => toggleStep(index)} className="mt-1 h-6 w-6" />
                     <label htmlFor={`step-cook-${index}`} className={`text-xl cursor-pointer text-white ${completedSteps.has(index) ? 'line-through opacity-60' : ''}`}>
-                      <span className="font-bold text-primary mr-2">Step {index + 1}:</span>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}
+                      <span className="font-bold text-primary mr-2">{tr(language, 'Step', 'Paso')} {index + 1}:</span>{tt(`recipe:${recipe.id}:ins:${index}`, instruction)}
                     </label>
                   </div>
                 ))}
@@ -249,17 +254,17 @@ const RecipeDetail = () => {
   }
 
   const nutritionItems = [
-    { label: 'Calories', value: recipe.nutrition.calories, unit: 'kcal', color: 'from-orange-400 to-red-500', icon: Flame },
-    { label: 'Protein', value: recipe.nutrition.protein, unit: 'g', color: 'from-blue-400 to-cyan-500', icon: ShieldCheck },
-    { label: 'Carbs', value: recipe.nutrition.carbs, unit: 'g', color: 'from-amber-400 to-yellow-500', icon: Sparkles },
-    { label: 'Fat', value: recipe.nutrition.fat, unit: 'g', color: 'from-purple-400 to-pink-500', icon: Leaf },
+    { label: tr(language, 'Calories', 'Calorías'), value: recipe.nutrition.calories, unit: 'kcal', color: 'from-orange-400 to-red-500', icon: Flame },
+    { label: tr(language, 'Protein', 'Proteína'), value: recipe.nutrition.protein, unit: 'g', color: 'from-blue-400 to-cyan-500', icon: ShieldCheck },
+    { label: tr(language, 'Carbs', 'Carbohidratos'), value: recipe.nutrition.carbs, unit: 'g', color: 'from-amber-400 to-yellow-500', icon: Sparkles },
+    { label: tr(language, 'Fat', 'Grasa'), value: recipe.nutrition.fat, unit: 'g', color: 'from-purple-400 to-pink-500', icon: Leaf },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-24 lg:pb-8">
       {/* Hero Section */}
       <div className="relative h-[45vh] min-h-[350px] overflow-hidden">
-        <img src={recipe.image} alt={recipe.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img src={recipe.image} alt={tt(`recipe:${recipe.id}:title`, recipe.title)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         
         {/* Navigation */}
@@ -268,11 +273,11 @@ const RecipeDetail = () => {
             {cameFromPlanner && (
               <Button onClick={() => navigate('/meal-planner')} size="sm" className="rounded-full bg-primary/90 backdrop-blur-sm shadow-lg">
                 <UtensilsCrossed className="mr-2 h-4 w-4" />
-                Back to Planner
+                {tr(language, 'Back to Planner', 'Volver al plan')}
               </Button>
             )}
             <Button asChild variant="secondary" size="sm" className="rounded-full backdrop-blur-sm shadow-lg">
-              <Link to="/recipes"><ArrowLeft className="mr-2 h-4 w-4" />Recipes</Link>
+              <Link to="/recipes"><ArrowLeft className="mr-2 h-4 w-4" />{tr(language, 'Recipes', 'Recetas')}</Link>
             </Button>
           </div>
           <Button onClick={() => toggleFavorite(recipe.id)} size="icon" variant="secondary" className="rounded-full backdrop-blur-sm shadow-lg h-10 w-10">
@@ -284,11 +289,11 @@ const RecipeDetail = () => {
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex flex-wrap gap-2 mb-3">
-              <Badge className="rounded-full bg-primary/90 text-primary-foreground px-3 py-1">{recipe.category}</Badge>
-              <Badge variant="secondary" className="rounded-full px-3 py-1">{recipe.ageGroup}</Badge>
+              <Badge className="rounded-full bg-primary/90 text-primary-foreground px-3 py-1">{translateCategory(recipe.category, language)}</Badge>
+              <Badge variant="secondary" className="rounded-full px-3 py-1">{translateAgeGroup(recipe.ageGroup, language)}</Badge>
               {getRecipeDietaryTags(recipe.id).map((tag) => {
                 const option = DIETARY_OPTIONS.find(o => o.value === tag);
-                return <Badge key={tag} variant="outline" className={`rounded-full bg-white/10 backdrop-blur-sm ${option?.color || ''}`}>{option?.label}</Badge>;
+                return <Badge key={tag} variant="outline" className={`rounded-full bg-white/10 backdrop-blur-sm ${option?.color || ''}`}>{translateDietaryLabel(option?.label, language)}</Badge>;
               })}
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{tt(`recipe:${recipe.id}:title`, recipe.title)}</h1>
@@ -309,9 +314,9 @@ const RecipeDetail = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-primary mb-1">
                 <Clock className="h-4 w-4" />
-                <span className="font-semibold">{recipe.prepTime}</span>
+                <span className="font-semibold">{translatePrepTime(recipe.prepTime, language)}</span>
               </div>
-              <span className="text-xs text-muted-foreground">Prep Time</span>
+              <span className="text-xs text-muted-foreground">{tr(language, 'Prep Time', 'Preparación')}</span>
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="text-center">
@@ -319,7 +324,7 @@ const RecipeDetail = () => {
                 <Users className="h-4 w-4" />
                 <span className="font-semibold">{recipe.servings}</span>
               </div>
-              <span className="text-xs text-muted-foreground">Servings</span>
+              <span className="text-xs text-muted-foreground">{tr(language, 'Servings', 'Porciones')}</span>
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="text-center">
@@ -327,7 +332,7 @@ const RecipeDetail = () => {
                 <Flame className="h-4 w-4" />
                 <span className="font-semibold">{recipe.nutrition.calories}</span>
               </div>
-              <span className="text-xs text-muted-foreground">Calories</span>
+              <span className="text-xs text-muted-foreground">{tr(language, 'Calories', 'Calorías')}</span>
             </div>
           </div>
         </motion.div>
@@ -345,9 +350,9 @@ const RecipeDetail = () => {
               onClick={async () => {
                 const success = await markAsPrepared();
                 if (success && cameFromPlanner) {
-                  toast.success("Meal Prepared!", {
-                    description: "Back to planner?",
-                    action: { label: "Back to Planner", onClick: () => navigate('/meal-planner') },
+                  toast.success(tr(language, "Meal Prepared!", "¡Comida preparada!"), {
+                    description: tr(language, "Back to planner?", "¿Volver al plan?"),
+                    action: { label: tr(language, "Back to Planner", "Volver al plan"), onClick: () => navigate('/meal-planner') },
                     duration: 5000,
                   });
                 }
@@ -356,34 +361,34 @@ const RecipeDetail = () => {
               className="w-full rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all animate-pulse"
             >
               <CheckCircle2 className="mr-2 h-6 w-6" />
-              Mark as Prepared
+              {tr(language, 'Mark as Prepared', 'Marcar como preparada')}
             </Button>
           )}
 
           {isInTodaysPlan && isPrepared && (
             <div className="w-full rounded-2xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 py-4 text-center font-medium flex items-center justify-center gap-2">
               <CheckCircle2 className="h-5 w-5" />
-              Meal Already Prepared!
+              {tr(language, 'Meal Already Prepared!', '¡Comida ya preparada!')}
             </div>
           )}
 
           <Button onClick={() => setCookMode(true)} size="lg" className="w-full rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
             <ChefHat className="mr-2 h-6 w-6" />
-            Enter Cook Mode
+            {tr(language, 'Enter Cook Mode', 'Entrar en modo cocina')}
           </Button>
 
           <div className="grid grid-cols-3 gap-2">
             <Button onClick={handleAddToPlanner} variant="outline" size="lg" className="rounded-2xl py-5 bg-card hover:bg-primary/5 border-primary/20 flex flex-col items-center gap-1.5 h-auto">
               <Calendar className="h-5 w-5 text-primary" />
-              <span className="text-[11px] font-medium">Add to Plan</span>
+              <span className="text-[11px] font-medium">{tr(language, 'Add to Plan', 'Añadir al plan')}</span>
             </Button>
             <Button onClick={handleShareWhatsApp} variant="outline" size="lg" className="rounded-2xl py-5 bg-card hover:bg-mint/5 border-mint/20 flex flex-col items-center gap-1.5 h-auto">
               <Share2 className="h-5 w-5 text-mint" />
-              <span className="text-[11px] font-medium">Share</span>
+              <span className="text-[11px] font-medium">{tr(language, 'Share', 'Compartir')}</span>
             </Button>
             <Button onClick={handleExportPDF} variant="outline" size="lg" className="rounded-2xl py-5 bg-card hover:bg-gold/5 border-gold/20 flex flex-col items-center gap-1.5 h-auto">
               <FileDown className="h-5 w-5 text-gold" />
-              <span className="text-[11px] font-medium">Save PDF</span>
+              <span className="text-[11px] font-medium">{tr(language, 'Save PDF', 'Guardar PDF')}</span>
             </Button>
           </div>
         </motion.div>
@@ -397,8 +402,8 @@ const RecipeDetail = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-foreground">Adjust Servings</h3>
-              <p className="text-sm text-muted-foreground">Scale ingredients automatically</p>
+              <h3 className="font-semibold text-foreground">{tr(language, 'Adjust Servings', 'Ajustar porciones')}</h3>
+              <p className="text-sm text-muted-foreground">{tr(language, 'Scale ingredients automatically', 'Ajusta los ingredientes automáticamente')}</p>
             </div>
             <div className="flex items-center gap-4">
               <Button onClick={() => setServings(Math.max(1, servings - 1))} variant="outline" size="icon" className="rounded-full h-10 w-10" disabled={servings <= 1}>
@@ -423,7 +428,7 @@ const RecipeDetail = () => {
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <span className="text-lg">🥗</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Ingredients</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tr(language, 'Ingredients', 'Ingredientes')}</h2>
           </div>
           <Card className="rounded-2xl shadow-lg border-0 bg-card/80 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-0">
@@ -451,7 +456,7 @@ const RecipeDetail = () => {
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center">
               <span className="text-lg">👩‍🍳</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Instructions</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tr(language, 'Instructions', 'Instrucciones')}</h2>
           </div>
           <div className="space-y-3">
             {recipe.instructions.map((instruction, index) => (
@@ -470,7 +475,7 @@ const RecipeDetail = () => {
           {completedSteps.size > 0 && (
             <div className="mt-4 text-center">
               <Badge variant="secondary" className="rounded-full px-4 py-1">
-                {completedSteps.size} of {recipe.instructions.length} steps completed
+                {completedSteps.size} {tr(language, 'of', 'de')} {recipe.instructions.length} {tr(language, 'steps completed', 'pasos completados')}
               </Badge>
             </div>
           )}
@@ -487,7 +492,7 @@ const RecipeDetail = () => {
             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center">
               <span className="text-lg">✨</span>
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Nutrition Facts</h2>
+            <h2 className="text-2xl font-bold text-foreground">{tr(language, 'Nutrition Facts', 'Datos nutricionales')}</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {nutritionItems.map((item) => (
@@ -504,7 +509,7 @@ const RecipeDetail = () => {
           </div>
           {recipe.nutrition.vitamins.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-medium text-muted-foreground mb-2">Vitamins & Minerals</p>
+              <p className="text-sm font-medium text-muted-foreground mb-2">{tr(language, 'Vitamins & Minerals', 'Vitaminas y minerales')}</p>
               <div className="flex flex-wrap gap-2">
                 {recipe.nutrition.vitamins.map((vitamin) => (
                   <Badge key={vitamin} variant="outline" className="rounded-full bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">{vitamin}</Badge>
@@ -529,10 +534,10 @@ const RecipeDetail = () => {
                     <AlertCircle className="h-5 w-5 text-destructive" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-destructive mb-2">Allergen Warning</h3>
+                    <h3 className="font-semibold text-destructive mb-2">{tr(language, 'Allergen Warning', 'Advertencia de alérgenos')}</h3>
                     <div className="flex flex-wrap gap-2">
-                      {recipe.allergens.map((allergen) => (
-                        <Badge key={allergen} variant="destructive" className="rounded-full">{allergen}</Badge>
+                      {recipe.allergens.map((allergen, index) => (
+                        <Badge key={allergen} variant="destructive" className="rounded-full">{tt(`recipe:${recipe.id}:allergen:${index}`, allergen)}</Badge>
                       ))}
                     </div>
                   </div>
@@ -556,8 +561,8 @@ const RecipeDetail = () => {
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Health Benefits</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{recipe.healthBenefits}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{tr(language, 'Health Benefits', 'Beneficios para la salud')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{tt(`recipe:${recipe.id}:healthBenefits`, recipe.healthBenefits)}</p>
                 </div>
               </div>
             </CardContent>
@@ -570,8 +575,8 @@ const RecipeDetail = () => {
                   <Refrigerator className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Storage Tips</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{recipe.storage}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{tr(language, 'Storage Tips', 'Consejos de conservación')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{tt(`recipe:${recipe.id}:storage`, recipe.storage)}</p>
                 </div>
               </div>
             </CardContent>
@@ -584,8 +589,8 @@ const RecipeDetail = () => {
                   <Users className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-2">Serving Guidance</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{recipe.servingGuidance}</p>
+                  <h3 className="font-semibold text-foreground mb-2">{tr(language, 'Serving Guidance', 'Guía de porciones')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{tt(`recipe:${recipe.id}:servingGuidance`, recipe.servingGuidance)}</p>
                 </div>
               </div>
             </CardContent>
@@ -607,12 +612,12 @@ const RecipeDetail = () => {
                     <Timer className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Cooking Timer</h3>
-                    <p className="text-sm text-muted-foreground">Track your cooking time</p>
+                    <h3 className="font-semibold text-foreground">{tr(language, 'Cooking Timer', 'Temporizador de cocina')}</h3>
+                    <p className="text-sm text-muted-foreground">{tr(language, 'Track your cooking time', 'Controla el tiempo de cocción')}</p>
                   </div>
                 </div>
                 {totalSeconds === 0 ? (
-                  <Button onClick={startTimer} className="rounded-full"><Play className="mr-2 h-4 w-4" />Start</Button>
+                  <Button onClick={startTimer} className="rounded-full"><Play className="mr-2 h-4 w-4" />{tr(language, 'Start', 'Iniciar')}</Button>
                 ) : (
                   <div className="flex items-center gap-3">
                     <span className="text-2xl font-bold text-primary">{String(timerMinutes).padStart(2, '0')}:{String(timerSeconds).padStart(2, '0')}</span>

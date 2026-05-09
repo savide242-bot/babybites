@@ -25,7 +25,6 @@ import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import SmartInstallBanner from "@/components/SmartInstallBanner";
 import AutoTranslateLayer from "@/components/AutoTranslateLayer";
-import { useRecipePrewarmTranslations } from "@/hooks/useRecipePrewarmTranslations";
 
 // Lazy load heavy pages for better initial bundle size
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -85,9 +84,6 @@ const AppContent = () => {
   
   // Check if user is banned
   useBanCheck();
-
-  // Background pre-translate ALL recipes when language is Spanish (one-shot)
-  useRecipePrewarmTranslations();
 
   // Navigation refs for app tour
   const recipesNavRef = useRef<HTMLAnchorElement>(null);

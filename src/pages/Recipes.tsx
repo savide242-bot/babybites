@@ -19,6 +19,7 @@ import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInMonths } from "date-fns";
+import { tr, translateAgeGroup, translateCategory, translatePrepTime } from "@/utils/spanishDisplay";
 
 const BATCH_SIZE = 30;
 
@@ -39,8 +40,9 @@ const getAgeGroupFromMonths = (months: number): string => {
 };
 
 // Pure CSS recipe card
-const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite, displayTitle }: {
+const RecipeCard = memo(({ recipe, language, showViewCount = false, viewCount = 0, index = 0, isFav, isCompatible, isNew, isPopular, isQuick, hasPrefs, onToggleFavorite, displayTitle }: {
   recipe: typeof recipes[0];
+  language: string;
   showViewCount?: boolean;
   viewCount?: number;
   index?: number;
@@ -69,7 +71,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
           <div className="aspect-square relative overflow-hidden">
             <img
               src={recipe.image}
-              alt={recipe.title}
+              alt={displayTitle || recipe.title}
               loading="lazy"
               decoding="async"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -85,24 +87,24 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {isNew && (
                 <Badge className="bg-gradient-to-r from-accent to-orange-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0 animate-pulse">
-                  <Zap className="h-2.5 w-2.5" />New
+                   <Zap className="h-2.5 w-2.5" />{tr(language, 'New', 'Nuevo')}
                 </Badge>
               )}
               {isPopular && !isNew && (
                 <Badge className="bg-gradient-to-r from-primary to-secondary text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                  <TrendingUp className="h-2.5 w-2.5" />Popular
+                   <TrendingUp className="h-2.5 w-2.5" />{tr(language, 'Popular', 'Popular')}
                 </Badge>
               )}
               {isQuick && (
                 <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg border-0">
-                  <Clock className="h-2.5 w-2.5" />Quick
+                   <Clock className="h-2.5 w-2.5" />{tr(language, 'Quick', 'Rápida')}
                 </Badge>
               )}
             </div>
             
             <div className="absolute top-2 right-2 flex items-center gap-1">
               <Badge className="bg-white/90 backdrop-blur-sm text-foreground/80 text-[9px] px-1.5 py-0.5 shadow-lg border-0">
-                {recipe.ageGroup}
+                 {translateAgeGroup(recipe.ageGroup, language)}
               </Badge>
               <Button
                 size="icon"
@@ -121,7 +123,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
             {isCompatible && hasPrefs && (
               <div className="absolute top-10 left-1/2 -translate-x-1/2">
                 <Badge className="bg-gradient-to-r from-mint to-emerald-500 text-white text-[9px] px-2 py-0.5 flex items-center gap-1 shadow-xl border-0">
-                  <Sparkles className="h-2.5 w-2.5" />Perfect Match
+                  <Sparkles className="h-2.5 w-2.5" />{tr(language, 'Perfect Match', 'Ideal')}
                 </Badge>
               </div>
             )}
@@ -132,7 +134,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
               </h3>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
-                  <Clock className="h-3 w-3" /><span>{recipe.prepTime}</span>
+                  <Clock className="h-3 w-3" /><span>{translatePrepTime(recipe.prepTime, language)}</span>
                 </div>
                 {showViewCount && viewCount > 1 && (
                   <div className="flex items-center gap-1.5 text-[10px] text-white/90 bg-black/30 backdrop-blur-sm px-2 py-1 rounded-full">
@@ -151,7 +153,7 @@ const RecipeCard = memo(({ recipe, showViewCount = false, viewCount = 0, index =
 RecipeCard.displayName = "RecipeCard";
 
 const Recipes = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { recentlyViewed, loading: historyLoading, getRecentRecipes, getMostViewed } = useRecipeHistory();
   const { preferences, isRecipeCompatible } = useDietaryPreferences();
@@ -254,8 +256,10 @@ const Recipes = () => {
 
   // Translate visible recipe titles to active language (cached on backend)
   const titleItems = useMemo(
-    () => visibleRecipes.map(r => ({ key: `recipe:${r.id}:title`, text: r.title })),
-    [visibleRecipes]
+    () => [...visibleRecipes, ...recentRecipes, ...mostViewedRecipes.map(view => recipes.find(r => r.id === view.recipe_id))]
+      .filter((recipe, index, all): recipe is typeof recipes[0] => !!recipe && all.findIndex(r => r?.id === recipe.id) === index)
+      .map(r => ({ key: `recipe:${r.id}:title`, text: r.title })),
+    [visibleRecipes, recentRecipes, mostViewedRecipes]
   );
   const { map: titleMap } = useTranslatedContent(titleItems);
 
@@ -301,18 +305,18 @@ const Recipes = () => {
   const handleExportEbook = useCallback(() => {
     hapticFeedback('light');
     setIsExporting(true);
-    toast.info('Generating eBook with photos... This may take a moment.');
+    toast.info(tr(language, 'Generating eBook with photos... This may take a moment.', 'Generando eBook con fotos... Puede tardar un momento.'));
     setTimeout(() => {
       try {
         exportRecipeEbook(recipes as any);
-        toast.success('eBook generated successfully! 📖');
+        toast.success(tr(language, 'eBook generated successfully! 📖', '¡eBook generado correctamente! 📖'));
       } catch {
-        toast.error('Error generating eBook. Please try again.');
+        toast.error(tr(language, 'Error generating eBook. Please try again.', 'Error al generar el eBook. Inténtalo de nuevo.'));
       } finally {
         setIsExporting(false);
       }
     }, 100);
-  }, []);
+  }, [language]);
 
   // Determine the baby's age group for the banner
   const babyAgeGroup = babyAgeMonths !== null && babyAgeMonths >= 6 ? getAgeGroupFromMonths(babyAgeMonths) : null;
@@ -329,7 +333,7 @@ const Recipes = () => {
                 {t('recipes.title')}
               </h1>
               <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                {filteredRecipes.length} nutritious recipes for your little one
+                {filteredRecipes.length} {tr(language, 'nutritious recipes for your little one', 'recetas nutritivas para tu bebé')}
               </p>
             </div>
             <Button
@@ -355,10 +359,10 @@ const Recipes = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm text-foreground">
-                  Sorted for {babyName} ({babyAgeMonths}m)
+                  {tr(language, 'Sorted for', 'Ordenadas para')} {babyName} ({babyAgeMonths}m)
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {ageMatchedCount} recipes for {babyAgeGroup} shown first • Easiest to prepare
+                  {ageMatchedCount} {tr(language, 'recipes for', 'recetas para')} {translateAgeGroup(babyAgeGroup, language)} {tr(language, 'shown first • Easiest to prepare', 'primero • Más fáciles de preparar')}
                 </p>
               </div>
             </div>
@@ -393,7 +397,7 @@ const Recipes = () => {
                 }`}
               >
                 <ChefHat className="h-3.5 w-3.5" />
-                Easy Cooking
+                {tr(language, 'Easy Cooking', 'Cocina fácil')}
               </Button>
 
               <Select value={selectedAge} onValueChange={setSelectedAge}>
@@ -402,7 +406,7 @@ const Recipes = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {ageGroups.map((age) => (
-                    <SelectItem key={age} value={age}>{age}</SelectItem>
+                    <SelectItem key={age} value={age}>{translateAgeGroup(age, language)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -414,7 +418,7 @@ const Recipes = () => {
                 <SelectContent>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {category} {category !== "All Categories" && categoryCounts[category] ? `(${categoryCounts[category]})` : ''}
+                      {translateCategory(category, language)} {category !== "All Categories" && categoryCounts[category] ? `(${categoryCounts[category]})` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -437,10 +441,10 @@ const Recipes = () => {
                 <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
                   <History className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h2 className="text-base sm:text-lg font-bold">Recently Viewed</h2>
+                <h2 className="text-base sm:text-lg font-bold">{tr(language, 'Recently Viewed', 'Vistas recientemente')}</h2>
               </div>
               <Badge variant="secondary" className="rounded-full text-[10px] sm:text-xs">
-                {recentlyViewed.length} {recentlyViewed.length === 1 ? 'recipe' : 'recipes'}
+                {recentlyViewed.length} {recentlyViewed.length === 1 ? tr(language, 'recipe', 'receta') : tr(language, 'recipes', 'recetas')}
               </Badge>
             </div>
 
@@ -456,6 +460,7 @@ const Recipes = () => {
                     <div key={recipe.id} className="flex-shrink-0 w-36 sm:w-44">
                       <RecipeCard 
                         recipe={recipe} 
+                        language={language}
                         showViewCount={true}
                         viewCount={viewData?.view_count || 0}
                         index={index}
@@ -478,11 +483,11 @@ const Recipes = () => {
               <div className="mt-3 p-3 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
                 <div className="flex items-center gap-2 text-xs sm:text-sm">
                   <TrendingUp className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-foreground">Most Viewed:</span>
+                  <span className="font-medium text-foreground">{tr(language, 'Most Viewed:', 'Más vistas:')}</span>
                   <span className="text-muted-foreground text-[10px] sm:text-xs truncate">
                     {mostViewedRecipes.slice(0, 3).map((view) => {
                       const recipe = recipes.find(r => r.id === view.recipe_id);
-                      return recipe?.title;
+                       return recipe ? (titleMap[`recipe:${recipe.id}:title`] || recipe.title) : '';
                     }).filter(Boolean).join(', ')}
                   </span>
                 </div>
@@ -499,9 +504,9 @@ const Recipes = () => {
                 <ChefHat className="h-5 w-5 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm text-foreground">Easy Cooking Mode</h3>
+                <h3 className="font-semibold text-sm text-foreground">{tr(language, 'Easy Cooking Mode', 'Modo cocina fácil')}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less.
+                  {tr(language, 'Simple recipes anyone can make — max 6 ingredients, ready in 15 minutes or less.', 'Recetas simples que cualquiera puede preparar — máximo 6 ingredientes, listas en 15 minutos o menos.')}
                 </p>
               </div>
             </div>
@@ -511,8 +516,8 @@ const Recipes = () => {
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between animate-fade-in">
           <p className="text-xs sm:text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? 'delicious recipes' : 'recipe'} to explore
-            {babyAgeGroup && selectedAge === "All Ages" && <span className="text-primary font-medium"> • Sorted for {babyAgeGroup}</span>}
+            <span className="font-semibold text-foreground">{filteredRecipes.length}</span> {filteredRecipes.length !== 1 ? tr(language, 'delicious recipes', 'recetas deliciosas') : tr(language, 'recipe', 'receta')} {tr(language, 'to explore', 'para explorar')}
+            {babyAgeGroup && selectedAge === "All Ages" && <span className="text-primary font-medium"> • {tr(language, 'Sorted for', 'Ordenadas para')} {translateAgeGroup(babyAgeGroup, language)}</span>}
           </p>
         </div>
 
@@ -526,6 +531,7 @@ const Recipes = () => {
                   <RecipeCard 
                     key={recipe.id} 
                     recipe={recipe} 
+                    language={language}
                     index={index}
                     isFav={isFavorite(recipe.id)}
                     isCompatible={isRecipeCompatible(recipeTags)}
@@ -548,7 +554,7 @@ const Recipes = () => {
                   className="rounded-full px-6 gap-2 border-primary/20 hover:bg-primary/5"
                 >
                   <ChevronDown className="h-4 w-4" />
-                  Load more ({filteredRecipes.length - visibleCount} remaining)
+                  {tr(language, 'Load more', 'Cargar más')} ({filteredRecipes.length - visibleCount} {tr(language, 'remaining', 'restantes')})
                 </Button>
               </div>
             )}
