@@ -153,7 +153,7 @@ const RecipeCard = memo(({ recipe, language, showViewCount = false, viewCount = 
 RecipeCard.displayName = "RecipeCard";
 
 const Recipes = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { recentlyViewed, loading: historyLoading, getRecentRecipes, getMostViewed } = useRecipeHistory();
   const { preferences, isRecipeCompatible } = useDietaryPreferences();
@@ -331,7 +331,7 @@ const Recipes = () => {
                 {t('recipes.title')}
               </h1>
               <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                {filteredRecipes.length} nutritious recipes for your little one
+                {filteredRecipes.length} {tr(language, 'nutritious recipes for your little one', 'recetas nutritivas para tu bebé')}
               </p>
             </div>
             <Button
@@ -357,10 +357,10 @@ const Recipes = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm text-foreground">
-                  Sorted for {babyName} ({babyAgeMonths}m)
+                  {tr(language, 'Sorted for', 'Ordenadas para')} {babyName} ({babyAgeMonths}m)
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {ageMatchedCount} recipes for {babyAgeGroup} shown first • Easiest to prepare
+                  {ageMatchedCount} {tr(language, 'recipes for', 'recetas para')} {translateAgeGroup(babyAgeGroup, language)} {tr(language, 'shown first • Easiest to prepare', 'primero • Más fáciles de preparar')}
                 </p>
               </div>
             </div>
@@ -395,7 +395,7 @@ const Recipes = () => {
                 }`}
               >
                 <ChefHat className="h-3.5 w-3.5" />
-                Easy Cooking
+                {tr(language, 'Easy Cooking', 'Cocina fácil')}
               </Button>
 
               <Select value={selectedAge} onValueChange={setSelectedAge}>
@@ -404,7 +404,7 @@ const Recipes = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {ageGroups.map((age) => (
-                    <SelectItem key={age} value={age}>{age}</SelectItem>
+                    <SelectItem key={age} value={age}>{translateAgeGroup(age, language)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -416,7 +416,7 @@ const Recipes = () => {
                 <SelectContent>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {category} {category !== "All Categories" && categoryCounts[category] ? `(${categoryCounts[category]})` : ''}
+                      {translateCategory(category, language)} {category !== "All Categories" && categoryCounts[category] ? `(${categoryCounts[category]})` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
