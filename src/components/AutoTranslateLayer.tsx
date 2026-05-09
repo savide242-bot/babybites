@@ -1,311 +1,121 @@
 import { useEffect, useRef, ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
-import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Runtime DOM auto-translation layer.
- * When language === 'es', walks the DOM, finds English text nodes + key
- * attributes, batches them to the translate-content edge function, and swaps
- * the content in place. Caches translations in localStorage so subsequent
- * visits are instant.
+ * LIGHTWEIGHT runtime DOM translator.
  *
- * Reads from TWO caches:
- *   - auto_tx_es_v1   : raw text → translation (DOM observer)
- *   - i18n_cache_v1_es: pre-translated UI dictionary (from useLanguage)
- *     Mapped by english source text so it can be applied to ANY DOM text node.
+ * Previous version used a MutationObserver scanning the entire DOM on every
+ * change — that caused jank on low-end phones. This version is much lighter:
+ *
+ * - No MutationObserver
+ * - Runs only on route change, inside requestIdleCallback
+ * - Only swaps text/attributes that already have a translation in localStorage
+ *   (filled by the background recipe pre-warmer + UI dictionary)
+ * - Never calls the network here. New translations are produced in the
+ *   background by `useRecipePrewarmTranslations` and `useLanguage`.
  */
 
 const CACHE_KEY = 'auto_tx_es_v1';
-const UI_CACHE_KEY = 'i18n_cache_v1_es';
+const SOURCE_MAP_KEY = 'i18n_source_map_es';
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'SVG', 'PATH']);
 const ATTRS = ['placeholder', 'aria-label', 'title', 'alt'] as const;
-const MAX_CACHE_ENTRIES = 8000;
-const FLUSH_DELAY_MS = 350;
-const FLUSH_THRESHOLD = 60;
-const SCAN_DEBOUNCE_MS = 250;
 
-// Lightweight idle scheduler — keeps main thread free on low-end phones
 const ric: (cb: () => void) => number = (cb) => {
   const w = window as any;
   if (typeof w.requestIdleCallback === 'function') {
-    return w.requestIdleCallback(cb, { timeout: 800 });
+    return w.requestIdleCallback(cb, { timeout: 1500 });
   }
   return window.setTimeout(cb, 1);
 };
 
-const isMostlyAlpha = (s: string) => /[a-zA-Z]{2,}/.test(s);
-const looksLikeUrl = (s: string) => /^https?:\/\//i.test(s) || /^[\w.-]+@[\w.-]+/.test(s);
-const isSkippable = (s: string) => {
-  const t = s.trim();
-  if (t.length < 1) return true;
-  if (!isMostlyAlpha(t)) return true;
-  if (looksLikeUrl(t)) return true;
-  if (/^\d[\d\s.,:%/-]*$/.test(t)) return true;
-  return false;
-};
-
-const loadCache = (key: string): Map<string, string> => {
+const loadMap = (key: string): Map<string, string> => {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return new Map();
-    const parsed = JSON.parse(raw);
-    return new Map(Object.entries(parsed));
+    return new Map(Object.entries(JSON.parse(raw)));
   } catch { return new Map(); }
 };
-const saveCache = (cache: Map<string, string>) => {
-  try {
-    if (cache.size > MAX_CACHE_ENTRIES) {
-      const arr = Array.from(cache.entries()).slice(-MAX_CACHE_ENTRIES);
-      cache = new Map(arr);
-    }
-    localStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries(cache)));
-  } catch { /* quota */ }
-};
-
-// Build a reverse map (english source text → spanish) from the UI dictionary cache,
-// which is keyed by translation key. We need the originals from useLanguage's enTranslations.
-// To keep this layer decoupled, we read a sibling cache `i18n_source_es` that useLanguage
-// writes containing { englishText: spanishText } for cross-application.
-const SOURCE_MAP_KEY = 'i18n_source_map_es';
-const loadSourceMap = (): Map<string, string> => loadCache(SOURCE_MAP_KEY);
 
 const hasSkippableAncestor = (node: Node): boolean => {
   let p: Node | null = node.parentNode;
   while (p && p instanceof Element) {
     if (SKIP_TAGS.has(p.tagName)) return true;
     if (p.hasAttribute('data-no-translate')) return true;
-    if (p.getAttribute('contenteditable') === 'true') return true;
     p = p.parentNode;
   }
   return false;
 };
 
-interface PendingNode { type: 'text'; node: Text; original: string; }
-interface PendingAttr { type: 'attr'; el: Element; attr: string; original: string; }
-type Pending = PendingNode | PendingAttr;
+const isMostlyAlpha = (s: string) => /[a-zA-Z]{2,}/.test(s);
 
 const AutoTranslateLayer = ({ children }: { children: ReactNode }) => {
   const { language } = useLanguage();
   const location = useLocation();
   const cacheRef = useRef<Map<string, string>>(new Map());
-  const sourceMapRef = useRef<Map<string, string>>(new Map());
-  const inflightRef = useRef<Set<string>>(new Set());
-  const queueRef = useRef<Pending[]>([]);
-  const flushTimerRef = useRef<number | null>(null);
-  const observerRef = useRef<MutationObserver | null>(null);
-  const scanFnRef = useRef<((root: Node) => void) | null>(null);
 
+  // Reload caches whenever language flips or background prewarm fires
   useEffect(() => {
-    if (language !== 'es') {
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-      return;
-    }
-
-    cacheRef.current = loadCache(CACHE_KEY);
-    sourceMapRef.current = loadSourceMap();
-
-    // Listen for UI dictionary updates so newly-translated strings get applied immediately
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === SOURCE_MAP_KEY) {
-        sourceMapRef.current = loadSourceMap();
-        scanFnRef.current?.(document.body);
-      }
+    if (language !== 'es') return;
+    const reload = () => {
+      const dom = loadMap(CACHE_KEY);
+      const ui = loadMap(SOURCE_MAP_KEY);
+      // merge (DOM cache takes precedence, but UI map fills gaps)
+      ui.forEach((v, k) => { if (!dom.has(k)) dom.set(k, v); });
+      cacheRef.current = dom;
     };
-    window.addEventListener('storage', onStorage);
-    // Same-tab notifications (custom event)
-    const onLocalUpdate = () => {
-      sourceMapRef.current = loadSourceMap();
-      scanFnRef.current?.(document.body);
-    };
-    window.addEventListener('i18n-source-updated', onLocalUpdate);
-
-    const lookup = (text: string): string | undefined => {
-      const key = text.trim();
-      return cacheRef.current.get(key) ?? sourceMapRef.current.get(key);
-    };
-
-    const applyFromCache = (text: string): string | null => {
-      const tx = lookup(text);
-      if (!tx) return null;
-      const lead = text.match(/^\s*/)?.[0] ?? '';
-      const trail = text.match(/\s*$/)?.[0] ?? '';
-      return lead + tx + trail;
-    };
-
-    const queue = (item: Pending) => {
-      const key = item.original.trim();
-      if (!key) return;
-      if (inflightRef.current.has(key)) return;
-      queueRef.current.push(item);
-      inflightRef.current.add(key);
-      if (queueRef.current.length >= FLUSH_THRESHOLD) {
-        if (flushTimerRef.current != null) {
-          window.clearTimeout(flushTimerRef.current);
-          flushTimerRef.current = null;
-        }
-        flush();
-      }
-    };
-
-    const flush = async () => {
-      flushTimerRef.current = null;
-      const items = queueRef.current;
-      queueRef.current = [];
-      if (items.length === 0) return;
-
-      const uniq = new Map<string, string>();
-      items.forEach(i => uniq.set(i.original.trim(), i.original.trim()));
-      const payload = Array.from(uniq.keys()).map(k => ({ key: `auto:${k.slice(0, 200)}`, text: k }));
-
-      try {
-        const { data, error } = await supabase.functions.invoke('translate-content', {
-          body: { items: payload, targetLanguage: 'es' },
-        });
-        if (error) throw error;
-        const translations: Record<string, string> = data?.translations ?? {};
-        const txByOriginal = new Map<string, string>();
-        payload.forEach(p => {
-          const tx = translations[p.key];
-          if (tx) {
-            txByOriginal.set(p.text, tx);
-            cacheRef.current.set(p.text, tx);
-          }
-        });
-        saveCache(cacheRef.current);
-
-        items.forEach(item => {
-          const key = item.original.trim();
-          const tx = txByOriginal.get(key) ?? cacheRef.current.get(key);
-          if (!tx) return;
-          const lead = item.original.match(/^\s*/)?.[0] ?? '';
-          const trail = item.original.match(/\s*$/)?.[0] ?? '';
-          const final = lead + tx + trail;
-          if (item.type === 'text') {
-            if (item.node.textContent === item.original) item.node.textContent = final;
-          } else {
-            if (item.el.getAttribute(item.attr) === item.original) item.el.setAttribute(item.attr, final);
-          }
-        });
-      } catch (e) {
-        console.warn('[auto-translate] batch failed', e);
-      } finally {
-        items.forEach(i => inflightRef.current.delete(i.original.trim()));
-      }
-    };
-
-    const scheduleFlush = () => {
-      if (flushTimerRef.current != null) return;
-      flushTimerRef.current = window.setTimeout(flush, FLUSH_DELAY_MS);
-    };
-
-    const processTextNode = (node: Text) => {
-      const text = node.textContent;
-      if (!text || isSkippable(text)) return;
-      if (hasSkippableAncestor(node)) return;
-      const cached = applyFromCache(text);
-      if (cached !== null) {
-        if (node.textContent !== cached) node.textContent = cached;
-        return;
-      }
-      queue({ type: 'text', node, original: text });
-      scheduleFlush();
-    };
-
-    const processAttr = (el: Element, attr: string) => {
-      const val = el.getAttribute(attr);
-      if (!val || isSkippable(val)) return;
-      if (el.hasAttribute('data-no-translate')) return;
-      const cached = applyFromCache(val);
-      if (cached !== null) {
-        if (el.getAttribute(attr) !== cached) el.setAttribute(attr, cached);
-        return;
-      }
-      queue({ type: 'attr', el, attr, original: val });
-      scheduleFlush();
-    };
-
-    const scan = (root: Node) => {
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      let n: Node | null = walker.nextNode();
-      while (n) {
-        processTextNode(n as Text);
-        n = walker.nextNode();
-      }
-      if (root instanceof Element) {
-        for (const attr of ATTRS) {
-          if (root.hasAttribute(attr)) processAttr(root, attr);
-          root.querySelectorAll(`[${attr}]`).forEach(el => processAttr(el, attr));
-        }
-      } else {
-        for (const attr of ATTRS) {
-          document.querySelectorAll(`[${attr}]`).forEach(el => processAttr(el, attr));
-        }
-      }
-    };
-    scanFnRef.current = scan;
-
-    const initial = window.setTimeout(() => ric(() => scan(document.body)), 200);
-
-    // Coalesce mutations into one debounced idle scan to avoid main-thread jank
-    let pendingRoots: Set<Node> = new Set();
-    let mutationTimer: number | null = null;
-    const flushScan = () => {
-      mutationTimer = null;
-      const roots = Array.from(pendingRoots);
-      pendingRoots = new Set();
-      ric(() => {
-        for (const r of roots) {
-          try { scan(r); } catch {}
-        }
-      });
-    };
-    const scheduleScan = (root: Node) => {
-      pendingRoots.add(root);
-      if (mutationTimer != null) return;
-      mutationTimer = window.setTimeout(flushScan, SCAN_DEBOUNCE_MS);
-    };
-
-    const observer = new MutationObserver(mutations => {
-      for (const m of mutations) {
-        if (m.type === 'characterData' && m.target.nodeType === Node.TEXT_NODE) {
-          // Skip — characterData fires constantly (timers, counters); rely on debounced rescans
-        } else if (m.type === 'attributes' && m.target instanceof Element && m.attributeName) {
-          if ((ATTRS as readonly string[]).includes(m.attributeName)) {
-            processAttr(m.target, m.attributeName);
-          }
-        } else if (m.type === 'childList') {
-          m.addedNodes.forEach(node => {
-            if (node.nodeType === Node.ELEMENT_NODE) scheduleScan(node);
-          });
-        }
-      }
-    });
-    observer.observe(document.body, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ATTRS as unknown as string[],
-    });
-    observerRef.current = observer;
-
+    reload();
+    const onUpdate = () => reload();
+    window.addEventListener('i18n-source-updated', onUpdate);
+    window.addEventListener('storage', onUpdate);
     return () => {
-      window.clearTimeout(initial);
-      if (flushTimerRef.current != null) window.clearTimeout(flushTimerRef.current);
-      if (mutationTimer != null) window.clearTimeout(mutationTimer);
-      observer.disconnect();
-      observerRef.current = null;
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('i18n-source-updated', onLocalUpdate);
+      window.removeEventListener('i18n-source-updated', onUpdate);
+      window.removeEventListener('storage', onUpdate);
     };
   }, [language]);
 
-  // Re-scan on route change (catch new page content quickly)
+  // Apply cached translations on each route change (idle)
   useEffect(() => {
     if (language !== 'es') return;
-    const t1 = window.setTimeout(() => scanFnRef.current?.(document.body), 100);
-    const t2 = window.setTimeout(() => scanFnRef.current?.(document.body), 600);
+    const cache = cacheRef.current;
+    if (cache.size === 0) return;
+
+    const apply = () => {
+      try {
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let n: Node | null = walker.nextNode();
+        let count = 0;
+        while (n && count < 5000) {
+          const text = n.textContent;
+          if (text) {
+            const trimmed = text.trim();
+            if (trimmed.length > 0 && isMostlyAlpha(trimmed) && !hasSkippableAncestor(n)) {
+              const tx = cache.get(trimmed);
+              if (tx) {
+                const lead = text.match(/^\s*/)?.[0] ?? '';
+                const trail = text.match(/\s*$/)?.[0] ?? '';
+                const final = lead + tx + trail;
+                if (n.textContent !== final) n.textContent = final;
+              }
+            }
+          }
+          n = walker.nextNode();
+          count++;
+        }
+        for (const attr of ATTRS) {
+          document.querySelectorAll(`[${attr}]`).forEach(el => {
+            if (el.hasAttribute('data-no-translate')) return;
+            const v = el.getAttribute(attr);
+            if (!v) return;
+            const tx = cache.get(v.trim());
+            if (tx && el.getAttribute(attr) !== tx) el.setAttribute(attr, tx);
+          });
+        }
+      } catch {}
+    };
+
+    const t1 = window.setTimeout(() => ric(apply), 200);
+    const t2 = window.setTimeout(() => ric(apply), 1200);
     return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
   }, [location.pathname, language]);
 
