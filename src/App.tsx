@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { useEffect, useRef, Suspense, lazy } from "react";
 import { updateLastVisit } from "@/hooks/useNotifications";
@@ -24,11 +24,9 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import SmartInstallBanner from "@/components/SmartInstallBanner";
-import AutoTranslateLayer from "@/components/AutoTranslateLayer";
 
 // Lazy load heavy pages for better initial bundle size
 const Onboarding = lazy(() => import("./pages/Onboarding"));
-const LanguageChoice = lazy(() => import("./pages/LanguageChoice"));
 const FirstDay = lazy(() => import("./pages/FirstDay"));
 const Recipes = lazy(() => import("./pages/Recipes"));
 const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
@@ -84,7 +82,7 @@ const AppContent = () => {
   
   // Check if user is banned
   useBanCheck();
-
+  
   // Navigation refs for app tour
   const recipesNavRef = useRef<HTMLAnchorElement>(null);
   const plannerNavRef = useRef<HTMLAnchorElement>(null);
@@ -138,7 +136,6 @@ const AppContent = () => {
           <Route path="/food-diary" element={<FoodDiary />} />
           <Route path="/ios-push-setup" element={<IOSPushSetup />} />
           <Route path="/mistakes" element={<MistakesGuide />} />
-          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
@@ -146,35 +143,17 @@ const AppContent = () => {
   );
 };
 
-const LanguageGate = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
-  // Only force language picker for brand-new visitors with no saved preference.
-  // Existing users (logged in OR previously chose a language) skip it entirely.
-  const hasChosen = typeof window !== 'undefined' && !!localStorage.getItem('app_language');
-  if (!hasChosen && location.pathname !== '/language') {
-    return <Navigate to="/language" replace />;
-  }
-  return <>{children}</>;
-};
-
 const AppWrapper = () => {
   return (
-    <AutoTranslateLayer>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/language" element={<LanguageChoice />} />
-          <Route path="/auth" element={<LanguageGate><Auth /></LanguageGate>} />
-          <Route path="/auth/reset-password" element={<ResetPassword />} />
-          <Route path="/*" element={
-            <LanguageGate>
-              <PrivateRoute>
-                <AppContent />
-              </PrivateRoute>
-            </LanguageGate>
-          } />
-        </Routes>
-      </Suspense>
-    </AutoTranslateLayer>
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/reset-password" element={<ResetPassword />} />
+      <Route path="/*" element={
+        <PrivateRoute>
+          <AppContent />
+        </PrivateRoute>
+      } />
+    </Routes>
   );
 };
 

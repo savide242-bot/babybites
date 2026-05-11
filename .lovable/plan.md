@@ -1,57 +1,76 @@
+# Plano — Remover bónus pós-parto + Resolver lentidão
 
-## Diagnóstico
+## 1. Remover "Postpartum Recovery Guide" do Bónus
 
-A infraestrutura bilingue já existe:
-- `AutoTranslateLayer` envolve a app inteira em `App.tsx` (auth, modais, toasts incluídos).
-- `LanguageCard` **já está renderizado em `src/pages/Settings.tsx` (linha 190)** — o seletor existe; provavelmente não foi visto por estar mais abaixo na página.
-- Edge function `translate-content` usa Gemini + cache em DB.
+Em `src/pages/Bonus.tsx`:
+- Remover o import de `postpartumRecoveryGuide`.
+- Remover os tipos de view `'recovery-list'` e `'recovery-detail'`.
+- Remover o card "Postpartum Recovery Guide" do hub (linha 117).
+- Remover as funções `renderRecoveryList()` e `renderRecoveryDetail()` e os respectivos `case` no switch.
 
-O problema real: **muito conteúdo continua em inglês** porque a camada atual tem lacunas:
+Apagar o ficheiro `src/data/postpartumRecoveryGuide.ts` (já não é usado).
 
-1. **Primeira renderização fica em inglês** até o batch HTTP voltar (250ms debounce + ~1–2s de rede). O utilizador vê inglês, depois "pisca" para espanhol — em telas rápidas (toasts, modais) já fechou antes de traduzir.
-2. **Strings curtas ignoradas** (`< 2 chars`) e botões com 1 palavra podem cair em casos limite.
-3. **Sem pré-aquecimento por rota**: ao navegar para uma página nova, espera-se sempre o roundtrip.
-4. **Atributos limitados** a `placeholder, aria-label, title, alt` — falta `value` de inputs read-only, `data-tooltip`, etc.
-5. **Sonner/Radix Toast** usam portais; já estão em `document.body`, mas o observer pode demorar a apanhar antes do toast desaparecer (auto-dismiss 4s).
-6. **Dicionário estático (`useT`)**: muitos componentes já usam `t('key')` mas só ~30 ficheiros — o resto depende 100% do auto-translate.
+A VSL atualizada continua a mencionar bónus, mas o utilizador pediu explicitamente para remover este. Os outros bónus (checklists, menus, picky eater) ficam intactos.
 
-## O que vou fazer
+## 2. Resolver lentidão na navegação entre abas
 
-### 1. Reforçar `AutoTranslateLayer`
-- Reduzir debounce de 250ms para **80ms** e aumentar batch para 80 itens.
-- Fazer **flush imediato (sem debounce)** quando a fila ultrapassa 20 itens (modais/toasts).
-- Re-scan automático em cada mudança de `location.pathname` (hook adicional dentro do layer via `useLocation`).
-- Adicionar atributos: `data-placeholder`, `data-label`, `value` (apenas em `<button>` e `<option>`).
-- Re-escanear portais explicitamente (`[data-radix-portal], [data-sonner-toaster], #radix-*`) num intervalo curto após cada mutação.
-- Persistir cache em duas camadas: `localStorage` (rápido) + tentar pré-carregar do DB ao arrancar (uma chamada `translate-content` com itens vazios → devolve nada, mas warm-up do cliente).
+### Causa raiz
+O ficheiro `src/data/recipes.ts` agrega ~395 receitas em **13.142 linhas** distribuídas por 14 ficheiros (`recipes47-100`, `recipes101-150`, … `recipes346-395`). Está a ser **importado estaticamente** em `Home.tsx` (`import { recipes } from "@/data/recipes"`) e em várias outras páginas. Resultado:
 
-### 2. Pré-aquecimento de UI crítica (`useLanguage.tsx`)
-- Expandir o dicionário interno `enTranslations` com **todas as strings críticas de auth, toasts, modais, navegação, botões comuns** (~150 entradas extras: erros de auth, mensagens de "saved", "deleted", "error", botões "Login/Sign up/Continue with Google", textos do `WelcomeModal`, `LogoutConfirmDialog`, `BannedScreen`, etc.).
-- Ao mudar para `es`, o `ensureUITranslated` traduz tudo de uma vez e guarda em `localStorage` — sessões seguintes são instantâneas.
-- Não exige refactor dos componentes: o `AutoTranslateLayer` lê o cache `i18n_cache_v1_es` como fonte adicional ao mapear `text → translation` no DOM.
+- O chunk inicial carregado pelo `Home` arrasta toda a base de receitas mesmo quando o utilizador só quer ver o dashboard.
+- Como cada página (`Recipes`, `MealPlanner`, `RecipeDetail`, `Favorites`, `ShoppingList`, etc.) também importa estaticamente, o bundler junta-as no mesmo chunk partilhado, tornando cada navegação lenta na primeira visita.
+- Adicionalmente o `useEffect` do `Home` corre `recipes.filter(...)` em todo o array a cada montagem.
 
-### 3. Cache partilhado entre `useLanguage` e `AutoTranslateLayer`
-- `AutoTranslateLayer` passa a consultar **dois caches**: `auto_tx_es_v1` (DOM) **e** `i18n_cache_v1_es` (chaves UI mapeadas pelo valor inglês).
-- Ao traduzir UI dictionary, escrever também o mapping `englishText → spanishText` em `auto_tx_es_v1` para que o DOM use imediatamente.
+### Correções
 
-### 4. Edge function `translate-content`
-- Trocar o modelo de `gemini-3-flash-preview` para `google/gemini-2.5-flash` (mais estável e rápido em JSON estruturado).
-- Adicionar deteção de "já está em espanhol" no prompt (devolver igual) — evita pedidos desnecessários e ruído.
+**A. Code-splitting do dataset de receitas**
 
-### 5. Confirmar/realçar o seletor em Definições
-- O `LanguageCard` já existe; vou movê-lo para **o topo da página `Settings`** (acima de `Dietary Preferences`) com um cabeçalho destacado, para que esteja visível imediatamente.
+- Converter `src/data/recipes.ts` para fazer **dynamic import** dos chunks `recipes47-100` … `recipes346-395`. Exportar:
+  - `recipes` (array sincrono apenas com as ~46 receitas base que já vivem em `recipes.ts`/`additionalRecipes`) — usado para previews leves no Home.
+  - `loadAllRecipes()` — async, devolve o array completo. Usa `Promise.all` com `import()` dinâmico só quando chamado.
+  - `getRecipeById(id)` — async, carrega chunks sob demanda.
+- Páginas que precisam do dataset completo (`Recipes`, `MealPlanner`, `RecipeDetail`, `Favorites`, `ShoppingList`, `WhatToCookWidget`) passam a chamar `loadAllRecipes()` dentro de um `useEffect`, com skeleton enquanto carrega.
+- `Home.tsx`: trocar `import { recipes }` para usar apenas o subset leve (ou carregar lazy só o que precisa para o "Recipe of the Day" / contagem semanal).
 
-### 6. Mensagem honesta sobre cobertura
-- A tradução por DOM cobre **100% do texto visível**, mas depende de:
-  - **Primeira visita a uma tela em espanhol**: pode haver 0,5–2s onde ainda se vê inglês até a Edge Function responder. Visitas seguintes são instantâneas (cache local).
-  - **Conteúdo dinâmico de receitas e IA** (já tratado por hooks dedicados).
-- Não é "i18n estático puro" porque traduzir manualmente as ~400 chaves restantes em 200+ ficheiros levaria horas e introduziria bugs. A estratégia híbrida (dicionário UI + DOM observer + cache) é mais escalável.
+**B. Fixar o erro do Service Worker em produção**
 
-## Ficheiros afetados
+O log mostra que o erro do SW continua a aparecer (`script resource is behind a redirect`). Aplicar:
+- Em `src/hooks/useServiceWorkerUpdate.tsx`: garantir que o `try/catch` engole TODOS os erros (não só os com keyword "redirect"), porque alguns browsers devolvem `TypeError` genérico.
+- Verificar se o `setInterval` de 5min foi efetivamente aplicado.
 
-- **Edit**: `src/components/AutoTranslateLayer.tsx` (debounce, scan por rota, mais atributos, cache partilhado)
-- **Edit**: `src/hooks/useLanguage.tsx` (dicionário expandido, escrita no cache do DOM layer)
-- **Edit**: `src/pages/Settings.tsx` (mover `LanguageCard` para o topo)
-- **Edit**: `supabase/functions/translate-content/index.ts` (modelo + prompt)
+**C. Pequenos ganhos**
+- Garantir que `WhatToCookWidget`, `RecipeOfTheDay` e outros widgets do Home não disparam queries pesadas em paralelo no primeiro render — encadear ou adiar com `requestIdleCallback`.
 
-Sem alterações de schema. Sem mudanças destrutivas.
+### Resultado esperado
+- Bundle inicial baixa significativamente (estimativa: -200/-400 KB gzipped).
+- Navegar para Recipes/Planner mostra skeleton imediato em vez de freeze.
+- Erro do SW deixa de poluir a consola.
+
+## 3. Resumo do que foi adicionado nas mensagens anteriores
+
+Para responder ao ponto 3 do utilizador, listar no chat (não em código):
+
+1. **Persona Emily Harter** — substituiu "Dr. NutriExpert" em `WelcomeModal`, `WhatsAppButton`, `Bonus`, com a sua abordagem clínica.
+2. **Página `/mistakes` — "The 3 Hidden Mistakes"** (`src/pages/MistakesGuide.tsx` + `src/data/hiddenMistakes.ts`):
+   - Erro 1: Ferro + Cálcio juntos (aveia+leite, espinafre+queijo).
+   - Erro 2: Doces antes da refeição principal.
+   - Erro 3: Janela de texturas 8–10 meses.
+   Cada erro com base científica (OMS, AAP), exemplos do dia-a-dia e correção prática.
+3. **Smart Combination Warning** (`src/components/SmartCombinationWarning.tsx`) — widget no Recipe Detail que detecta combinações que bloqueiam absorção (ferro vs cálcio) ou reforçam (vitamina C + ferro) e mostra aviso em tempo real.
+4. **CTA na Home** — banner para a nova secção dos 3 erros.
+5. **Correções técnicas do Service Worker**:
+   - Removidas meta tags `Cache-Control/Pragma/Expires` do `index.html`.
+   - `useServiceWorkerUpdate` engole erros de redirect e o intervalo subiu de 60s → 5min.
+   - `vite.config.ts` com `injectRegister: 'script'`.
+
+## Ficheiros a tocar
+
+- `src/pages/Bonus.tsx` (remover secção pós-parto)
+- `src/data/postpartumRecoveryGuide.ts` (apagar)
+- `src/data/recipes.ts` + `Home.tsx`, `Recipes.tsx`, `MealPlanner.tsx`, `RecipeDetail.tsx`, `Favorites.tsx`, `ShoppingList.tsx`, `WhatToCookWidget.tsx` (lazy loading do dataset)
+- `src/hooks/useServiceWorkerUpdate.tsx` (catch genérico)
+
+## Fora de escopo
+- Não mexer em design / branding.
+- Não mexer em edge functions.
+- Sem migrações de DB.
