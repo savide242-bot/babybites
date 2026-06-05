@@ -8,11 +8,11 @@ const corsHeaders = {
 
 // Fixed meal schedule: hour → notification content
 const MEAL_SCHEDULE: Record<number, { title: string; body: string }> = {
-  7:  { title: '🌅 Bom dia!', body: 'Está na hora do pequeno-almoço do teu bebé 🍎🥛' },
-  10: { title: '🍪 Hora do lanche da manhã', body: 'Um lanchinho saudável para manter a energia! 🍌' },
-  12: { title: '🍽️ Hora do almoço!', body: 'Está na hora de preparar o almoço do teu bebé 🥗🍲' },
-  15: { title: '🥛 Lanche da tarde', body: 'Hora do lanche! Que tal uma fruta? 🍊🧀' },
-  19: { title: '🌙 Hora do jantar', body: 'Está na hora do jantar do teu bebé 🍵🥦' },
+  7:  { title: '🌅 Good morning!', body: "Time for your baby's breakfast 🍎🥛" },
+  10: { title: '🍪 Morning snack time', body: 'A healthy little snack to keep the energy up! 🍌' },
+  12: { title: '🍽️ Lunch time!', body: "Time to prepare your baby's lunch 🥗🍲" },
+  15: { title: '🥛 Afternoon snack', body: 'Snack time! How about some fruit? 🍊🧀' },
+  19: { title: '🌙 Dinner time', body: "Time for your baby's dinner 🍵🥦" },
 };
 
 Deno.serve(async (req) => {
