@@ -13,6 +13,7 @@ import { useDietaryPreferences, DietaryTag } from "@/hooks/useDietaryPreferences
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DietaryFilterSelect } from "@/components/DietaryFilterSelect";
 import { EmptyRecipes } from "@/components/empty-states";
+import VideoRecipesSection from "@/components/video-recipes/VideoRecipesSection";
 import { hapticFeedback } from "@/utils/haptic";
 import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
@@ -336,6 +337,9 @@ const Recipes = () => {
             </Button>
           </div>
         </div>
+
+        {/* Video Recipes — featured first */}
+        {!searchQuery && <VideoRecipesSection />}
 
         {/* Smart age banner */}
         {babyAgeGroup && selectedAge === "All Ages" && babyName && (
