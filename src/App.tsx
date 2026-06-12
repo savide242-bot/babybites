@@ -30,6 +30,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const FirstDay = lazy(() => import("./pages/FirstDay"));
 const Recipes = lazy(() => import("./pages/Recipes"));
 const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
+const VideoRecipeDetail = lazy(() => import("./pages/VideoRecipeDetail"));
 const MealPlanner = lazy(() => import("./pages/MealPlanner"));
 const Advice = lazy(() => import("./pages/Advice"));
 const Bonus = lazy(() => import("./pages/Bonus"));
@@ -118,6 +119,7 @@ const AppContent = () => {
           <Route path="/" element={<Home />} />
           <Route path="/recipes" element={<Recipes />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
+          <Route path="/video-recipe/:id" element={<VideoRecipeDetail />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/planner" element={<MealPlanner />} />
           <Route path="/advice" element={<Advice />} />
