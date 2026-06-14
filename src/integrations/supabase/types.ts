@@ -1377,6 +1377,93 @@ export type Database = {
         }
         Relationships: []
       }
+      video_recipes: {
+        Row: {
+          age_label: string
+          allergen_note: string | null
+          cook_time: string
+          created_at: string
+          created_by: string | null
+          description: string
+          difficulty: string
+          expert_tip: string
+          id: string
+          ingredients: Json
+          min_age_months: number
+          nutrition_highlights: Json
+          poster_url: string
+          prep_time: string
+          published: boolean
+          servings: string
+          short_title: string
+          sort_order: number
+          steps: Json
+          storage: string
+          title: string
+          total_time: string
+          updated_at: string
+          video_duration: string
+          video_url: string
+          views_count: number
+        }
+        Insert: {
+          age_label: string
+          allergen_note?: string | null
+          cook_time: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          difficulty?: string
+          expert_tip?: string
+          id: string
+          ingredients?: Json
+          min_age_months?: number
+          nutrition_highlights?: Json
+          poster_url: string
+          prep_time: string
+          published?: boolean
+          servings: string
+          short_title: string
+          sort_order?: number
+          steps?: Json
+          storage?: string
+          title: string
+          total_time: string
+          updated_at?: string
+          video_duration?: string
+          video_url: string
+          views_count?: number
+        }
+        Update: {
+          age_label?: string
+          allergen_note?: string | null
+          cook_time?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          difficulty?: string
+          expert_tip?: string
+          id?: string
+          ingredients?: Json
+          min_age_months?: number
+          nutrition_highlights?: Json
+          poster_url?: string
+          prep_time?: string
+          published?: boolean
+          servings?: string
+          short_title?: string
+          sort_order?: number
+          steps?: Json
+          storage?: string
+          title?: string
+          total_time?: string
+          updated_at?: string
+          video_duration?: string
+          video_url?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       weekly_challenges: {
         Row: {
           challenge_type: string
