@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { Play, Clapperboard, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { videoRecipes } from "@/data/videoRecipes";
+import { useVideoRecipes } from "@/hooks/useVideoRecipes";
 import { hapticFeedback } from "@/utils/haptic";
 
 const VideoRecipesSection = () => {
+  const { videoRecipes, loading } = useVideoRecipes();
+  if (loading || videoRecipes.length === 0) return null;
   return (
     <div className="mb-6 sm:mb-8 animate-fade-in">
       {/* Section header */}
