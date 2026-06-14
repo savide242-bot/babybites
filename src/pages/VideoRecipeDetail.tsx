@@ -18,13 +18,13 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getVideoRecipeById } from "@/data/videoRecipes";
+import { useVideoRecipe } from "@/hooks/useVideoRecipes";
 import { hapticFeedback } from "@/utils/haptic";
 
 const VideoRecipeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const recipe = getVideoRecipeById(id || "");
+  const { recipe, loading } = useVideoRecipe(id);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +37,14 @@ const VideoRecipeDetail = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-24 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!recipe) {
     return (
