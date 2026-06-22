@@ -417,7 +417,7 @@ const VideoRecipeManager = () => {
               <Input
                 ref={fileInputRef}
                 type="file"
-                accept="video/mp4,video/quicktime,video/webm"
+                accept="video/mp4,video/webm"
                 onChange={handleVideoSelect}
                 disabled={uploading}
               />
@@ -428,7 +428,7 @@ const VideoRecipeManager = () => {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              📱 MP4 recommended. Max {MAX_VIDEO_MB}MB. Poster auto-extracted from the first frame.
+              📱 <strong>MP4 (H.264) only</strong> — max {MAX_VIDEO_MB}MB. iPhone <code>.mov</code> / HEVC won't play on Android. Convert first at <a href="https://www.freeconvert.com/mov-to-mp4" target="_blank" rel="noopener" className="underline">freeconvert.com</a>. AI picks the best frame as cover.
             </p>
           </div>
 
