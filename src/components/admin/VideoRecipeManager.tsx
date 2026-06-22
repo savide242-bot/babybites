@@ -253,18 +253,38 @@ const VideoRecipeManager = () => {
       let posterUrl = '';
 
       if (videoFile) {
-        setUploadProgress(10);
-        const ext = videoFile.name.split('.').pop() || 'mp4';
+        setUploadProgress(5);
+        const ext = (videoFile.name.split('.').pop() || 'mp4').toLowerCase();
         const videoPath = `videos/${recipeId}.${ext}`;
-        const posterBlob = await extractPoster(videoFile);
-        setUploadProgress(30);
 
+        // 1. Extract 6 candidate frames from the video
+        toast({ title: '🎬 Analyzing frames…', description: 'Picking the most attractive cover.' });
+        const { dataUrls, blobs } = await extractCandidateFrames(videoFile, 6);
+        setUploadProgress(20);
+
+        // 2. Ask AI to pick the best one (fallback to middle frame on failure)
+        let bestIndex = Math.floor(blobs.length / 2);
+        try {
+          const { data: pickData, error: pickErr } = await supabase.functions.invoke('pick-best-poster', {
+            body: { frames: dataUrls },
+          });
+          if (!pickErr && pickData && typeof pickData.bestIndex === 'number') {
+            bestIndex = pickData.bestIndex;
+          }
+        } catch (e) {
+          console.warn('AI poster pick failed, using middle frame', e);
+        }
+        const posterBlob = blobs[bestIndex];
+        setUploadProgress(35);
+
+        // 3. Upload video
         const { error: vErr } = await supabase.storage
           .from('recipe-images')
-          .upload(videoPath, videoFile, { upsert: true, contentType: videoFile.type });
+          .upload(videoPath, videoFile, { upsert: true, contentType: videoFile.type || 'video/mp4' });
         if (vErr) throw vErr;
-        setUploadProgress(70);
+        setUploadProgress(75);
 
+        // 4. Upload chosen poster
         const posterPath = `videos/${recipeId}-poster.jpg`;
         const { error: pErr } = await supabase.storage
           .from('recipe-images')
