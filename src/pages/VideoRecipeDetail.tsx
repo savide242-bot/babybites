@@ -166,12 +166,22 @@ const VideoRecipeDetail = () => {
                 setIsPlaying(false);
                 setProgress(100);
               }}
+              onError={(e) => {
+                const v = e.currentTarget;
+                const codes: Record<number, string> = {
+                  1: 'Playback aborted',
+                  2: 'Network error loading video',
+                  3: 'Video is corrupted or cannot be decoded',
+                  4: 'Video format not supported by this browser (try re-uploading as MP4 / H.264)',
+                };
+                setVideoError(codes[v.error?.code || 0] || 'Video failed to load');
+              }}
               onClick={togglePlay}
               className="absolute inset-0 w-full h-full object-contain bg-black"
             />
 
             {/* Center play overlay */}
-            {!isPlaying && (
+            {!isPlaying && !videoError && (
               <button
                 onClick={togglePlay}
                 aria-label="Play video"
@@ -191,6 +201,15 @@ const VideoRecipeDetail = () => {
                   </div>
                 )}
               </button>
+            )}
+
+            {/* Error overlay */}
+            {videoError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-black/85 text-center">
+                <AlertTriangle className="h-10 w-10 text-amber-400 mb-3" />
+                <p className="text-white text-sm font-semibold mb-1">Can't play this video</p>
+                <p className="text-white/75 text-xs leading-relaxed">{videoError}</p>
+              </div>
             )}
 
             {/* Bottom controls */}
