@@ -179,6 +179,16 @@ const VideoRecipeManager = () => {
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.mov') || file.type === 'video/quicktime') {
+      toast({
+        title: '⚠️ .MOV not supported',
+        description: 'iPhone .mov / HEVC files won\'t play on Android & Chrome. Convert to MP4 first (freeconvert.com).',
+        variant: 'destructive',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
     const sizeMB = file.size / 1024 / 1024;
     if (sizeMB > MAX_VIDEO_MB) {
       toast({
