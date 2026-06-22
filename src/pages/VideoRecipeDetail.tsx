@@ -33,6 +33,7 @@ const VideoRecipeDetail = () => {
   const [progress, setProgress] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -63,9 +64,19 @@ const VideoRecipeDetail = () => {
     if (!video) return;
     hapticFeedback("light");
     if (video.paused) {
-      video.play();
-      setIsPlaying(true);
-      setHasStarted(true);
+      const p = video.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          setIsPlaying(true);
+          setHasStarted(true);
+        }).catch((err) => {
+          console.error('Video play() rejected:', err);
+          setVideoError(`Playback failed: ${err?.message || 'unsupported format'}. Try a different browser, or re-upload the video as MP4 (H.264).`);
+        });
+      } else {
+        setIsPlaying(true);
+        setHasStarted(true);
+      }
     } else {
       video.pause();
       setIsPlaying(false);
@@ -155,12 +166,22 @@ const VideoRecipeDetail = () => {
                 setIsPlaying(false);
                 setProgress(100);
               }}
+              onError={(e) => {
+                const v = e.currentTarget;
+                const codes: Record<number, string> = {
+                  1: 'Playback aborted',
+                  2: 'Network error loading video',
+                  3: 'Video is corrupted or cannot be decoded',
+                  4: 'Video format not supported by this browser (try re-uploading as MP4 / H.264)',
+                };
+                setVideoError(codes[v.error?.code || 0] || 'Video failed to load');
+              }}
               onClick={togglePlay}
               className="absolute inset-0 w-full h-full object-contain bg-black"
             />
 
             {/* Center play overlay */}
-            {!isPlaying && (
+            {!isPlaying && !videoError && (
               <button
                 onClick={togglePlay}
                 aria-label="Play video"
@@ -180,6 +201,15 @@ const VideoRecipeDetail = () => {
                   </div>
                 )}
               </button>
+            )}
+
+            {/* Error overlay */}
+            {videoError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-black/85 text-center">
+                <AlertTriangle className="h-10 w-10 text-amber-400 mb-3" />
+                <p className="text-white text-sm font-semibold mb-1">Can't play this video</p>
+                <p className="text-white/75 text-xs leading-relaxed">{videoError}</p>
+              </div>
             )}
 
             {/* Bottom controls */}

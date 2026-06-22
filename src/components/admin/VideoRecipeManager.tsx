@@ -56,16 +56,37 @@ const emptyDraft = {
 
 const MAX_VIDEO_MB = 45;
 
-const extractPoster = (videoFile: File): Promise<Blob> => {
+// Extract N candidate frames evenly spaced through the video (skipping the very first/last seconds
+// which are usually black/intro/outro). Returns both compact data URLs (for AI) and full-resolution blobs.
+const extractCandidateFrames = (
+  videoFile: File,
+  count = 6,
+): Promise<{ dataUrls: string[]; blobs: Blob[] }> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.muted = true;
     video.playsInline = true;
-    video.src = URL.createObjectURL(videoFile);
+    video.crossOrigin = 'anonymous';
+    const objectUrl = URL.createObjectURL(videoFile);
+    video.src = objectUrl;
+
+    const dataUrls: string[] = [];
+    const blobs: Blob[] = [];
+    let timestamps: number[] = [];
+    let i = 0;
+
+    const cleanup = () => URL.revokeObjectURL(objectUrl);
+
     video.onloadedmetadata = () => {
-      video.currentTime = Math.min(0.5, video.duration / 2);
+      const dur = video.duration || 1;
+      const start = Math.min(1.5, dur * 0.1);
+      const end = Math.max(dur - 1.0, dur * 0.92);
+      const span = Math.max(end - start, 0.5);
+      timestamps = Array.from({ length: count }, (_, k) => start + (span * k) / (count - 1));
+      video.currentTime = timestamps[0];
     };
+
     video.onseeked = () => {
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
@@ -73,13 +94,34 @@ const extractPoster = (videoFile: File): Promise<Blob> => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return reject(new Error('Canvas error'));
       ctx.drawImage(video, 0, 0);
+
+      // Full quality blob (for upload)
       canvas.toBlob((blob) => {
-        URL.revokeObjectURL(video.src);
-        if (blob) resolve(blob);
-        else reject(new Error('Poster extraction failed'));
-      }, 'image/jpeg', 0.85);
+        if (!blob) return reject(new Error('Frame blob failed'));
+        blobs.push(blob);
+
+        // Compact thumbnail for AI (max 512px wide)
+        const scale = Math.min(1, 512 / canvas.width);
+        const thumb = document.createElement('canvas');
+        thumb.width = Math.round(canvas.width * scale);
+        thumb.height = Math.round(canvas.height * scale);
+        thumb.getContext('2d')!.drawImage(canvas, 0, 0, thumb.width, thumb.height);
+        dataUrls.push(thumb.toDataURL('image/jpeg', 0.75));
+
+        i++;
+        if (i < timestamps.length) {
+          video.currentTime = timestamps[i];
+        } else {
+          cleanup();
+          resolve({ dataUrls, blobs });
+        }
+      }, 'image/jpeg', 0.9);
     };
-    video.onerror = () => reject(new Error('Video load failed'));
+
+    video.onerror = () => {
+      cleanup();
+      reject(new Error('Video load failed — file may use an unsupported codec (try MP4/H.264).'));
+    };
   });
 };
 
@@ -137,6 +179,16 @@ const VideoRecipeManager = () => {
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.mov') || file.type === 'video/quicktime') {
+      toast({
+        title: '⚠️ .MOV not supported',
+        description: 'iPhone .mov / HEVC files won\'t play on Android & Chrome. Convert to MP4 first (freeconvert.com).',
+        variant: 'destructive',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
     const sizeMB = file.size / 1024 / 1024;
     if (sizeMB > MAX_VIDEO_MB) {
       toast({
@@ -211,18 +263,38 @@ const VideoRecipeManager = () => {
       let posterUrl = '';
 
       if (videoFile) {
-        setUploadProgress(10);
-        const ext = videoFile.name.split('.').pop() || 'mp4';
+        setUploadProgress(5);
+        const ext = (videoFile.name.split('.').pop() || 'mp4').toLowerCase();
         const videoPath = `videos/${recipeId}.${ext}`;
-        const posterBlob = await extractPoster(videoFile);
-        setUploadProgress(30);
 
+        // 1. Extract 6 candidate frames from the video
+        toast({ title: '🎬 Analyzing frames…', description: 'Picking the most attractive cover.' });
+        const { dataUrls, blobs } = await extractCandidateFrames(videoFile, 6);
+        setUploadProgress(20);
+
+        // 2. Ask AI to pick the best one (fallback to middle frame on failure)
+        let bestIndex = Math.floor(blobs.length / 2);
+        try {
+          const { data: pickData, error: pickErr } = await supabase.functions.invoke('pick-best-poster', {
+            body: { frames: dataUrls },
+          });
+          if (!pickErr && pickData && typeof pickData.bestIndex === 'number') {
+            bestIndex = pickData.bestIndex;
+          }
+        } catch (e) {
+          console.warn('AI poster pick failed, using middle frame', e);
+        }
+        const posterBlob = blobs[bestIndex];
+        setUploadProgress(35);
+
+        // 3. Upload video
         const { error: vErr } = await supabase.storage
           .from('recipe-images')
-          .upload(videoPath, videoFile, { upsert: true, contentType: videoFile.type });
+          .upload(videoPath, videoFile, { upsert: true, contentType: videoFile.type || 'video/mp4' });
         if (vErr) throw vErr;
-        setUploadProgress(70);
+        setUploadProgress(75);
 
+        // 4. Upload chosen poster
         const posterPath = `videos/${recipeId}-poster.jpg`;
         const { error: pErr } = await supabase.storage
           .from('recipe-images')
@@ -355,7 +427,7 @@ const VideoRecipeManager = () => {
               <Input
                 ref={fileInputRef}
                 type="file"
-                accept="video/mp4,video/quicktime,video/webm"
+                accept="video/mp4,video/webm"
                 onChange={handleVideoSelect}
                 disabled={uploading}
               />
@@ -366,7 +438,7 @@ const VideoRecipeManager = () => {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              📱 MP4 recommended. Max {MAX_VIDEO_MB}MB. Poster auto-extracted from the first frame.
+              📱 <strong>MP4 (H.264) only</strong> — max {MAX_VIDEO_MB}MB. iPhone <code>.mov</code> / HEVC won't play on Android. Convert first at <a href="https://www.freeconvert.com/mov-to-mp4" target="_blank" rel="noopener" className="underline">freeconvert.com</a>. AI picks the best frame as cover.
             </p>
           </div>
 
