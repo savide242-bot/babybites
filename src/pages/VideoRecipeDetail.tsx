@@ -64,9 +64,19 @@ const VideoRecipeDetail = () => {
     if (!video) return;
     hapticFeedback("light");
     if (video.paused) {
-      video.play();
-      setIsPlaying(true);
-      setHasStarted(true);
+      const p = video.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          setIsPlaying(true);
+          setHasStarted(true);
+        }).catch((err) => {
+          console.error('Video play() rejected:', err);
+          setVideoError(`Playback failed: ${err?.message || 'unsupported format'}. Try a different browser, or re-upload the video as MP4 (H.264).`);
+        });
+      } else {
+        setIsPlaying(true);
+        setHasStarted(true);
+      }
     } else {
       video.pause();
       setIsPlaying(false);
