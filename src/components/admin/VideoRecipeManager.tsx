@@ -56,16 +56,37 @@ const emptyDraft = {
 
 const MAX_VIDEO_MB = 45;
 
-const extractPoster = (videoFile: File): Promise<Blob> => {
+// Extract N candidate frames evenly spaced through the video (skipping the very first/last seconds
+// which are usually black/intro/outro). Returns both compact data URLs (for AI) and full-resolution blobs.
+const extractCandidateFrames = (
+  videoFile: File,
+  count = 6,
+): Promise<{ dataUrls: string[]; blobs: Blob[] }> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.muted = true;
     video.playsInline = true;
-    video.src = URL.createObjectURL(videoFile);
+    video.crossOrigin = 'anonymous';
+    const objectUrl = URL.createObjectURL(videoFile);
+    video.src = objectUrl;
+
+    const dataUrls: string[] = [];
+    const blobs: Blob[] = [];
+    let timestamps: number[] = [];
+    let i = 0;
+
+    const cleanup = () => URL.revokeObjectURL(objectUrl);
+
     video.onloadedmetadata = () => {
-      video.currentTime = Math.min(0.5, video.duration / 2);
+      const dur = video.duration || 1;
+      const start = Math.min(1.5, dur * 0.1);
+      const end = Math.max(dur - 1.0, dur * 0.92);
+      const span = Math.max(end - start, 0.5);
+      timestamps = Array.from({ length: count }, (_, k) => start + (span * k) / (count - 1));
+      video.currentTime = timestamps[0];
     };
+
     video.onseeked = () => {
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
@@ -73,13 +94,34 @@ const extractPoster = (videoFile: File): Promise<Blob> => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return reject(new Error('Canvas error'));
       ctx.drawImage(video, 0, 0);
+
+      // Full quality blob (for upload)
       canvas.toBlob((blob) => {
-        URL.revokeObjectURL(video.src);
-        if (blob) resolve(blob);
-        else reject(new Error('Poster extraction failed'));
-      }, 'image/jpeg', 0.85);
+        if (!blob) return reject(new Error('Frame blob failed'));
+        blobs.push(blob);
+
+        // Compact thumbnail for AI (max 512px wide)
+        const scale = Math.min(1, 512 / canvas.width);
+        const thumb = document.createElement('canvas');
+        thumb.width = Math.round(canvas.width * scale);
+        thumb.height = Math.round(canvas.height * scale);
+        thumb.getContext('2d')!.drawImage(canvas, 0, 0, thumb.width, thumb.height);
+        dataUrls.push(thumb.toDataURL('image/jpeg', 0.75));
+
+        i++;
+        if (i < timestamps.length) {
+          video.currentTime = timestamps[i];
+        } else {
+          cleanup();
+          resolve({ dataUrls, blobs });
+        }
+      }, 'image/jpeg', 0.9);
     };
-    video.onerror = () => reject(new Error('Video load failed'));
+
+    video.onerror = () => {
+      cleanup();
+      reject(new Error('Video load failed — file may use an unsupported codec (try MP4/H.264).'));
+    };
   });
 };
 
