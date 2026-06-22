@@ -33,6 +33,7 @@ const VideoRecipeDetail = () => {
   const [progress, setProgress] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
