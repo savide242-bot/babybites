@@ -41,10 +41,54 @@ export interface Recipe {
 }
 
 export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months", "24+ months"];
-export const categories = ["All Categories", "Puree", "Mash", "Soup", "Finger Food", "Porridge", "Pancakes", "Pasta", "Bowl", "Bites", "Smoothie"];
+export const categories = ["All Categories", "Breakfast", "Lunch & Dinner", "Snack", "Dessert"];
+
+// Standardized official 4 categories: Breakfast, Lunch & Dinner, Snack, Dessert
+export const getMealCategory = (recipe: any): "Breakfast" | "Lunch & Dinner" | "Snack" | "Dessert" => {
+  const title = (recipe.title || "").toLowerCase();
+  const description = (recipe.description || "").toLowerCase();
+  const ingredients = (recipe.ingredients || []).join(" ").toLowerCase();
+  const combined = `${title} ${description} ${ingredients}`;
+
+  // 1. DESSERT: Smoothies, natural baby nicecreams, fruit swirls, popsicles
+  if (/smoothie|lassi|shake|nicecream|popsicle|pudding|custard|fruit swirl|compote/.test(title) ||
+      /smoothie|nicecream|popsicle/.test(combined)) {
+    return "Dessert";
+  }
+
+  // 2. BREAKFAST: Oats, pancakes, waffles, breakfast eggs, morning porridge
+  if (/pancake|waffle|oat|oatmeal|porridge|cereal|french toast|chia|congee|breakfast|scrambled/.test(title) &&
+      !/chicken|fish|salmon|meat|beef|lentil stew|pasta/.test(title)) {
+    return "Breakfast";
+  }
+  if (/breakfast|morning/.test(combined) && !/dinner|lunch/.test(title)) {
+    return "Breakfast";
+  }
+
+  // 3. SNACK: Soft finger bars, bites, biscuits, muffins, tots, veggie sticks, dips
+  if (/bites|muffin|cracker|biscuit|bar|tot|snack|cookie|balls|hummus|dip|energy|roll|chips/.test(title)) {
+    return "Snack";
+  }
+
+  // 4. LUNCH & DINNER: Soups, hearty purees, pastas, meats, fish, chicken, lentils, stews
+  if (/soup|stew|pasta|noodle|rice|risotto|chicken|turkey|beef|salmon|fish|cod|meatloaf|curry|lentil|bean|chickpea|casserole|dinner|lunch|lasagna|quiche|pizza|taco|frittata/.test(title)) {
+    return "Lunch & Dinner";
+  }
+
+  if (/sweet potato|carrot|broccoli|pea|spinach|zucchini|potato|cauliflower|butternut/.test(title) && !/apple|banana|mango|berry/.test(title)) {
+    return "Lunch & Dinner";
+  }
+  if (/banana|apple|mango|berry|strawberry|blueberry|peach|papaya/.test(title)) {
+    return "Dessert";
+  }
+
+  return "Lunch & Dinner";
+};
 
 // Infer food-type category from recipe content using intelligent keyword matching
 const inferFoodTypeCategory = (recipe: any): string => {
+  return getMealCategory(recipe);
+
   const title = (recipe.title || "").toLowerCase();
   const description = (recipe.description || "").toLowerCase();
   const ingredients = (recipe.ingredients || []).join(" ").toLowerCase();

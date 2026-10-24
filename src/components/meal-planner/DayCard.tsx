@@ -1,14 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { MealCard } from "./MealCard";
-import { Copy, Trash2, ChevronDown, ChevronUp, Flame, Clock, Utensils } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Copy, Trash2, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
 import { recipes } from "@/data/recipes";
-import confetti from "canvas-confetti";
-import { toast } from "sonner";
 
 interface MealSlot {
   recipeId: string;
@@ -30,8 +24,6 @@ interface DayCardProps {
 
 const mealTypes = ["breakfast", "lunch", "dinner", "snack"] as const;
 
-const dayEmojis = ["📅", "💪", "🌟", "✨", "🎯", "🌈", "🎉"];
-
 export const DayCard = ({
   day,
   dayIndex,
@@ -41,164 +33,101 @@ export const DayCard = ({
   onTogglePrepared,
   onEditMeal,
   onCopyDay,
-  onClearDay
+  onClearDay,
 }: DayCardProps) => {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const getRecipe = (recipeId: string) => recipes.find(r => r.id === recipeId);
+  const getRecipe = (recipeId: string) => recipes.find((r) => r.id === recipeId);
 
-  // Calculate day stats
   const plannedMeals = Object.keys(meals).length;
-  const preparedMeals = Object.values(meals).filter(m => m.prepared).length;
-  const progress = plannedMeals > 0 ? (preparedMeals / plannedMeals) * 100 : 0;
-
-  // Calculate totals
-  const totals = Object.values(meals).reduce(
-    (acc, slot) => {
-      const recipe = getRecipe(slot.recipeId);
-      if (recipe) {
-        acc.calories += parseInt(recipe.nutrition?.calories) || 0;
-        acc.prepTime += parseInt(recipe.prepTime) || 0;
-        acc.protein += parseInt(recipe.nutrition?.protein) || 0;
-      }
-      return acc;
-    },
-    { calories: 0, prepTime: 0, protein: 0 }
-  );
-
+  const preparedMeals = Object.values(meals).filter((m) => m.prepared).length;
   const isComplete = plannedMeals === 4 && preparedMeals === 4;
 
-  // Celebrate when day is complete
-  const handleTogglePrepared = (mealType: string) => {
-    const currentPrepared = Object.values(meals).filter(m => m.prepared).length;
-    const willBeComplete = currentPrepared === 3 && plannedMeals === 4 && !meals[mealType]?.prepared;
-    
-    onTogglePrepared(mealType);
-    
-    if (willBeComplete) {
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-        toast.success(`🎉 Amazing! All meals for ${day} are prepared!`);
-      }, 300);
-    }
-  };
-
   return (
-    <Card className={cn(
-      "overflow-hidden transition-all duration-300 border-2",
-      isComplete && "border-green-500/50 bg-green-50/30 dark:bg-green-950/10",
-      !isComplete && plannedMeals > 0 && "border-primary/30",
-      !plannedMeals && "border-dashed border-muted-foreground/30"
-    )}>
-      {/* Header */}
-      <CardHeader className={cn(
-        "p-4 cursor-pointer select-none",
-        "bg-gradient-to-r from-primary/10 via-secondary/5 to-accent/10"
-      )} onClick={() => setIsExpanded(!isExpanded)}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{dayEmojis[dayIndex]}</span>
-            <div>
-              <h3 className="font-bold text-lg text-foreground">{day}</h3>
-              <p className="text-xs text-muted-foreground">
-                {plannedMeals}/4 meals planned • {preparedMeals} prepared
-              </p>
-            </div>
+    <div className="rounded-[28px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden mb-5 transition-all">
+      {/* Day Header */}
+      <div className="p-4 px-5 flex items-center justify-between border-b border-[#F5F3EC] bg-white">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#EAF5EE] border border-[#CCE0D2] flex items-center justify-center font-serif font-bold text-forest text-sm">
+            {day.slice(0, 2)}
           </div>
-
-          <div className="flex items-center gap-2">
-            {/* Quick Stats */}
-            {plannedMeals > 0 && (
-              <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground mr-4">
-                <span className="flex items-center gap-1">
-                  <Flame className="h-3 w-3 text-orange-500" />
-                  {totals.calories} cal
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-serif font-bold text-gray-900 text-lg leading-tight">
+                {day}
+              </h3>
+              {isComplete && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#48B774] bg-[#EAF5EE] px-2 py-0.5 rounded-full">
+                  <CheckCircle2 className="w-3 h-3" /> All Done
                 </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-blue-500" />
-                  {totals.prepTime}min
-                </span>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8"
-              onClick={(e) => { e.stopPropagation(); onCopyDay(); }}
-              title="Copy day"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-            {plannedMeals > 0 && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 text-destructive"
-                onClick={(e) => { e.stopPropagation(); onClearDay(); }}
-                title="Clear day"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-            {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            )}
+              )}
+            </div>
+            <p className="text-[11px] text-gray-400">
+              {plannedMeals}/4 meals planned • {preparedMeals} prepared
+            </p>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        {plannedMeals > 0 && (
-          <div className="mt-3">
-            <Progress 
-              value={progress} 
-              className={cn(
-                "h-2",
-                isComplete && "[&>div]:bg-green-500"
-              )} 
-            />
-          </div>
-        )}
-      </CardHeader>
+        {/* Day Actions */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onCopyDay}
+            title="Copy meals to another day"
+            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onClearDay}
+            title="Clear day plan"
+            className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors"
+          >
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
 
-      {/* Content */}
+      {/* Meals List */}
       {isExpanded && (
-        <CardContent className="p-4 pt-2">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {mealTypes.map((mealType) => {
-              const slot = meals[mealType];
-              const recipe = slot ? getRecipe(slot.recipeId) : null;
+        <div className="p-4 space-y-3 bg-[#FCFCFA]">
+          {mealTypes.map((mealType) => {
+            const slot = meals[mealType];
+            const recipe = slot ? getRecipe(slot.recipeId) : null;
 
-              return (
-                <MealCard
-                  key={mealType}
-                  recipe={recipe ? {
-                    id: recipe.id,
-                    title: recipe.title,
-                    prepTime: recipe.prepTime,
-                    calories: parseInt(recipe.nutrition?.calories) || undefined
-                  } : null}
-                  mealType={mealType}
-                  prepared={slot?.prepared || false}
-                  onTogglePrepared={() => handleTogglePrepared(mealType)}
-                  onRemove={() => onRemoveMeal(mealType)}
-                  onEdit={() => onEditMeal(mealType)}
-                  onAdd={() => onAddMeal(mealType)}
-                  onRecipeClick={recipe ? () => navigate(`/recipe/${recipe.id}`, { state: { from: 'planner' } }) : undefined}
-                />
-              );
-            })}
-          </div>
-        </CardContent>
+            return (
+              <MealCard
+                key={mealType}
+                mealType={mealType}
+                recipe={
+                  recipe
+                    ? {
+                        id: recipe.id,
+                        title: recipe.title,
+                        prepTime: recipe.prepTime,
+                        image: recipe.image,
+                      }
+                    : null
+                }
+                prepared={slot?.prepared || false}
+                onAdd={() => onAddMeal(mealType)}
+                onRemove={() => onRemoveMeal(mealType)}
+                onEdit={() => onEditMeal(mealType)}
+                onTogglePrepared={() => onTogglePrepared(mealType)}
+                onRecipeClick={() => recipe && navigate(`/recipe/${recipe.id}`)}
+              />
+            );
+          })}
+        </div>
       )}
-    </Card>
+    </div>
   );
 };
+
+export default DayCard;

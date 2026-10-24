@@ -5,16 +5,18 @@ import SolidsClubWelcomeBanner from "@/components/home/SolidsClubWelcomeBanner";
 import SolidsClubAgeSection from "@/components/home/SolidsClubAgeSection";
 import SolidsClubQuickTools from "@/components/home/SolidsClubQuickTools";
 
-// Import authentic images from assets
+// Import authentic photos from local assets
 import porridgeImg from "@/assets/recipe-325-sweet-potato-porridge.jpg";
 import soupImg from "@/assets/recipe-324-chicken-veggie-soup.jpg";
 import bitesImg from "@/assets/recipe-319-mac-cheese-bites.jpg";
+import smoothieImg from "@/assets/recipe-321-smoothie-bowl.jpg";
 import pancakeImg from "@/assets/recipe-323-blueberry-pancakes.jpg";
 import riceImg from "@/assets/recipe-317-veggie-fried-rice.jpg";
 import fruitImg from "@/assets/recipe-318-tropical-fruit-salad.jpg";
-import bowlImg from "@/assets/recipe-321-smoothie-bowl.jpg";
+import yogurtSwirlImg from "@/assets/recipes/mango-yogurt-swirl.jpg";
 import pastaImg from "@/assets/recipe-322-hidden-veggie-pasta.jpg";
 import quesadillaImg from "@/assets/recipe-320-veggie-quesadillas.jpg";
+import tacosImg from "@/assets/recipe-316-chicken-tacos.jpg";
 
 export const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
@@ -55,78 +57,99 @@ export const Home = () => {
     fetchUserData();
   }, []);
 
-  // Section 1: 6-8 Months
+  // Section 1: 6-8 Months (Breakfast, Lunch & Dinner, Snack, Dessert)
   const age6to8Cards = [
     {
       title: "Breakfast",
-      subtitle: "Simple morning purees & smooth oats for little starters.",
+      subtitle: "Smooth morning porridge & wholesome oats.",
       ageTag: "6-8 Months",
       image: porridgeImg,
-      link: "/recipes?age=6-9&meal=Breakfast",
+      link: "/recipes?age=6-8&category=Breakfast",
     },
     {
       title: "Lunch & Dinner",
-      subtitle: "Simple, nourishing vegetable & lentil meals.",
+      subtitle: "Nutrient-packed purees, soups & tender lentils.",
       ageTag: "6-8 Months",
       image: soupImg,
-      link: "/recipes?age=6-9&meal=Lunch",
-    },
-    {
-      title: "Finger Foods",
-      subtitle: "Soft graspable sticks to introduce self-feeding safely.",
-      ageTag: "6-8 Months",
-      image: bitesImg,
-      link: "/recipes?age=6-9&category=Finger%20Food",
-    },
-  ];
-
-  // Section 2: 9-11 Months
-  const age9to11Cards = [
-    {
-      title: "Breakfast",
-      subtitle: "Fluffy banana pancakes & gentle fruit cups.",
-      ageTag: "9-11 Months",
-      image: pancakeImg,
-      link: "/recipes?age=9-12&meal=Breakfast",
-    },
-    {
-      title: "Lunch & Dinner",
-      subtitle: "Textured mash, flaky fish & tender veggies.",
-      ageTag: "9-11 Months",
-      image: riceImg,
-      link: "/recipes?age=9-12&meal=Lunch",
+      link: "/recipes?age=6-8&category=Lunch%20%26%20Dinner",
     },
     {
       title: "Snacks",
-      subtitle: "Healthy baked bites & refreshing fruit yogurt.",
-      ageTag: "9-11 Months",
-      image: fruitImg,
-      link: "/recipes?age=9-12&meal=Snack",
+      subtitle: "Soft melt-in-mouth sticks & veggie bites.",
+      ageTag: "6-8 Months",
+      image: bitesImg,
+      link: "/recipes?age=6-8&category=Snack",
+    },
+    {
+      title: "Desserts & Smoothies",
+      subtitle: "Gentle cold fruit purees & dairy-free baby sips.",
+      ageTag: "6-8 Months",
+      image: yogurtSwirlImg,
+      link: "/recipes?age=6-8&category=Dessert",
     },
   ];
 
-  // Section 3: 12-23 Months
-  const age12to23Cards = [
+  // Section 2: 9-11 Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  const age9to11Cards = [
     {
       title: "Breakfast",
-      subtitle: "Hearty toddler bowls, French toast & energy bites.",
-      ageTag: "12-23 Months",
-      image: bowlImg,
-      link: "/recipes?age=12-18&meal=Breakfast",
+      subtitle: "Fluffy banana pancakes & soft egg scrambles.",
+      ageTag: "9-11 Months",
+      image: pancakeImg,
+      link: "/recipes?age=9-11&category=Breakfast",
     },
     {
       title: "Lunch & Dinner",
-      subtitle: "Family meals adapted for tiny teeth & hands.",
-      ageTag: "12-23 Months",
-      image: pastaImg,
-      link: "/recipes?age=12-18&meal=Lunch",
+      subtitle: "Tender fish mash, mild curries & savory grains.",
+      ageTag: "9-11 Months",
+      image: riceImg,
+      link: "/recipes?age=9-11&category=Lunch%20%26%20Dinner",
     },
     {
-      title: "Snacks & Treats",
-      subtitle: "Nutrient-packed finger bars, quesadillas & muffins.",
+      title: "Snacks",
+      subtitle: "Cheesy cauliflower tots & banana oat fingers.",
+      ageTag: "9-11 Months",
+      image: fruitImg,
+      link: "/recipes?age=9-11&category=Snack",
+    },
+    {
+      title: "Desserts & Smoothies",
+      subtitle: "Tropical yogurt bowls & chilled natural nicecream.",
+      ageTag: "9-11 Months",
+      image: smoothieImg,
+      link: "/recipes?age=9-11&category=Dessert",
+    },
+  ];
+
+  // Section 3: 12-23 Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  const age12to23Cards = [
+    {
+      title: "Breakfast",
+      subtitle: "Toddler breakfast wraps, toast & French toasts.",
+      ageTag: "12-23 Months",
+      image: tacosImg,
+      link: "/recipes?age=12-23&category=Breakfast",
+    },
+    {
+      title: "Lunch & Dinner",
+      subtitle: "Family meals with pasta stars & mini meatballs.",
+      ageTag: "12-23 Months",
+      image: pastaImg,
+      link: "/recipes?age=12-23&category=Lunch%20%26%20Dinner",
+    },
+    {
+      title: "Snacks",
+      subtitle: "Veggie quesadillas, crackers & seed energy balls.",
       ageTag: "12-23 Months",
       image: quesadillaImg,
-      link: "/recipes?age=12-18&meal=Snack",
+      link: "/recipes?age=12-23&category=Snack",
+    },
+    {
+      title: "Desserts & Smoothies",
+      subtitle: "Berry protein smoothies & fruit crumble bowls.",
+      ageTag: "12-23 Months",
+      image: smoothieImg,
+      link: "/recipes?age=12-23&category=Dessert",
     },
   ];
 
@@ -139,7 +162,7 @@ export const Home = () => {
         babyAgeMonths={babyAgeMonths}
       />
 
-      {/* 2. Parent Everyday Tools (Item 02 & 04: Planner, Pantry, Freezer, Allergens) */}
+      {/* 2. Parent Everyday Tools (Weekly Planner, Pantry, Freezer, Allergens) */}
       <SolidsClubQuickTools />
 
       {/* 3. Age Section: 6-8 Months */}
