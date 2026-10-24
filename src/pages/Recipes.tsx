@@ -20,6 +20,12 @@ import posterLunchDinner911 from "@/assets/categories/lunch-dinner-9-11m.webp";
 import posterSnacks911 from "@/assets/categories/snacks-9-11m.webp";
 import posterDesserts911 from "@/assets/categories/desserts-smoothies-9-11m.webp";
 
+// 12-23 Months Category Posters
+import posterBreakfast1223 from "@/assets/categories/breakfast-12-23m.webp";
+import posterLunchDinner1223 from "@/assets/categories/lunch-dinner-12-23m.webp";
+import posterSnacks1223 from "@/assets/categories/snacks-12-23m.webp";
+import posterDesserts1223 from "@/assets/categories/desserts-smoothies-12-23m.webp";
+
 const BATCH_SIZE = 24;
 
 const OFFICIAL_AGE_OPTIONS = [
@@ -237,7 +243,7 @@ export const Recipes = () => {
     }
   };
 
-  // Dedicated Category Artwork Banner for 6-8 and 9-11 Months
+  // Dedicated Category Artwork Banner for 6-8m, 9-11m, and 12-23m
   const bannerInfo = useMemo(() => {
     if (selectedAge === "6-8 Months") {
       if (selectedCategory === "Breakfast") {
@@ -305,6 +311,41 @@ export const Recipes = () => {
           title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
           subtitle: "Berry nicecream cups, spiced warm apple compote, and mango chia puddings.",
           tag: "9–11 MONTHS • DESSERTS & SMOOTHIES",
+        };
+      }
+    }
+
+    if (selectedAge === "12-23 Months") {
+      if (selectedCategory === "Breakfast") {
+        return {
+          image: posterBreakfast1223,
+          title: "Breakfast: Little Morning Moments",
+          subtitle: "Golden oat pancakes, scrambled eggs, fresh banana coins and juicy strawberries.",
+          tag: "12–23 MONTHS • BREAKFAST",
+        };
+      }
+      if (selectedCategory === "Lunch & Dinner") {
+        return {
+          image: posterLunchDinner1223,
+          title: "Lunch & Dinner: Nourishing Moments",
+          subtitle: "Mini pasta wheels with fresh avocado, roasted pumpkin chunks, sweet peas and shredded chicken.",
+          tag: "12–23 MONTHS • LUNCH & DINNER",
+        };
+      }
+      if (selectedCategory === "Snack") {
+        return {
+          image: posterSnacks1223,
+          title: "Snacks: Tiny Bites, Happy Days",
+          subtitle: "Wholesome baked oat muffins, crisp cucumber fingers, apple wedges and creamy dip.",
+          tag: "12–23 MONTHS • SNACKS",
+        };
+      }
+      if (selectedCategory === "Dessert") {
+        return {
+          image: posterDesserts1223,
+          title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
+          subtitle: "Thick berry smoothie cup, tropical mango yogurt bowl, and caramelized cinnamon apples.",
+          tag: "12–23 MONTHS • DESSERTS & SMOOTHIES",
         };
       }
     }
@@ -389,7 +430,7 @@ export const Recipes = () => {
         </div>
       </div>
 
-      {/* Featured Category Artwork Banner (6-8m and 9-11m) */}
+      {/* Featured Category Artwork Banner (6-8m, 9-11m, 12-23m) */}
       {bannerInfo && (
         <div className="mb-6 rounded-[24px] overflow-hidden bg-white border border-[#EBE8DF] shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)]">
           <div className="flex flex-col sm:flex-row">
@@ -415,7 +456,7 @@ export const Recipes = () => {
         </div>
       )}
 
-      {/* Quick 4-Category Carousel for 6-8 Months (when on All Categories) */}
+      {/* Quick 4-Category Carousel for 6-8 Months */}
       {selectedAge === "6-8 Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
@@ -454,7 +495,7 @@ export const Recipes = () => {
         </div>
       )}
 
-      {/* Quick 4-Category Carousel for 9-11 Months (when on All Categories) */}
+      {/* Quick 4-Category Carousel for 9-11 Months */}
       {selectedAge === "9-11 Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
@@ -468,6 +509,45 @@ export const Recipes = () => {
               { title: "Lunch & Dinner", img: posterLunchDinner911, cat: "Lunch & Dinner" },
               { title: "Snacks", img: posterSnacks911, cat: "Snack" },
               { title: "Desserts", img: posterDesserts911, cat: "Dessert" },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategory(item.cat)}
+                className="text-left rounded-2xl bg-white border border-[#EBE8DF] overflow-hidden shadow-xs hover:shadow-md transition-all group"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden bg-[#FAF9F5]">
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-2">
+                  <span className="text-xs font-semibold text-gray-900 block group-hover:text-forest">
+                    {item.title}
+                  </span>
+                  <span className="text-[10px] text-gray-500">View recipes →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick 4-Category Carousel for 12-23 Months */}
+      {selectedAge === "12-23 Months" && selectedCategory === "All Categories" && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
+              Explore 12–23 Months Categories
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { title: "Breakfast", img: posterBreakfast1223, cat: "Breakfast" },
+              { title: "Lunch & Dinner", img: posterLunchDinner1223, cat: "Lunch & Dinner" },
+              { title: "Snacks", img: posterSnacks1223, cat: "Snack" },
+              { title: "Desserts", img: posterDesserts1223, cat: "Dessert" },
             ].map((item, idx) => (
               <button
                 key={idx}

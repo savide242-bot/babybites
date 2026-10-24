@@ -17,12 +17,16 @@ import posterLunchDinner911 from "@/assets/categories/lunch-dinner-9-11m.webp";
 import posterSnacks911 from "@/assets/categories/snacks-9-11m.webp";
 import posterDesserts911 from "@/assets/categories/desserts-smoothies-9-11m.webp";
 
+// Import authentic 12-23 Months posters
+import posterBreakfast1223 from "@/assets/categories/breakfast-12-23m.webp";
+import posterLunchDinner1223 from "@/assets/categories/lunch-dinner-12-23m.webp";
+import posterSnacks1223 from "@/assets/categories/snacks-12-23m.webp";
+import posterDesserts1223 from "@/assets/categories/desserts-smoothies-12-23m.webp";
+
 import pancakeImg from "@/assets/recipe-323-blueberry-pancakes.jpg";
 import riceImg from "@/assets/recipe-317-veggie-fried-rice.jpg";
 import smoothieImg from "@/assets/recipe-321-smoothie-bowl.jpg";
-import pastaImg from "@/assets/recipe-322-hidden-veggie-pasta.jpg";
 import quesadillaImg from "@/assets/recipe-320-veggie-quesadillas.jpg";
-import tacosImg from "@/assets/recipe-316-chicken-tacos.jpg";
 
 export const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
@@ -135,35 +139,39 @@ export const Home = () => {
     },
   ];
 
-  // Section 3: 12-23 Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  // Section 3: 12-23 Months (Official Posters)
   const age12to23Cards = [
     {
       title: "Breakfast",
-      subtitle: "Toddler breakfast wraps, toast & French toasts.",
+      subtitle: "little morning moments",
       ageTag: "12-23 Months",
-      image: tacosImg,
+      image: posterBreakfast1223,
       link: "/recipes?age=12-23&category=Breakfast",
+      isPosterCard: true,
     },
     {
-      title: "Lunch & Dinner",
-      subtitle: "Family meals with pasta stars & mini meatballs.",
+      title: "Lunch-Dinner",
+      subtitle: "nourishing little moments",
       ageTag: "12-23 Months",
-      image: pastaImg,
+      image: posterLunchDinner1223,
       link: "/recipes?age=12-23&category=Lunch%20%26%20Dinner",
+      isPosterCard: true,
     },
     {
       title: "Snacks",
-      subtitle: "Veggie quesadillas, crackers & seed energy balls.",
+      subtitle: "tiny bites, happy days",
       ageTag: "12-23 Months",
-      image: quesadillaImg,
+      image: posterSnacks1223,
       link: "/recipes?age=12-23&category=Snack",
+      isPosterCard: true,
     },
     {
-      title: "Desserts & Smoothies",
-      subtitle: "Berry protein smoothies & fruit crumble bowls.",
+      title: "Desserts-Smoothies",
+      subtitle: "sweet, soft and wholesome",
       ageTag: "12-23 Months",
-      image: smoothieImg,
+      image: posterDesserts1223,
       link: "/recipes?age=12-23&category=Dessert",
+      isPosterCard: true,
     },
   ];
 
