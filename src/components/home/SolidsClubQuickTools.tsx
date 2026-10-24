@@ -70,8 +70,8 @@ export const SolidsClubQuickTools: React.FC = () => {
   ];
 
   return (
-    <section className="mb-8 sm:mb-10">
-      <div className="flex items-center justify-between mb-3 px-1">
+    <section className="mb-8 sm:mb-10 w-full max-w-full overflow-hidden">
+      <div className="flex items-center justify-between mb-3 px-0.5">
         <div>
           <h2 className="text-lg sm:text-2xl font-serif font-bold text-forest tracking-tight">
             Parent Tools for Everyday Ease
@@ -80,25 +80,37 @@ export const SolidsClubQuickTools: React.FC = () => {
             Smart guides, safety protocols, and daily kitchen companions
           </p>
         </div>
-        <span className="text-[10px] sm:text-[11px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
+        <span className="text-[10px] sm:text-[11px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shrink-0">
           6 Tools
         </span>
       </div>
 
-      {/* Grid: 2 columns on mobile, 2 columns on desktop (2 by 2 side by side) */}
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+      {/* Grid: strictly 2 equal columns on mobile and desktop (50% each side by side) */}
+      <div 
+        className="grid gap-2 sm:gap-3.5 w-full max-w-full"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          width: "100%",
+        }}
+      >
         {tools.map((t) => (
           <Link
             key={t.id}
             to={t.link}
-            className="block group rounded-2xl sm:rounded-[22px] overflow-hidden border border-[#EBE8DF] shadow-[0_4px_14px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 sm:hover:-translate-y-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#1E5E3A]/40"
+            className="w-full min-w-0 max-w-full block group rounded-xl sm:rounded-[22px] overflow-hidden border border-[#EBE8DF] shadow-[0_2px_10px_-2px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-300 bg-white"
+            style={{ width: "100%", maxWidth: "100%", minWidth: 0 }}
           >
-            <div className="relative w-full aspect-[16/9] overflow-hidden bg-stone-100">
+            <div 
+              className="relative w-full aspect-[16/9] overflow-hidden bg-stone-100"
+              style={{ width: "100%", minWidth: 0 }}
+            >
               <img
                 src={t.image}
                 alt={t.title}
-                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
-                loading="lazy"
+                className="w-full h-full object-cover block group-hover:scale-[1.03] transition-transform duration-300"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                loading="eager"
               />
             </div>
           </Link>

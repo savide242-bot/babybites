@@ -213,7 +213,7 @@ export const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full overflow-x-hidden">
       {/* 1. Welcome Header (The Solids Club Style) */}
       <SolidsClubWelcomeBanner
         motherName={motherName}
