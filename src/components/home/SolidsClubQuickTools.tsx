@@ -70,33 +70,34 @@ export const SolidsClubQuickTools: React.FC = () => {
   ];
 
   return (
-    <section className="mb-10">
-      <div className="flex items-center justify-between mb-3.5 px-1">
+    <section className="mb-8 sm:mb-10">
+      <div className="flex items-center justify-between mb-3 px-1">
         <div>
-          <h2 className="text-xl md:text-2xl font-serif font-bold text-forest tracking-tight">
+          <h2 className="text-lg sm:text-2xl font-serif font-bold text-forest tracking-tight">
             Parent Tools for Everyday Ease
           </h2>
-          <p className="text-xs text-stone-500 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
             Smart guides, safety protocols, and daily kitchen companions
           </p>
         </div>
-        <span className="text-[11px] font-semibold text-stone-500 bg-stone-100 px-2.5 py-1 rounded-full">
+        <span className="text-[10px] sm:text-[11px] font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
           6 Tools
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+      {/* Grid: 2 columns on mobile, 2 columns on desktop (2 by 2 side by side) */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
         {tools.map((t) => (
           <Link
             key={t.id}
             to={t.link}
-            className="block group rounded-[22px] overflow-hidden border border-[#EBE8DF] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#1E5E3A]/40"
+            className="block group rounded-2xl sm:rounded-[22px] overflow-hidden border border-[#EBE8DF] shadow-[0_4px_14px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 sm:hover:-translate-y-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#1E5E3A]/40"
           >
             <div className="relative w-full aspect-[16/9] overflow-hidden bg-stone-100">
               <img
                 src={t.image}
                 alt={t.title}
-                className="w-full h-full object-cover group-hover:scale-[1.025] transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
                 loading="lazy"
               />
             </div>
