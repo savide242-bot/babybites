@@ -7,24 +7,24 @@ import { DietaryTag } from "@/hooks/useDietaryPreferences";
 import { generateInitialMealPlan } from "@/utils/mealPlanGenerator";
 
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
-import StepMotherName from "@/components/onboarding/steps/StepMotherName";
-import StepBabyName from "@/components/onboarding/steps/StepBabyName";
-import StepBirthDate from "@/components/onboarding/steps/StepBirthDate";
+import StepProfileBasics from "@/components/onboarding/steps/StepProfileBasics";
 import StepDietaryPreferences from "@/components/onboarding/steps/StepDietaryPreferences";
 import StepReminders, { ReminderSetting, DEFAULT_REMINDERS } from "@/components/onboarding/steps/StepReminders";
 import StepWelcome from "@/components/onboarding/steps/StepWelcome";
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 4;
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [motherName, setMotherName] = useState("");
   const [babyName, setBabyName] = useState("");
-  const [birthDate, setBirthDate] = useState<Date | undefined>();
+  const [birthDateStr, setBirthDateStr] = useState("");
   const [dietaryPreferences, setDietaryPreferences] = useState<DietaryTag[]>([]);
   const [reminders, setReminders] = useState<ReminderSetting[]>(DEFAULT_REMINDERS);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const birthDate = birthDateStr ? new Date(birthDateStr) : undefined;
 
   const nextStep = () => {
     if (currentStep < TOTAL_STEPS) {
@@ -58,7 +58,7 @@ const Onboarding = () => {
         session.user.user_metadata?.full_name ||
         session.user.user_metadata?.name ||
         motherName.trim() ||
-        "User";
+        "Parent";
 
       // Use upsert to reliably create or update the profile
       const { error: profileError } = await supabase
@@ -68,7 +68,7 @@ const Onboarding = () => {
           full_name: fullName,
           mother_name: motherName.trim(),
           baby_name: babyName.trim(),
-          baby_birth_date: birthDate?.toISOString().split('T')[0],
+          baby_birth_date: birthDateStr || undefined,
           dietary_preferences: dietaryPreferences,
           timezone: detectedTimezone,
         }, { onConflict: 'id' });
@@ -113,43 +113,27 @@ const Onboarding = () => {
     switch (currentStep) {
       case 1:
         return (
-          <StepMotherName
-            value={motherName}
-            onChange={setMotherName}
+          <StepProfileBasics
+            motherName={motherName}
+            babyName={babyName}
+            birthDate={birthDateStr}
+            onMotherNameChange={setMotherName}
+            onBabyNameChange={setBabyName}
+            onBirthDateChange={setBirthDateStr}
             onNext={nextStep}
           />
         );
       case 2:
         return (
-          <StepBabyName
-            value={babyName}
-            motherName={motherName}
-            onChange={setBabyName}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        );
-      case 3:
-        return (
-          <StepBirthDate
-            value={birthDate}
-            babyName={babyName}
-            onChange={setBirthDate}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        );
-      case 4:
-        return (
           <StepDietaryPreferences
             value={dietaryPreferences}
-            babyName={babyName}
+            babyName={babyName || "your baby"}
             onChange={setDietaryPreferences}
             onNext={nextStep}
             onBack={prevStep}
           />
         );
-      case 5:
+      case 3:
         return (
           <StepReminders
             value={reminders}
@@ -158,7 +142,7 @@ const Onboarding = () => {
             onBack={prevStep}
           />
         );
-      case 6:
+      case 4:
         return (
           <StepWelcome
             motherName={motherName}
@@ -171,9 +155,13 @@ const Onboarding = () => {
         );
       default:
         return (
-          <StepMotherName
-            value={motherName}
-            onChange={setMotherName}
+          <StepProfileBasics
+            motherName={motherName}
+            babyName={babyName}
+            birthDate={birthDateStr}
+            onMotherNameChange={setMotherName}
+            onBabyNameChange={setBabyName}
+            onBirthDateChange={setBirthDateStr}
             onNext={nextStep}
           />
         );
