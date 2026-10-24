@@ -49,6 +49,9 @@ const FoodDiary = lazy(() => import("./pages/FoodDiary"));
 const Community = lazy(() => import("./pages/Community"));
 const PantryHelper = lazy(() => import("./pages/PantryHelper"));
 const AllergenTracker = lazy(() => import("./pages/AllergenTracker"));
+const FreezerPrep = lazy(() => import("./pages/FreezerPrep"));
+const FoodsTried = lazy(() => import("./pages/FoodsTried"));
+const IngredientSwap = lazy(() => import("./pages/IngredientSwap"));
 const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
 const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
 
@@ -56,7 +59,7 @@ const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
     <div className="space-y-4 text-center">
-      <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+      <div className="w-12 h-12 border-4 border-[#1E5E3A]/30 border-t-[#1E5E3A] rounded-full animate-spin mx-auto" />
       <Skeleton className="h-4 w-32 mx-auto" />
     </div>
   </div>
@@ -73,29 +76,16 @@ const AppContent = () => {
 
   // Activate PWA install detection and welcome notifications
   usePWAInstall();
-  
-  // NOTE: Local meal reminders (useMealReminders) are DISABLED
-  // Server-side push notifications via check-meal-reminders scheduler are the source of truth
-  // This ensures notifications work even when the app is closed
-  
-  // Activate service worker auto-update
   useServiceWorkerUpdate();
-  
-  // Track user sessions
   useSessionTracking();
-  
-  // Check if user is banned
   useBanCheck();
-  
+
   // Navigation refs for app tour
   const recipesNavRef = useRef<HTMLAnchorElement>(null);
   const plannerNavRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    // Update last visit timestamp on app load
     updateLastVisit().catch(console.error);
-    
-    // Store nav refs on window for tour access
     (window as any).__tourNavRefs = {
       recipes: recipesNavRef,
       planner: plannerNavRef,
@@ -103,18 +93,14 @@ const AppContent = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F5]">
       <AdminPreviewBanner />
       {!isFullscreenRoute && <Header />}
-      {!isFullscreenRoute && <OfflineIndicator />}
-      {!isFullscreenRoute && <WhatsAppButton />}
-      {!isFullscreenRoute && <SmartInstallBanner />}
-      {!isFullscreenRoute && (
-        <BottomNavigation navRefs={{ 
-          recipes: recipesNavRef, 
-          planner: plannerNavRef, 
-        }} />
-      )}
+      {!isFullscreenRoute && <BottomNavigation />}
+      <OfflineIndicator />
+      <WhatsAppButton />
+      <BirthdayCelebrationModal />
+      <SmartInstallBanner />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/onboarding" element={<Onboarding />} />
@@ -128,9 +114,11 @@ const AppContent = () => {
           <Route path="/community" element={<Community />} />
           <Route path="/pantry" element={<PantryHelper />} />
           <Route path="/allergens" element={<AllergenTracker />} />
+          <Route path="/freezer" element={<FreezerPrep />} />
+          <Route path="/foods-tried" element={<FoodsTried />} />
+          <Route path="/ingredient-swap" element={<IngredientSwap />} />
           <Route path="/advice" element={<Advice />} />
           <Route path="/bonus" element={<Bonus />} />
-          
           <Route path="/growth" element={<GrowthTracker />} />
           <Route path="/scanner" element={<FoodAnalyzer />} />
           <Route path="/settings" element={<Settings />} />
@@ -174,7 +162,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <BrowserRouter>
             <AppWrapper />
           </BrowserRouter>
         </TooltipProvider>

@@ -1,5 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { Search, Bell, MessageCircle, Menu, Calendar, BookOpen, Heart, TrendingUp, Settings, ShoppingCart, Snowflake, Refrigerator, LogOut, Sparkles } from "lucide-react";
+import { 
+  Search, 
+  MessageCircle, 
+  Menu, 
+  Calendar, 
+  BookOpen, 
+  Heart, 
+  TrendingUp, 
+  Settings, 
+  ShoppingCart, 
+  Snowflake, 
+  Refrigerator, 
+  LogOut, 
+  ShieldCheck, 
+  Repeat, 
+  Bookmark 
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -23,11 +39,14 @@ export const Header = () => {
     { to: "/recipes", label: "All Recipes Library", icon: BookOpen },
     { to: "/planner", label: "Weekly Meal Planner", icon: Calendar },
     { to: "/shopping", label: "Smart Shopping List", icon: ShoppingCart },
+    { to: "/foods-tried", label: "100 Foods Tried Tracker", icon: Heart },
+    { to: "/freezer", label: "Freezer Prep & Stash", icon: Snowflake },
+    { to: "/allergens", label: "Allergen Safety Tracker", icon: ShieldCheck },
+    { to: "/pantry", label: "Pantry Helper", icon: Refrigerator },
+    { to: "/ingredient-swap", label: "Ingredient Swap", icon: Repeat },
     { to: "/community", label: "Parents Community", icon: MessageCircle },
-    { to: "/growth", label: "Baby Profile & Progress", icon: TrendingUp },
-    { to: "/favorites", label: "Saved Favorites", icon: Heart },
-    { to: "/recipes?filter=freezer", label: "Freezer-Friendly Meals", icon: Snowflake },
-    { to: "/recipes?filter=pantry", label: "Pantry Helper", icon: Refrigerator },
+    { to: "/favorites", label: "Saved Collections", icon: Bookmark },
+    { to: "/growth", label: "Growth & Milestones", icon: TrendingUp },
     { to: "/settings", label: "Settings", icon: Settings },
   ];
 
@@ -46,7 +65,7 @@ export const Header = () => {
           </span>
         </Link>
 
-        {/* Action Icons right side (Search, Notification, Community & Drawer Menu) */}
+        {/* Action Icons right side (Search, Community & Drawer Menu) */}
         <div className="flex items-center gap-1.5">
           <Link
             to="/recipes"
