@@ -26,6 +26,12 @@ import posterLunchDinner1223 from "@/assets/categories/lunch-dinner-12-23m.webp"
 import posterSnacks1223 from "@/assets/categories/snacks-12-23m.webp";
 import posterDesserts1223 from "@/assets/categories/desserts-smoothies-12-23m.webp";
 
+// 24+ Months Category Posters
+import posterBreakfast24 from "@/assets/categories/breakfast-24m.webp";
+import posterLunchDinner24 from "@/assets/categories/lunch-dinner-24m.webp";
+import posterSnacks24 from "@/assets/categories/snacks-24m.webp";
+import posterDesserts24 from "@/assets/categories/desserts-smoothies-24m.webp";
+
 const BATCH_SIZE = 24;
 
 const OFFICIAL_AGE_OPTIONS = [
@@ -243,7 +249,7 @@ export const Recipes = () => {
     }
   };
 
-  // Dedicated Category Artwork Banner for 6-8m, 9-11m, and 12-23m
+  // Dedicated Category Artwork Banner for all ages (6-8m, 9-11m, 12-23m, 24+m)
   const bannerInfo = useMemo(() => {
     if (selectedAge === "6-8 Months") {
       if (selectedCategory === "Breakfast") {
@@ -350,6 +356,41 @@ export const Recipes = () => {
       }
     }
 
+    if (selectedAge === "24+ Months") {
+      if (selectedCategory === "Breakfast") {
+        return {
+          image: posterBreakfast24,
+          title: "Breakfast: Little Morning Moments",
+          subtitle: "Fluffy cinnamon oat pancakes, scrambled eggs, Greek yogurt dip and sliced fruit.",
+          tag: "24+ MONTHS • BREAKFAST",
+        };
+      }
+      if (selectedCategory === "Lunch & Dinner") {
+        return {
+          image: posterLunchDinner24,
+          title: "Lunch & Dinner: Nourishing Moments",
+          subtitle: "Campanelle pasta bowls with chicken breast, roasted squash, garden peas and avocado.",
+          tag: "24+ MONTHS • LUNCH & DINNER",
+        };
+      }
+      if (selectedCategory === "Snack") {
+        return {
+          image: posterSnacks24,
+          title: "Snacks: Tiny Bites, Happy Days",
+          subtitle: "Oat bran muffins, cheddar cubes, crunchy cucumber and crisp red apples with yogurt dip.",
+          tag: "24+ MONTHS • SNACKS",
+        };
+      }
+      if (selectedCategory === "Dessert") {
+        return {
+          image: posterDesserts24,
+          title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
+          subtitle: "Thick fruit smoothie cup, mango yogurt swirl bowl, stewed cinnamon apples and peach slices.",
+          tag: "24+ MONTHS • DESSERTS & SMOOTHIES",
+        };
+      }
+    }
+
     return null;
   }, [selectedAge, selectedCategory]);
 
@@ -430,7 +471,7 @@ export const Recipes = () => {
         </div>
       </div>
 
-      {/* Featured Category Artwork Banner (6-8m, 9-11m, 12-23m) */}
+      {/* Featured Category Artwork Banner (All 4 Age Groups) */}
       {bannerInfo && (
         <div className="mb-6 rounded-[24px] overflow-hidden bg-white border border-[#EBE8DF] shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)]">
           <div className="flex flex-col sm:flex-row">
@@ -548,6 +589,45 @@ export const Recipes = () => {
               { title: "Lunch & Dinner", img: posterLunchDinner1223, cat: "Lunch & Dinner" },
               { title: "Snacks", img: posterSnacks1223, cat: "Snack" },
               { title: "Desserts", img: posterDesserts1223, cat: "Dessert" },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategory(item.cat)}
+                className="text-left rounded-2xl bg-white border border-[#EBE8DF] overflow-hidden shadow-xs hover:shadow-md transition-all group"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden bg-[#FAF9F5]">
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-2">
+                  <span className="text-xs font-semibold text-gray-900 block group-hover:text-forest">
+                    {item.title}
+                  </span>
+                  <span className="text-[10px] text-gray-500">View recipes →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick 4-Category Carousel for 24+ Months */}
+      {selectedAge === "24+ Months" && selectedCategory === "All Categories" && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
+              Explore 24+ Months Categories
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { title: "Breakfast", img: posterBreakfast24, cat: "Breakfast" },
+              { title: "Lunch & Dinner", img: posterLunchDinner24, cat: "Lunch & Dinner" },
+              { title: "Snacks", img: posterSnacks24, cat: "Snack" },
+              { title: "Desserts", img: posterDesserts24, cat: "Dessert" },
             ].map((item, idx) => (
               <button
                 key={idx}

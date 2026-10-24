@@ -23,10 +23,11 @@ import posterLunchDinner1223 from "@/assets/categories/lunch-dinner-12-23m.webp"
 import posterSnacks1223 from "@/assets/categories/snacks-12-23m.webp";
 import posterDesserts1223 from "@/assets/categories/desserts-smoothies-12-23m.webp";
 
-import pancakeImg from "@/assets/recipe-323-blueberry-pancakes.jpg";
-import riceImg from "@/assets/recipe-317-veggie-fried-rice.jpg";
-import smoothieImg from "@/assets/recipe-321-smoothie-bowl.jpg";
-import quesadillaImg from "@/assets/recipe-320-veggie-quesadillas.jpg";
+// Import authentic 24+ Months posters
+import posterBreakfast24 from "@/assets/categories/breakfast-24m.webp";
+import posterLunchDinner24 from "@/assets/categories/lunch-dinner-24m.webp";
+import posterSnacks24 from "@/assets/categories/snacks-24m.webp";
+import posterDesserts24 from "@/assets/categories/desserts-smoothies-24m.webp";
 
 export const Home = () => {
   const [motherName, setMotherName] = useState<string>("");
@@ -175,35 +176,39 @@ export const Home = () => {
     },
   ];
 
-  // Section 4: 24+ Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  // Section 4: 24+ Months (Official Posters)
   const age24PlusCards = [
     {
       title: "Breakfast",
-      subtitle: "Hearty French toasts, mini burritos & pancake stacks.",
+      subtitle: "little morning moments",
       ageTag: "24+ Months",
-      image: pancakeImg,
+      image: posterBreakfast24,
       link: "/recipes?age=24%2B&category=Breakfast",
+      isPosterCard: true,
     },
     {
-      title: "Lunch & Dinner",
-      subtitle: "Family favorites, chicken stir-fry & cheesy veggie pasta.",
+      title: "Lunch-Dinner",
+      subtitle: "nourishing little moments",
       ageTag: "24+ Months",
-      image: riceImg,
+      image: posterLunchDinner24,
       link: "/recipes?age=24%2B&category=Lunch%20%26%20Dinner",
+      isPosterCard: true,
     },
     {
       title: "Snacks",
-      subtitle: "Crispy veggie quesadillas, homemade crackers & bars.",
+      subtitle: "tiny bites, happy days",
       ageTag: "24+ Months",
-      image: quesadillaImg,
+      image: posterSnacks24,
       link: "/recipes?age=24%2B&category=Snack",
+      isPosterCard: true,
     },
     {
-      title: "Desserts & Smoothies",
-      subtitle: "Thick green smoothies, fruit parfaits & banana nicecream.",
+      title: "Desserts-Smoothies",
+      subtitle: "sweet, soft and wholesome",
       ageTag: "24+ Months",
-      image: smoothieImg,
+      image: posterDesserts24,
       link: "/recipes?age=24%2B&category=Dessert",
+      isPosterCard: true,
     },
   ];
 
