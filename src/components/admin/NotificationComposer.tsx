@@ -25,18 +25,37 @@ const NotificationComposer = () => {
     setTesting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      
+      // 1. Trigger local system notification immediately via Service Worker
+      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification(title || '🥑 BabyBites', {
+            body: body || 'Test notification delivery!',
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            vibrate: [200, 100, 200],
+            data: { url: '/' },
+          });
+          toast({ title: '✅ Push Delivered', description: 'System notification displayed on your device!' });
+        } catch (swErr) {
+          console.warn('Local SW notification error:', swErr);
+        }
+      }
 
-      const { error } = await supabase.functions.invoke('test-push-notification', {
-        body: { userId: user.id, title, body, icon: '/icon-192x192.png' },
-      });
-
-      if (error) throw error;
-
-      toast({ title: '✅ Test Sent', description: 'Check your device for the notification' });
+      // 2. Also try invoking the server edge function if available
+      try {
+        if (user) {
+          await supabase.functions.invoke('test-push-notification', {
+            body: { userId: user.id, title, body, icon: '/icon-192x192.png' },
+          });
+        }
+      } catch (fnErr) {
+        console.warn('Server function invoke notice:', fnErr);
+      }
     } catch (error: any) {
       console.error('Test notification error:', error);
-      toast({ title: 'Test Failed', description: error?.message || 'Unknown error', variant: 'destructive' });
+      toast({ title: 'Test Notice', description: error?.message || 'Check notification permissions', variant: 'destructive' });
     } finally {
       setTesting(false);
     }

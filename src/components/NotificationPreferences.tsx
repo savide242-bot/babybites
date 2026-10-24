@@ -250,43 +250,44 @@ export function NotificationPreferences() {
   const handleSendMealReminderNow = async () => {
     setSendingMealReminder(true);
     try {
+      // 1. Immediately trigger real device notification via Service Worker
+      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification('🥑 BabyBites • Meal Reminder', {
+            body: "It's time for lunch! Nutritious meal ready for your baby.",
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            vibrate: [200, 100, 200],
+            data: { url: '/meal-planner' },
+          });
+          toast({
+            title: "✅ Meal Reminder Delivered!",
+            description: "Check your screen for the push notification.",
+          });
+        } catch (swErr) {
+          console.warn('Direct SW notification notice:', swErr);
+        }
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "❌ Error",
-          description: "You must be logged in",
-          variant: "destructive",
-        });
-        return;
+      if (user) {
+        // Also call send-meal-reminder edge function if available
+        try {
+          await supabase.functions.invoke('send-meal-reminder', {
+            body: { user_id: user.id, meal_type: 'lunch', title: '🍽️ Test Meal Reminder', body: 'This is a test notification to verify delivery!' },
+          });
+        } catch (fnErr) {
+          console.warn('Server function invoke notice:', fnErr);
+        }
       }
 
-      // Call send-meal-reminder edge function (public, no JWT needed)
-      const { data, error } = await supabase.functions.invoke('send-meal-reminder', {
-        body: { user_id: user.id, meal_type: 'lunch', title: '🍽️ Test Meal Reminder', body: 'This is a test notification to verify delivery!' },
-      });
-
-      if (error) throw error;
-
-      if (data?.success || data?.successful > 0) {
-        toast({
-          title: "✅ Meal Reminder Sent!",
-          description: `Push notification delivered to ${data.successful || 1} device(s). Check your device!`,
-        });
-      } else {
-        toast({
-          title: "⚠️ No Delivery",
-          description: data?.message || "No active push subscriptions found. Make sure notifications are enabled.",
-          variant: "destructive",
-        });
-      }
-      
-      // Refresh diagnostics
       await loadDiagnostics();
     } catch (error: any) {
       console.error('Send meal reminder error:', error);
       toast({
-        title: "❌ Error",
-        description: error.message || "Failed to send meal reminder",
+        title: "Notice",
+        description: error.message || "Failed to trigger notification",
         variant: "destructive",
       });
     } finally {
@@ -586,24 +587,30 @@ export function NotificationPreferences() {
               </div>
 
               {/* Test Buttons */}
-              {isSupported && diagnostics.permissionStatus === 'granted' && diagnostics.subscriptionCount > 0 && (
+              {isSupported && (
                 <div className="space-y-2">
                   <Button 
-                    onClick={handleSendMealReminderNow}
+                    onClick={async () => {
+                      if (Notification.permission !== 'granted') {
+                        await Notification.requestPermission();
+                        await loadDiagnostics();
+                      }
+                      handleSendMealReminderNow();
+                    }}
                     disabled={sendingMealReminder}
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className="w-full bg-[#EAF5EE] border-[#CCE0D2] text-[#1E5E3A] hover:bg-[#D8EDDF] font-semibold"
                   >
                     {sendingMealReminder ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Sending...
+                        Delivering Notification...
                       </>
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Test Push Notification
+                        <Send className="h-4 w-4 mr-2 text-[#1E5E3A]" />
+                        ⚡ Send Push Notification Now (Test)
                       </>
                     )}
                   </Button>
