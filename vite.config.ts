@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-// import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
@@ -19,26 +18,26 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: 'script',
-      includeAssets: ["favicon.ico", "robots.txt"],
+      includeAssets: ["favicon.png", "logo.png", "robots.txt"],
       manifest: {
-        name: "BabyBites - Baby Nutrition & Meal Planning",
+        name: "BabyBites",
         short_name: "BabyBites",
-        description: "Discover 200+ pediatrician-approved baby food recipes, meal plans, and expert parenting advice for babies aged 6-24 months.",
-        theme_color: "#FF6B9D",
-        background_color: "#FFF5F7",
+        description: "Discover 390+ pediatrician-approved baby food recipes, meal plans, and expert parenting advice for babies aged 6-24+ months.",
+        theme_color: "#1E5E3A",
+        background_color: "#FAF9F5",
         display: "standalone",
         orientation: "portrait",
         scope: "/",
         start_url: "/",
         icons: [
           {
-            src: "https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png",
+            src: "/icon-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any maskable"
           },
           {
-            src: "https://storage.googleapis.com/gpt-engineer-file-uploads/L51M0kwelTgOzVygYpkcrDBNd6g2/uploads/1760365341349-yum.png",
+            src: "/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable"
@@ -53,9 +52,8 @@ export default defineConfig(({ mode }) => ({
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/~oauth/],
-        sourcemap: false, // Disable for production
+        sourcemap: false,
         runtimeCaching: [
-          // Google Fonts - safe to cache aggressively
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: "CacheFirst",
@@ -84,7 +82,6 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          // Images - safe to cache
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
             handler: "CacheFirst",
@@ -99,7 +96,6 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          // Supabase storage - safe to cache
           {
             urlPattern: /^https:\/\/.*supabase.*\/storage\/.*/i,
             handler: "CacheFirst",
@@ -113,24 +109,7 @@ export default defineConfig(({ mode }) => ({
                 statuses: [0, 200]
               }
             }
-          },
-          // Google storage (icons) - safe to cache
-          {
-            urlPattern: /^https:\/\/storage\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-storage-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
           }
-          // REMOVED: The dangerous "app-shell-cache" for *.lovableproject.com
-          // This was causing white screens by caching HTML/JS inconsistently
         ],
         importScripts: ['sw-listener.js']
       },

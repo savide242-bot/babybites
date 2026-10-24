@@ -9,7 +9,7 @@ import GoogleLogo from "@/components/auth/GoogleLogo";
 import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
 import FormInput from "@/components/auth/FormInput";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
-import BabyIllustration from "@/components/auth/BabyIllustration";
+import appLogo from "@/assets/logo.png";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address").max(255),
@@ -50,7 +50,6 @@ export const Auth = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          // Check if user already completed onboarding
           const { data: profile } = await supabase
             .from("profiles")
             .select("mother_name, baby_name")
@@ -254,9 +253,13 @@ export const Auth = () => {
         {/* Main Auth Card */}
         <div className="w-full max-w-md relative z-10 animate-fade-in-up">
           <div className="bg-white rounded-[32px] p-8 md:p-10 border border-[#EBE8DF] shadow-[0_12px_40px_-8px_rgba(30,94,58,0.08)]">
-            {/* Baby Illustration */}
-            <div className="mb-4">
-              <BabyIllustration />
+            {/* Logo */}
+            <div className="mb-4 flex justify-center">
+              <img
+                src={appLogo}
+                alt="BabyBites"
+                className="w-24 h-24 rounded-full object-cover shadow-xs border border-[#EBE8DF]"
+              />
             </div>
 
             {/* Title Section */}
@@ -347,7 +350,7 @@ export const Auth = () => {
               </div>
             )}
 
-            {/* STEP 2A: Signup (Only Password & Confirm Password - Zero Duplications!) */}
+            {/* STEP 2A: Signup */}
             {step === "signup" && (
               <div className="space-y-5 animate-fade-in">
                 <button

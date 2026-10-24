@@ -7,6 +7,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import appLogo from "@/assets/logo.png";
 
 export const Header = () => {
   const location = useLocation();
@@ -33,19 +34,16 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-40 w-full bg-[#FAF9F5]/90 backdrop-blur-md border-b border-[#EBE8DF]">
       <div className="max-w-2xl lg:max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Brand Logo in Serif Botanical Style */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-full bg-white border border-[#E3DFD3] flex items-center justify-center text-sm shadow-xs group-hover:scale-105 transition-transform">
-            🥑
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest leading-none">
-              The
-            </span>
-            <span className="text-lg font-serif font-bold text-forest leading-tight">
-              BabyBites <span className="font-sans text-xs font-semibold text-[#48B774]">Club</span>
-            </span>
-          </div>
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <img
+            src={appLogo}
+            alt="BabyBites"
+            className="w-10 h-10 rounded-full object-cover shadow-xs group-hover:scale-105 transition-transform"
+          />
+          <span className="text-xl font-serif font-bold text-forest tracking-tight">
+            BabyBites
+          </span>
         </Link>
 
         {/* Action Icons right side (Search, Notification, Community & Drawer Menu) */}
@@ -82,12 +80,14 @@ export const Header = () => {
                 {/* Drawer Header */}
                 <div className="p-6 pb-4 border-b border-[#EBE8DF] bg-white">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#EAF5EE] border border-[#CCE0D2] flex items-center justify-center text-2xl">
-                      🥑
-                    </div>
+                    <img
+                      src={appLogo}
+                      alt="BabyBites"
+                      className="w-12 h-12 rounded-full object-cover shadow-xs border border-[#CCE0D2]"
+                    />
                     <div>
                       <h3 className="font-serif font-bold text-forest text-lg">
-                        BabyBites Menu
+                        BabyBites
                       </h3>
                       <p className="text-xs text-gray-500">
                         Nourishing meals & guidance

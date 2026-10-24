@@ -142,7 +142,7 @@ export const Community: React.FC = () => {
         comments_count: 0,
         created_at: new Date().toISOString(),
         author_name: session?.user?.user_metadata?.full_name || "Loving Parent",
-        author_baby: "BabyBites Club",
+        author_baby: "BabyBites",
         user_has_liked: true,
       };
 
