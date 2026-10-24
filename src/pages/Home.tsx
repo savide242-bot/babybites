@@ -5,20 +5,21 @@ import SolidsClubWelcomeBanner from "@/components/home/SolidsClubWelcomeBanner";
 import SolidsClubAgeSection from "@/components/home/SolidsClubAgeSection";
 import SolidsClubQuickTools from "@/components/home/SolidsClubQuickTools";
 
-// Import authentic photos from local assets
+// Import authentic 6-8 Months posters
 import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
 import posterLunchDinner68 from "@/assets/categories/lunch-dinner-6-8m.webp";
 import posterSnacks68 from "@/assets/categories/snacks-6-8m.webp";
 import posterDesserts68 from "@/assets/categories/desserts-smoothies-6-8m.webp";
 
-import porridgeImg from "@/assets/recipe-325-sweet-potato-porridge.jpg";
-import soupImg from "@/assets/recipe-324-chicken-veggie-soup.jpg";
-import bitesImg from "@/assets/recipe-319-mac-cheese-bites.jpg";
-import smoothieImg from "@/assets/recipe-321-smoothie-bowl.jpg";
+// Import authentic 9-11 Months posters
+import posterBreakfast911 from "@/assets/categories/breakfast-9-11m.webp";
+import posterLunchDinner911 from "@/assets/categories/lunch-dinner-9-11m.webp";
+import posterSnacks911 from "@/assets/categories/snacks-9-11m.webp";
+import posterDesserts911 from "@/assets/categories/desserts-smoothies-9-11m.webp";
+
 import pancakeImg from "@/assets/recipe-323-blueberry-pancakes.jpg";
 import riceImg from "@/assets/recipe-317-veggie-fried-rice.jpg";
-import fruitImg from "@/assets/recipe-318-tropical-fruit-salad.jpg";
-import yogurtSwirlImg from "@/assets/recipes/mango-yogurt-swirl.jpg";
+import smoothieImg from "@/assets/recipe-321-smoothie-bowl.jpg";
 import pastaImg from "@/assets/recipe-322-hidden-veggie-pasta.jpg";
 import quesadillaImg from "@/assets/recipe-320-veggie-quesadillas.jpg";
 import tacosImg from "@/assets/recipe-316-chicken-tacos.jpg";
@@ -62,7 +63,7 @@ export const Home = () => {
     fetchUserData();
   }, []);
 
-  // Section 1: 6-8 Months (Official Solids Club Posters)
+  // Section 1: 6-8 Months (Official Posters)
   const age6to8Cards = [
     {
       title: "Breakfast",
@@ -98,35 +99,39 @@ export const Home = () => {
     },
   ];
 
-  // Section 2: 9-11 Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  // Section 2: 9-11 Months (Official Posters)
   const age9to11Cards = [
     {
       title: "Breakfast",
-      subtitle: "Fluffy banana pancakes & soft egg scrambles.",
+      subtitle: "little morning moments",
       ageTag: "9-11 Months",
-      image: pancakeImg,
+      image: posterBreakfast911,
       link: "/recipes?age=9-11&category=Breakfast",
+      isPosterCard: true,
     },
     {
-      title: "Lunch & Dinner",
-      subtitle: "Tender fish mash, mild curries & savory grains.",
+      title: "Lunch-Dinner",
+      subtitle: "nourishing little moments",
       ageTag: "9-11 Months",
-      image: riceImg,
+      image: posterLunchDinner911,
       link: "/recipes?age=9-11&category=Lunch%20%26%20Dinner",
+      isPosterCard: true,
     },
     {
       title: "Snacks",
-      subtitle: "Cheesy cauliflower tots & banana oat fingers.",
+      subtitle: "tiny bites, happy days",
       ageTag: "9-11 Months",
-      image: fruitImg,
+      image: posterSnacks911,
       link: "/recipes?age=9-11&category=Snack",
+      isPosterCard: true,
     },
     {
-      title: "Desserts & Smoothies",
-      subtitle: "Tropical yogurt bowls & chilled natural nicecream.",
+      title: "Desserts-Smoothies",
+      subtitle: "sweet, soft and wholesome",
       ageTag: "9-11 Months",
-      image: smoothieImg,
+      image: posterDesserts911,
       link: "/recipes?age=9-11&category=Dessert",
+      isPosterCard: true,
     },
   ];
 

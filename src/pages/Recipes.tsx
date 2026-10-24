@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, memo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Clock, Heart, Download, Loader2, Sparkles, Filter, Play } from "lucide-react";
+import { Search, Clock, Heart, Download, Loader2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes, getMealCategory } from "@/data/recipes";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -13,6 +13,12 @@ import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
 import posterLunchDinner68 from "@/assets/categories/lunch-dinner-6-8m.webp";
 import posterSnacks68 from "@/assets/categories/snacks-6-8m.webp";
 import posterDesserts68 from "@/assets/categories/desserts-smoothies-6-8m.webp";
+
+// 9-11 Months Category Posters
+import posterBreakfast911 from "@/assets/categories/breakfast-9-11m.webp";
+import posterLunchDinner911 from "@/assets/categories/lunch-dinner-9-11m.webp";
+import posterSnacks911 from "@/assets/categories/snacks-9-11m.webp";
+import posterDesserts911 from "@/assets/categories/desserts-smoothies-9-11m.webp";
 
 const BATCH_SIZE = 24;
 
@@ -130,7 +136,7 @@ RecipeCard.displayName = "RecipeCard";
 
 export const Recipes = () => {
   const { toggleFavorite, isFavorite } = useFavorites();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAge, setSelectedAge] = useState<string>("All Ages");
   const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
@@ -231,42 +237,78 @@ export const Recipes = () => {
     }
   };
 
-  // Dedicated 6-8 Months Banner Data
-  const banner68Info = useMemo(() => {
-    if (selectedAge !== "6-8 Months") return null;
+  // Dedicated Category Artwork Banner for 6-8 and 9-11 Months
+  const bannerInfo = useMemo(() => {
+    if (selectedAge === "6-8 Months") {
+      if (selectedCategory === "Breakfast") {
+        return {
+          image: posterBreakfast68,
+          title: "Breakfast: Little Morning Moments",
+          subtitle: "Gentle iron-rich oats, soft fruit mashes, and wholesome first morning meals.",
+          tag: "6–8 MONTHS • BREAKFAST",
+        };
+      }
+      if (selectedCategory === "Lunch & Dinner") {
+        return {
+          image: posterLunchDinner68,
+          title: "Lunch & Dinner: Nourishing Moments",
+          subtitle: "Soft steamed vegetable purees, mild lentil dahl, and tender poultry blends.",
+          tag: "6–8 MONTHS • LUNCH & DINNER",
+        };
+      }
+      if (selectedCategory === "Snack") {
+        return {
+          image: posterSnacks68,
+          title: "Snacks: Tiny Bites, Happy Days",
+          subtitle: "Easy-to-grasp soft finger foods, steamed florets, and refreshing fruit teethers.",
+          tag: "6–8 MONTHS • SNACKS",
+        };
+      }
+      if (selectedCategory === "Dessert") {
+        return {
+          image: posterDesserts68,
+          title: "Desserts & Smoothies: Soft & Wholesome",
+          subtitle: "Smooth whole milk yogurt swirls, ripe berry purees, and gentle smoothies.",
+          tag: "6–8 MONTHS • DESSERTS & SMOOTHIES",
+        };
+      }
+    }
 
-    if (selectedCategory === "Breakfast") {
-      return {
-        image: posterBreakfast68,
-        title: "Breakfast: Little Morning Moments",
-        subtitle: "Gentle iron-rich oats, soft fruit mashes, and wholesome first morning meals.",
-        tag: "6–8 MONTHS • BREAKFAST",
-      };
+    if (selectedAge === "9-11 Months") {
+      if (selectedCategory === "Breakfast") {
+        return {
+          image: posterBreakfast911,
+          title: "Breakfast: Little Morning Moments",
+          subtitle: "Fluffy banana pancakes, soft scrambled eggs, and diced avocado toast fingers.",
+          tag: "9–11 MONTHS • BREAKFAST",
+        };
+      }
+      if (selectedCategory === "Lunch & Dinner") {
+        return {
+          image: posterLunchDinner911,
+          title: "Lunch & Dinner: Nourishing Moments",
+          subtitle: "Soft spiral pasta with chicken and sweet peas, mild vegetable curries & grain bowls.",
+          tag: "9–11 MONTHS • LUNCH & DINNER",
+        };
+      }
+      if (selectedCategory === "Snack") {
+        return {
+          image: posterSnacks911,
+          title: "Snacks: Tiny Bites, Happy Days",
+          subtitle: "Oat & banana fritters, steamed carrot sticks, broccoli trees with natural dip.",
+          tag: "9–11 MONTHS • SNACKS",
+        };
+      }
+      if (selectedCategory === "Dessert") {
+        return {
+          image: posterDesserts911,
+          title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
+          subtitle: "Berry nicecream cups, spiced warm apple compote, and mango chia puddings.",
+          tag: "9–11 MONTHS • DESSERTS & SMOOTHIES",
+        };
+      }
     }
-    if (selectedCategory === "Lunch & Dinner") {
-      return {
-        image: posterLunchDinner68,
-        title: "Lunch & Dinner: Nourishing Moments",
-        subtitle: "Soft steamed vegetable purees, mild lentil dahl, and tender poultry blends.",
-        tag: "6–8 MONTHS • LUNCH & DINNER",
-      };
-    }
-    if (selectedCategory === "Snack") {
-      return {
-        image: posterSnacks68,
-        title: "Snacks: Tiny Bites, Happy Days",
-        subtitle: "Easy-to-grasp soft finger foods, steamed florets, and refreshing fruit teethers.",
-        tag: "6–8 MONTHS • SNACKS",
-      };
-    }
-    if (selectedCategory === "Dessert") {
-      return {
-        image: posterDesserts68,
-        title: "Desserts & Smoothies: Soft & Wholesome",
-        subtitle: "Smooth whole milk yogurt swirls, ripe berry purees, and gentle smoothies.",
-        tag: "6–8 MONTHS • DESSERTS & SMOOTHIES",
-      };
-    }
+
     return null;
   }, [selectedAge, selectedCategory]);
 
@@ -347,33 +389,33 @@ export const Recipes = () => {
         </div>
       </div>
 
-      {/* Featured 6-8 Months Category Artwork Banner */}
-      {banner68Info && (
+      {/* Featured Category Artwork Banner (6-8m and 9-11m) */}
+      {bannerInfo && (
         <div className="mb-6 rounded-[24px] overflow-hidden bg-white border border-[#EBE8DF] shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)]">
           <div className="flex flex-col sm:flex-row">
             <div className="sm:w-2/5 aspect-[4/3] sm:aspect-[3/4] max-h-56 sm:max-h-none overflow-hidden bg-[#FAF9F5]">
               <img
-                src={banner68Info.image}
-                alt={banner68Info.title}
+                src={bannerInfo.image}
+                alt={bannerInfo.title}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="p-4 sm:p-5 flex flex-col justify-center sm:w-3/5">
               <span className="text-[11px] font-bold tracking-wider uppercase text-[#48B774]">
-                {banner68Info.tag}
+                {bannerInfo.tag}
               </span>
               <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest mt-1 leading-snug">
-                {banner68Info.title}
+                {bannerInfo.title}
               </h2>
               <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                {banner68Info.subtitle}
+                {bannerInfo.subtitle}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* 6-8 Months Quick 4-Category Carousel (when on 6-8 months & All Categories) */}
+      {/* Quick 4-Category Carousel for 6-8 Months (when on All Categories) */}
       {selectedAge === "6-8 Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
@@ -387,6 +429,45 @@ export const Recipes = () => {
               { title: "Lunch & Dinner", img: posterLunchDinner68, cat: "Lunch & Dinner" },
               { title: "Snacks", img: posterSnacks68, cat: "Snack" },
               { title: "Desserts", img: posterDesserts68, cat: "Dessert" },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategory(item.cat)}
+                className="text-left rounded-2xl bg-white border border-[#EBE8DF] overflow-hidden shadow-xs hover:shadow-md transition-all group"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden bg-[#FAF9F5]">
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-2">
+                  <span className="text-xs font-semibold text-gray-900 block group-hover:text-forest">
+                    {item.title}
+                  </span>
+                  <span className="text-[10px] text-gray-500">View recipes →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick 4-Category Carousel for 9-11 Months (when on All Categories) */}
+      {selectedAge === "9-11 Months" && selectedCategory === "All Categories" && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
+              Explore 9–11 Months Categories
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { title: "Breakfast", img: posterBreakfast911, cat: "Breakfast" },
+              { title: "Lunch & Dinner", img: posterLunchDinner911, cat: "Lunch & Dinner" },
+              { title: "Snacks", img: posterSnacks911, cat: "Snack" },
+              { title: "Desserts", img: posterDesserts911, cat: "Dessert" },
             ].map((item, idx) => (
               <button
                 key={idx}
