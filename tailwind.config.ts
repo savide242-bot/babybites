@@ -14,9 +14,27 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Nunito', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', '"Playfair Display"', 'Georgia', 'serif'],
       },
       colors: {
+        forest: {
+          DEFAULT: "#1E5E3A",
+          light: "#2D7A4D",
+          dark: "#144229",
+        },
+        leaf: {
+          DEFAULT: "#48B774",
+          light: "#68C98F",
+          dark: "#339E5E",
+          hover: "#3DA467",
+        },
+        warmcream: {
+          DEFAULT: "#FAF9F5",
+          50: "#FCFCFA",
+          100: "#F5F3EC",
+          200: "#EAE6D8",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calendar, Gift, User } from "lucide-react";
+import { Home, Calendar, Users, TrendingUp, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef, RefObject } from "react";
 
@@ -11,9 +11,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: "/", icon: Home, label: "Home" },
-  { to: "/recipes", icon: BookOpen, label: "Recipes" },
   { to: "/planner", icon: Calendar, label: "Planner" },
-  { to: "/bonus", icon: Gift, label: "Bonus" },
+  { to: "/community", icon: Users, label: "Community" },
+  { to: "/growth", icon: TrendingUp, label: "Tracker" },
   { to: "/profile", icon: User, label: "Profile" },
 ];
 
@@ -33,59 +33,46 @@ const BottomNavigation = forwardRef<HTMLElement, BottomNavigationProps>(
       return location.pathname.startsWith(path);
     };
 
-    const getRefForItem = (to: string) => {
-      switch (to) {
-        case "/recipes":
-          return navRefs?.recipes;
-        case "/planner":
-          return navRefs?.planner;
-        default:
-          return undefined;
-      }
-    };
-
     return (
       <nav ref={ref as any} className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
-        {/* Premium glass background with gold accent */}
-        <div className="relative bg-card/90 backdrop-blur-2xl border-t border-gold/20 shadow-[0_-8px_30px_-4px_rgba(0,0,0,0.1)]">
-          {/* Subtle gold gradient line at top */}
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
-          
+        {/* Clean organic glass background */}
+        <div className="relative bg-white/95 backdrop-blur-xl border-t border-[#EBE8DF] shadow-[0_-4px_20px_rgba(30,94,58,0.05)]">
           <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.to);
-              const itemRef = getRefForItem(item.to);
-              
+
               return (
                 <Link
                   key={item.to}
                   to={item.to}
-                  ref={itemRef}
                   className={cn(
-                    "flex flex-col items-center justify-center w-16 h-full gap-0.5 transition-all duration-300 active:scale-95",
-                    active 
-                      ? "text-gold" 
-                      : "text-muted-foreground hover:text-foreground"
+                    "flex flex-col items-center justify-center flex-1 h-full py-1.5 transition-all duration-200 relative group",
+                    active
+                      ? "text-[#1E5E3A] font-bold"
+                      : "text-gray-400 hover:text-gray-600"
                   )}
                 >
-                  <div className={cn(
-                    "relative flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-300",
-                    active && "bg-gradient-to-br from-gold/20 to-primary/20 scale-105"
-                  )}>
-                    {/* Gold glow effect for active */}
-                    {active && (
-                      <div className="absolute inset-0 bg-gold/20 rounded-2xl blur-md animate-pulse" />
-                    )}
-                    <Icon className={cn(
-                      "relative w-5 h-5 transition-all duration-300",
-                      active && "text-gold scale-110"
-                    )} />
+                  {/* Subtle active pill indicator on top */}
+                  {active && (
+                    <div className="absolute top-0 w-8 h-1 rounded-full bg-[#48B774]" />
+                  )}
+
+                  <div className="relative">
+                    <Icon
+                      className={cn(
+                        "w-5 h-5 transition-transform duration-200",
+                        active && "scale-110 text-[#1E5E3A]"
+                      )}
+                    />
                   </div>
-                  <span className={cn(
-                    "text-[10px] font-medium transition-all duration-300",
-                    active ? "text-gold font-bold" : ""
-                  )}>
+
+                  <span
+                    className={cn(
+                      "text-[10px] mt-1 tracking-tight transition-all",
+                      active ? "font-semibold text-[#1E5E3A]" : "font-medium"
+                    )}
+                  >
                     {item.label}
                   </span>
                 </Link>
@@ -93,9 +80,6 @@ const BottomNavigation = forwardRef<HTMLElement, BottomNavigationProps>(
             })}
           </div>
         </div>
-        
-        {/* Safe area spacer for iOS */}
-        <div className="h-[env(safe-area-inset-bottom)] bg-card" />
       </nav>
     );
   }

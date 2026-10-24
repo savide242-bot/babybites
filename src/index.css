@@ -7,7 +7,7 @@
 @layer base {
   :root {
     /* Soft cream background - warm and not too white */
-    --background: 35 30% 94%;
+    --background: 45 25% 97%;
     --foreground: 220 20% 20%;
 
     --card: 0 0% 100%;
@@ -17,12 +17,12 @@
     --popover-foreground: 220 20% 20%;
 
     /* Soft Rose - Primary (Maternal warmth) */
-    --primary: 350 70% 70%;
+    --primary: 148 52% 24%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 350 75% 80%;
 
     /* Fresh Mint Green */
-    --mint: 160 50% 55%;
+    --mint: 144 45% 50%;
     --mint-foreground: 0 0% 100%;
     --mint-glow: 160 55% 65%;
 
@@ -63,7 +63,7 @@
 
     --border: 40 20% 92%;
     --input: 40 20% 94%;
-    --ring: 350 70% 70%;
+    --ring: 148 52% 24%;
 
     --radius: 1rem;
 
