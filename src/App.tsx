@@ -47,6 +47,8 @@ const Achievements = lazy(() => import("./pages/Achievements"));
 const Profile = lazy(() => import("./pages/Profile"));
 const FoodDiary = lazy(() => import("./pages/FoodDiary"));
 const Community = lazy(() => import("./pages/Community"));
+const PantryHelper = lazy(() => import("./pages/PantryHelper"));
+const AllergenTracker = lazy(() => import("./pages/AllergenTracker"));
 const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
 const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
 
@@ -124,6 +126,8 @@ const AppContent = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/planner" element={<MealPlanner />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/pantry" element={<PantryHelper />} />
+          <Route path="/allergens" element={<AllergenTracker />} />
           <Route path="/advice" element={<Advice />} />
           <Route path="/bonus" element={<Bonus />} />
           

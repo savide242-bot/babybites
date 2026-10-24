@@ -17,15 +17,15 @@ export const SolidsClubQuickTools: React.FC = () => {
       desc: "Cook with what's in your fridge",
       icon: Refrigerator,
       color: "bg-[#FFF6E5] text-[#B7791F]",
-      link: "/recipes?filter=pantry",
-      badge: "Quick",
+      link: "/pantry",
+      badge: "Interactive",
     },
     {
       title: "Freezer Prep",
       desc: "Batch recipes to make & freeze",
       icon: Snowflake,
       color: "bg-[#E8F4FD] text-[#2B6CB0]",
-      link: "/recipes?filter=freezer",
+      link: "/recipes?category=Snack",
       badge: "Batch",
     },
     {
@@ -33,8 +33,8 @@ export const SolidsClubQuickTools: React.FC = () => {
       desc: "Top 9 allergens safety guide",
       icon: ShieldCheck,
       color: "bg-[#FDF2F4] text-[#C53030]",
-      link: "/growth",
-      badge: "Safety",
+      link: "/allergens",
+      badge: "Pediatric",
     },
   ];
 

@@ -153,6 +153,38 @@ export const Home = () => {
     },
   ];
 
+  // Section 4: 24+ Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  const age24PlusCards = [
+    {
+      title: "Breakfast",
+      subtitle: "Hearty French toasts, mini burritos & pancake stacks.",
+      ageTag: "24+ Months",
+      image: pancakeImg,
+      link: "/recipes?age=24%2B&category=Breakfast",
+    },
+    {
+      title: "Lunch & Dinner",
+      subtitle: "Family favorites, chicken stir-fry & cheesy veggie pasta.",
+      ageTag: "24+ Months",
+      image: riceImg,
+      link: "/recipes?age=24%2B&category=Lunch%20%26%20Dinner",
+    },
+    {
+      title: "Snacks",
+      subtitle: "Crispy veggie quesadillas, homemade crackers & bars.",
+      ageTag: "24+ Months",
+      image: quesadillaImg,
+      link: "/recipes?age=24%2B&category=Snack",
+    },
+    {
+      title: "Desserts & Smoothies",
+      subtitle: "Thick green smoothies, fruit parfaits & banana nicecream.",
+      ageTag: "24+ Months",
+      image: smoothieImg,
+      link: "/recipes?age=24%2B&category=Dessert",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
       {/* 1. Welcome Header (The Solids Club Style) */}
@@ -181,6 +213,12 @@ export const Home = () => {
       <SolidsClubAgeSection
         title="12–23 Months"
         cards={age12to23Cards}
+      />
+
+      {/* 6. Age Section: 24+ Months */}
+      <SolidsClubAgeSection
+        title="24+ Months"
+        cards={age24PlusCards}
       />
     </div>
   );

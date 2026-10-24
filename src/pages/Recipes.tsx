@@ -18,6 +18,7 @@ const OFFICIAL_AGE_OPTIONS = [
   { id: "6-8 Months", label: "6–8 Months" },
   { id: "9-11 Months", label: "9–11 Months" },
   { id: "12-23 Months", label: "12–23 Months" },
+  { id: "24+ Months", label: "24+ Months" },
 ];
 
 const OFFICIAL_CATEGORY_OPTIONS = [
@@ -41,7 +42,10 @@ const matchesTargetAge = (recipeAge: string, targetAge: string): boolean => {
     return rec.includes("9-12") || rec.includes("9-11") || rec.includes("9 months");
   }
   if (target.includes("12-23") || target.includes("12-18") || target.includes("18-24") || target.includes("12-24")) {
-    return rec.includes("12-18") || rec.includes("18-24") || rec.includes("24+") || rec.includes("12-23");
+    return rec.includes("12-18") || rec.includes("18-24") || rec.includes("12-23");
+  }
+  if (target.includes("24+") || target.includes("24")) {
+    return rec.includes("24+") || rec.includes("24 months") || rec.includes("18-24 months");
   }
   return rec === target;
 };
@@ -142,6 +146,8 @@ export const Recipes = () => {
         setSelectedAge("6-8 Months");
       } else if (decoded.includes("9-11") || decoded.includes("9-12")) {
         setSelectedAge("9-11 Months");
+      } else if (decoded.includes("24")) {
+        setSelectedAge("24+ Months");
       } else if (decoded.includes("12-23") || decoded.includes("12-18") || decoded.includes("18-24")) {
         setSelectedAge("12-23 Months");
       }
