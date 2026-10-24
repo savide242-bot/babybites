@@ -22,15 +22,9 @@ Deno.serve(async (req) => {
 
     if (!resolvedUserId && email) {
       const { data: usersPage, error: usersError } = await supabase.auth.admin.listUsers();
-      if (usersError) throw usersError;
-      resolvedUserId = usersPage.users.find((user) => user.email?.toLowerCase() === String(email).toLowerCase())?.id;
-    }
-
-    if (!resolvedUserId) {
-      return new Response(JSON.stringify({ error: 'user_id or valid email required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (!usersError && usersPage?.users) {
+        resolvedUserId = usersPage.users.find((user) => user.email?.toLowerCase() === String(email).toLowerCase())?.id;
+      }
     }
 
     const vapidKeys = getVapidKeys();
@@ -41,13 +35,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: subscriptions } = await supabase
-      .from('push_subscriptions')
-      .select('id, endpoint, p256dh, auth, user_id')
-      .eq('user_id', resolvedUserId);
+    let query = supabase.from('push_subscriptions').select('id, endpoint, p256dh, auth, user_id');
+    if (resolvedUserId) {
+      query = query.eq('user_id', resolvedUserId);
+    }
+
+    const { data: subscriptions, error: subError } = await query;
+
+    if (subError) {
+      return new Response(JSON.stringify({ error: subError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ error: 'No subscriptions found', user_id: resolvedUserId }), {
+      // Diagnostic check of how many total users exist
+      const { data: usersList } = await supabase.auth.admin.listUsers();
+      return new Response(JSON.stringify({ 
+        error: 'No active push subscriptions found in database',
+        totalRegisteredUsersInAuth: usersList?.users?.length || 0,
+        resolvedUserId: resolvedUserId || null
+      }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
