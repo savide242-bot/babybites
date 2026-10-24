@@ -60,7 +60,7 @@ const Onboarding = () => {
         motherName.trim() ||
         "User";
 
-      // Use upsert to reliably create or update the profile (prevents loop when profile is missing)
+      // Use upsert to reliably create or update the profile
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -75,7 +75,7 @@ const Onboarding = () => {
 
       if (profileError) throw profileError;
 
-      // Save meal times to baby_meal_times (source of truth for server-side push)
+      // Save meal times to baby_meal_times
       const mealTimesToInsert = reminders.map(reminder => ({
         user_id: session.user.id,
         meal_type: reminder.id,
@@ -84,7 +84,6 @@ const Onboarding = () => {
         preferred_minute: reminder.minute,
       }));
 
-      // Upsert each meal time
       for (const mealTime of mealTimesToInsert) {
         const { error: mealTimeError } = await supabase
           .from('baby_meal_times')
@@ -97,13 +96,11 @@ const Onboarding = () => {
         }
       }
 
-      console.log(`✅ Saved ${mealTimesToInsert.length} meal times to baby_meal_times`);
-
       // Generate initial weekly meal plan based on baby's age and dietary preferences
       await generateInitialMealPlan(session.user.id, birthDate, dietaryPreferences);
 
-      toast.success(`Welcome to BabyBites, ${motherName}! 🎉`);
-      navigate('/first-day');
+      toast.success(`Welcome to BabyBites, ${motherName}! 🌱`);
+      navigate('/');
     } catch (error) {
       console.error('Error saving profile:', error);
       toast.error("Failed to save information. Please try again.");
@@ -173,7 +170,6 @@ const Onboarding = () => {
           />
         );
       default:
-        // Never return null to avoid blank screens if state gets out of sync
         return (
           <StepMotherName
             value={motherName}
@@ -185,14 +181,14 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-300 via-pink-200 to-cyan-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Subtle botanical background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/20 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-mint/20 rounded-full blur-3xl animate-blob animation-delay-4000" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#48B774]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#1E5E3A]/5 rounded-full blur-3xl" />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 border-2 border-white/50 shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 border border-[#EBE8DF] bg-white rounded-[32px] shadow-[0_12px_40px_-8px_rgba(30,94,58,0.08)]">
         <CardContent className="p-6 sm:p-8 space-y-6">
           <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
           

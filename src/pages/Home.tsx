@@ -6,6 +6,11 @@ import SolidsClubAgeSection from "@/components/home/SolidsClubAgeSection";
 import SolidsClubQuickTools from "@/components/home/SolidsClubQuickTools";
 
 // Import authentic photos from local assets
+import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
+import posterLunchDinner68 from "@/assets/categories/lunch-dinner-6-8m.webp";
+import posterSnacks68 from "@/assets/categories/snacks-6-8m.webp";
+import posterDesserts68 from "@/assets/categories/desserts-smoothies-6-8m.webp";
+
 import porridgeImg from "@/assets/recipe-325-sweet-potato-porridge.jpg";
 import soupImg from "@/assets/recipe-324-chicken-veggie-soup.jpg";
 import bitesImg from "@/assets/recipe-319-mac-cheese-bites.jpg";
@@ -57,35 +62,39 @@ export const Home = () => {
     fetchUserData();
   }, []);
 
-  // Section 1: 6-8 Months (Breakfast, Lunch & Dinner, Snack, Dessert)
+  // Section 1: 6-8 Months (Official Solids Club Posters)
   const age6to8Cards = [
     {
       title: "Breakfast",
-      subtitle: "Smooth morning porridge & wholesome oats.",
+      subtitle: "little morning moments",
       ageTag: "6-8 Months",
-      image: porridgeImg,
+      image: posterBreakfast68,
       link: "/recipes?age=6-8&category=Breakfast",
+      isPosterCard: true,
     },
     {
-      title: "Lunch & Dinner",
-      subtitle: "Nutrient-packed purees, soups & tender lentils.",
+      title: "Lunch-Dinner",
+      subtitle: "nourishing little moments",
       ageTag: "6-8 Months",
-      image: soupImg,
+      image: posterLunchDinner68,
       link: "/recipes?age=6-8&category=Lunch%20%26%20Dinner",
+      isPosterCard: true,
     },
     {
       title: "Snacks",
-      subtitle: "Soft melt-in-mouth sticks & veggie bites.",
+      subtitle: "tiny bites, happy days",
       ageTag: "6-8 Months",
-      image: bitesImg,
+      image: posterSnacks68,
       link: "/recipes?age=6-8&category=Snack",
+      isPosterCard: true,
     },
     {
-      title: "Desserts & Smoothies",
-      subtitle: "Gentle cold fruit purees & dairy-free baby sips.",
+      title: "Desserts-Smoothies",
+      subtitle: "sweet, soft and wholesome",
       ageTag: "6-8 Months",
-      image: yogurtSwirlImg,
+      image: posterDesserts68,
       link: "/recipes?age=6-8&category=Dessert",
+      isPosterCard: true,
     },
   ];
 

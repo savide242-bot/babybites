@@ -1,15 +1,18 @@
-import { useState, useEffect, useMemo, useCallback, memo, useRef } from "react";
+import { useState, useEffect, useMemo, memo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Clock, Heart, Download, Loader2, Sparkles, Filter } from "lucide-react";
+import { Search, Clock, Heart, Download, Loader2, Sparkles, Filter, Play } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import { recipes, ageGroups, categories, getMealCategory } from "@/data/recipes";
+import { recipes, getMealCategory } from "@/data/recipes";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { differenceInMonths } from "date-fns";
+
+// 6-8 Months Category Posters
+import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
+import posterLunchDinner68 from "@/assets/categories/lunch-dinner-6-8m.webp";
+import posterSnacks68 from "@/assets/categories/snacks-6-8m.webp";
+import posterDesserts68 from "@/assets/categories/desserts-smoothies-6-8m.webp";
 
 const BATCH_SIZE = 24;
 
@@ -65,7 +68,6 @@ const RecipeCard = memo(({
   return (
     <div className="rounded-[24px] bg-white border border-[#EBE8DF] shadow-[0_4px_16px_-4px_rgba(30,94,58,0.06)] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group">
       <Link to={`/recipe/${recipe.id}`} className="block relative">
-        {/* Realistic food photo container */}
         <div className="aspect-[4/3] w-full overflow-hidden bg-[#FAF9F5] relative">
           <img
             src={recipe.image}
@@ -75,7 +77,6 @@ const RecipeCard = memo(({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
 
-          {/* Heart favorite button */}
           <button
             aria-label="Save recipe"
             className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${
@@ -91,7 +92,6 @@ const RecipeCard = memo(({
             <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
           </button>
 
-          {/* Category Pill Tag */}
           <div className="absolute bottom-2.5 left-2.5">
             <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold tracking-wide">
               {mealCat}
@@ -99,28 +99,29 @@ const RecipeCard = memo(({
           </div>
         </div>
 
-        {/* Info Body */}
-        <div className="p-3.5">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-forest mb-1">
+        <div className="p-3.5 pb-2">
+          <div className="flex items-center gap-1.5 text-[11px] text-[#48B774] font-medium mb-1">
             <span>💚</span>
             <span>{recipe.ageGroup}</span>
           </div>
-
-          <h3 className="font-serif font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-forest transition-colors">
+          <h3 className="font-serif font-bold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-forest transition-colors">
             {recipe.title}
           </h3>
-
-          <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#F5F3EC] text-[11px] text-gray-500">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-[#48B774]" />
-              {recipe.prepTime}
-            </span>
-            <span className="text-[10px] text-gray-400 font-medium">
-              {recipe.ingredients.length} ingredients
-            </span>
-          </div>
+          <p className="text-[11px] text-gray-500 line-clamp-2 mt-1 leading-relaxed">
+            {recipe.description}
+          </p>
         </div>
       </Link>
+
+      <div className="px-3.5 pb-3 pt-1 border-t border-[#F3F1EB] flex items-center justify-between text-[11px] text-gray-400">
+        <div className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" />
+          <span>{recipe.prepTime}</span>
+        </div>
+        <span className="font-medium text-gray-600">
+          {recipe.ingredients.length} ingr.
+        </span>
+      </div>
     </div>
   );
 });
@@ -223,12 +224,51 @@ export const Recipes = () => {
     try {
       await exportRecipeEbook(filteredRecipes);
       toast.success("eBook exported successfully!");
-    } catch (err) {
+    } catch {
       toast.error("Could not export PDF. Please try again.");
     } finally {
       setIsExporting(false);
     }
   };
+
+  // Dedicated 6-8 Months Banner Data
+  const banner68Info = useMemo(() => {
+    if (selectedAge !== "6-8 Months") return null;
+
+    if (selectedCategory === "Breakfast") {
+      return {
+        image: posterBreakfast68,
+        title: "Breakfast: Little Morning Moments",
+        subtitle: "Gentle iron-rich oats, soft fruit mashes, and wholesome first morning meals.",
+        tag: "6–8 MONTHS • BREAKFAST",
+      };
+    }
+    if (selectedCategory === "Lunch & Dinner") {
+      return {
+        image: posterLunchDinner68,
+        title: "Lunch & Dinner: Nourishing Moments",
+        subtitle: "Soft steamed vegetable purees, mild lentil dahl, and tender poultry blends.",
+        tag: "6–8 MONTHS • LUNCH & DINNER",
+      };
+    }
+    if (selectedCategory === "Snack") {
+      return {
+        image: posterSnacks68,
+        title: "Snacks: Tiny Bites, Happy Days",
+        subtitle: "Easy-to-grasp soft finger foods, steamed florets, and refreshing fruit teethers.",
+        tag: "6–8 MONTHS • SNACKS",
+      };
+    }
+    if (selectedCategory === "Dessert") {
+      return {
+        image: posterDesserts68,
+        title: "Desserts & Smoothies: Soft & Wholesome",
+        subtitle: "Smooth whole milk yogurt swirls, ripe berry purees, and gentle smoothies.",
+        tag: "6–8 MONTHS • DESSERTS & SMOOTHIES",
+      };
+    }
+    return null;
+  }, [selectedAge, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
@@ -269,7 +309,7 @@ export const Recipes = () => {
         />
       </div>
 
-      {/* 1. Category Filter Pills (Breakfast, Lunch & Dinner, Snack, Dessert) */}
+      {/* 1. Category Filter Pills */}
       <div className="mb-3">
         <div className="flex gap-2 overflow-x-auto pb-1.5 -mx-4 px-4 no-scrollbar">
           {OFFICIAL_CATEGORY_OPTIONS.map((cat) => (
@@ -288,8 +328,8 @@ export const Recipes = () => {
         </div>
       </div>
 
-      {/* 2. Age Filter Pills (6-8m, 9-11m, 12-23m) */}
-      <div className="mb-6">
+      {/* 2. Age Filter Pills */}
+      <div className="mb-5">
         <div className="flex gap-2 overflow-x-auto pb-1.5 -mx-4 px-4 no-scrollbar">
           {OFFICIAL_AGE_OPTIONS.map((age) => (
             <button
@@ -306,6 +346,71 @@ export const Recipes = () => {
           ))}
         </div>
       </div>
+
+      {/* Featured 6-8 Months Category Artwork Banner */}
+      {banner68Info && (
+        <div className="mb-6 rounded-[24px] overflow-hidden bg-white border border-[#EBE8DF] shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)]">
+          <div className="flex flex-col sm:flex-row">
+            <div className="sm:w-2/5 aspect-[4/3] sm:aspect-[3/4] max-h-56 sm:max-h-none overflow-hidden bg-[#FAF9F5]">
+              <img
+                src={banner68Info.image}
+                alt={banner68Info.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="p-4 sm:p-5 flex flex-col justify-center sm:w-3/5">
+              <span className="text-[11px] font-bold tracking-wider uppercase text-[#48B774]">
+                {banner68Info.tag}
+              </span>
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest mt-1 leading-snug">
+                {banner68Info.title}
+              </h2>
+              <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                {banner68Info.subtitle}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6-8 Months Quick 4-Category Carousel (when on 6-8 months & All Categories) */}
+      {selectedAge === "6-8 Months" && selectedCategory === "All Categories" && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
+              Explore 6–8 Months Categories
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { title: "Breakfast", img: posterBreakfast68, cat: "Breakfast" },
+              { title: "Lunch & Dinner", img: posterLunchDinner68, cat: "Lunch & Dinner" },
+              { title: "Snacks", img: posterSnacks68, cat: "Snack" },
+              { title: "Desserts", img: posterDesserts68, cat: "Dessert" },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedCategory(item.cat)}
+                className="text-left rounded-2xl bg-white border border-[#EBE8DF] overflow-hidden shadow-xs hover:shadow-md transition-all group"
+              >
+                <div className="aspect-[4/3] w-full overflow-hidden bg-[#FAF9F5]">
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-2">
+                  <span className="text-xs font-semibold text-gray-900 block group-hover:text-forest">
+                    {item.title}
+                  </span>
+                  <span className="text-[10px] text-gray-500">View recipes →</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recipes Grid */}
       {filteredRecipes.length === 0 ? (
