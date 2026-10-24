@@ -762,7 +762,7 @@ const MealPlanner = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Too Young Warning */}
         {isTooYoungForSolids && (
           <Card className="mb-6 border-2 border-amber-400/50 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
@@ -942,8 +942,8 @@ const MealPlanner = () => {
                 </Card>
 
                 {/* Day cards (read-only for personalized) */}
-                <div className="grid lg:grid-cols-4 gap-6">
-                  <div className="lg:col-span-3 space-y-4">
+                <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                  <div className="lg:col-span-7 xl:col-span-8 space-y-4">
                     {daysOfWeek.map((day, index) => (
                       <DayCard
                         key={day}
@@ -959,8 +959,38 @@ const MealPlanner = () => {
                       />
                     ))}
                   </div>
-                  <div className="space-y-4">
+                  <div className="lg:col-span-5 xl:col-span-4 space-y-5 lg:sticky lg:top-24">
                     <NutritionBalanceWidget mealPlan={personalizedPlan} />
+
+                    {/* Quick shortcuts */}
+                    <div className="rounded-[24px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] p-4 sm:p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-7 h-7 rounded-xl bg-[#EAF5EE] border border-[#CCE0D2] flex items-center justify-center text-[#1E5E3A]">
+                          <Sparkles className="w-3.5 h-3.5" />
+                        </div>
+                        <h4 className="font-serif font-bold text-gray-900 text-sm">
+                          Personalized Plan Shortcuts
+                        </h4>
+                      </div>
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start rounded-xl border-[#E8EDE4] hover:bg-[#F4F8F4] text-gray-700 h-10"
+                          onClick={() => navigate("/shopping")}
+                        >
+                          <ShoppingCart className="h-4 w-4 mr-2 text-[#48B774]" />
+                          View Weekly Grocery List
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start rounded-xl border-[#E8EDE4] hover:bg-[#FAF9F5] text-gray-700 h-10"
+                          onClick={regeneratePersonalizedPlan}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2 text-amber-600" />
+                          Regenerate New Meal Mix
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>
@@ -1019,8 +1049,8 @@ const MealPlanner = () => {
               </div>
             )}
 
-            <div className="grid lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3 space-y-4">
+            <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+              <div className="lg:col-span-7 xl:col-span-8 space-y-4">
                 {daysOfWeek.map((day, index) => (
                   <DayCard
                     key={day}
@@ -1037,30 +1067,37 @@ const MealPlanner = () => {
                 ))}
               </div>
 
-              <div className="space-y-4">
+              <div className="lg:col-span-5 xl:col-span-4 space-y-5 lg:sticky lg:top-24">
                 <NutritionBalanceWidget mealPlan={customPlan} />
                 
-                <Card>
-                  <CardContent className="p-4 space-y-2">
-                    <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
+                <div className="rounded-[24px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-xl bg-[#EAF5EE] border border-[#CCE0D2] flex items-center justify-center text-[#1E5E3A]">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
+                    <h4 className="font-serif font-bold text-gray-900 text-sm">
+                      Planner Shortcuts
+                    </h4>
+                  </div>
+                  <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full justify-start"
+                      className="w-full justify-start rounded-xl border-[#E8EDE4] hover:bg-[#F4F8F4] text-gray-700 h-10"
                       onClick={() => setTemplatesOpen(true)}
                     >
                       <Sparkles className="h-4 w-4 mr-2 text-primary" />
-                      Apply Template
+                      Apply Meal Template
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full justify-start"
+                      className="w-full justify-start rounded-xl border-[#E8EDE4] hover:bg-[#F4F8F4] text-gray-700 h-10"
                       onClick={() => navigate("/shopping")}
                     >
-                      <ShoppingCart className="h-4 w-4 mr-2 text-mint" />
+                      <ShoppingCart className="h-4 w-4 mr-2 text-[#48B774]" />
                       View Shopping List
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
