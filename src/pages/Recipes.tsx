@@ -395,7 +395,7 @@ export const Recipes = () => {
   }, [selectedAge, selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
       {/* Title & PDF Export */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -434,8 +434,8 @@ export const Recipes = () => {
       </div>
 
       {/* 1. Category Filter Pills */}
-      <div className="mb-3">
-        <div className="flex gap-2 overflow-x-auto pb-1.5 -mx-4 px-4 no-scrollbar">
+      <div className="mb-3 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar w-full max-w-full min-w-0">
           {OFFICIAL_CATEGORY_OPTIONS.map((cat) => (
             <button
               key={cat.id}
@@ -453,8 +453,8 @@ export const Recipes = () => {
       </div>
 
       {/* 2. Age Filter Pills */}
-      <div className="mb-5">
-        <div className="flex gap-2 overflow-x-auto pb-1.5 -mx-4 px-4 no-scrollbar">
+      <div className="mb-5 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar w-full max-w-full min-w-0">
           {OFFICIAL_AGE_OPTIONS.map((age) => (
             <button
               key={age.id}

@@ -114,14 +114,14 @@ export const PantryHelper: React.FC = () => {
   }, [activeIngredients, selectedAge]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
       {/* Header */}
-      <div className="mb-5">
+      <div className="mb-5 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
           Smart Kitchen Assistant
         </span>
-        <h1 className="text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
-          <ChefHat className="w-8 h-8 text-[#48B774]" /> Pantry Recipe Finder
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
+          <ChefHat className="w-7 h-7 sm:w-8 sm:h-8 text-[#48B774] shrink-0" /> Pantry Recipe Finder
         </h1>
         <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
           Tell us what you have in your kitchen or fridge right now. Type ingredients below and let our chef find delicious, baby-approved recipes you can make immediately!
@@ -129,38 +129,38 @@ export const PantryHelper: React.FC = () => {
       </div>
 
       {/* Modern Conversational Input Card */}
-      <div className="bg-white rounded-[28px] border border-[#EBE8DF] p-5 shadow-[0_8px_30px_-6px_rgba(30,94,58,0.08)] mb-6">
+      <div className="bg-white rounded-[24px] sm:rounded-[28px] border border-[#EBE8DF] p-4 sm:p-5 shadow-[0_8px_30px_-6px_rgba(30,94,58,0.08)] mb-5 w-full min-w-0 overflow-hidden">
         <label htmlFor="pantry-input" className="block text-xs font-bold uppercase tracking-wider text-forest mb-2">
           What ingredients do you have?
         </label>
 
-        <form onSubmit={handleAddFromInput} className="relative">
-          <div className="relative flex items-center">
+        <form onSubmit={handleAddFromInput} className="relative w-full min-w-0">
+          <div className="relative flex items-center w-full min-w-0">
             <input
               id="pantry-input"
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="e.g. sweet potato, chicken, carrots, oats..."
-              className="w-full h-13 pl-4 pr-24 rounded-full border border-[#D5D0C3] bg-[#FAF9F5] text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#48B774] focus:bg-white transition-all shadow-inner"
+              className="w-full min-w-0 h-12 sm:h-13 pl-3.5 sm:pl-4 pr-18 sm:pr-22 rounded-full border border-[#D5D0C3] bg-[#FAF9F5] text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#48B774] focus:bg-white transition-all shadow-inner"
             />
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#1E5E3A] hover:bg-[#16482c] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-xs transition-all active:scale-95"
+              className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-[#1E5E3A] hover:bg-[#16482c] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-xs transition-all active:scale-95 shrink-0"
             >
               <span>Find</span>
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
-          <p className="text-[11px] text-gray-400 mt-1.5 px-1">
+          <p className="text-[11px] text-gray-400 mt-1.5 px-1 leading-snug">
             Tip: You can separate multiple ingredients with commas (e.g. *apples, bananas, oats*).
           </p>
         </form>
 
         {/* Active Ingredients Tags */}
         {activeIngredients.length > 0 && (
-          <div className="mt-4 pt-3.5 border-t border-[#F1EFEA]">
+          <div className="mt-4 pt-3.5 border-t border-[#F1EFEA] w-full min-w-0">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-gray-700">
                 Your Ingredients ({activeIngredients.length}):
@@ -173,11 +173,11 @@ export const PantryHelper: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 w-full min-w-0">
               {activeIngredients.map((ing) => (
                 <span
                   key={ing}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F3F6F3] text-forest border border-[#D6E3D8] text-xs font-semibold shadow-xs animate-fade-in"
+                  className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-[#F3F6F3] text-forest border border-[#D6E3D8] text-xs font-semibold shadow-xs animate-fade-in"
                 >
                   <span className="capitalize">{ing}</span>
                   <button
@@ -194,11 +194,11 @@ export const PantryHelper: React.FC = () => {
         )}
 
         {/* Quick Add Suggestions */}
-        <div className="mt-4 pt-3 border-t border-[#F5F3EC]">
+        <div className="mt-4 pt-3 border-t border-[#F5F3EC] w-full min-w-0">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
             Quick Add Staples:
           </span>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 w-full min-w-0">
             {POPULAR_SUGGESTIONS.map((item) => {
               const isAdded = activeIngredients.includes(item.toLowerCase());
               return (
@@ -222,8 +222,8 @@ export const PantryHelper: React.FC = () => {
       </div>
 
       {/* Age Filter Tabs */}
-      <div className="mb-5 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        <span className="text-xs font-bold text-forest flex-shrink-0 mr-1 flex items-center gap-1">
+      <div className="mb-5 flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar w-full max-w-full min-w-0">
+        <span className="text-xs font-bold text-forest shrink-0 mr-1 flex items-center gap-1">
           <Filter className="w-3.5 h-3.5" /> Age:
         </span>
         {[
@@ -236,7 +236,7 @@ export const PantryHelper: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setSelectedAge(tab.id)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               selectedAge === tab.id
                 ? "bg-forest text-white shadow-xs"
                 : "bg-white text-gray-500 border border-[#EBE8DF] hover:bg-gray-50"
@@ -281,7 +281,7 @@ export const PantryHelper: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 w-full min-w-0">
             {matchedRecipes.map(({ recipe, matchCount, matchPercent, matched, missing }) => {
               const cat = getMealCategory(recipe);
 
@@ -289,11 +289,11 @@ export const PantryHelper: React.FC = () => {
                 <Link
                   key={recipe.id}
                   to={`/recipe/${recipe.id}`}
-                  className="block p-3.5 rounded-[24px] bg-white border border-[#EBE8DF] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.04)] hover:shadow-md transition-all duration-200 group hover:-translate-y-0.5"
+                  className="block p-3 sm:p-3.5 rounded-[20px] sm:rounded-[24px] bg-white border border-[#EBE8DF] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.04)] hover:shadow-md transition-all duration-200 group hover:-translate-y-0.5 w-full min-w-0 overflow-hidden"
                 >
-                  <div className="flex items-center gap-3.5">
+                  <div className="flex items-center gap-3 sm:gap-3.5 w-full min-w-0">
                     {/* Realistic Photo */}
-                    <div className="w-22 h-22 sm:w-24 sm:h-24 rounded-[20px] overflow-hidden bg-gray-100 flex-shrink-0 border border-[#EBE8DF] relative">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-[16px] sm:rounded-[20px] overflow-hidden bg-gray-100 shrink-0 border border-[#EBE8DF] relative">
                       <img
                         src={recipe.image}
                         alt={recipe.title}

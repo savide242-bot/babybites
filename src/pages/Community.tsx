@@ -399,7 +399,7 @@ export const Community: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
       {/* Header Banner */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -480,7 +480,7 @@ export const Community: React.FC = () => {
       </div>
 
       {/* Categories Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 no-scrollbar mb-6">
+      <div className="flex gap-2 overflow-x-auto pb-3 w-full max-w-full min-w-0 no-scrollbar mb-6">
         {categories.map((cat) => (
           <button
             key={cat.id}

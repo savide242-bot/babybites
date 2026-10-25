@@ -94,7 +94,7 @@ export const Header = () => {
                 <Menu className="w-4 h-4 text-gray-700" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 p-0 bg-[#FAF9F5] border-l border-[#EBE8DF]">
+            <SheetContent side="right" className="w-80 max-w-[85vw] p-0 bg-[#FAF9F5] border-l border-[#EBE8DF]">
               <div className="flex flex-col h-full">
                 {/* Drawer Header */}
                 <div className="p-6 pb-4 border-b border-[#EBE8DF] bg-white">

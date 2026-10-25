@@ -12,8 +12,8 @@ const FoodDiary = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8">
-      <div className="container max-w-2xl mx-auto px-4">
+    <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8 w-full max-w-full overflow-x-hidden min-w-0">
+      <div className="container max-w-2xl mx-auto px-3 sm:px-4 w-full max-w-full min-w-0">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">

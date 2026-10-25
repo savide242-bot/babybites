@@ -290,7 +290,7 @@ const Profile = () => {
 
   return (
     <motion.div 
-      className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background pb-24 lg:pb-8"
+      className="min-h-screen bg-gradient-to-b from-background via-peach/5 to-background pb-24 lg:pb-8 w-full max-w-full overflow-x-hidden min-w-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
@@ -380,7 +380,7 @@ const Profile = () => {
         </div>
       </motion.div>
 
-      <div className="container max-w-2xl px-4 -mt-6 pb-8 space-y-6">
+      <div className="container max-w-2xl px-3 sm:px-4 -mt-6 pb-8 space-y-6 w-full max-w-full min-w-0">
         {/* Edit Profile Card */}
         {isEditing && (
           <Card className="border-2 border-primary/20 shadow-lg">

@@ -180,14 +180,14 @@ export const FreezerPrep: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
       {/* Header */}
-      <div className="mb-5">
+      <div className="mb-5 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
           Batch Cooking & Meal Prep
         </span>
-        <h1 className="text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
-          <Snowflake className="w-8 h-8 text-[#48B774]" /> Freezer-Friendly Meals
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
+          <Snowflake className="w-7 h-7 sm:w-8 sm:h-8 text-[#48B774] shrink-0" /> Freezer-Friendly Meals
         </h1>
         <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
           Cook once, feed multiple days! Track portions stored in your freezer, discover batch recipes, and follow pediatric safety thawing rules.
@@ -195,7 +195,7 @@ export const FreezerPrep: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="grid grid-cols-3 gap-2 bg-[#EFECE4] p-1.5 rounded-2xl mb-6">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-[#EFECE4] p-1.5 rounded-2xl mb-6 w-full min-w-0">
         <button
           onClick={() => setActiveTab("stash")}
           className={`py-2 text-xs font-bold rounded-xl transition-all ${

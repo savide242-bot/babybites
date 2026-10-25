@@ -150,14 +150,14 @@ export const AllergenTracker: React.FC = () => {
   const testingCount = allergens.filter((a) => a.status === "testing").length;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
           Pediatric Safety Protocol
         </span>
-        <h1 className="text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
-          <ShieldCheck className="w-7 h-7 text-[#48B774]" /> Top 9 Allergen Tracker
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
+          <ShieldCheck className="w-7 h-7 text-[#48B774] shrink-0" /> Top 9 Allergen Tracker
         </h1>
         <p className="text-xs text-gray-500 mt-1">
           Early, gentle exposure is recommended by pediatric guidelines to help prevent allergies. Track each one step-by-step.
@@ -165,7 +165,7 @@ export const AllergenTracker: React.FC = () => {
       </div>
 
       {/* Progress Card */}
-      <div className="rounded-[28px] bg-white border border-[#EBE8DF] p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] mb-6">
+      <div className="rounded-[24px] sm:rounded-[28px] bg-white border border-[#EBE8DF] p-4 sm:p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] mb-6 w-full min-w-0 overflow-hidden">
         <div className="flex items-center justify-between mb-3">
           <span className="font-serif font-bold text-gray-900 text-sm">
             Allergen Introduction Progress

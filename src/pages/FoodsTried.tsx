@@ -231,14 +231,14 @@ export const FoodsTried: React.FC = () => {
   }, [foods]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
       {/* Header */}
-      <div className="mb-5">
+      <div className="mb-5 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
           Feeding Milestones & Progress
         </span>
-        <h1 className="text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
-          <Heart className="w-8 h-8 text-[#48B774] fill-[#48B774]/20" /> 100 Foods Before One
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
+          <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-[#48B774] fill-[#48B774]/20 shrink-0" /> 100 Foods Before One
         </h1>
         <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
           Track every first flavor, safe preparation style, and milestone reaction as your baby builds a lifetime of joyful, adventurous eating.
@@ -246,7 +246,7 @@ export const FoodsTried: React.FC = () => {
       </div>
 
       {/* Motivational Progress Card */}
-      <div className="bg-white rounded-[28px] border border-[#EBE8DF] p-5 shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)] mb-6">
+      <div className="bg-white rounded-[24px] sm:rounded-[28px] border border-[#EBE8DF] p-4 sm:p-5 shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)] mb-6 w-full min-w-0 overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <div>
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -322,12 +322,12 @@ export const FoodsTried: React.FC = () => {
               />
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full max-w-full min-w-0">
               {["All", "Fruits", "Vegetables", "Proteins", "Grains & Pantry"].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                     activeCategory === cat
                       ? "bg-forest text-white shadow-xs"
                       : "bg-white text-gray-500 border border-[#EBE8DF] hover:bg-gray-50"

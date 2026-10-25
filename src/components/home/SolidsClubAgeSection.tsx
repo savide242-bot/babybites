@@ -18,7 +18,7 @@ interface AgeSectionProps {
 
 export const SolidsClubAgeSection: React.FC<AgeSectionProps> = ({ title, cards }) => {
   return (
-    <section className="mb-8">
+    <section className="mb-8 w-full max-w-full overflow-hidden">
       {/* Section Title in Elegant Serif Forest Green */}
       <div className="flex items-center justify-between mb-3 px-1">
         <h2 className="text-2xl md:text-3xl font-serif font-bold text-forest tracking-tight">
@@ -27,7 +27,7 @@ export const SolidsClubAgeSection: React.FC<AgeSectionProps> = ({ title, cards }
       </div>
 
       {/* Horizontal Carousel of Meal Cards */}
-      <div className="flex gap-4 overflow-x-auto pb-4 pt-1 -mx-4 px-4 snap-x no-scrollbar scroll-smooth">
+      <div className="flex gap-3.5 sm:gap-4 overflow-x-auto pb-3 sm:pb-4 pt-1 snap-x no-scrollbar scroll-smooth w-full max-w-full min-w-0">
         {cards.map((card, idx) => {
           // If it's a dedicated botanical poster card (like the uploaded 6-8m images)
           if (card.isPosterCard) {

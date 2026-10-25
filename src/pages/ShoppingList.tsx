@@ -303,8 +303,8 @@ const ShoppingList = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAF9F5] text-stone-900 pt-20 pb-20 selection:bg-[#1E5E3A]/20">
-      <div className="container max-w-3xl mx-auto px-4">
+    <main className="min-h-screen bg-[#FAF9F5] text-stone-900 pt-20 pb-20 selection:bg-[#1E5E3A]/20 w-full max-w-full overflow-x-hidden min-w-0">
+      <div className="container max-w-3xl mx-auto px-3 sm:px-4 w-full max-w-full min-w-0">
         
         {/* Header */}
         <div className="mb-6 pt-4">

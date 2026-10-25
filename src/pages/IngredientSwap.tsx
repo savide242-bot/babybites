@@ -196,14 +196,14 @@ export const IngredientSwap: React.FC = () => {
   }, [selectedIngredient]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
       {/* Header */}
-      <div className="mb-5">
+      <div className="mb-5 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
           Kitchen Substitutions & Allergy Swaps
         </span>
-        <h1 className="text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
-          <Repeat className="w-8 h-8 text-[#48B774]" /> Ingredient Swap
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5 flex items-center gap-2">
+          <Repeat className="w-7 h-7 sm:w-8 sm:h-8 text-[#48B774] shrink-0" /> Ingredient Swap
         </h1>
         <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
           Missing an ingredient or avoiding an allergen? Discover verified, baby-safe substitutions that preserve recipe texture, baking ratios, and nutritional balance.
@@ -211,24 +211,24 @@ export const IngredientSwap: React.FC = () => {
       </div>
 
       {/* Search Input */}
-      <div className="relative mb-5">
+      <div className="relative mb-5 w-full min-w-0">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search ingredient to replace (e.g. egg, milk, flour, butter)..."
-          className="pl-9 h-11 rounded-full border border-[#D5D0C3] bg-white text-xs text-gray-800 focus-visible:ring-[#48B774]"
+          className="pl-9 h-11 rounded-full border border-[#D5D0C3] bg-white text-xs text-gray-800 focus-visible:ring-[#48B774] w-full min-w-0"
         />
       </div>
 
       {/* Ingredient Selector Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-5 no-scrollbar w-full max-w-full min-w-0">
         {INGREDIENT_SWAPS.map((item) => (
           <button
             key={item.ingredient}
             onClick={() => setSelectedIngredient(item.ingredient)}
-            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+            className={`shrink-0 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
               selectedIngredient === item.ingredient
                 ? "bg-forest text-white shadow-xs"
                 : "bg-white text-gray-600 border border-[#EBE8DF] hover:bg-gray-50"
@@ -242,9 +242,9 @@ export const IngredientSwap: React.FC = () => {
 
       {/* Selected Ingredient Details */}
       {activeCategory && (
-        <div className="space-y-4 animate-fade-in">
+        <div className="space-y-4 animate-fade-in w-full min-w-0">
           {/* Header Card */}
-          <div className="bg-white rounded-[28px] border border-[#EBE8DF] p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)]">
+          <div className="bg-white rounded-[24px] sm:rounded-[28px] border border-[#EBE8DF] p-4 sm:p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] w-full min-w-0 overflow-hidden">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
                 <span className="text-3xl p-2 bg-[#FAF9F5] rounded-2xl border border-[#EBE8DF]">
@@ -266,7 +266,7 @@ export const IngredientSwap: React.FC = () => {
           </div>
 
           {/* Substitutes List */}
-          <div className="space-y-3">
+          <div className="space-y-3 w-full min-w-0">
             <h3 className="font-serif font-bold text-forest text-base px-1">
               Best Safe Alternatives ({activeCategory.substitutes.length})
             </h3>
@@ -274,16 +274,16 @@ export const IngredientSwap: React.FC = () => {
             {activeCategory.substitutes.map((sub, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-[24px] border border-[#EBE8DF] p-4 sm:p-5 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.04)] space-y-2.5"
+                className="bg-white rounded-[20px] sm:rounded-[24px] border border-[#EBE8DF] p-4 sm:p-5 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.04)] space-y-2.5 w-full min-w-0 overflow-hidden"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <h4 className="font-serif font-bold text-gray-900 text-base flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#EAF5EE] text-[#1E5E3A] flex items-center justify-center text-xs font-bold">
+                <div className="flex items-start justify-between gap-2 flex-wrap sm:flex-nowrap">
+                  <h4 className="font-serif font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
+                    <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#EAF5EE] text-[#1E5E3A] flex items-center justify-center text-xs font-bold shrink-0">
                       {idx + 1}
                     </span>
-                    {sub.replacement}
+                    <span>{sub.replacement}</span>
                   </h4>
-                  <span className="px-2.5 py-1 rounded-full bg-[#FAF9F5] border border-[#EBE8DF] text-forest text-[11px] font-bold whitespace-nowrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#FAF9F5] border border-[#EBE8DF] text-forest text-[10px] sm:text-[11px] font-bold whitespace-nowrap shrink-0">
                     Ratio: {sub.ratio}
                   </span>
                 </div>
@@ -305,15 +305,15 @@ export const IngredientSwap: React.FC = () => {
                 </div>
 
                 <div className="bg-[#F3F8F4] p-2.5 rounded-xl border border-[#CCE0D2] flex items-center gap-2 text-xs text-forest">
-                  <ShieldCheck className="w-4 h-4 flex-shrink-0 text-[#48B774]" />
-                  <span>{sub.safetyNote}</span>
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-[#48B774]" />
+                  <span className="leading-snug">{sub.safetyNote}</span>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Quick link to Pantry Helper */}
-          <div className="mt-6 p-4 rounded-[22px] bg-[#EAF5EE] border border-[#CCE0D2] flex items-center justify-between">
+          <div className="mt-6 p-4 rounded-[22px] bg-[#EAF5EE] border border-[#CCE0D2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full min-w-0">
             <div>
               <h4 className="font-serif font-bold text-forest text-sm">
                 Have other random ingredients?
@@ -324,7 +324,7 @@ export const IngredientSwap: React.FC = () => {
             </div>
             <Link
               to="/pantry"
-              className="px-3 py-1.5 rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold whitespace-nowrap shadow-xs ml-3"
+              className="px-3 py-1.5 rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold whitespace-nowrap shadow-xs shrink-0"
             >
               Pantry Helper →
             </Link>

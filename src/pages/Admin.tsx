@@ -31,7 +31,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-8 container mx-auto p-4 space-y-6">
+    <div className="min-h-screen bg-background pb-24 lg:pb-8 container mx-auto p-3 sm:p-4 space-y-6 w-full max-w-full overflow-x-hidden min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-primary" />
@@ -49,7 +49,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 h-auto">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 h-auto overflow-x-auto min-w-0">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>

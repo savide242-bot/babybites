@@ -707,7 +707,7 @@ const MealPlanner = () => {
   if (isLoading) return <MealPlanSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 w-full max-w-full overflow-x-hidden min-w-0">
       {/* Plan Generating Overlay */}
       <PlanGeneratingOverlay
         isVisible={isGenerating}
@@ -762,7 +762,7 @@ const MealPlanner = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 w-full max-w-full min-w-0">
         {/* Too Young Warning */}
         {isTooYoungForSolids && (
           <Card className="mb-6 border-2 border-amber-400/50 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">

@@ -26,3 +26,4 @@ dist-ssr
 # Temporary media & references
 referencia/
 scripts/
+supabase/.temp/

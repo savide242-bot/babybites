@@ -93,7 +93,7 @@ const AppContent = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF9F5]">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F5] w-full max-w-full overflow-x-hidden min-w-0">
       <AdminPreviewBanner />
       {!isFullscreenRoute && <Header />}
       {!isFullscreenRoute && <BottomNavigation />}
@@ -101,8 +101,9 @@ const AppContent = () => {
       <WhatsAppButton />
       <BirthdayCelebrationModal />
       <SmartInstallBanner />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
+      <main className="flex-1 w-full max-w-full overflow-x-hidden min-w-0">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/first-day" element={<FirstDay />} />
           <Route path="/" element={<Home />} />
@@ -135,6 +136,7 @@ const AppContent = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      </main>
     </div>
   );
 };

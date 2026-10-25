@@ -64,7 +64,7 @@ export const Favorites = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
       {/* Header */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2">
@@ -84,7 +84,7 @@ export const Favorites = () => {
       </div>
 
       {/* Thematic Collections Bar */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 w-full max-w-full min-w-0 no-scrollbar">
         {COLLECTIONS.map((col) => {
           const Icon = col.icon;
           return (
