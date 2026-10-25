@@ -40,48 +40,61 @@ export interface Recipe {
   servingGuidance: string;
 }
 
-export const ageGroups = ["All Ages", "6-9 months", "9-12 months", "12-18 months", "18-24 months", "24+ months"];
+export const ageGroups = ["All Ages", "6-8 months", "9-11 months", "12-23 months", "24+ months"];
 export const categories = ["All Categories", "Breakfast", "Lunch & Dinner", "Snack", "Dessert"];
+
+// Standardized official 4 age groups normalization
+export const normalizeAgeGroup = (raw: string): string => {
+  const s = (raw || "").toLowerCase();
+  if (s.includes("6-9") || s.includes("6-8") || s.includes("6 months") || s.includes("7 months") || s.includes("8 months")) {
+    return "6-8 months";
+  }
+  if (s.includes("9-12") || s.includes("9-11") || s.includes("9 months") || s.includes("10 months") || s.includes("11 months")) {
+    return "9-11 months";
+  }
+  if (s.includes("12-18") || s.includes("18-24") || s.includes("12-24") || s.includes("12-23") || s.includes("12 months") || s.includes("18 months") || s.includes("1 year")) {
+    return "12-23 months";
+  }
+  if (s.includes("24+") || s.includes("24 months") || s.includes("2 years") || s.includes("toddler")) {
+    return "24+ months";
+  }
+  return "6-8 months";
+};
 
 // Standardized official 4 categories: Breakfast, Lunch & Dinner, Snack, Dessert
 export const getMealCategory = (recipe: any): "Breakfast" | "Lunch & Dinner" | "Snack" | "Dessert" => {
   const title = (recipe.title || "").toLowerCase();
   const description = (recipe.description || "").toLowerCase();
-  const ingredients = (recipe.ingredients || []).join(" ").toLowerCase();
-  const combined = `${title} ${description} ${ingredients}`;
+  const rawCat = (recipe.category || "").toLowerCase();
 
-  // 1. DESSERT: Smoothies, natural baby nicecreams, fruit swirls, popsicles
-  if (/smoothie|lassi|shake|nicecream|popsicle|pudding|custard|fruit swirl|compote/.test(title) ||
-      /smoothie|nicecream|popsicle/.test(combined)) {
+  // 1. Breakfast: All breakfast grains, porridge, oats, waffles, pancakes, egg scrambles, morning bowls
+  const isBreakfastGrain = /oat|porridge|pancake|waffle|cereal|chia|toast|scramble|french toast|congee|granola|muesli|crepe/.test(title);
+  const isMorningFruitYogurt = /yogurt|parfait|banana avocado|fruit puree with oats|rice cream|baby muesli/.test(title) && !/chicken|fish|meat|beef|salmon|pasta|soup|stew/.test(title);
+  
+  if (isBreakfastGrain || isMorningFruitYogurt || rawCat === 'breakfast' || /breakfast|morning/.test(title)) {
+    if (!/chicken|beef|meat|fish|salmon|soup|stew|lentil stew|curry/.test(title)) {
+      return "Breakfast";
+    }
+  }
+
+  // 2. Snacks: finger foods, bites, muffins, teething biscuits, tots, dips
+  if (/bites|muffin|biscuit|cracker|tot|ball|bar|cookie|hummus|chips|finger food|teething|energy|roll|stick|dip/.test(title) || rawCat === 'snack' || rawCat === 'finger food') {
+    if (!/porridge|pancake|oatmeal/.test(title)) {
+      return "Snack";
+    }
+  }
+
+  // 3. Dessert: wholesome compotes, fruit swirls, natural fruit purees
+  if (/compote|pudding|custard|popsicle|nicecream|swirl|puree sweet|dessert/.test(title) || rawCat === 'dessert') {
     return "Dessert";
   }
 
-  // 2. BREAKFAST: Oats, pancakes, waffles, breakfast eggs, morning porridge
-  if (/pancake|waffle|oat|oatmeal|porridge|cereal|french toast|chia|congee|breakfast|scrambled/.test(title) &&
-      !/chicken|fish|salmon|meat|beef|lentil stew|pasta/.test(title)) {
-    return "Breakfast";
-  }
-  if (/breakfast|morning/.test(combined) && !/dinner|lunch/.test(title)) {
-    return "Breakfast";
-  }
-
-  // 3. SNACK: Soft finger bars, bites, biscuits, muffins, tots, veggie sticks, dips
-  if (/bites|muffin|cracker|biscuit|bar|tot|snack|cookie|balls|hummus|dip|energy|roll|chips/.test(title)) {
-    return "Snack";
-  }
-
-  // 4. LUNCH & DINNER: Soups, hearty purees, pastas, meats, fish, chicken, lentils, stews
-  if (/soup|stew|pasta|noodle|rice|risotto|chicken|turkey|beef|salmon|fish|cod|meatloaf|curry|lentil|bean|chickpea|casserole|dinner|lunch|lasagna|quiche|pizza|taco|frittata/.test(title)) {
-    return "Lunch & Dinner";
-  }
-
-  if (/sweet potato|carrot|broccoli|pea|spinach|zucchini|potato|cauliflower|butternut/.test(title) && !/apple|banana|mango|berry/.test(title)) {
-    return "Lunch & Dinner";
-  }
-  if (/banana|apple|mango|berry|strawberry|blueberry|peach|papaya/.test(title)) {
+  // Pure single-fruit purees without vegetables or meat
+  if (/puree|purée/.test(title) && /prune|peach|pear|plum|apricot/.test(title) && !/oat|rice|quinoa|yogurt|chicken|carrot|squash|spinach|potato/.test(title)) {
     return "Dessert";
   }
 
+  // 4. Lunch & Dinner: All savory vegetable purees, chicken, meat, fish, soups, pastas, risottos, stews
   return "Lunch & Dinner";
 };
 
@@ -182,7 +195,8 @@ const inferFoodTypeCategory = (recipe: any): string => {
 
 // Normalize recipe to use food-type category and ID-based image
 const normalizeRecipe = (recipe: any): any => {
-  const normalizedCategory = inferFoodTypeCategory(recipe);
+  const normalizedCategory = getMealCategory(recipe);
+  const normalizedAge = normalizeAgeGroup(recipe.ageGroup);
   
   // Store original category as mealTime if it was a meal-time category
   const mealTimeCategories = ["Breakfast", "Lunch", "Dinner", "Snack"];
@@ -190,6 +204,7 @@ const normalizeRecipe = (recipe: any): any => {
   
   return {
     ...recipe,
+    ageGroup: normalizedAge,
     category: normalizedCategory,
     mealTime: mealTime || recipe.mealTime,
     image: getRecipeImageById(recipe.id), // ALWAYS use ID-based image lookup

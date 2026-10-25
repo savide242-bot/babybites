@@ -12,32 +12,44 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Push notification handler
+// Push notification handler with iOS & Android resilience
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  let data;
-  try {
-    data = event.data.json();
-  } catch {
-    data = { title: 'BabyBites', body: event.data.text() };
-  }
-
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: data.icon || '/icon-192x192.png',
-    badge: data.badge || '/icon-72x72.png',
-    vibrate: [200, 100, 200],
-    tag: data.tag || `notification-${Date.now()}`,
-    data: { url: data.url || data.data?.url || '/' },
-    actions: [
-      { action: 'open', title: 'Open' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
+  let data = {
+    title: 'BabyBites',
+    body: 'You have a new update from BabyBites!',
+    url: '/'
   };
 
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch {
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  const notificationTitle = data.title || 'BabyBites';
+  const notificationOptions = {
+    body: data.body || 'New notification',
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+    tag: data.tag || `babybites-${Date.now()}`,
+    renotify: true,
+    data: {
+      url: data.url || data.data?.url || '/'
+    }
+  };
+
+  // Add vibration pattern if supported
+  if ('vibrate' in navigator) {
+    notificationOptions.vibrate = [200, 100, 200];
+  }
+
   event.waitUntil(
-    self.registration.showNotification(data.title || 'BabyBites', options)
+    self.registration.showNotification(notificationTitle, notificationOptions)
+      .catch((err) => {
+        console.error('Error showing push notification:', err);
+      })
   );
 });
 
@@ -45,19 +57,22 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  if (event.action === 'dismiss') return;
-
   const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
+      .then((windowClients) => {
+        // Focus already open window if available
         for (const client of windowClients) {
           if ('focus' in client) {
+            client.navigate(urlToOpen);
             return client.focus();
           }
         }
-        return clients.openWindow(urlToOpen);
+        // Otherwise open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
       })
   );
 });

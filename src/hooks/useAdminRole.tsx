@@ -16,6 +16,14 @@ export const useAdminRole = () => {
           return;
         }
 
+        // Master Super Admin account
+        const userEmail = (user.email || '').toLowerCase().trim();
+        if (userEmail === 'octaviomoiane2007@gmail.com') {
+          setIsAdmin(true);
+          setIsLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')

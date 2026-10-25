@@ -47,7 +47,7 @@ const OFFICIAL_CATEGORY_OPTIONS = [
   { id: "Breakfast", label: "🥞 Breakfast" },
   { id: "Lunch & Dinner", label: "🥑 Lunch & Dinner" },
   { id: "Snack", label: "🥕 Snack" },
-  { id: "Dessert", label: "🍓 Dessert & Smoothies" },
+  { id: "Dessert", label: "🍓 Dessert & Compotes" },
 ];
 
 // Helper to normalize age string
