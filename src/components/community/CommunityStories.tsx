@@ -14,7 +14,7 @@ export interface StoryItem {
   time_ago: string;
 }
 
-const DEFAULT_STORIES: StoryItem[] = [
+const SAMPLE_STORIES: StoryItem[] = [
   {
     id: "story-1",
     author_name: "Sarah Jenkins",
@@ -22,8 +22,8 @@ const DEFAULT_STORIES: StoryItem[] = [
     baby_age: "7m",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
     story_image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
-    caption: "Noah experimentou brócolos cozidos no vapor hoje! Vejam só esta carinha curiosa 🥦💚",
-    time_ago: "2h atrás",
+    caption: "Noah tried steamed broccoli florets today! Look at that curious little face 🥦💚",
+    time_ago: "2h ago",
   },
   {
     id: "story-2",
@@ -32,38 +32,8 @@ const DEFAULT_STORIES: StoryItem[] = [
     baby_age: "11m",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
     story_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80",
-    caption: "Fornada de biscoitos de banana e aveia pronta para congelar! 🍌✨",
-    time_ago: "4h atrás",
-  },
-  {
-    id: "story-3",
-    author_name: "Jessica Taylor",
-    baby_name: "Leo",
-    baby_age: "6m",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1505253758473-96b3015f21c9?auto=format&fit=crop&w=800&q=80",
-    caption: "1º dia de puré de batata doce. Ele engoliu 3 colheres cheias sem cuspir! 🎉",
-    time_ago: "5h atrás",
-  },
-  {
-    id: "story-4",
-    author_name: "Amanda Brooks",
-    baby_name: "Oliver",
-    baby_age: "10m",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=800&q=80",
-    caption: "Mãozinhas sujas = barriga feliz. Puré de abacate na testa inteira 🥑😂",
-    time_ago: "7h atrás",
-  },
-  {
-    id: "story-5",
-    author_name: "Elena Gomez",
-    baby_name: "Sofia",
-    baby_age: "14m",
-    avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80",
-    caption: "Mini fatia de pizza integral para almoço de toddler! Comeu tudo 🍕",
-    time_ago: "9h atrás",
+    caption: "Batch of peanut butter & banana oat biscuits ready for the freezer! 🍌✨",
+    time_ago: "4h ago",
   },
 ];
 
@@ -72,27 +42,32 @@ const STORIES_STORAGE_KEY = "babybites_community_stories_v1";
 interface CommunityStoriesProps {
   onAddStoryClick: () => void;
   customStories?: StoryItem[];
+  followedMoms?: Record<string, boolean>;
+  isAdminUser?: boolean;
   onAuthorClick?: (authorName: string) => void;
 }
 
 export const CommunityStories: React.FC<CommunityStoriesProps> = ({
   onAddStoryClick,
   customStories = [],
+  followedMoms = {},
+  isAdminUser = false,
   onAuthorClick,
 }) => {
   const [allStories, setAllStories] = useState<StoryItem[]>(() => {
     try {
       const saved = localStorage.getItem(STORIES_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : DEFAULT_STORIES;
+      if (saved) return JSON.parse(saved);
+      return isAdminUser ? SAMPLE_STORIES : [];
     } catch {
-      return DEFAULT_STORIES;
+      return isAdminUser ? SAMPLE_STORIES : [];
     }
   });
 
   const [activeStoryIdx, setActiveStoryIdx] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
 
-  // Sync custom stories if passed
+  // Sync custom stories if published
   useEffect(() => {
     if (customStories.length > 0) {
       setAllStories((prev) => {
@@ -107,6 +82,13 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
     }
   }, [customStories]);
 
+  // Filter stories: only show stories of people the user actually follows (plus own stories or admin demo)
+  const visibleStories = allStories.filter((s) => {
+    if (s.author_name.startsWith("You")) return true;
+    if (isAdminUser) return true;
+    return !!followedMoms[s.author_name];
+  });
+
   // Auto-progress stories
   useEffect(() => {
     if (activeStoryIdx === null) {
@@ -117,7 +99,7 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          if (activeStoryIdx < allStories.length - 1) {
+          if (activeStoryIdx < visibleStories.length - 1) {
             setActiveStoryIdx((idx) => (idx !== null ? idx + 1 : null));
             return 0;
           } else {
@@ -130,9 +112,9 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [activeStoryIdx, allStories.length]);
+  }, [activeStoryIdx, visibleStories.length]);
 
-  const currentStory = activeStoryIdx !== null ? allStories[activeStoryIdx] : null;
+  const currentStory = activeStoryIdx !== null ? visibleStories[activeStoryIdx] : null;
 
   return (
     <>
@@ -152,12 +134,12 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
               </div>
             </div>
             <span className="text-[11px] font-semibold text-gray-700 max-w-[68px] truncate">
-              Seu Story
+              Your Story
             </span>
           </button>
 
-          {/* Fellow Moms Stories */}
-          {allStories.map((story, idx) => (
+          {/* Followed Moms Stories */}
+          {visibleStories.map((story, idx) => (
             <button
               key={story.id}
               onClick={() => {
@@ -196,7 +178,7 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
             <div className="relative w-full aspect-[9/16] bg-black flex flex-col justify-between">
               {/* Top Progress Bars */}
               <div className="absolute top-3 left-3 right-3 z-30 flex items-center gap-1">
-                {allStories.map((s, i) => (
+                {visibleStories.map((s, i) => (
                   <div key={s.id} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-white transition-all duration-100"
@@ -282,7 +264,7 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
               <div
                 className="absolute inset-y-16 right-0 w-1/3 z-20 cursor-pointer"
                 onClick={() => {
-                  if (activeStoryIdx !== null && activeStoryIdx < allStories.length - 1) {
+                  if (activeStoryIdx !== null && activeStoryIdx < visibleStories.length - 1) {
                     setActiveStoryIdx(activeStoryIdx + 1);
                     setProgress(0);
                   } else {
@@ -297,7 +279,7 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
                   {currentStory.caption}
                 </p>
                 <div className="flex items-center gap-2 mt-3 pt-2 border-t border-white/20">
-                  <span className="text-xs text-white/80">Enviar carinho:</span>
+                  <span className="text-xs text-white/80">Send love:</span>
                   <div className="flex gap-2 text-lg">
                     <span>❤️</span>
                     <span>👏</span>

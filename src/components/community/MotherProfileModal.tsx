@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,7 +64,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
       });
     }
     setIsEditing(false);
-    toast.success("Perfil atualizado com sucesso! ✨");
+    toast.success("Profile updated successfully! ✨");
   };
 
   return (
@@ -87,7 +87,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                 className="rounded-full bg-white/90 hover:bg-white text-forest text-xs h-7 px-2.5 border-none shadow-sm gap-1"
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>Editar</span>
+                <span>Edit Profile</span>
               </Button>
             )}
           </div>
@@ -125,11 +125,11 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                   >
                     {profile.isFollowing ? (
                       <span className="flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5" /> Seguindo
+                        <UserCheck className="w-3.5 h-3.5" /> Following
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5">
-                        <UserPlus className="w-3.5 h-3.5" /> Seguir
+                        <UserPlus className="w-3.5 h-3.5" /> Follow
                       </span>
                     )}
                   </Button>
@@ -143,7 +143,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                     className="rounded-full bg-[#EAF5EF] hover:bg-[#d6ecde] text-[#1E5E3A] text-xs h-8 px-3 font-semibold gap-1.5 border-none shadow-none"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>Mensagem</span>
+                    <span>Message</span>
                   </Button>
                 </>
               ) : null}
@@ -154,7 +154,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
           {isEditing ? (
             <div className="space-y-3 pt-2">
               <div>
-                <label className="text-[11px] font-semibold text-gray-600 block mb-1">Seu Nome</label>
+                <label className="text-[11px] font-semibold text-gray-600 block mb-1">Your Name</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -163,7 +163,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Nome do Bebê</label>
+                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Baby's Name</label>
                   <Input
                     value={babyName}
                     onChange={(e) => setBabyName(e.target.value)}
@@ -171,17 +171,17 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Idade do Bebê</label>
+                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Baby's Age</label>
                   <Input
                     value={babyAge}
                     onChange={(e) => setBabyAge(e.target.value)}
-                    placeholder="ex: 8 meses"
+                    placeholder="e.g. 8 months"
                     className="rounded-xl border-[#E3DFD3] text-sm"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-gray-600 block mb-1">Bio / Sobre Você & Bebê</label>
+                <label className="text-[11px] font-semibold text-gray-600 block mb-1">Bio / Story</label>
                 <Textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -196,14 +196,14 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                   onClick={() => setIsEditing(false)}
                   className="rounded-full text-xs"
                 >
-                  Cancelar
+                  Cancel
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleSaveEdit}
                   className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs px-4"
                 >
-                  Salvar Alterações
+                  Save Changes
                 </Button>
               </div>
             </div>
@@ -217,11 +217,11 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                 <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[#1E5E3A] font-semibold">
                   <Baby className="w-3.5 h-3.5" />
                   <span>
-                    Mãe do {profile.babyName} • {profile.babyAge}
+                    Mom of {profile.babyName} • {profile.babyAge}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                  {profile.bio || "Mãe dedicada aprendendo introdução alimentar e partilhando receitas saudáveis com a comunidade BabyBites! 🥑🥣"}
+                  {profile.bio || "Dedicated mom exploring healthy baby weaning and sharing wholesome meal ideas with the BabyBites community! 🥑🥣"}
                 </p>
               </div>
 
@@ -229,17 +229,17 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
               <div className="flex items-center justify-around py-3 my-4 bg-[#FAF9F5] rounded-2xl border border-[#EBE8DF]">
                 <div className="text-center">
                   <span className="block text-sm font-bold text-gray-900">{profile.posts.length}</span>
-                  <span className="text-[11px] text-gray-500 font-medium">Publicações</span>
+                  <span className="text-[11px] text-gray-500 font-medium">Posts</span>
                 </div>
                 <div className="h-6 w-[1px] bg-gray-200" />
                 <div className="text-center">
                   <span className="block text-sm font-bold text-gray-900">{profile.followersCount}</span>
-                  <span className="text-[11px] text-gray-500 font-medium">Seguidores</span>
+                  <span className="text-[11px] text-gray-500 font-medium">Followers</span>
                 </div>
                 <div className="h-6 w-[1px] bg-gray-200" />
                 <div className="text-center">
                   <span className="block text-sm font-bold text-gray-900">{profile.followingCount}</span>
-                  <span className="text-[11px] text-gray-500 font-medium">Seguindo</span>
+                  <span className="text-[11px] text-gray-500 font-medium">Following</span>
                 </div>
               </div>
 
@@ -248,13 +248,13 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 text-[#1E5E3A]" />
-                    Publicações da Mãe
+                    Mom's Shared Moments
                   </span>
                 </div>
 
                 {profile.posts.length === 0 ? (
                   <div className="text-center py-8 text-gray-400 text-xs">
-                    Nenhuma publicação ainda.
+                    No posts shared yet.
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-1.5 max-h-56 overflow-y-auto no-scrollbar rounded-xl">

@@ -13,12 +13,12 @@ interface CreateStoryModalProps {
 }
 
 const MILESTONE_STICKERS = [
-  "🥦 1ª Papinha BLW",
-  "🥑 Amou Abacate",
-  "🎉 Celebrou 6 Meses!",
-  "✨ Receita BabyBites",
-  "🍓 Frutinha Nova",
-  "🥣 Comeu Tudinho!",
+  "🥦 1st BLW Bite",
+  "🥑 Loved Avocado",
+  "🎉 Celebrated 6 Months!",
+  "✨ BabyBites Recipe",
+  "🍓 New Fruit Day",
+  "🥣 Finished The Whole Bowl!",
 ];
 
 export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
@@ -51,7 +51,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
 
   const handlePublishStory = () => {
     if (!mediaPreview) {
-      toast.error("Por favor, tire uma foto ou selecione um vídeo/foto da galeria!");
+      toast.error("Please take a photo or select an image/video from your gallery!");
       return;
     }
 
@@ -60,23 +60,24 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
       const fullCaption = selectedSticker ? `${selectedSticker} — ${caption}` : caption;
       const newStory: StoryItem = {
         id: "my-story-" + Date.now(),
-        author_name: "Você (Mamã)",
-        baby_name: "Meu Bebé",
+        author_name: "You (Mom)",
+        baby_name: "My Baby",
         baby_age: "7m",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
         story_image: mediaPreview,
-        caption: fullCaption || "Momento delicioso partilhado no BabyBites! 👶✨",
-        time_ago: "Agora",
+        media_type: mediaType,
+        caption: fullCaption || "Delicious weaning moment shared on BabyBites! 👶✨",
+        time_ago: "Just now",
       };
 
       onStoryCreated(newStory);
-      toast.success("Story publicado com sucesso por 24 horas! 🌟");
+      toast.success("Story posted for 24 hours! 🌟");
       setMediaPreview(null);
       setCaption("");
       setSelectedSticker(null);
       onClose();
     } catch (e) {
-      toast.error("Erro ao publicar o story.");
+      toast.error("Could not post story.");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +89,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl text-forest flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#48B774]" />
-            <span>Adicionar ao Story (24h)</span>
+            <span>Add to Story (24h)</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -147,8 +148,8 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
                 <Camera className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-800">Partilhe o prato ou a careta do bebé</p>
-                <p className="text-xs text-gray-500 mt-0.5">Tire foto, grave um pequeno vídeo ou escolha da galeria</p>
+                <p className="text-sm font-semibold text-gray-800">Share your baby's meal or funny face</p>
+                <p className="text-xs text-gray-500 mt-0.5">Take a quick picture, record a short clip, or pick from your gallery</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-2">
@@ -158,7 +159,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
                   className="rounded-xl bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs h-12 flex items-center justify-center gap-1.5"
                 >
                   <Camera className="w-4 h-4" />
-                  <span>Câmara / Vídeo</span>
+                  <span>Camera / Video</span>
                 </Button>
 
                 <Button
@@ -168,7 +169,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
                   className="rounded-xl border-[#E3DFD3] text-gray-700 text-xs h-12 flex items-center justify-center gap-1.5 hover:bg-[#EAF5EF]/40"
                 >
                   <ImageIcon className="w-4 h-4 text-[#1E5E3A]" />
-                  <span>Galeria</span>
+                  <span>Gallery</span>
                 </Button>
               </div>
             </div>
@@ -177,7 +178,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
           {/* Milestone Stickers */}
           <div>
             <label className="text-xs font-semibold text-gray-700 block mb-1.5">
-              Escolha uma Conquista (Opcional)
+              Choose a Milestone Tag (Optional)
             </label>
             <div className="flex flex-wrap gap-1.5">
               {MILESTONE_STICKERS.map((sticker) => (
@@ -202,10 +203,10 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
           {/* Caption */}
           <div>
             <label className="text-xs font-semibold text-gray-700 block mb-1">
-              Legenda do Story
+              Story Caption
             </label>
             <Textarea
-              placeholder="Escreva algo sobre este momento com o bebé..."
+              placeholder="Write a sweet caption about this moment..."
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               rows={2}
@@ -218,7 +219,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
             disabled={isSubmitting || !mediaPreview}
             className="w-full rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold py-3 shadow-md"
           >
-            {isSubmitting ? "A publicar..." : "Publicar Story (24 Horas) 🌟"}
+            {isSubmitting ? "Publishing..." : "Publish Story (24 Hours) 🌟"}
           </Button>
         </div>
       </DialogContent>

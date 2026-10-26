@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Heart, MessageCircle, Share2, Bookmark, Plus, 
-  Sparkles, Send, Bell, Loader2, ChevronDown, ChevronUp, Check, User,
+  Sparkles, Send, Bell, Loader2, Check, User,
   Camera, Image as ImageIcon, Video, X, Smile, UserPlus, UserCheck, 
   MoreHorizontal, Flag, Film, Baby, ShieldCheck, Hash, Tag
 } from "lucide-react";
@@ -35,7 +35,6 @@ export interface Post {
   author_avatar?: string;
   user_has_liked?: boolean;
   age_tag?: string;
-  topic?: string;
   status?: "published" | "under_review" | "hidden" | "banned";
 }
 
@@ -49,15 +48,17 @@ export interface CommentItem {
   created_at: string;
 }
 
-const SAMPLE_POSTS: Post[] = [
+const ADMIN_EMAILS = ["savide242@gmail.com", "octaviomoiane2007@gmail.com"];
+
+const SAMPLE_ADMIN_POSTS: Post[] = [
   {
     id: "sample-1",
     user_id: "usr-1",
-    title: "Primeira vez com brócolos cozidos no vapor! 🥦👶",
-    content: "Ele fez uma careta super engraçada no início, mas depois mastigou os raminhos por 10 minutos seguidos! O BLW é maravilhoso.",
+    title: "First time trying steamed broccoli florets! 🥦👶",
+    content: "He made the funniest face at first, but then chewed on the florets for 10 minutes straight! BLW is so rewarding.",
     image_urls: ["https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80"],
     media_type: "image",
-    hashtags: ["#BLW", "#PrimeiraPapinha", "#IntroducaoAlimentar"],
+    hashtags: ["#BLW", "#FirstBite", "#BabyWeaning"],
     likes_count: 24,
     comments_count: 2,
     created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
@@ -71,123 +72,48 @@ const SAMPLE_POSTS: Post[] = [
     id: "sample-video-1",
     user_id: "usr-demo-video",
     author_name: "Mariana Costa",
-    author_baby: "Tomás • 8m",
-    title: "Vídeo fofo: Primeira vez a segurar a própria colher! 🥄✨",
-    content: "Olhem só a concentração dele a tentar levar a papinha de abóbora à boca sozinho. O coração da mamã derrete!",
+    author_baby: "Lucas • 8m",
+    title: "Milestone: Holding his own baby spoon for the first time! 🥄✨",
+    content: "Look at his focus trying to bring the pumpkin puree to his mouth independently. Mama's heart is melting!",
     image_urls: ["https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4"],
     media_type: "video",
     video_url: "https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4",
-    hashtags: ["#BebeSaudavel", "#ConquistasDoBebe", "#MaternidadeReal"],
+    hashtags: ["#HealthyBaby", "#MilestoneMoment", "#RealMotherhood"],
     likes_count: 36,
-    comments_count: 4,
+    comments_count: 1,
     created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
     author_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
     user_has_liked: false,
     age_tag: "6-8 Months",
   },
-  {
-    id: "sample-2",
-    user_id: "usr-2",
-    title: "Fornada da semana: Biscoitinhos de Banana & Aveia sem açúcar! 🍌✨",
-    content: "Fiz 50 mini biscoitos em 20 minutos direto da secção de receitas do BabyBites. Congelei metade para a próxima semana. A Maya adorou!",
-    image_urls: ["https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80"],
-    media_type: "image",
-    hashtags: ["#ReceitasBaby", "#BabyBites", "#LancheSaudavel"],
-    likes_count: 42,
-    comments_count: 2,
-    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-    author_name: "Emily Rodriguez",
-    author_baby: "Maya • 11m",
-    author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
-    user_has_liked: false,
-    age_tag: "9-11 Months",
-  },
-  {
-    id: "sample-3",
-    user_id: "usr-3",
-    title: "Pratinho Colorido de Toddler: Tostinhas de batata doce & abacate! 🥑🍠",
-    content: "Alimentação independente consolidada! Comeu tudinho sem birra. Cardápio inspirado no planejador semanal da aplicação.",
-    image_urls: ["https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80"],
-    media_type: "image",
-    hashtags: ["#BLW", "#PratinhoColorido", "#DicasDeMae"],
-    likes_count: 38,
-    comments_count: 2,
-    created_at: new Date(Date.now() - 3600000 * 16).toISOString(),
-    author_name: "Elena Gomez",
-    author_baby: "Sofia • 14m",
-    author_avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80",
-    user_has_liked: true,
-    age_tag: "12-23 Months",
-  },
 ];
-
-const INITIAL_COMMENTS: Record<string, CommentItem[]> = {
-  "sample-1": [
-    {
-      id: "c-1",
-      post_id: "sample-1",
-      user_id: "u-101",
-      author_name: "Hannah Cole",
-      author_baby: "Mãe do Theo, 9m",
-      content: "A careta do brócolos é um clássico! O meu fez a mesma carinha 3 dias e hoje é o legume favorito dele.",
-      created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-    },
-    {
-      id: "c-2",
-      post_id: "sample-1",
-      user_id: "u-102",
-      author_name: "Dra. Clara Mendes",
-      author_baby: "Nutricionista Pediátrica",
-      content: "Excelente oferecer o ramo inteiro! Segurar no talo desenvolve a preensão palmar e a mastigação lateral.",
-      created_at: new Date(Date.now() - 3600000 * 1).toISOString(),
-    },
-  ],
-  "sample-video-1": [
-    {
-      id: "c-v1",
-      post_id: "sample-video-1",
-      user_id: "u-103",
-      author_name: "Sofia Santos",
-      author_baby: "Mãe da Alice, 7m",
-      content: "Que momento mais emocionante! Parabéns mamã, que orgulho lindo ver essa autonomia nascer!",
-      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    },
-  ],
-};
 
 const SUGGESTED_HASHTAGS = [
   "#BLW",
-  "#IntroducaoAlimentar",
-  "#PrimeiraPapinha",
-  "#BebeSaudavel",
-  "#ReceitasBaby",
-  "#MaternidadeReal",
-  "#PratinhoDoBebe",
+  "#BabyWeaning",
+  "#FirstBite",
+  "#HealthyBaby",
+  "#BabyRecipes",
+  "#RealMotherhood",
+  "#ToddlerMeals",
 ];
 
-const COMMENTS_STORAGE_KEY = "babybites_community_comments_v2";
-const FOLLOWS_STORAGE_KEY = "babybites_followed_moms_v1";
-const LOCAL_POSTS_KEY = "babybites_community_local_posts_v2";
+const COMMENTS_STORAGE_KEY = "babybites_community_comments_v3";
+const FOLLOWS_STORAGE_KEY = "babybites_followed_moms_v3";
+const LOCAL_POSTS_KEY = "babybites_community_local_posts_v3";
 
 export const Community: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_POSTS_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return [...parsed, ...SAMPLE_POSTS];
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return SAMPLE_POSTS;
-  });
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoadingFeed, setIsLoadingFeed] = useState(true);
 
   // Post creation modal
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
-  const [newHashtags, setNewHashtags] = useState<string[]>(["#IntroducaoAlimentar", "#BLW"]);
+  const [newHashtags, setNewHashtags] = useState<string[]>(["#BabyWeaning", "#BLW"]);
   const [customHashtagInput, setCustomHashtagInput] = useState("");
   const [newMediaPreview, setNewMediaPreview] = useState<string | null>(null);
   const [newMediaType, setNewMediaType] = useState<"image" | "video">("image");
@@ -210,13 +136,13 @@ export const Community: React.FC = () => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-  // Follow system
+  // Follow system: starts empty for regular users (they don't follow anyone initially)
   const [followedMoms, setFollowedMoms] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem(FOLLOWS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : { "Sarah Jenkins": true, "Mariana Costa": true };
+      return saved ? JSON.parse(saved) : {};
     } catch {
-      return { "Sarah Jenkins": true, "Mariana Costa": true };
+      return {};
     }
   });
 
@@ -225,16 +151,32 @@ export const Community: React.FC = () => {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommentItem[]>>(() => {
     try {
       const saved = localStorage.getItem(COMMENTS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_COMMENTS;
+      return saved ? JSON.parse(saved) : {};
     } catch {
-      return INITIAL_COMMENTS;
+      return {};
     }
   });
   const [replyInputByPost, setReplyInputByPost] = useState<Record<string, string>>({});
   const [submittingComment, setSubmittingComment] = useState<Record<string, boolean>>({});
 
+  // Initialize Auth & Feed
   useEffect(() => {
-    fetchSupabasePosts();
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const email = session?.user?.email?.toLowerCase() || "";
+        setCurrentUserEmail(email);
+        const adminCheck = ADMIN_EMAILS.includes(email);
+        setIsAdminUser(adminCheck);
+
+        // Fetch Supabase posts
+        await fetchSupabasePosts(adminCheck);
+      } catch (err) {
+        console.error("Auth init error:", err);
+        setIsLoadingFeed(false);
+      }
+    };
+    initAuth();
   }, []);
 
   useEffect(() => {
@@ -253,7 +195,8 @@ export const Community: React.FC = () => {
     }
   }, [followedMoms]);
 
-  const fetchSupabasePosts = async () => {
+  const fetchSupabasePosts = async (allowAdminDemo: boolean) => {
+    setIsLoadingFeed(true);
     try {
       const { data, error } = await supabase
         .from("forum_posts")
@@ -261,34 +204,48 @@ export const Community: React.FC = () => {
         .order("created_at", { ascending: false })
         .limit(30);
 
-      if (!error && data && data.length > 0) {
-        const mapped: Post[] = data.map((p) => ({
-          id: p.id,
-          user_id: p.user_id,
-          title: p.title,
-          content: p.content,
-          image_urls: p.image_urls || (p.video_url ? [p.video_url] : null),
-          media_type: p.media_type || (p.video_url ? "video" : "image"),
-          video_url: p.video_url,
-          video_thumbnail: p.video_thumbnail,
-          hashtags: p.hashtags || ["#BabyBites", "#IntroducaoAlimentar"],
-          likes_count: p.likes_count || 0,
-          comments_count: p.comments_count || 0,
-          created_at: p.created_at,
-          author_name: p.author_name || "Mãe da Comunidade",
-          author_baby: p.author_baby || "Bebé • 8m",
-          author_avatar: p.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-          user_has_liked: false,
-          age_tag: p.age_tag || "6-8 Months",
-        }));
-
-        setPosts((prev) => {
-          const combined = [...mapped, ...prev];
-          return Array.from(new Map(combined.map((item) => [item.id, item])).values());
-        });
+      // Locally saved posts
+      let localPosts: Post[] = [];
+      try {
+        const saved = localStorage.getItem(LOCAL_POSTS_KEY);
+        if (saved) localPosts = JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
       }
+
+      const mappedSupabase: Post[] = (!error && data) ? data.map((p: any) => ({
+        id: p.id,
+        user_id: p.user_id,
+        title: p.title,
+        content: p.content,
+        image_urls: p.image_urls || (p.video_url ? [p.video_url] : null),
+        media_type: p.media_type || (p.video_url ? "video" : "image"),
+        video_url: p.video_url,
+        video_thumbnail: p.video_thumbnail,
+        hashtags: p.hashtags || ["#BabyWeaning"],
+        likes_count: p.likes_count || 0,
+        comments_count: p.comments_count || 0,
+        created_at: p.created_at,
+        author_name: p.author_name || "Community Mom",
+        author_baby: p.author_baby || "Baby • 8m",
+        author_avatar: p.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+        user_has_liked: false,
+        age_tag: p.age_tag || "6-8 Months",
+      })) : [];
+
+      // Only include sample admin posts if current user is an admin!
+      const initialPool = [
+        ...localPosts,
+        ...mappedSupabase,
+        ...(allowAdminDemo ? SAMPLE_ADMIN_POSTS : []),
+      ];
+
+      const deduplicated = Array.from(new Map(initialPool.map((p) => [p.id, p])).values());
+      setPosts(deduplicated);
     } catch (err) {
-      console.log("Using cached community feed:", err);
+      console.log("Feed fetch error:", err);
+    } finally {
+      setIsLoadingFeed(false);
     }
   };
 
@@ -337,15 +294,15 @@ export const Community: React.FC = () => {
       const updated = { ...prev, [authorName]: !isFollowing };
       toast.success(
         !isFollowing
-          ? `Agora está a seguir ${authorName}! 💚`
-          : `Deixou de seguir ${authorName}`
+          ? `You are now following ${authorName}! 💚`
+          : `Unfollowed ${authorName}`
       );
       return updated;
     });
   };
 
   const handleSharePost = async (post: Post) => {
-    const shareText = `Veja "${post.title}" na Comunidade BabyBites! 🥑👶`;
+    const shareText = `Check out "${post.title}" on BabyBites Community! 🥑👶`;
     if (navigator.share) {
       try {
         await navigator.share({
@@ -358,12 +315,12 @@ export const Community: React.FC = () => {
       }
     } else {
       navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
-      toast.success("Link da publicação copiado!");
+      toast.success("Post link copied to clipboard!");
     }
   };
 
   const handleReportPost = (post: Post) => {
-    toast.success("Publicação denunciada. O Administrador avaliará no painel de moderação.");
+    toast.success("Post reported. The admin will review it in the moderation dashboard.");
   };
 
   const toggleComments = async (postId: string) => {
@@ -374,7 +331,7 @@ export const Community: React.FC = () => {
   const handleSendComment = async (post: Post) => {
     const text = (replyInputByPost[post.id] || "").trim();
     if (!text) {
-      toast.error("Por favor, digite o seu comentário antes de enviar.");
+      toast.error("Please type your comment before sending.");
       return;
     }
 
@@ -383,8 +340,8 @@ export const Community: React.FC = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      let commenterName = "Mamã Cuidadosa";
-      let commenterRole = "Mãe de Bebé";
+      let commenterName = "Loving Mom";
+      let commenterRole = "Mom of Baby";
 
       if (session?.user) {
         const { data: profile } = await supabase
@@ -397,7 +354,7 @@ export const Community: React.FC = () => {
           commenterName = profile.mother_name || profile.full_name;
         }
         if (profile?.baby_name) {
-          commenterRole = `Mãe do ${profile.baby_name}`;
+          commenterRole = `Mom of ${profile.baby_name}`;
         }
       }
 
@@ -429,16 +386,16 @@ export const Community: React.FC = () => {
       );
 
       setReplyInputByPost((prev) => ({ ...prev, [post.id]: "" }));
-      toast.success("Comentário partilhado com carinho! ❤️");
+      toast.success("Comment posted with love! ❤️");
     } catch (err: any) {
       console.error(err);
-      toast.error("Não foi possível enviar o comentário.");
+      toast.error("Could not post comment.");
     } finally {
       setSubmittingComment((prev) => ({ ...prev, [post.id]: false }));
     }
   };
 
-  // Handle Photo selection
+  // Media Pickers
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -453,7 +410,6 @@ export const Community: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // Handle Video selection
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -468,7 +424,6 @@ export const Community: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // Handle Video Thumbnail selection
   const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -498,7 +453,7 @@ export const Community: React.FC = () => {
 
   const handleCreatePost = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
-      toast.error("Por favor adicione um título e uma descrição para o seu post");
+      toast.error("Please add a title and description for your post");
       return;
     }
 
@@ -506,8 +461,8 @@ export const Community: React.FC = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      let authorName = "Mamã Conectada";
-      let babyRole = "Bebé • 7m";
+      let authorName = "Community Mom";
+      let babyRole = "Baby • 7m";
 
       if (session?.user) {
         const { data: profile } = await supabase
@@ -545,7 +500,7 @@ export const Community: React.FC = () => {
         status: "published",
       };
 
-      // Save locally so Admin panel and current view immediately see it
+      // Save locally
       const updatedPosts = [newPostObj, ...posts];
       setPosts(updatedPosts);
       try {
@@ -554,7 +509,7 @@ export const Community: React.FC = () => {
         console.error(e);
       }
 
-      // Sync with Supabase forum_posts
+      // Sync with Supabase
       try {
         if (session?.user) {
           await supabase.from("forum_posts").insert({
@@ -574,9 +529,9 @@ export const Community: React.FC = () => {
       setNewVideoThumbnail(null);
       setSelectedFile(null);
       setIsNewPostOpen(false);
-      toast.success("Publicação partilhada com sucesso com a comunidade! ❤️");
+      toast.success("Post published to the community! ❤️");
     } catch (err) {
-      toast.error("Não foi possível partilhar a publicação.");
+      toast.error("Could not share post.");
     } finally {
       setIsSubmitting(false);
     }
@@ -588,12 +543,12 @@ export const Community: React.FC = () => {
     const profileData: MotherProfileData = {
       id: authorName,
       name: authorName,
-      babyName: authorPosts[0]?.author_baby?.split("•")[0]?.trim() || "Bebé",
-      babyAge: authorPosts[0]?.author_baby?.split("•")[1]?.trim() || "8 meses",
+      babyName: authorPosts[0]?.author_baby?.split("•")[0]?.trim() || "Baby",
+      babyAge: authorPosts[0]?.author_baby?.split("•")[1]?.trim() || "8m",
       avatar: authorPosts[0]?.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-      bio: "Mãe dedicada a aprender e partilhar receitas de introdução alimentar saudável no BabyBites! 🥑🥣",
-      followersCount: followedMoms[authorName] ? 129 : 128,
-      followingCount: 84,
+      bio: "Loving mother learning wholesome baby-led weaning and sharing healthy meal ideas on BabyBites! 🥑🥣",
+      followersCount: followedMoms[authorName] ? 1 : 0,
+      followingCount: 0,
       isFollowing: !!followedMoms[authorName],
       isCurrentUser: isCurrent,
       posts: authorPosts.map((p) => ({
@@ -641,38 +596,35 @@ export const Community: React.FC = () => {
             BabyBites Social
           </span>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5">
-            Comunidade de Mães
+            Moms' Community
           </h1>
           <p className="text-[11px] text-gray-500">
-            Feed de fotos, vídeos e momentos reais da introdução alimentar.
+            Real feeding moments, milestone videos, and meal ideas from mothers.
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Direct Messages (DMs) Button */}
+          {/* Direct Messages (DMs) Button - Opens Inbox */}
           <button
             onClick={() => {
               setTargetDMMom(null);
               setIsDMOpen(true);
             }}
-            title="Mensagens Diretas (DMs)"
+            title="Direct Messages"
             className="w-10 h-10 rounded-full bg-white border border-[#EBE8DF] text-gray-700 hover:text-forest hover:bg-stone-50 flex items-center justify-center relative shadow-xs transition-colors"
           >
             <Send className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
-              2
-            </span>
           </button>
 
           {/* Current Mom Profile Button */}
           <button
-            onClick={() => handleOpenMotherProfile("Você (Mamã)", true)}
-            title="Meu Perfil"
+            onClick={() => handleOpenMotherProfile("You (Mom)", true)}
+            title="My Profile"
             className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847] shadow-xs hover:scale-105 transition-transform"
           >
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
-              alt="Meu Perfil"
+              alt="My Profile"
               className="w-full h-full rounded-full object-cover border border-white"
             />
           </button>
@@ -682,13 +634,13 @@ export const Community: React.FC = () => {
             <DialogTrigger asChild>
               <Button className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold text-xs px-3.5 py-2 flex items-center gap-1.5 shadow-sm">
                 <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span className="hidden sm:inline">Publicar</span>
+                <span className="hidden sm:inline">Post</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-[28px] max-w-md bg-white border border-[#EBE8DF] max-h-[90vh] overflow-y-auto no-scrollbar">
               <DialogHeader>
                 <DialogTitle className="font-serif text-2xl text-forest">
-                  Nova Publicação
+                  Create a Post
                 </DialogTitle>
               </DialogHeader>
 
@@ -696,7 +648,7 @@ export const Community: React.FC = () => {
                 {/* Media Type Switcher & Uploader */}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-2">
-                    Escolha o que deseja partilhar:
+                    Choose what to share:
                   </label>
 
                   {newMediaPreview ? (
@@ -712,7 +664,7 @@ export const Community: React.FC = () => {
                         ) : (
                           <img
                             src={newMediaPreview}
-                            alt="Pré-visualização"
+                            alt="Preview"
                             className="w-full h-full object-cover"
                           />
                         )}
@@ -729,14 +681,14 @@ export const Community: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Video Thumbnail / Cover Picker if it is a video */}
+                      {/* Video Thumbnail / Cover Picker */}
                       {newMediaType === "video" && (
                         <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#EBE8DF] flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {newVideoThumbnail ? (
                               <img
                                 src={newVideoThumbnail}
-                                alt="Capa"
+                                alt="Cover"
                                 className="w-10 h-10 rounded-lg object-cover border"
                               />
                             ) : (
@@ -745,9 +697,9 @@ export const Community: React.FC = () => {
                               </div>
                             )}
                             <div>
-                              <p className="text-xs font-semibold text-gray-800">Capa do Vídeo</p>
+                              <p className="text-xs font-semibold text-gray-800">Video Cover</p>
                               <p className="text-[10px] text-gray-500">
-                                {newVideoThumbnail ? "Capa personalizada escolhida" : "Escolha uma imagem de capa (opcional)"}
+                                {newVideoThumbnail ? "Custom cover selected" : "Select a cover photo (optional)"}
                               </p>
                             </div>
                           </div>
@@ -758,7 +710,7 @@ export const Community: React.FC = () => {
                             onClick={() => thumbnailInputRef.current?.click()}
                             className="text-xs h-8 rounded-lg"
                           >
-                            {newVideoThumbnail ? "Mudar" : "Adicionar Capa"}
+                            {newVideoThumbnail ? "Change" : "Add Cover"}
                           </Button>
                         </div>
                       )}
@@ -772,7 +724,7 @@ export const Community: React.FC = () => {
                         className="rounded-2xl h-16 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
                       >
                         <Camera className="w-5 h-5 text-[#1E5E3A]" />
-                        <span className="text-[11px] font-semibold text-gray-700">Foto / Galeria</span>
+                        <span className="text-[11px] font-semibold text-gray-700">Photo / Gallery</span>
                       </Button>
 
                       <Button
@@ -782,7 +734,7 @@ export const Community: React.FC = () => {
                         className="rounded-2xl h-16 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
                       >
                         <Film className="w-5 h-5 text-[#1E5E3A]" />
-                        <span className="text-[11px] font-semibold text-gray-700">Vídeo do Bebé</span>
+                        <span className="text-[11px] font-semibold text-gray-700">Baby Video</span>
                       </Button>
                     </div>
                   )}
@@ -791,10 +743,10 @@ export const Community: React.FC = () => {
                 {/* Title */}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Título da Publicação
+                    Post Title
                   </label>
                   <Input
-                    placeholder="ex: Primeira vez com abacate amassadinho!"
+                    placeholder="e.g. First time trying avocado mash!"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="rounded-xl border-[#E3DFD3] text-xs"
@@ -804,10 +756,10 @@ export const Community: React.FC = () => {
                 {/* Description */}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Descrição & Dicas
+                    Description & Tips
                   </label>
                   <Textarea
-                    placeholder="Descreva o prato, os ingredientes, ou conte como foi a reação do bebé..."
+                    placeholder="Describe the meal, recipe ingredients, or how baby reacted..."
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
                     rows={3}
@@ -864,7 +816,7 @@ export const Community: React.FC = () => {
                   {/* Add Custom Hashtag Input */}
                   <div className="flex gap-1.5">
                     <Input
-                      placeholder="#adicioneOutraHashtag"
+                      placeholder="#AddHashtag"
                       value={customHashtagInput}
                       onChange={(e) => setCustomHashtagInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -882,7 +834,7 @@ export const Community: React.FC = () => {
                       onClick={addCustomHashtag}
                       className="h-8 text-xs rounded-lg px-3"
                     >
-                      Adicionar
+                      Add
                     </Button>
                   </div>
                 </div>
@@ -892,7 +844,7 @@ export const Community: React.FC = () => {
                   disabled={isSubmitting}
                   className="w-full rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold py-3 shadow-md"
                 >
-                  {isSubmitting ? "A publicar..." : "Publicar na Comunidade ❤️"}
+                  {isSubmitting ? "Publishing..." : "Publish Post ❤️"}
                 </Button>
               </div>
             </DialogContent>
@@ -900,293 +852,320 @@ export const Community: React.FC = () => {
         </div>
       </div>
 
-      {/* 1. Instagram Stories Bar on Top */}
+      {/* 1. Instagram Stories Bar on Top (Only shows followed moms, or empty for new users) */}
       <CommunityStories
         onAddStoryClick={() => setIsStoryModalOpen(true)}
+        followedMoms={followedMoms}
+        isAdminUser={isAdminUser}
         onAuthorClick={(name) => handleOpenMotherProfile(name)}
       />
 
-      {/* 2. Instagram-Style Continuous Feed (Posts são posts, sem filtros para navegar livremente) */}
+      {/* 2. Instagram-Style Continuous Feed */}
       <div className="space-y-6">
-        {posts.map((post) => {
-          const isExpanded = !!expandedComments[post.id];
-          const postComments = commentsByPost[post.id] || [];
-          const currentReply = replyInputByPost[post.id] || "";
-          const isPostingReply = !!submittingComment[post.id];
-          const hasMedia = (post.image_urls && post.image_urls.length > 0) || !!post.video_url;
-          const isVideo = post.media_type === "video";
-          const mediaSrc = (post.image_urls && post.image_urls[0]) || post.video_url || null;
-          const isFollowing = !!followedMoms[post.author_name || ""];
-          const isHeartPopping = !!heartPops[post.id];
-
-          return (
-            <article
-              key={post.id}
-              className="rounded-[28px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden transition-all duration-200"
+        {isLoadingFeed ? (
+          <div className="text-center py-16 text-gray-400 text-xs flex items-center justify-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-[#1E5E3A]" />
+            <span>Loading community feed...</span>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="rounded-[28px] bg-white border border-[#EBE8DF] p-10 text-center space-y-3">
+            <div className="w-16 h-16 rounded-full bg-[#EAF5EF] text-[#1E5E3A] flex items-center justify-center mx-auto shadow-xs">
+              <Sparkles className="w-8 h-8 stroke-[1.5]" />
+            </div>
+            <h3 className="font-serif text-xl font-bold text-gray-900">
+              Welcome to Moms' Community!
+            </h3>
+            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+              No posts have been shared yet. Be the very first mother to post a baby weaning photo, video, or recipe milestone!
+            </p>
+            <Button
+              onClick={() => setIsNewPostOpen(true)}
+              className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs px-6 py-2.5 font-semibold"
             >
-              {/* Instagram Post Header */}
-              <div className="p-3 sm:p-4 flex items-center justify-between">
-                <div
-                  className="flex items-center gap-3 cursor-pointer"
-                  onClick={() => handleOpenMotherProfile(post.author_name)}
-                >
-                  {/* Avatar with Story gradient ring */}
-                  <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847]">
-                    <img
-                      src={post.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"}
-                      alt={post.author_name}
-                      className="w-full h-full rounded-full object-cover border border-white"
-                    />
-                  </div>
+              Share First Post 🥑
+            </Button>
+          </div>
+        ) : (
+          posts.map((post) => {
+            const isExpanded = !!expandedComments[post.id];
+            const postComments = commentsByPost[post.id] || [];
+            const currentReply = replyInputByPost[post.id] || "";
+            const isPostingReply = !!submittingComment[post.id];
+            const hasMedia = (post.image_urls && post.image_urls.length > 0) || !!post.video_url;
+            const isVideo = post.media_type === "video";
+            const mediaSrc = (post.image_urls && post.image_urls[0]) || post.video_url || null;
+            const isFollowing = !!followedMoms[post.author_name || ""];
+            const isHeartPopping = !!heartPops[post.id];
 
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight hover:underline">
-                        {post.author_name}
-                      </h4>
-                      <span className="text-[10px] bg-[#EAF5EF] text-[#1E5E3A] px-2 py-0.5 rounded-full font-semibold">
-                        {post.author_baby}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-gray-400">
-                      {new Date(post.created_at).toLocaleDateString("pt-PT", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  {/* Follow Button */}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleToggleFollow(post.author_name || "")}
-                    className={`rounded-full h-7 px-2.5 text-[11px] font-semibold transition-all ${
-                      isFollowing
-                        ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        : "bg-[#EAF5EF] text-[#1E5E3A] hover:bg-[#d6ecde]"
-                    }`}
-                  >
-                    {isFollowing ? (
-                      <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> Seguindo</span>
-                    ) : (
-                      <span className="flex items-center gap-1"><UserPlus className="w-3 h-3" /> Seguir</span>
-                    )}
-                  </Button>
-
-                  {/* 3-dots Menu for Reporting */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl text-xs">
-                      <DropdownMenuItem
-                        onClick={() => handleSharePost(post)}
-                        className="cursor-pointer"
-                      >
-                        Copiar link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleReportPost(post)}
-                        className="cursor-pointer text-red-600 focus:text-red-600"
-                      >
-                        <Flag className="w-3.5 h-3.5 mr-2" />
-                        Denunciar para o Admin
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              {/* Instagram High-Res Post Media (Photo OR Video) with Double-Tap Like */}
-              {hasMedia && (
-                <div
-                  className="relative w-full aspect-[4/3] bg-stone-900 cursor-pointer overflow-hidden select-none"
-                  onDoubleClick={() => handleDoubleTapPhoto(post.id)}
-                >
-                  {isVideo ? (
-                    <video
-                      src={mediaSrc!}
-                      poster={post.video_thumbnail}
-                      controls
-                      playsInline
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <img
-                      src={mediaSrc!}
-                      alt={post.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  )}
-
-                  {/* Blooming Pop Heart on Double Tap */}
-                  {isHeartPopping && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
-                      <Heart className="w-24 h-24 text-white fill-white drop-shadow-2xl scale-125 transition-transform" />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Post Actions Bar */}
-              <div className="p-4 pt-3 pb-2 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {/* Like Button */}
-                  <button
-                    onClick={() => handleLike(post.id)}
-                    className="flex items-center gap-1.5 text-gray-700 hover:text-red-500 transition-colors focus:outline-none"
-                  >
-                    <Heart
-                      className={`w-6 h-6 transition-all duration-200 active:scale-125 ${
-                        post.user_has_liked
-                          ? "fill-[#E53E3E] text-[#E53E3E] scale-110"
-                          : "text-gray-700 hover:text-red-500"
-                      }`}
-                    />
-                  </button>
-
-                  {/* Comment Button */}
-                  <button
-                    onClick={() => toggleComments(post.id)}
-                    className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
-                  >
-                    <MessageCircle className="w-6 h-6" />
-                  </button>
-
-                  {/* DM author directly */}
-                  <button
-                    onClick={() => {
-                      setTargetDMMom({
-                        id: post.author_name,
-                        name: post.author_name,
-                        babyName: post.author_baby?.split("•")[0]?.trim() || "Bebé",
-                        babyAge: post.author_baby?.split("•")[1]?.trim() || "8m",
-                        avatar: post.author_avatar || "",
-                        bio: "",
-                        followersCount: 128,
-                        followingCount: 84,
-                        posts: [],
-                      });
-                      setIsDMOpen(true);
-                    }}
-                    title={`Enviar DM para ${post.author_name}`}
-                    className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-
-                  {/* Share Button */}
-                  <button
-                    onClick={() => handleSharePost(post)}
-                    className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
-                  >
-                    <Share2 className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Bookmark */}
-                <button
-                  onClick={() => toast.success("Guardado nas suas receitas favoritas! 🌟")}
-                  className="text-gray-400 hover:text-forest transition-colors"
-                >
-                  <Bookmark className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Likes Count */}
-              <div className="px-4 pb-1">
-                <span className="text-xs font-bold text-gray-900">
-                  {post.likes_count} {post.likes_count === 1 ? "gosto" : "gostos"}
-                </span>
-              </div>
-
-              {/* Caption & Content */}
-              <div className="px-4 pb-2">
-                <p className="text-xs text-gray-800 leading-relaxed">
-                  <span
+            return (
+              <article
+                key={post.id}
+                className="rounded-[28px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden transition-all duration-200"
+              >
+                {/* Instagram Post Header */}
+                <div className="p-3 sm:p-4 flex items-center justify-between">
+                  <div
+                    className="flex items-center gap-3 cursor-pointer"
                     onClick={() => handleOpenMotherProfile(post.author_name)}
-                    className="font-bold text-gray-900 mr-1.5 cursor-pointer hover:underline"
                   >
-                    {post.author_name}
-                  </span>
-                  <span className="font-semibold text-forest mr-1.5">{post.title} —</span>
-                  {post.content}
-                </p>
+                    {/* Avatar with Story gradient ring */}
+                    <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847]">
+                      <img
+                        src={post.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"}
+                        alt={post.author_name}
+                        className="w-full h-full rounded-full object-cover border border-white"
+                      />
+                    </div>
 
-                {/* Hashtags display */}
-                {post.hashtags && post.hashtags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {post.hashtags.map((h) => (
-                      <span key={h} className="text-[11px] font-semibold text-[#1E5E3A] hover:underline cursor-pointer">
-                        {h}
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight hover:underline">
+                          {post.author_name}
+                        </h4>
+                        <span className="text-[10px] bg-[#EAF5EF] text-[#1E5E3A] px-2 py-0.5 rounded-full font-semibold">
+                          {post.author_baby}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-400">
+                        {new Date(post.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* Follow Button */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleToggleFollow(post.author_name || "")}
+                      className={`rounded-full h-7 px-2.5 text-[11px] font-semibold transition-all ${
+                        isFollowing
+                          ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          : "bg-[#EAF5EF] text-[#1E5E3A] hover:bg-[#d6ecde]"
+                      }`}
+                    >
+                      {isFollowing ? (
+                        <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> Following</span>
+                      ) : (
+                        <span className="flex items-center gap-1"><UserPlus className="w-3 h-3" /> Follow</span>
+                      )}
+                    </Button>
+
+                    {/* 3-dots Menu for Reporting */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl text-xs">
+                        <DropdownMenuItem
+                          onClick={() => handleSharePost(post)}
+                          className="cursor-pointer"
+                        >
+                          Copy link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleReportPost(post)}
+                          className="cursor-pointer text-red-600 focus:text-red-600"
+                        >
+                          <Flag className="w-3.5 h-3.5 mr-2" />
+                          Report to Admin
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                {/* Instagram High-Res Post Media (Photo OR Video) with Double-Tap Like */}
+                {hasMedia && (
+                  <div
+                    className="relative w-full aspect-[4/3] bg-stone-900 cursor-pointer overflow-hidden select-none"
+                    onDoubleClick={() => handleDoubleTapPhoto(post.id)}
+                  >
+                    {isVideo ? (
+                      <video
+                        src={mediaSrc!}
+                        poster={post.video_thumbnail}
+                        controls
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={mediaSrc!}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+
+                    {/* Blooming Pop Heart on Double Tap */}
+                    {isHeartPopping && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
+                        <Heart className="w-24 h-24 text-white fill-white drop-shadow-2xl scale-125 transition-transform" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Post Actions Bar */}
+                <div className="p-4 pt-3 pb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Like Button */}
+                    <button
+                      onClick={() => handleLike(post.id)}
+                      className="flex items-center gap-1.5 text-gray-700 hover:text-red-500 transition-colors focus:outline-none"
+                    >
+                      <Heart
+                        className={`w-6 h-6 transition-all duration-200 active:scale-125 ${
+                          post.user_has_liked
+                            ? "fill-[#E53E3E] text-[#E53E3E] scale-110"
+                            : "text-gray-700 hover:text-red-500"
+                        }`}
+                      />
+                    </button>
+
+                    {/* Comment Button */}
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
+                    >
+                      <MessageCircle className="w-6 h-6" />
+                    </button>
+
+                    {/* DM author directly */}
+                    <button
+                      onClick={() => {
+                        setTargetDMMom({
+                          id: post.author_name,
+                          name: post.author_name,
+                          babyName: post.author_baby?.split("•")[0]?.trim() || "Baby",
+                          babyAge: post.author_baby?.split("•")[1]?.trim() || "8m",
+                          avatar: post.author_avatar || "",
+                          bio: "",
+                          followersCount: 0,
+                          followingCount: 0,
+                          posts: [],
+                        });
+                        setIsDMOpen(true);
+                      }}
+                      title={`Message ${post.author_name}`}
+                      className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+
+                    {/* Share Button */}
+                    <button
+                      onClick={() => handleSharePost(post)}
+                      className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
+                    >
+                      <Share2 className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Bookmark */}
+                  <button
+                    onClick={() => toast.success("Saved to favorites! 🌟")}
+                    className="text-gray-400 hover:text-forest transition-colors"
+                  >
+                    <Bookmark className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Likes Count */}
+                <div className="px-4 pb-1">
+                  <span className="text-xs font-bold text-gray-900">
+                    {post.likes_count} {post.likes_count === 1 ? "like" : "likes"}
+                  </span>
+                </div>
+
+                {/* Caption & Content */}
+                <div className="px-4 pb-2">
+                  <p className="text-xs text-gray-800 leading-relaxed">
+                    <span
+                      onClick={() => handleOpenMotherProfile(post.author_name)}
+                      className="font-bold text-gray-900 mr-1.5 cursor-pointer hover:underline"
+                    >
+                      {post.author_name}
+                    </span>
+                    <span className="font-semibold text-forest mr-1.5">{post.title} —</span>
+                    {post.content}
+                  </p>
+
+                  {/* Hashtags display */}
+                  {post.hashtags && post.hashtags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {post.hashtags.map((h) => (
+                        <span key={h} className="text-[11px] font-semibold text-[#1E5E3A] hover:underline cursor-pointer">
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Expandable Comments Drawer */}
+                {postComments.length > 0 && !isExpanded && (
+                  <div className="px-4 pb-2">
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      className="text-xs text-gray-500 hover:text-forest transition-colors font-medium"
+                    >
+                      View all {postComments.length} comments
+                    </button>
+                  </div>
+                )}
+
+                {/* Expanded Comment Thread */}
+                {isExpanded && (
+                  <div className="px-4 pb-3 border-t border-stone-100 pt-3 space-y-2.5 bg-[#FAF9F5]/50">
+                    {postComments.map((comment) => (
+                      <div key={comment.id} className="text-xs leading-relaxed">
+                        <span className="font-bold text-gray-900 mr-1.5">
+                          {comment.author_name}
+                        </span>
+                        <span className="text-gray-700">{comment.content}</span>
+                      </div>
                     ))}
                   </div>
                 )}
-              </div>
 
-              {/* Expandable Comments Drawer */}
-              {postComments.length > 0 && !isExpanded && (
-                <div className="px-4 pb-2">
-                  <button
-                    onClick={() => toggleComments(post.id)}
-                    className="text-xs text-gray-500 hover:text-forest transition-colors font-medium"
-                  >
-                    Ver todos os {postComments.length} comentários
-                  </button>
-                </div>
-              )}
-
-              {/* Expanded Comment Thread */}
-              {isExpanded && (
-                <div className="px-4 pb-3 border-t border-stone-100 pt-3 space-y-2.5 bg-[#FAF9F5]/50">
-                  {postComments.map((comment) => (
-                    <div key={comment.id} className="text-xs leading-relaxed">
-                      <span className="font-bold text-gray-900 mr-1.5">
-                        {comment.author_name}
-                      </span>
-                      <span className="text-gray-700">{comment.content}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Quick Reply Bar */}
-              <div className="px-4 py-2 border-t border-stone-100 flex items-center gap-2 bg-white">
-                <Input
-                  value={currentReply}
-                  onChange={(e) =>
-                    setReplyInputByPost((prev) => ({ ...prev, [post.id]: e.target.value }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendComment(post);
+                {/* Quick Reply Bar */}
+                <div className="px-4 py-2 border-t border-stone-100 flex items-center gap-2 bg-white">
+                  <Input
+                    value={currentReply}
+                    onChange={(e) =>
+                      setReplyInputByPost((prev) => ({ ...prev, [post.id]: e.target.value }))
                     }
-                  }}
-                  placeholder="Escreva um comentário carinhoso..."
-                  className="rounded-full border-[#E3DFD3] text-xs h-9 px-3.5 focus-visible:ring-[#1E5E3A]"
-                />
-                <Button
-                  size="sm"
-                  onClick={() => handleSendComment(post)}
-                  disabled={isPostingReply || !currentReply.trim()}
-                  className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs h-9 px-3 font-semibold shrink-0"
-                >
-                  {isPostingReply ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enviar"}
-                </Button>
-              </div>
-            </article>
-          );
-        })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendComment(post);
+                      }
+                    }}
+                    placeholder="Write a sweet comment..."
+                    className="rounded-full border-[#E3DFD3] text-xs h-9 px-3.5 focus-visible:ring-[#1E5E3A]"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => handleSendComment(post)}
+                    disabled={isPostingReply || !currentReply.trim()}
+                    className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs h-9 px-3 font-semibold shrink-0"
+                  >
+                    {isPostingReply ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Send"}
+                  </Button>
+                </div>
+              </article>
+            );
+          })
+        )}
       </div>
 
       {/* Mother Profile Modal */}
@@ -1206,6 +1185,7 @@ export const Community: React.FC = () => {
         isOpen={isDMOpen}
         onClose={() => setIsDMOpen(false)}
         targetMom={targetDMMom}
+        isAdminUser={isAdminUser}
       />
 
       {/* Create Story Modal */}
