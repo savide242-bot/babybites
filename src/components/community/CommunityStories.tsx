@@ -21,8 +21,8 @@ const SAMPLE_STORIES: StoryItem[] = [
     baby_name: "Noah",
     baby_age: "7m",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
-    caption: "Noah tried steamed broccoli florets today! Look at that curious little face 🥦💚",
+    story_image: "/community/sarah-fritters.jpg",
+    caption: "Golden sweet potato patties ready for lunch! Noah ate two all by himself 🍠✨",
     time_ago: "2h ago",
   },
   {
