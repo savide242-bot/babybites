@@ -4,7 +4,7 @@ import {
   Heart, MessageCircle, Share2, Bookmark, Plus, 
   Sparkles, Send, Bell, Loader2, ChevronDown, ChevronUp, Check, User,
   Camera, Image as ImageIcon, Video, X, Smile, UserPlus, UserCheck, 
-  MoreHorizontal, Flag, Film, Baby, ShieldCheck
+  MoreHorizontal, Flag, Film, Baby, ShieldCheck, Hash, Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -25,6 +25,8 @@ export interface Post {
   image_urls?: string[] | null;
   media_type?: "image" | "video";
   video_url?: string;
+  video_thumbnail?: string;
+  hashtags?: string[];
   likes_count: number;
   comments_count: number;
   created_at: string;
@@ -32,7 +34,7 @@ export interface Post {
   author_baby: string;
   author_avatar?: string;
   user_has_liked?: boolean;
-  age_tag: string;
+  age_tag?: string;
   topic?: string;
   status?: "published" | "under_review" | "hidden" | "banned";
 }
@@ -55,6 +57,7 @@ const SAMPLE_POSTS: Post[] = [
     content: "Ele fez uma careta super engraçada no início, mas depois mastigou os raminhos por 10 minutos seguidos! O BLW é maravilhoso.",
     image_urls: ["https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80"],
     media_type: "image",
+    hashtags: ["#BLW", "#PrimeiraPapinha", "#IntroducaoAlimentar"],
     likes_count: 24,
     comments_count: 2,
     created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
@@ -63,7 +66,6 @@ const SAMPLE_POSTS: Post[] = [
     author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
     user_has_liked: true,
     age_tag: "6-8 Months",
-    topic: "🥦 BLW & Introdução Alimentar",
   },
   {
     id: "sample-video-1",
@@ -75,13 +77,13 @@ const SAMPLE_POSTS: Post[] = [
     image_urls: ["https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4"],
     media_type: "video",
     video_url: "https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4",
+    hashtags: ["#BebeSaudavel", "#ConquistasDoBebe", "#MaternidadeReal"],
     likes_count: 36,
     comments_count: 4,
     created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
     author_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
     user_has_liked: false,
     age_tag: "6-8 Months",
-    topic: "✨ Conquistas do Bebê",
   },
   {
     id: "sample-2",
@@ -90,6 +92,7 @@ const SAMPLE_POSTS: Post[] = [
     content: "Fiz 50 mini biscoitos em 20 minutos direto da secção de receitas do BabyBites. Congelei metade para a próxima semana. A Maya adorou!",
     image_urls: ["https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80"],
     media_type: "image",
+    hashtags: ["#ReceitasBaby", "#BabyBites", "#LancheSaudavel"],
     likes_count: 42,
     comments_count: 2,
     created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
@@ -98,7 +101,6 @@ const SAMPLE_POSTS: Post[] = [
     author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
     user_has_liked: false,
     age_tag: "9-11 Months",
-    topic: "🥣 Papinhas & Receitas",
   },
   {
     id: "sample-3",
@@ -107,6 +109,7 @@ const SAMPLE_POSTS: Post[] = [
     content: "Alimentação independente consolidada! Comeu tudinho sem birra. Cardápio inspirado no planejador semanal da aplicação.",
     image_urls: ["https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80"],
     media_type: "image",
+    hashtags: ["#BLW", "#PratinhoColorido", "#DicasDeMae"],
     likes_count: 38,
     comments_count: 2,
     created_at: new Date(Date.now() - 3600000 * 16).toISOString(),
@@ -115,7 +118,6 @@ const SAMPLE_POSTS: Post[] = [
     author_avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80",
     user_has_liked: true,
     age_tag: "12-23 Months",
-    topic: "💡 Dicas de Mãe",
   },
 ];
 
@@ -153,12 +155,14 @@ const INITIAL_COMMENTS: Record<string, CommentItem[]> = {
   ],
 };
 
-const COMMUNITY_TOPICS = [
-  "🥦 BLW & Introdução Alimentar",
-  "🥣 Papinhas & Receitas",
-  "🍼 Dúvidas & Pediatria",
-  "✨ Conquistas do Bebê",
-  "💡 Dicas de Mãe",
+const SUGGESTED_HASHTAGS = [
+  "#BLW",
+  "#IntroducaoAlimentar",
+  "#PrimeiraPapinha",
+  "#BebeSaudavel",
+  "#ReceitasBaby",
+  "#MaternidadeReal",
+  "#PratinhoDoBebe",
 ];
 
 const COMMENTS_STORAGE_KEY = "babybites_community_comments_v2";
@@ -179,17 +183,15 @@ export const Community: React.FC = () => {
     return SAMPLE_POSTS;
   });
 
-  const [activeTab, setActiveTab] = useState<string>("all");
-  const [activeTopic, setActiveTopic] = useState<string>("all");
-
   // Post creation modal
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
-  const [newAgeTag, setNewAgeTag] = useState("6-8 Months");
-  const [newTopic, setNewTopic] = useState(COMMUNITY_TOPICS[0]);
+  const [newHashtags, setNewHashtags] = useState<string[]>(["#IntroducaoAlimentar", "#BLW"]);
+  const [customHashtagInput, setCustomHashtagInput] = useState("");
   const [newMediaPreview, setNewMediaPreview] = useState<string | null>(null);
   const [newMediaType, setNewMediaType] = useState<"image" | "video">("image");
+  const [newVideoThumbnail, setNewVideoThumbnail] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [heartPops, setHeartPops] = useState<Record<string, boolean>>({});
@@ -205,7 +207,8 @@ export const Community: React.FC = () => {
 
   // Refs for media pickers
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   // Follow system
   const [followedMoms, setFollowedMoms] = useState<Record<string, boolean>>(() => {
@@ -267,6 +270,8 @@ export const Community: React.FC = () => {
           image_urls: p.image_urls || (p.video_url ? [p.video_url] : null),
           media_type: p.media_type || (p.video_url ? "video" : "image"),
           video_url: p.video_url,
+          video_thumbnail: p.video_thumbnail,
+          hashtags: p.hashtags || ["#BabyBites", "#IntroducaoAlimentar"],
           likes_count: p.likes_count || 0,
           comments_count: p.comments_count || 0,
           created_at: p.created_at,
@@ -275,7 +280,6 @@ export const Community: React.FC = () => {
           author_avatar: p.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
           user_has_liked: false,
           age_tag: p.age_tag || "6-8 Months",
-          topic: p.topic || "🥦 BLW & Introdução Alimentar",
         }));
 
         setPosts((prev) => {
@@ -434,13 +438,12 @@ export const Community: React.FC = () => {
     }
   };
 
-  // Handle Photo or Video file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Photo selection
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isVideo = file.type.startsWith("video/");
-    setNewMediaType(isVideo ? "video" : "image");
+    setNewMediaType("image");
     setSelectedFile(file);
 
     const reader = new FileReader();
@@ -448,6 +451,49 @@ export const Community: React.FC = () => {
       setNewMediaPreview(event.target?.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  // Handle Video selection
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setNewMediaType("video");
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewMediaPreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle Video Thumbnail selection
+  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewVideoThumbnail(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const toggleHashtag = (tag: string) => {
+    setNewHashtags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const addCustomHashtag = () => {
+    const tag = customHashtagInput.trim();
+    if (!tag) return;
+    const formatted = tag.startsWith("#") ? tag : `#${tag}`;
+    if (!newHashtags.includes(formatted)) {
+      setNewHashtags([...newHashtags, formatted]);
+    }
+    setCustomHashtagInput("");
   };
 
   const handleCreatePost = async () => {
@@ -487,6 +533,8 @@ export const Community: React.FC = () => {
         image_urls: newMediaPreview ? [newMediaPreview] : null,
         media_type: newMediaType,
         video_url: newMediaType === "video" ? newMediaPreview || undefined : undefined,
+        video_thumbnail: newVideoThumbnail || undefined,
+        hashtags: newHashtags,
         likes_count: 1,
         comments_count: 0,
         created_at: new Date().toISOString(),
@@ -494,8 +542,6 @@ export const Community: React.FC = () => {
         author_baby: babyRole,
         author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
         user_has_liked: true,
-        age_tag: newAgeTag,
-        topic: newTopic,
         status: "published",
       };
 
@@ -525,6 +571,7 @@ export const Community: React.FC = () => {
       setNewTitle("");
       setNewContent("");
       setNewMediaPreview(null);
+      setNewVideoThumbnail(null);
       setSelectedFile(null);
       setIsNewPostOpen(false);
       toast.success("Publicação partilhada com sucesso com a comunidade! ❤️");
@@ -561,47 +608,28 @@ export const Community: React.FC = () => {
     setProfileModalState({ open: true, profile: profileData });
   };
 
-  const categories = [
-    { id: "all", label: "🌟 Todo o Feed" },
-    { id: "following", label: "❤️ A Seguir" },
-    { id: "videos", label: "🎥 Vídeos" },
-    { id: "6-8", label: "👶 6–8 Meses" },
-    { id: "9-11", label: "🥑 9–11 Meses" },
-    { id: "12-23", label: "🥞 12–23 Meses" },
-    { id: "24+", label: "🎈 24+ Meses" },
-  ];
-
-  const filteredPosts = posts.filter((p) => {
-    // Tab filter
-    if (activeTab === "following" && !followedMoms[p.author_name || ""]) return false;
-    if (activeTab === "videos" && p.media_type !== "video") return false;
-    if (activeTab === "6-8" && p.age_tag !== "6-8 Months") return false;
-    if (activeTab === "9-11" && p.age_tag !== "9-11 Months") return false;
-    if (activeTab === "12-23" && p.age_tag !== "12-23 Months") return false;
-    if (activeTab === "24+" && p.age_tag !== "24+ Months") return false;
-
-    // Topic filter
-    if (activeTopic !== "all" && p.topic !== activeTopic) return false;
-
-    return true;
-  });
-
   return (
     <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-3 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
-      {/* Hidden File Inputs for Camera & Gallery */}
+      {/* Hidden File Inputs */}
       <input
         type="file"
-        accept="image/*,video/*"
+        accept="image/*"
         ref={fileInputRef}
-        onChange={handleFileSelect}
+        onChange={handlePhotoSelect}
         className="hidden"
       />
       <input
         type="file"
-        accept="image/*,video/*"
-        capture="environment"
-        ref={cameraInputRef}
-        onChange={handleFileSelect}
+        accept="video/*"
+        ref={videoInputRef}
+        onChange={handleVideoSelect}
+        className="hidden"
+      />
+      <input
+        type="file"
+        accept="image/*"
+        ref={thumbnailInputRef}
+        onChange={handleThumbnailSelect}
         className="hidden"
       />
 
@@ -610,13 +638,13 @@ export const Community: React.FC = () => {
         <div>
           <span className="text-[11px] font-bold tracking-wider uppercase text-[#1E5E3A] flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-[#48B774] inline-block animate-pulse" />
-            Rede Social BabyBites
+            BabyBites Social
           </span>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5">
             Comunidade de Mães
           </h1>
           <p className="text-[11px] text-gray-500">
-            Troque experiências, fotos de pratinhos e vídeos com outras mães.
+            Feed de fotos, vídeos e momentos reais da introdução alimentar.
           </p>
         </div>
 
@@ -653,62 +681,117 @@ export const Community: React.FC = () => {
           <Dialog open={isNewPostOpen} onOpenChange={setIsNewPostOpen}>
             <DialogTrigger asChild>
               <Button className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold text-xs px-3.5 py-2 flex items-center gap-1.5 shadow-sm">
-                <Camera className="w-4 h-4" />
+                <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span className="hidden sm:inline">Publicar</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-[28px] max-w-md bg-white border border-[#EBE8DF] max-h-[90vh] overflow-y-auto no-scrollbar">
               <DialogHeader>
                 <DialogTitle className="font-serif text-2xl text-forest">
-                  Partilhar Foto ou Vídeo
+                  Nova Publicação
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-3.5 pt-2">
-                {/* Topic selector */}
+              <div className="space-y-4 pt-1">
+                {/* Media Type Switcher & Uploader */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Tópico da Publicação
+                  <label className="text-xs font-semibold text-gray-700 block mb-2">
+                    Escolha o que deseja partilhar:
                   </label>
-                  <select
-                    value={newTopic}
-                    onChange={(e) => setNewTopic(e.target.value)}
-                    className="w-full rounded-xl border border-[#E3DFD3] text-xs py-2 px-3 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-[#1E5E3A]"
-                  >
-                    {COMMUNITY_TOPICS.map((topic) => (
-                      <option key={topic} value={topic}>
-                        {topic}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
-                {/* Age selector */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Idade Recomendada do Bebé
-                  </label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {["6-8 Months", "9-11 Months", "12-23 Months", "24+ Months"].map((age) => (
-                      <button
-                        key={age}
+                  {newMediaPreview ? (
+                    <div className="space-y-2">
+                      <div className="relative rounded-2xl overflow-hidden border border-[#EBE8DF] aspect-video bg-stone-900 flex items-center justify-center">
+                        {newMediaType === "video" ? (
+                          <video
+                            src={newMediaPreview}
+                            poster={newVideoThumbnail || undefined}
+                            controls
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <img
+                            src={newMediaPreview}
+                            alt="Pré-visualização"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewMediaPreview(null);
+                            setNewVideoThumbnail(null);
+                            setSelectedFile(null);
+                          }}
+                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Video Thumbnail / Cover Picker if it is a video */}
+                      {newMediaType === "video" && (
+                        <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#EBE8DF] flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {newVideoThumbnail ? (
+                              <img
+                                src={newVideoThumbnail}
+                                alt="Capa"
+                                className="w-10 h-10 rounded-lg object-cover border"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-stone-200 flex items-center justify-center text-gray-500">
+                                <ImageIcon className="w-4 h-4" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-xs font-semibold text-gray-800">Capa do Vídeo</p>
+                              <p className="text-[10px] text-gray-500">
+                                {newVideoThumbnail ? "Capa personalizada escolhida" : "Escolha uma imagem de capa (opcional)"}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => thumbnailInputRef.current?.click()}
+                            className="text-xs h-8 rounded-lg"
+                          >
+                            {newVideoThumbnail ? "Mudar" : "Adicionar Capa"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
                         type="button"
-                        onClick={() => setNewAgeTag(age)}
-                        className={`py-1.5 text-[10px] font-semibold rounded-lg border text-center transition-all ${
-                          newAgeTag === age
-                            ? "bg-[#1E5E3A] text-white border-[#1E5E3A]"
-                            : "bg-white text-gray-700 border-gray-200"
-                        }`}
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-2xl h-16 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
                       >
-                        {age.replace(" Months", "m")}
-                      </button>
-                    ))}
-                  </div>
+                        <Camera className="w-5 h-5 text-[#1E5E3A]" />
+                        <span className="text-[11px] font-semibold text-gray-700">Foto / Galeria</span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => videoInputRef.current?.click()}
+                        className="rounded-2xl h-16 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
+                      >
+                        <Film className="w-5 h-5 text-[#1E5E3A]" />
+                        <span className="text-[11px] font-semibold text-gray-700">Vídeo do Bebé</span>
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
+                {/* Title */}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Título
+                    Título da Publicação
                   </label>
                   <Input
                     placeholder="ex: Primeira vez com abacate amassadinho!"
@@ -718,12 +801,13 @@ export const Community: React.FC = () => {
                   />
                 </div>
 
+                {/* Description */}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    História ou Dicas para outras Mães
+                    Descrição & Dicas
                   </label>
                   <Textarea
-                    placeholder="Conte como o bebé reagiu, os ingredientes usados ou faça uma pergunta à comunidade..."
+                    placeholder="Descreva o prato, os ingredientes, ou conte como foi a reação do bebé..."
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
                     rows={3}
@@ -731,67 +815,82 @@ export const Community: React.FC = () => {
                   />
                 </div>
 
-                {/* Photo & Video Upload (Camera or Gallery) */}
+                {/* Hashtags Section */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1.5">
-                    Foto ou Vídeo
+                  <label className="text-xs font-semibold text-gray-700 block mb-1.5 flex items-center gap-1">
+                    <Hash className="w-3.5 h-3.5 text-[#1E5E3A]" />
+                    Hashtags
                   </label>
 
-                  {newMediaPreview ? (
-                    <div className="relative rounded-2xl overflow-hidden border border-[#EBE8DF] aspect-video bg-stone-900 flex items-center justify-center">
-                      {newMediaType === "video" ? (
-                        <video
-                          src={newMediaPreview}
-                          controls
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <img
-                          src={newMediaPreview}
-                          alt="Pré-visualização"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNewMediaPreview(null);
-                          setSelectedFile(null);
-                        }}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => cameraInputRef.current?.click()}
-                        className="rounded-xl h-14 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
-                      >
-                        <Camera className="w-5 h-5 text-[#1E5E3A]" />
-                        <span className="text-[11px] font-semibold text-gray-700">Tirar Foto / Vídeo</span>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="rounded-xl h-14 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
-                      >
-                        <ImageIcon className="w-5 h-5 text-[#1E5E3A]" />
-                        <span className="text-[11px] font-semibold text-gray-700">Galeria</span>
-                      </Button>
+                  {/* Selected Hashtags */}
+                  {newHashtags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {newHashtags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="bg-[#EAF5EF] text-[#1E5E3A] px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => toggleHashtag(tag)}
+                            className="hover:text-red-500"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
                     </div>
                   )}
+
+                  {/* Suggested Hashtags */}
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {SUGGESTED_HASHTAGS.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleHashtag(tag)}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border transition-all ${
+                          newHashtags.includes(tag)
+                            ? "bg-[#1E5E3A] text-white border-[#1E5E3A]"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-stone-50"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Add Custom Hashtag Input */}
+                  <div className="flex gap-1.5">
+                    <Input
+                      placeholder="#adicioneOutraHashtag"
+                      value={customHashtagInput}
+                      onChange={(e) => setCustomHashtagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomHashtag();
+                        }
+                      }}
+                      className="rounded-lg border-[#E3DFD3] text-xs h-8"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={addCustomHashtag}
+                      className="h-8 text-xs rounded-lg px-3"
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
                 </div>
 
                 <Button
                   onClick={handleCreatePost}
                   disabled={isSubmitting}
-                  className="w-full rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold py-3"
+                  className="w-full rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold py-3 shadow-md"
                 >
                   {isSubmitting ? "A publicar..." : "Publicar na Comunidade ❤️"}
                 </Button>
@@ -807,33 +906,16 @@ export const Community: React.FC = () => {
         onAuthorClick={(name) => handleOpenMotherProfile(name)}
       />
 
-      {/* 2. Filter Tabs (All, Following, Videos, Age groups) */}
-      <div className="flex gap-2 overflow-x-auto pb-2 w-full max-w-full min-w-0 no-scrollbar mb-3">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveTab(cat.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 shrink-0 ${
-              activeTab === cat.id
-                ? "bg-forest text-white shadow-xs"
-                : "bg-white text-gray-600 border border-[#EBE8DF] hover:bg-gray-50"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 3. Instagram-Style Feed */}
+      {/* 2. Instagram-Style Continuous Feed (Posts são posts, sem filtros para navegar livremente) */}
       <div className="space-y-6">
-        {filteredPosts.map((post) => {
+        {posts.map((post) => {
           const isExpanded = !!expandedComments[post.id];
           const postComments = commentsByPost[post.id] || [];
           const currentReply = replyInputByPost[post.id] || "";
           const isPostingReply = !!submittingComment[post.id];
-          const hasImage = post.image_urls && post.image_urls.length > 0;
+          const hasMedia = (post.image_urls && post.image_urls.length > 0) || !!post.video_url;
           const isVideo = post.media_type === "video";
-          const mediaSrc = hasImage ? post.image_urls![0] : null;
+          const mediaSrc = (post.image_urls && post.image_urls[0]) || post.video_url || null;
           const isFollowing = !!followedMoms[post.author_name || ""];
           const isHeartPopping = !!heartPops[post.id];
 
@@ -931,6 +1013,7 @@ export const Community: React.FC = () => {
                   {isVideo ? (
                     <video
                       src={mediaSrc!}
+                      poster={post.video_thumbnail}
                       controls
                       playsInline
                       className="w-full h-full object-cover"
@@ -948,13 +1031,6 @@ export const Community: React.FC = () => {
                   {isHeartPopping && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
                       <Heart className="w-24 h-24 text-white fill-white drop-shadow-2xl scale-125 transition-transform" />
-                    </div>
-                  )}
-
-                  {/* Topic badge on media bottom-left */}
-                  {post.topic && (
-                    <div className="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-semibold text-white/90">
-                      {post.topic}
                     </div>
                   )}
                 </div>
@@ -1033,7 +1109,7 @@ export const Community: React.FC = () => {
               </div>
 
               {/* Caption & Content */}
-              <div className="px-4 pb-3">
+              <div className="px-4 pb-2">
                 <p className="text-xs text-gray-800 leading-relaxed">
                   <span
                     onClick={() => handleOpenMotherProfile(post.author_name)}
@@ -1044,6 +1120,17 @@ export const Community: React.FC = () => {
                   <span className="font-semibold text-forest mr-1.5">{post.title} —</span>
                   {post.content}
                 </p>
+
+                {/* Hashtags display */}
+                {post.hashtags && post.hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {post.hashtags.map((h) => (
+                      <span key={h} className="text-[11px] font-semibold text-[#1E5E3A] hover:underline cursor-pointer">
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Expandable Comments Drawer */}
