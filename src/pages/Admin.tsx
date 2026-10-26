@@ -10,7 +10,8 @@ import ActivityLogs from '@/components/admin/ActivityLogs';
 import ContentModeration from '@/components/admin/ContentModeration';
 import SystemHealth from '@/components/admin/SystemHealth';
 import VideoRecipeManager from '@/components/admin/VideoRecipeManager';
-import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink } from 'lucide-react';
+import FinancialManagement from '@/components/admin/FinancialManagement';
+import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink, DollarSign } from 'lucide-react';
 
 const PREVIEW_URL = 'https://id-preview--c5922e44-641f-47eb-8afc-e9b38124e2b3.lovable.app';
 
@@ -49,10 +50,14 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 h-auto overflow-x-auto min-w-0">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 h-auto overflow-x-auto min-w-0">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span className="hidden sm:inline">Finance</span>
           </TabsTrigger>
           <TabsTrigger value="videos" className="flex items-center gap-2">
             <Film className="h-4 w-4" />
@@ -81,6 +86,7 @@ const Admin = () => {
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6"><AdminDashboard /></TabsContent>
+        <TabsContent value="financial" className="mt-6"><FinancialManagement /></TabsContent>
         <TabsContent value="videos" className="mt-6"><VideoRecipeManager /></TabsContent>
         <TabsContent value="users" className="mt-6"><UserManagement /></TabsContent>
         <TabsContent value="notifications" className="mt-6"><NotificationComposer /></TabsContent>
