@@ -78,56 +78,7 @@ export const ContentModeration = () => {
         console.error(e);
       }
 
-      // 3. Fallback demo sample posts
-      const demoPosts: AdminModerationPost[] = [
-        {
-          id: "sample-1",
-          user_id: "usr-1",
-          author_name: "Sarah Jenkins",
-          author_baby: "Noah • 7m",
-          title: "Golden Sweet Potato & Chicken Patties! 🍠✨",
-          content: "Made these soft BLW patties from the 6-8 months recipe section. Noah held them easily with his little hands!",
-          media_urls: ["/community/sarah-fritters.jpg"],
-          media_type: "image",
-          topic: "🥦 BLW & Introdução Alimentar",
-          status: "published",
-          likes_count: 24,
-          comments_count: 2,
-          created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-        },
-        {
-          id: "sample-2",
-          user_id: "usr-2",
-          author_name: "Emily Rodriguez",
-          author_baby: "Maya • 11m",
-          title: "Biscoitinhos de Banana & Aveia no congelador! 🍌✨",
-          content: "Fiz 50 mini biscoitos em 20 minutos direto da secção de receitas. Práticos e nutritivos.",
-          media_urls: ["https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80"],
-          media_type: "image",
-          topic: "🥣 Papinhas & Receitas",
-          status: "published",
-          likes_count: 42,
-          comments_count: 5,
-          created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-        },
-        {
-          id: "sample-video-1",
-          user_id: "usr-demo-video",
-          author_name: "Mariana Costa",
-          author_baby: "Tomás • 8m",
-          title: "Vídeo: Reacção fofa à 1ª papinha de abóbora! 🎃🥄",
-          content: "Gravado hoje ao almoço. A segurar a colher com as próprias mãozinhas!",
-          media_urls: ["https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4"],
-          media_type: "video",
-          topic: "👶 Vídeos & Conquistas",
-          status: "under_review",
-          likes_count: 15,
-          comments_count: 3,
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-        },
-      ];
-
-      // Merge and deduplicate by id
+      // Merge real database posts and real local session posts
       const formattedSupabase: AdminModerationPost[] = (postsData || []).map((p: any) => ({
         id: p.id,
         user_id: p.user_id,
@@ -145,7 +96,7 @@ export const ContentModeration = () => {
         created_at: p.created_at,
       }));
 
-      const combined = [...localPosts, ...formattedSupabase, ...demoPosts];
+      const combined = [...localPosts, ...formattedSupabase];
       const unique = Array.from(new Map(combined.map((item) => [item.id, item])).values());
       setPosts(unique);
     } catch (error) {

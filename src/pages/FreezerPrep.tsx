@@ -59,37 +59,17 @@ const STORAGE_RULES = [
   },
 ];
 
-const INITIAL_STASH: StashItem[] = [
-  {
-    id: "stash-1",
-    foodName: "Sweet Potato & Carrot Puree",
-    portions: 6,
-    frozenDate: new Date(Date.now() - 86400000 * 5).toISOString().split("T")[0],
-    maxMonths: 3,
-  },
-  {
-    id: "stash-2",
-    foodName: "Chicken & Veggie Mash",
-    portions: 4,
-    frozenDate: new Date(Date.now() - 86400000 * 12).toISOString().split("T")[0],
-    maxMonths: 2,
-  },
-  {
-    id: "stash-3",
-    foodName: "Banana Oat Teething Fingers",
-    portions: 8,
-    frozenDate: new Date(Date.now() - 86400000 * 2).toISOString().split("T")[0],
-    maxMonths: 2,
-  },
-];
+const STORAGE_KEY = "babybites_freezer_stash_v2";
 
 export const FreezerPrep: React.FC = () => {
   const [stash, setStash] = useState<StashItem[]>(() => {
     try {
-      const saved = localStorage.getItem("babybites_freezer_stash");
-      return saved ? JSON.parse(saved) : INITIAL_STASH;
+      // Clear legacy sample stash
+      localStorage.removeItem("babybites_freezer_stash");
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return INITIAL_STASH;
+      return [];
     }
   });
 
@@ -101,7 +81,7 @@ export const FreezerPrep: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem("babybites_freezer_stash", JSON.stringify(stash));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stash));
     } catch (e) {
       console.error(e);
     }

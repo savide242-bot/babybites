@@ -111,8 +111,8 @@ const GrowthTracker = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       setUser(session.user);
-      fetchGrowthRecords();
-      fetchMealLogs();
+      fetchGrowthRecords(session.user.id);
+      fetchMealLogs(session.user.id);
       fetchBabyProfile(session.user.id);
     }
   };
@@ -129,19 +129,28 @@ const GrowthTracker = () => {
     }
   };
 
-  const fetchGrowthRecords = async () => {
+  const fetchGrowthRecords = async (userIdParam?: string) => {
+    const uid = userIdParam || user?.id;
+    if (!uid) return;
+
     const { data, error } = await supabase
       .from("baby_growth")
       .select("*")
-      .order("recorded_at", { ascending: true });
+      .eq("user_id", uid)
+      .order("recorded_at", { ascending: true })
+      .limit(100);
 
     if (!error) setGrowthRecords(data || []);
   };
 
-  const fetchMealLogs = async () => {
+  const fetchMealLogs = async (userIdParam?: string) => {
+    const uid = userIdParam || user?.id;
+    if (!uid) return;
+
     const { data, error } = await supabase
       .from("meal_logs")
       .select("*")
+      .eq("user_id", uid)
       .order("eaten_at", { ascending: false })
       .limit(50);
 

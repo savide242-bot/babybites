@@ -35,17 +35,7 @@ const categoryConfig: { [key: string]: { icon: any; color: string; badge: string
   'Other': { icon: Package, color: 'text-stone-700 bg-stone-50', badge: 'bg-stone-100 text-stone-800', border: 'border-stone-200' },
 };
 
-const DEFAULT_ITEMS: ShoppingItem[] = [
-  { id: '1', ingredient: 'Ripe organic bananas', category: 'Fruits', checked: false, inPantry: false, fromRecipe: 'Baby Banana Oat Pancakes' },
-  { id: '2', ingredient: 'Sweet potatoes (2 medium)', category: 'Vegetables', checked: false, inPantry: false, fromRecipe: 'Sweet Potato Apple Mash' },
-  { id: '3', ingredient: 'Rolled baby oats', category: 'Cereals & Grains', checked: false, inPantry: true, fromRecipe: 'Pantry Stash' },
-  { id: '4', ingredient: 'Pasture-raised eggs', category: 'Proteins', checked: true, inPantry: false, fromRecipe: 'Steamed Egg Custard' },
-  { id: '5', ingredient: 'Cold-pressed olive oil', category: 'Pantry Essentials', checked: false, inPantry: true, fromRecipe: 'Home Staples' },
-  { id: '6', ingredient: 'Organic full-fat Greek yogurt', category: 'Dairy', checked: false, inPantry: false, fromRecipe: 'Morning Berry Parfait' },
-  { id: '7', ingredient: 'Fresh spinach leaves', category: 'Vegetables', checked: false, inPantry: false, fromRecipe: 'Green Iron Puree' },
-];
-
-const LOCAL_STORAGE_KEY = 'babybites_shopping_list_v2';
+const LOCAL_STORAGE_KEY = 'babybites_shopping_list_v3';
 
 const ShoppingList = () => {
   const { toast } = useToast();
@@ -57,6 +47,8 @@ const ShoppingList = () => {
   const [showPantrySection, setShowPantrySection] = useState(true);
 
   useEffect(() => {
+    // Purge legacy sample items
+    localStorage.removeItem('babybites_shopping_list_v2');
     checkUser();
   }, []);
 
@@ -77,17 +69,12 @@ const ShoppingList = () => {
         await loadShoppingList(user.id);
       } else {
         const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          setItems(JSON.parse(saved));
-        } else {
-          setItems(DEFAULT_ITEMS);
-          saveLocal(DEFAULT_ITEMS);
-        }
+        setItems(saved ? JSON.parse(saved) : []);
         setIsLoading(false);
       }
     } catch {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      setItems(saved ? JSON.parse(saved) : DEFAULT_ITEMS);
+      setItems(saved ? JSON.parse(saved) : []);
       setIsLoading(false);
     }
   };
@@ -102,7 +89,7 @@ const ShoppingList = () => {
 
       if (error || !data || data.length === 0) {
         const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        setItems(saved ? JSON.parse(saved) : DEFAULT_ITEMS);
+        setItems(saved ? JSON.parse(saved) : []);
       } else {
         const mappedItems: ShoppingItem[] = data.map((item) => ({
           id: item.id,

@@ -39,9 +39,9 @@ export interface FoodItem {
 
 const DEFAULT_100_FOODS: FoodItem[] = [
   // FRUITS (25)
-  { id: "banana", name: "Banana", emoji: "🍌", category: "Fruits", status: "tried", triedDate: "2026-10-12", preparation: "Mashed with fork", notes: "Loved it instantly!" },
-  { id: "avocado", name: "Avocado", emoji: "🥑", category: "Fruits", status: "tried", triedDate: "2026-10-14", preparation: "Rolled in hemp seeds for grip", notes: "Slipped a few times, ate enthusiastically" },
-  { id: "apple", name: "Apple", emoji: "🍎", category: "Fruits", status: "tried", triedDate: "2026-10-17", preparation: "Steamed soft slices with pinch of cinnamon", notes: "Good chewing practice" },
+  { id: "banana", name: "Banana", emoji: "🍌", category: "Fruits", status: "not_tried" },
+  { id: "avocado", name: "Avocado", emoji: "🥑", category: "Fruits", status: "not_tried" },
+  { id: "apple", name: "Apple", emoji: "🍎", category: "Fruits", status: "not_tried" },
   { id: "pear", name: "Pear", emoji: "🍐", category: "Fruits", status: "not_tried" },
   { id: "mango", name: "Mango", emoji: "🥭", category: "Fruits", status: "not_tried" },
   { id: "blueberries", name: "Blueberries", emoji: "🫐", category: "Fruits", status: "not_tried" },
@@ -66,9 +66,9 @@ const DEFAULT_100_FOODS: FoodItem[] = [
   { id: "nectarine", name: "Nectarine", emoji: "🍑", category: "Fruits", status: "not_tried" },
 
   // VEGETABLES (25)
-  { id: "sweet_potato", name: "Sweet Potato", emoji: "🍠", category: "Vegetables", status: "tried", triedDate: "2026-10-10", preparation: "Roasted spears until tender", notes: "Favorite root vegetable" },
-  { id: "carrot", name: "Carrot", emoji: "🥕", category: "Vegetables", status: "tried", triedDate: "2026-10-15", preparation: "Steamed tender sticks", notes: "Explored with hands" },
-  { id: "broccoli", name: "Broccoli", emoji: "🥦", category: "Vegetables", status: "tried", triedDate: "2026-10-19", preparation: "Steamed whole floret handle", notes: "Loves gnawing on florets" },
+  { id: "sweet_potato", name: "Sweet Potato", emoji: "🍠", category: "Vegetables", status: "not_tried" },
+  { id: "carrot", name: "Carrot", emoji: "🥕", category: "Vegetables", status: "not_tried" },
+  { id: "broccoli", name: "Broccoli", emoji: "🥦", category: "Vegetables", status: "not_tried" },
   { id: "butternut_squash", name: "Butternut Squash", emoji: "🎃", category: "Vegetables", status: "not_tried" },
   { id: "peas", name: "Green Peas (smashed)", emoji: "🟢", category: "Vegetables", status: "not_tried" },
   { id: "zucchini", name: "Zucchini", emoji: "🥒", category: "Vegetables", status: "not_tried" },
@@ -93,8 +93,8 @@ const DEFAULT_100_FOODS: FoodItem[] = [
   { id: "turnip", name: "Turnip", emoji: "🤍", category: "Vegetables", status: "not_tried" },
 
   // PROTEINS (25)
-  { id: "egg_yolk", name: "Egg (well-cooked)", emoji: "🥚", category: "Proteins", status: "tried", triedDate: "2026-10-21", preparation: "Hard boiled yolk mashed with breast milk", notes: "No reaction observed, tolerated well" },
-  { id: "chicken", name: "Chicken", emoji: "🍗", category: "Proteins", status: "tried", triedDate: "2026-10-23", preparation: "Shredded slow-cooked breast", notes: "Enjoyed savory taste" },
+  { id: "egg_yolk", name: "Egg (well-cooked)", emoji: "🥚", category: "Proteins", status: "not_tried" },
+  { id: "chicken", name: "Chicken", emoji: "🍗", category: "Proteins", status: "not_tried" },
   { id: "salmon", name: "Salmon (flaked & debuned)", emoji: "🐟", category: "Proteins", status: "not_tried" },
   { id: "white_fish", name: "White Fish (Cod / Haddock)", emoji: "🐟", category: "Proteins", status: "not_tried" },
   { id: "beef", name: "Beef (tender minced)", emoji: "🥩", category: "Proteins", status: "not_tried" },
@@ -120,7 +120,7 @@ const DEFAULT_100_FOODS: FoodItem[] = [
   { id: "sunflower_butter", name: "Sunflower Seed Butter", emoji: "🌻", category: "Proteins", status: "not_tried" },
 
   // GRAINS & PANTRY (25)
-  { id: "oats", name: "Rolled Oats (Porridge)", emoji: "🌾", category: "Grains & Pantry", status: "tried", triedDate: "2026-10-09", preparation: "Warm porridge cooked with water", notes: "Ate the whole bowl" },
+  { id: "oats", name: "Rolled Oats (Porridge)", emoji: "🌾", category: "Grains & Pantry", status: "not_tried" },
   { id: "rice", name: "Brown / White Rice", emoji: "🍚", category: "Grains & Pantry", status: "not_tried" },
   { id: "quinoa", name: "Quinoa", emoji: "🌾", category: "Grains & Pantry", status: "not_tried" },
   { id: "pasta_wheat", name: "Wheat Pasta (fusilli / penne)", emoji: "🍝", category: "Grains & Pantry", status: "not_tried" },
@@ -147,11 +147,26 @@ const DEFAULT_100_FOODS: FoodItem[] = [
   { id: "cardamom", name: "Cardamom (dash)", emoji: "✨", category: "Grains & Pantry", status: "not_tried" },
 ];
 
+const STORAGE_KEY = "babybites_100_foods_v3";
+
 export const FoodsTried: React.FC = () => {
   const [foods, setFoods] = useState<FoodItem[]>(() => {
     try {
-      const saved = localStorage.getItem("babybites_100_foods");
-      return saved ? JSON.parse(saved) : DEFAULT_100_FOODS;
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+
+      // Check legacy storage and clean any mock data
+      const legacy = localStorage.getItem("babybites_100_foods");
+      if (legacy) {
+        const parsed: FoodItem[] = JSON.parse(legacy);
+        const hasLegacyMock = parsed.some(f => f.triedDate === "2026-10-12" || f.notes === "Loved it instantly!");
+        if (hasLegacyMock) {
+          localStorage.removeItem("babybites_100_foods");
+          return DEFAULT_100_FOODS;
+        }
+        return parsed;
+      }
+      return DEFAULT_100_FOODS;
     } catch {
       return DEFAULT_100_FOODS;
     }
@@ -170,7 +185,7 @@ export const FoodsTried: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem("babybites_100_foods", JSON.stringify(foods));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(foods));
     } catch (e) {
       console.error(e);
     }

@@ -23,63 +23,18 @@ interface Transaction {
   hotmart_transaction_id: string;
 }
 
-const SAMPLE_TRANSACTIONS: Transaction[] = [
-  {
-    id: "tx-1",
-    buyer_name: "Ana Paula Silva",
-    buyer_email: "ana.silva@gmail.com",
-    plan_name: "Annual Premium Plan",
-    amount: 97.00,
-    currency: "USD",
-    status: "approved",
-    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    hotmart_transaction_id: "HP1982736450",
-  },
-  {
-    id: "tx-2",
-    buyer_name: "Mariana Costa",
-    buyer_email: "mariana.costa@hotmail.com",
-    plan_name: "Monthly Subscription",
-    amount: 14.90,
-    currency: "USD",
-    status: "approved",
-    created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-    hotmart_transaction_id: "HP4829104721",
-  },
-  {
-    id: "tx-3",
-    buyer_name: "Beatriz Oliveira",
-    buyer_email: "beatriz.olv@gmail.com",
-    plan_name: "Lifetime Access VIP",
-    amount: 149.00,
-    currency: "USD",
-    status: "approved",
-    created_at: new Date(Date.now() - 3600000 * 36).toISOString(),
-    hotmart_transaction_id: "HP5938201948",
-  },
-  {
-    id: "tx-4",
-    buyer_name: "Carla Mendes",
-    buyer_email: "carla.mendes@yahoo.com",
-    plan_name: "Monthly Subscription",
-    amount: 14.90,
-    currency: "USD",
-    status: "canceled",
-    created_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-    hotmart_transaction_id: "HP0293847162",
-  },
-];
-
-const STORAGE_KEY = "babybites_financial_txs_v1";
+const STORAGE_KEY = "babybites_financial_txs_v2";
 
 export const FinancialManagement: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
+      // Clear legacy sample data
+      localStorage.removeItem("babybites_financial_txs_v1");
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : SAMPLE_TRANSACTIONS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return SAMPLE_TRANSACTIONS;
+      return [];
     }
   });
   const [search, setSearch] = useState("");
@@ -253,45 +208,59 @@ export const FinancialManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-semibold text-xs text-gray-900">{t.buyer_name}</div>
-                        <div className="text-[11px] text-gray-500">{t.buyer_email}</div>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-10">
+                      <div className="flex flex-col items-center justify-center text-gray-400 space-y-2">
+                        <AlertCircle className="w-8 h-8 text-gray-300" />
+                        <p className="text-sm font-medium text-gray-600">No transactions recorded yet</p>
+                        <p className="text-xs text-gray-400 max-w-sm">
+                          Once you configure your Hotmart Webhook URL above, live sales, subscriptions, and revenue will populate here automatically.
+                        </p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs font-medium text-gray-700">
-                      {t.plan_name}
-                    </TableCell>
-                    <TableCell className="text-xs font-bold text-forest">
-                      ${t.amount.toFixed(2)} {t.currency}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          t.status === "approved"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-rose-50 text-rose-700 border-rose-200"
-                        }
-                      >
-                        {t.status === "approved" ? "Active / Paid" : "Canceled"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-gray-500">
-                      {t.hotmart_transaction_id}
-                    </TableCell>
-                    <TableCell className="text-xs text-gray-500">
-                      {new Date(t.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filtered.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-semibold text-xs text-gray-900">{t.buyer_name}</div>
+                          <div className="text-[11px] text-gray-500">{t.buyer_email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-medium text-gray-700">
+                        {t.plan_name}
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-forest">
+                        ${t.amount.toFixed(2)} {t.currency}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            t.status === "approved"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-rose-50 text-rose-700 border-rose-200"
+                          }
+                        >
+                          {t.status === "approved" ? "Active / Paid" : "Canceled"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-gray-500">
+                        {t.hotmart_transaction_id}
+                      </TableCell>
+                      <TableCell className="text-xs text-gray-500">
+                        {new Date(t.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
