@@ -79,8 +79,8 @@ import recipe392WatermelonCucumberMint from "@/assets/recipes/recipe-392-waterme
 import recipe393LentilSpinachCoconut from "@/assets/recipes/recipe-393-lentil-spinach-coconut.webp";
 import recipe394RoastedTomatoBasilWhiteBean from "@/assets/recipes/recipe-394-roasted-tomato-basil-white-bean.webp";
 import recipe395AppleWalnutCinnamonOatBake from "@/assets/recipes/recipe-395-apple-walnut-cinnamon-oat-bake.webp";
-import avocadoPuree from "@/assets/recipes/avocado-puree-new.jpg";
-import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.jpg";
+import avocadoPuree from "@/assets/recipes/avocado-puree-new.webp";
+import sweetPotatoCarrot from "@/assets/recipes/sweet-potato-carrot-new.webp";
 import blueberryOatmeal from "@/assets/recipes/blueberry-oatmeal-new.jpg";
 import eggMuffins from "@/assets/recipes/egg-muffins-new.jpg";
 import bananaPancakes from "@/assets/recipes/banana-pancakes-new.jpg";
@@ -97,7 +97,7 @@ import lentilSoup from "@/assets/recipes/lentil-soup-new.jpg";
 import mangoPuree from "@/assets/recipes/mango-puree-new.jpg";
 import beefStew from "@/assets/recipes/beef-stew-new.jpg";
 import spinachQuesadilla from "@/assets/recipes/spinach-quesadilla-new.jpg";
-import butternutSquash from "@/assets/recipes/butternut-squash-new.jpg";
+import butternutSquash from "@/assets/recipes/butternut-squash-new.webp";
 import turkeyMeatballs from "@/assets/recipes/turkey-meatballs-new.jpg";
 
 // New recipes for 12-18 months
@@ -110,10 +110,10 @@ import bananaOatCookies from "@/assets/recipes/banana-oat-cookies.jpg";
 // User-provided recipe images
 import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.png";
 import pearPruneBlend from "@/assets/recipes/pear-prune-blend.png";
-import greenPeaPuree from "@/assets/recipes/green-pea-puree.png";
+import greenPeaPuree from "@/assets/recipes/green-pea-puree.webp";
 import pumpkinAppleMash from "@/assets/recipes/pumpkin-apple-mash.png";
 import cottageCheesePoachBowl from "@/assets/recipes/cottage-cheese-peach-bowl.png";
-import appleCinnamonSauce from "@/assets/recipes/apple-cinnamon-sauce.png";
+import appleCinnamonSauce from "@/assets/recipes/apple-cinnamon-sauce.webp";
 import appleCinnamonOatmeal from "@/assets/recipes/apple-cinnamon-oatmeal.png";
 
 // Recipe images for IDs 206-238
