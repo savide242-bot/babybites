@@ -94,7 +94,9 @@ import broccoliTots from "@/assets/recipes/broccoli-tots-new.jpg";
 import salmonSweetPotato from "@/assets/recipes/salmon-sweet-potato-new.jpg";
 import riceBanana from "@/assets/recipes/rice-banana-new.jpg";
 import lentilSoup from "@/assets/recipes/lentil-soup-new.jpg";
-import mangoPuree from "@/assets/recipes/mango-puree-new.jpg";
+import mangoTropicalPuree from "@/assets/recipes/mango-tropical-puree.webp";
+import bananaBabyMash from "@/assets/recipes/banana-baby-mash.webp";
+import peachRiceCereal from "@/assets/recipes/peach-rice-cereal.webp";
 import beefStew from "@/assets/recipes/beef-stew-new.jpg";
 import spinachQuesadilla from "@/assets/recipes/spinach-quesadilla-new.jpg";
 import butternutSquash from "@/assets/recipes/butternut-squash-new.webp";
@@ -109,7 +111,7 @@ import bananaOatCookies from "@/assets/recipes/banana-oat-cookies.jpg";
 
 // User-provided recipe images
 import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.png";
-import pearPruneBlend from "@/assets/recipes/pear-prune-blend.png";
+import pearPruneBlend from "@/assets/recipes/pear-prune-blend.webp";
 import greenPeaPuree from "@/assets/recipes/green-pea-puree.webp";
 import pumpkinAppleMash from "@/assets/recipes/pumpkin-apple-mash.png";
 import cottageCheesePoachBowl from "@/assets/recipes/cottage-cheese-peach-bowl.png";
@@ -117,7 +119,7 @@ import appleCinnamonSauce from "@/assets/recipes/apple-cinnamon-sauce.webp";
 import appleCinnamonOatmeal from "@/assets/recipes/apple-cinnamon-oatmeal.png";
 
 // Recipe images for IDs 206-238
-import zucchiniPotatoMash from "@/assets/recipes/zucchini-potato-mash.jpg";
+import zucchiniPotatoMash from "@/assets/recipes/zucchini-potato-mash.webp";
 import carrotLentilPuree from "@/assets/recipes/carrot-lentil-puree.jpg";
 import ricePeachBlend from "@/assets/recipes/rice-peach-blend.jpg";
 import chickenSweetPotatoPuree from "@/assets/recipes/chicken-sweet-potato-puree.jpg";
@@ -472,7 +474,7 @@ import fishVegetablePuree114 from "@/assets/recipes/fish-vegetable-puree-114.jpg
 export const recipeImages = {
   avocadoPuree, sweetPotatoCarrot, blueberryOatmeal, eggMuffins, bananaPancakes,
   chickenPatties, peaPuree, appleSauce, pastaTomato, yogurtBerries, quinoaVeggies,
-  broccoliTots, salmonSweetPotato, riceBanana, lentilSoup, mangoPuree, beefStew,
+  broccoliTots, salmonSweetPotato, riceBanana, lentilSoup, mangoTropicalPuree, beefStew,
   spinachQuesadilla, butternutSquash, turkeyMeatballs, vegetableRisotto, miniFishFingers,
   chickpeaCarrotPatties, creamySpinachPasta, bananaOatCookies, spinachAppleSurprise,
   pearPruneBlend, greenPeaPuree, pumpkinAppleMash, cottageCheesePoachBowl, appleCinnamonSauce,
@@ -517,11 +519,11 @@ const recipeImageMap: Record<string, string> = {
   "3": greenPeaPuree,
   "4": butternutSquash,
   "5": appleCinnamonSauce,
-  "6": mangoPuree,
-  "7": riceBanana,
-  "8": peaPuree,
-  "9": spinachAppleSurprise,
-  "10": ricePeachCereal,
+  "6": mangoTropicalPuree,
+  "7": bananaBabyMash,
+  "8": pearPruneBlend,
+  "9": zucchiniPotatoMash,
+  "10": peachRiceCereal,
   "11": pumpkinAppleMash,
   "12": blueberryOatmeal,
   "13": appleSauce,
