@@ -80,7 +80,7 @@ export function NotificationPreferences() {
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
   
   const { toast } = useToast();
-  const { isSupported } = usePushNotifications();
+  const { isSupported, isSubscribed, subscribe, isLoading: subscribing } = usePushNotifications();
 
   useEffect(() => {
     loadPreferences();
@@ -299,7 +299,8 @@ export function NotificationPreferences() {
     setTestingCronJob(true);
     setCronJobStatus(null);
     try {
-      // Call the check-meal-reminders function directly to test if it works
+      // Call check-meal-reminders with force: true to test delivery immediately
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-meal-reminders`,
         {
@@ -308,6 +309,7 @@ export function NotificationPreferences() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
+          body: JSON.stringify({ force: true, user_id: currentUser?.id }),
         }
       );
 
@@ -401,6 +403,48 @@ export function NotificationPreferences() {
 
   return (
     <div className="space-y-6">
+      {/* Device Activation Notice */}
+      {(!diagnostics?.hasSubscription || diagnostics?.subscriptionCount === 0) && (
+        <div className="p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+          <div>
+            <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-200 flex items-center gap-2">
+              <Bell className="h-4 w-4 text-amber-600" />
+              Notificações Não Ativadas neste Dispositivo
+            </h4>
+            <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
+              Ao limpar dados do navegador ou trocar de aparelho, a chave de push é apagada. Clique para reativar e voltar a receber lembretes.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={async () => {
+              const ok = await subscribe();
+              if (ok) {
+                toast({
+                  title: "✅ Notificações Ativadas!",
+                  description: "Este dispositivo agora está registado para receber os lembretes.",
+                });
+                await loadDiagnostics();
+              }
+            }}
+            disabled={subscribing}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 gap-2 shadow"
+            size="sm"
+          >
+            {subscribing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Ativando...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4" />
+                Ativar Notificações no Aparelho
+              </>
+            )}
+          </Button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <Clock className="h-5 w-5" />

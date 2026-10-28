@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const APP_URL = 'https://babybites.lovable.app';
-const ICON_URL = `${APP_URL}/icon-192x192.png`;
+const APP_URL = 'https://app.babybites.space';
+const ICON_URL = `${APP_URL}/icon-192.png`;
 
 // English-only meal messages — sent AT meal time
 const MEAL_MESSAGES: Record<string, { title: string; body: string }> = {
@@ -37,13 +37,14 @@ const MEAL_MESSAGES: Record<string, { title: string; body: string }> = {
   },
 };
 
-const WINDOW_BEFORE_MIN = 2;
-const WINDOW_AFTER_MIN = 8;
+// Generous window so that 10-min, 15-min or 30-min cron jobs never miss a meal!
+const WINDOW_BEFORE_MIN = 5;
+const WINDOW_AFTER_MIN = 45;
 
 function getUserLocalTime(utcDate: Date, timezone: string): { hour: number; minute: number } {
   try {
     const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false,
+      timeZone: timezone, hour: 'numeric', minute: 'numeric', hourCycle: 'h23',
     }).formatToParts(utcDate);
     return {
       hour: parseInt(parts.find(p => p.type === 'hour')?.value || '0'),
@@ -88,18 +89,36 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    let force = false;
+    let targetUserId: string | null = null;
+    try {
+      if (req.method === 'POST') {
+        const body = await req.json();
+        force = !!body?.force || !!body?.test;
+        targetUserId = body?.user_id || body?.userId || null;
+      }
+    } catch {
+      // No JSON body or empty
+    }
+
     const now = new Date();
-    console.log(`\n⏰ CHECK-MEAL-REMINDERS v4 | UTC: ${now.toISOString()}`);
+    console.log(`\n⏰ CHECK-MEAL-REMINDERS v5 | UTC: ${now.toISOString()} | force=${force} | target=${targetUserId || 'all'}`);
 
     // 1) Fetch all enabled meal times
-    const { data: allMealTimes, error: mtErr } = await supabase
+    let mtQuery = supabase
       .from('baby_meal_times')
       .select('user_id, meal_type, preferred_hour, preferred_minute')
       .eq('enabled', true);
 
+    if (targetUserId) {
+      mtQuery = mtQuery.eq('user_id', targetUserId);
+    }
+
+    const { data: allMealTimes, error: mtErr } = await mtQuery;
+
     if (mtErr) throw mtErr;
     if (!allMealTimes?.length) {
-      return new Response(JSON.stringify({ success: true, sent: 0, message: 'No enabled meal times' }),
+      return new Response(JSON.stringify({ success: true, sent: 0, message: 'No enabled meal times found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -108,7 +127,7 @@ Deno.serve(async (req) => {
 
     const [{ data: profiles }, { data: allSubs }] = await Promise.all([
       supabase.from('profiles').select('id, baby_name, timezone').in('id', userIds),
-      supabase.from('push_subscriptions').select('id, user_id, endpoint, p256dh, auth, timezone'),
+      supabase.from('push_subscriptions').select('id, user_id, endpoint, p256dh, auth, timezone').in('user_id', userIds),
     ]);
 
     const profileMap = new Map((profiles || []).map(p => [p.id, p]));
@@ -130,32 +149,36 @@ Deno.serve(async (req) => {
       const local = getUserLocalTime(now, tz);
       const localDate = getUserLocalDate(now, tz);
 
-      const inWindow = isInMealWindow(local.hour, local.minute, mt.preferred_hour, mt.preferred_minute);
+      const inWindow = force || isInMealWindow(local.hour, local.minute, mt.preferred_hour, mt.preferred_minute);
 
-      if (!inWindow) continue;
+      if (!inWindow) {
+        continue;
+      }
 
-      // *** FIX: Check subscription BEFORE claiming the daily slot ***
+      // Check subscription before logging
       const subs = subsMap.get(mt.user_id);
       if (!subs?.length) {
-        console.log(`  ⚠️ ${mt.meal_type} | user=${mt.user_id.substring(0,8)} | IN WINDOW but NO subscription — skipping log insert`);
+        console.log(`  ⚠️ ${mt.meal_type} | user=${mt.user_id.substring(0,8)} | IN WINDOW but NO subscription`);
         noSubCount++;
         continue;
       }
 
-      // 4) Atomic duplicate prevention: insert first, skip if already exists
-      const { error: logErr } = await supabase.from('notification_logs').insert({
-        user_id: mt.user_id,
-        meal_type: mt.meal_type,
-        sent_date: localDate,
-      });
+      // 4) Duplicate prevention (unless force=true for testing)
+      if (!force) {
+        const { error: logErr } = await supabase.from('notification_logs').insert({
+          user_id: mt.user_id,
+          meal_type: mt.meal_type,
+          sent_date: localDate,
+        });
 
-      if (logErr) {
-        if (logErr.code === '23505' || logErr.message?.includes('duplicate') || logErr.message?.includes('unique')) {
-          console.log(`  ⏭️ Already sent ${mt.meal_type} today for user=${mt.user_id.substring(0,8)}`);
-          skipped++;
-          continue;
+        if (logErr) {
+          if (logErr.code === '23505' || logErr.message?.includes('duplicate') || logErr.message?.includes('unique')) {
+            console.log(`  ⏭️ Already sent ${mt.meal_type} today for user=${mt.user_id.substring(0,8)}`);
+            skipped++;
+            continue;
+          }
+          console.error('  ❌ Log insert error:', logErr);
         }
-        console.error('  ❌ Log insert error:', logErr);
       }
 
       // 5) Send push
@@ -168,38 +191,42 @@ Deno.serve(async (req) => {
         icon: ICON_URL,
         badge: ICON_URL,
         tag: `meal-${mt.meal_type}-${localDate}`,
-        data: { url: '/planner', mealType: mt.meal_type },
+        data: { url: '/meal-planner', mealType: mt.meal_type, timestamp: now.getTime() },
       };
+
+      console.log(`  🚀 Sending ${mt.meal_type} to user=${mt.user_id.substring(0,8)} (${subs.length} device(s)) [local=${local.hour}:${String(local.minute).padStart(2,'0')} target=${mt.preferred_hour}:${String(mt.preferred_minute).padStart(2,'0')}]`);
 
       for (const sub of subs) {
         if (!sub.p256dh || !sub.auth) {
+          console.error(`  ❌ Invalid sub keys for device ${sub.id}`);
           failedCount++;
-          console.error(`  ❌ Invalid subscription keys for user=${mt.user_id.substring(0,8)} sub=${sub.id}`);
           continue;
         }
 
         const pushSub: PushSubscription = {
           id: sub.id,
+          user_id: sub.user_id,
           endpoint: sub.endpoint,
           keys: { p256dh: sub.p256dh, auth: sub.auth },
         };
 
-        let success = false;
-        for (let attempt = 1; attempt <= 2; attempt++) {
+        for (let attempt = 0; attempt < 3; attempt++) {
           try {
             const result = await sendPush(pushSub, notification, vapidKeys.publicKey, vapidKeys.privateKey);
+
             if (result.success) {
               sentCount++;
-              success = true;
-              console.log(`  ✅ Sent ${mt.meal_type} to user=${mt.user_id.substring(0,8)} endpoint=${sub.endpoint.substring(0, 50)}...`);
+              console.log(`  ✅ Sent to device ${sub.id.substring(0,8)}`);
               break;
             }
+
             if (result.expired) {
+              console.log(`  🗑️ Expired endpoint for device ${sub.id.substring(0,8)}`);
               expiredIds.push(sub.id);
               failedCount++;
-              console.log(`  🗑️ Expired/VAPID mismatch for user=${mt.user_id.substring(0,8)}, will cleanup`);
               break;
             }
+
             if (attempt < 2) await new Promise(r => setTimeout(r, 1000));
             else {
               failedCount++;
@@ -223,9 +250,13 @@ Deno.serve(async (req) => {
     console.log(`📊 Done: ${sentCount} sent, ${failedCount} failed, ${skipped} skipped (dup), ${noSubCount} no-sub`);
 
     return new Response(JSON.stringify({
-      success: true, sent: sentCount, failed: failedCount,
-      skippedDuplicates: skipped, noSubscription: noSubCount,
-      expiredCleaned: expiredIds.length, checkedAt: now.toISOString(),
+      success: true,
+      sent: sentCount,
+      failed: failedCount,
+      skippedDuplicates: skipped,
+      noSubscription: noSubCount,
+      expiredCleaned: expiredIds.length,
+      checkedAt: now.toISOString(),
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
     console.error('❌ Error:', error);
