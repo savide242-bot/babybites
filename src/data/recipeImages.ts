@@ -110,7 +110,11 @@ import creamySpinachPasta from "@/assets/recipes/creamy-spinach-pasta.jpg";
 import bananaOatCookies from "@/assets/recipes/banana-oat-cookies.jpg";
 
 // User-provided recipe images
-import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.png";
+import blueberryBananaBlend from "@/assets/recipes/blueberry-banana-blend.webp";
+import cauliflowerParsnipPuree from "@/assets/recipes/cauliflower-parsnip-puree.webp";
+import papayaLimePuree from "@/assets/recipes/papaya-lime-puree.webp";
+import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.webp";
+import pumpkinCinnamonDelight from "@/assets/recipes/pumpkin-cinnamon-delight.webp";
 import pearPruneBlend from "@/assets/recipes/pear-prune-blend.webp";
 import greenPeaPuree from "@/assets/recipes/green-pea-puree.webp";
 import pumpkinAppleMash from "@/assets/recipes/pumpkin-apple-mash.png";
@@ -524,11 +528,11 @@ const recipeImageMap: Record<string, string> = {
   "8": pearPruneBlend,
   "9": zucchiniPotatoMash,
   "10": peachRiceCereal,
-  "11": pumpkinAppleMash,
-  "12": blueberryOatmeal,
-  "13": appleSauce,
-  "14": cottageCheesePoachBowl,
-  "15": appleCinnamonOatmeal,
+  "11": blueberryBananaBlend,
+  "12": cauliflowerParsnipPuree,
+  "13": papayaLimePuree,
+  "14": spinachAppleSurprise,
+  "15": pumpkinCinnamonDelight,
   "16": bananaPancakes,
   "17": eggMuffins,
   "18": yogurtBerries,
