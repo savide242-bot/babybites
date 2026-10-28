@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, AlertCircle, Refrigerator, ArrowLeft, Calendar, FileDown, Share2, ChefHat, Timer, Plus, Minus, Play, Pause, RotateCcw, X, Heart, CheckCircle2, UtensilsCrossed, Flame, Sparkles, Leaf, ShieldCheck } from "lucide-react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
-import { recipes } from "@/data/recipes";
+import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState, useEffect, useRef } from "react";
@@ -20,6 +20,7 @@ import SmartCombinationWarning from "@/components/SmartCombinationWarning";
 const RecipeDetail = () => {
   const { t } = useLanguage();
   const { id } = useParams();
+  const { recipes } = useAppRecipes();
   const navigate = useNavigate();
   const location = useLocation();
   const cameFromPlanner = location.state?.from === 'planner';
