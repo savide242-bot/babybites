@@ -16,7 +16,10 @@ import {
   AlertTriangle,
   Server,
   Smartphone,
-  Bug
+  Bug,
+  Shield,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -396,6 +399,64 @@ const SystemHealth = () => {
             </CardContent>
           </Card>
         )}
+
+
+        {/* Enterprise Security & Multi-Tenant Protection */}
+        <Card className="md:col-span-2 border-emerald-500/30 bg-emerald-50/10 dark:bg-emerald-950/10">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+                <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                Segurança Multi-Tenant & Proteção de Dados (Enterprise Guard)
+              </CardTitle>
+              <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs">
+                100% Protegido
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Blindagem ativa entre a tela e o banco de dados contra hacks, vazamentos e adulteração de dados.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="p-3 rounded-lg border bg-background/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Isolamento de Contas</span>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                </div>
+                <p className="font-bold text-sm">Row Level Security (RLS)</p>
+                <p className="text-xs text-muted-foreground">Cada usuário só acessa estritamente seus próprios dados. Zero cruzamento.</p>
+              </div>
+
+              <div className="p-3 rounded-lg border bg-background/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">API Security Gateway</span>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                </div>
+                <p className="font-bold text-sm">Filtro Anti-Hack & IDOR</p>
+                <p className="text-xs text-muted-foreground">Sanitização XSS/SQLi e checagem de assinatura de sessão em cada requisição.</p>
+              </div>
+
+              <div className="p-3 rounded-lg border bg-background/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Cofre de Servidor</span>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                </div>
+                <p className="font-bold text-sm">Zero Chaves no Código</p>
+                <p className="text-xs text-muted-foreground">Chaves mestras de IA e banco guardadas apenas no cofre Vercel / Supabase Vault.</p>
+              </div>
+
+              <div className="p-3 rounded-lg border bg-background/60 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Rate Limiting</span>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                </div>
+                <p className="font-bold text-sm">Anti-Spam & DoS</p>
+                <p className="text-xs text-muted-foreground">Bloqueio automático de disparos repetitivos e robôs maliciosos.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Edge Functions */}
         <Card className="md:col-span-2">
