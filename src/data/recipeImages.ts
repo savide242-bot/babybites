@@ -9,7 +9,8 @@ import recipe322HiddenVeggiePasta from "@/assets/recipe-322-hidden-veggie-pasta.
 import recipe323BlueberryPancakes from "@/assets/recipe-323-blueberry-pancakes.jpg";
 import recipe324ChickenVeggieSoup from "@/assets/recipe-324-chicken-veggie-soup.jpg";
 import recipe325SweetPotatoPorridge from "@/assets/recipe-325-sweet-potato-porridge.jpg";
-import recipe326SalmonSweetPotatoCakes from "@/assets/recipes/recipe-326-salmon-sweet-potato-cakes.jpg";
+import salmonSweetPotatoCakes from "@/assets/recipes/salmon-sweet-potato-cakes.webp";
+const recipe326SalmonSweetPotatoCakes = salmonSweetPotatoCakes;
 import recipe327BeefLentilStew from "@/assets/recipes/recipe-327-beef-lentil-stew.jpg";
 import recipe328SpinachCheeseMuffins from "@/assets/recipes/recipe-328-spinach-cheese-muffins.jpg";
 import recipe329TurkeyMeatloafBites from "@/assets/recipes/recipe-329-turkey-meatloaf-bites.jpg";
@@ -89,9 +90,11 @@ import peaPuree from "@/assets/recipes/pea-puree-new.jpg";
 import appleSauce from "@/assets/recipes/apple-sauce-new.jpg";
 import pastaTomato from "@/assets/recipes/pasta-tomato-new.jpg";
 import yogurtBerries from "@/assets/recipes/yogurt-berries-new.jpg";
-import quinoaVeggies from "@/assets/recipes/quinoa-veggies-new.jpg";
+import quinoaVeggieMedley from "@/assets/recipes/quinoa-veggie-medley.webp";
+const quinoaVeggies = quinoaVeggieMedley;
 import broccoliTots from "@/assets/recipes/broccoli-tots-new.jpg";
-import salmonSweetPotato from "@/assets/recipes/salmon-sweet-potato-new.jpg";
+import miniBeefSliders from "@/assets/recipes/mini-beef-sliders.webp";
+const salmonSweetPotato = salmonSweetPotatoCakes;
 import riceBanana from "@/assets/recipes/rice-banana-new.jpg";
 import lentilSoup from "@/assets/recipes/lentil-soup-new.jpg";
 import mangoTropicalPuree from "@/assets/recipes/mango-tropical-puree.webp";
@@ -124,7 +127,7 @@ import turkeySweetPotatoVelvet from "@/assets/recipes/turkey-sweet-potato-velvet
 import lentilCarrotPowerPuree from "@/assets/recipes/lentil-carrot-power-puree.webp";
 import cottageCheesePoachBowl from "@/assets/recipes/cottage-cheese-peach-bowl.png";
 import appleCinnamonSauce from "@/assets/recipes/apple-cinnamon-sauce.webp";
-import appleCinnamonOatmeal from "@/assets/recipes/apple-cinnamon-oatmeal.png";
+import appleCinnamonOatmeal from "@/assets/recipes/apple-cinnamon-oatmeal.webp";
 
 // Recipe images for IDs 206-238
 import zucchiniPotatoMash from "@/assets/recipes/zucchini-potato-mash.webp";
@@ -374,7 +377,7 @@ import buckwheatBlueberryPancakes from "@/assets/recipes/buckwheat-blueberry-pan
 import roastedRedPepperHummus from "@/assets/recipes/roasted-red-pepper-hummus.jpg";
 import mapleGlazedSalmonBites from "@/assets/recipes/maple-glazed-salmon-bites.jpg";
 import zucchiniNoodlesPesto from "@/assets/recipes/zucchini-noodles-pesto.jpg";
-import chickenBroccoliRiceBalls from "@/assets/recipes/chicken-broccoli-rice-balls.jpg";
+import chickenBroccoliRiceBalls from "@/assets/recipes/chicken-broccoli-rice-balls.webp";
 import butternutSageRisotto from "@/assets/recipes/butternut-sage-risotto.jpg";
 import raspberryChiaJam from "@/assets/recipes/raspberry-chia-jam.jpg";
 import cornZucchiniFritters from "@/assets/recipes/corn-zucchini-fritters.jpg";
@@ -540,14 +543,14 @@ const recipeImageMap: Record<string, string> = {
   "16": bananaPancakes,
   "17": eggMuffins,
   "18": yogurtBerries,
-  "19": pastaTomato,
+  "19": appleCinnamonOatmeal,
   "20": chickenPatties,
   "21": turkeyMeatballs,
-  "22": salmonSweetPotato,
-  "23": beefStew,
-  "24": lentilSoup,
-  "25": vegetableRisotto,
-  "26": quinoaVeggies,
+  "22": chickenVeggieRisotto,
+  "23": miniBeefSliders,
+  "24": salmonSweetPotatoCakes,
+  "25": quinoaVeggieMedley,
+  "26": miniMacCheeseCups,
   "27": broccoliTots,
   "28": spinachQuesadilla,
   "29": miniFishFingers,
@@ -862,7 +865,7 @@ const recipeImageMap: Record<string, string> = {
   "325": recipe325SweetPotatoPorridge,
 
   // IDs 326-340 (recipes326-340.ts) - 24+ MONTHS NUTRIENT-DENSE
-  "326": recipe326SalmonSweetPotatoCakes,
+  "326": salmonSweetPotatoCakes,
   "327": recipe327BeefLentilStew,
   "328": recipe328SpinachCheeseMuffins,
   "329": recipe329TurkeyMeatloafBites,
