@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Clock, Heart, Download, Loader2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import { getMealCategory } from "@/data/recipes";
+import { recipes as staticRecipes, getMealCategory, Recipe } from "@/data/recipes";
 import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { useFavorites } from "@/hooks/useFavorites";
 import { exportRecipeEbook } from "@/utils/recipeEbookExport";
@@ -78,7 +78,7 @@ const RecipeCard = memo(({
   isFav,
   onToggleFavorite,
 }: {
-  recipe: typeof recipes[0];
+  recipe: Recipe;
   isFav: boolean;
   onToggleFavorite: (id: string) => void;
 }) => {
@@ -148,6 +148,8 @@ const RecipeCard = memo(({
 RecipeCard.displayName = "RecipeCard";
 
 export const Recipes = () => {
+  const { recipes } = useAppRecipes();
+  const allRecipes = (recipes && recipes.length > 0) ? recipes : staticRecipes;
   const { toggleFavorite, isFavorite } = useFavorites();
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -195,7 +197,7 @@ export const Recipes = () => {
 
   // STRICT & ACCURATE RECIPE FILTERING
   const filteredRecipes = useMemo(() => {
-    return recipes.filter((recipe) => {
+    return allRecipes.filter((recipe) => {
       // 1. Search Query
       if (searchQuery.trim() !== "") {
         const q = searchQuery.toLowerCase();
