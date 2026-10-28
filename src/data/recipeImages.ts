@@ -117,7 +117,11 @@ import spinachAppleSurprise from "@/assets/recipes/spinach-apple-surprise.webp";
 import pumpkinCinnamonDelight from "@/assets/recipes/pumpkin-cinnamon-delight.webp";
 import pearPruneBlend from "@/assets/recipes/pear-prune-blend.webp";
 import greenPeaPuree from "@/assets/recipes/green-pea-puree.webp";
-import pumpkinAppleMash from "@/assets/recipes/pumpkin-apple-mash.png";
+import pumpkinAppleMash from "@/assets/recipes/pumpkin-apple-mash.webp";
+import pearGingerPuree from "@/assets/recipes/pear-ginger-puree.webp";
+import chickenButternutPuree from "@/assets/recipes/chicken-butternut-puree.webp";
+import turkeySweetPotatoVelvet from "@/assets/recipes/turkey-sweet-potato-velvet.webp";
+import lentilCarrotPowerPuree from "@/assets/recipes/lentil-carrot-power-puree.webp";
 import cottageCheesePoachBowl from "@/assets/recipes/cottage-cheese-peach-bowl.png";
 import appleCinnamonSauce from "@/assets/recipes/apple-cinnamon-sauce.webp";
 import appleCinnamonOatmeal from "@/assets/recipes/apple-cinnamon-oatmeal.png";
@@ -568,7 +572,7 @@ const recipeImageMap: Record<string, string> = {
   // IDs 47-100 (recipes47-100.ts) - ALL UNIQUE IMAGES
   "47": creamySpinachPasta47,
   "48": beefStew48,
-  "49": pumpkinAppleMash49,
+  "49": pumpkinAppleMash,
   "50": bananaOatCookies50,
   "51": mangoPuree51,
   "52": chickenNoodleSoup52,
@@ -662,7 +666,7 @@ const recipeImageMap: Record<string, string> = {
   "138": raspberryYogurtSwirl,
   "139": beefSweetpeaPuree,
   "140": bananaPancakeBites140,
-  "141": pearOatPorridgeUnique,
+  "141": pearGingerPuree,
   "142": chickenNoodleSoup142,
   "143": yogurtFruitParfait143,
   "144": creamySpinachPasta144,
@@ -733,9 +737,9 @@ const recipeImageMap: Record<string, string> = {
   "205": bananaOatCookies205,
 
   // IDs 206-238 (recipes206-238.ts) - ALL UNIQUE IMAGES
-  "206": chickenSweetPotatoPureeUnique,
-  "207": turkeyVegetableBlendUnique,
-  "208": carrotLentilPureeUnique,
+  "206": chickenButternutPuree,
+  "207": turkeySweetPotatoVelvet,
+  "208": lentilCarrotPowerPuree,
   "209": eggAvocadoBreakfast209,
   "210": whiteFishParsnip210,
   "211": beefCarrotPuree211,
