@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MealCard } from "./MealCard";
 import { Copy, Trash2, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
-import { recipes } from "@/data/recipes";
+import { recipes as staticRecipes } from "@/data/recipes";
+import { useAppRecipes } from "@/hooks/useAppRecipes";
 
 interface MealSlot {
   recipeId: string;
@@ -37,11 +38,15 @@ export const DayCard = ({
 }: DayCardProps) => {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
+  const { recipes: appRecipes } = useAppRecipes();
 
-  const getRecipe = (recipeId: string) => recipes.find((r) => r.id === recipeId);
+  const getRecipe = (recipeId: string) => {
+    const pool = appRecipes && appRecipes.length > 0 ? appRecipes : staticRecipes;
+    return pool.find((r) => String(r.id) === String(recipeId)) || staticRecipes.find((r) => String(r.id) === String(recipeId));
+  };
 
-  const plannedMeals = Object.keys(meals).length;
-  const preparedMeals = Object.values(meals).filter((m) => m.prepared).length;
+  const plannedMeals = Object.keys(meals || {}).length;
+  const preparedMeals = Object.values(meals || {}).filter((m) => m?.prepared).length;
   const isComplete = plannedMeals === 4 && preparedMeals === 4;
 
   return (

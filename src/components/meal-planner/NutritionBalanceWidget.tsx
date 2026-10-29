@@ -104,7 +104,7 @@ export const NutritionBalanceWidget = ({ mealPlan }: NutritionBalanceWidgetProps
 
       Object.values(dayMeals).forEach(slot => {
         if (!slot?.recipeId) return;
-        const recipe = recipes.find(r => r.id === slot.recipeId);
+        const recipe = recipes.find(r => String(r.id) === String(slot.recipeId));
         if (recipe) {
           weeklyStats.totalMeals++;
           dayHasMeal = true;

@@ -185,17 +185,28 @@ const MealPlanner = () => {
   };
 
   const onGenerationComplete = useCallback(() => {
-    const newSeed = Date.now();
-    const effectiveAge = activeBabyAgeMonths > 0 ? activeBabyAgeMonths : (babyAgeMonths || 6);
-    const generated = generateAutoPlan(effectiveAge, dietaryPrefs, recentlyUsedRecipes, newSeed, allRecipes);
-    setPersonalizedPlan(generated);
-    setHasPersonalizedPlan(true);
-    setPersonalizedPlanAccepted(false);
-    setIsGenerating(false);
-    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    toast.success(`🎉 Weekly plan generated for ${activeBaby?.name || "your baby"}!`, {
-      description: `Meals tailored for ${effectiveAge} months (${activeBabyAgeCategory}).`,
-    });
+    try {
+      const newSeed = Date.now();
+      const effectiveAge = activeBabyAgeMonths > 0 ? activeBabyAgeMonths : (babyAgeMonths || 6);
+      const generated = generateAutoPlan(effectiveAge, dietaryPrefs, recentlyUsedRecipes, newSeed, allRecipes);
+      setPersonalizedPlan(generated);
+      setHasPersonalizedPlan(true);
+      setPersonalizedPlanAccepted(false);
+      setActiveTab("auto");
+      setIsGenerating(false);
+      try {
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      } catch {
+        // Safe fallback if canvas is unsupported
+      }
+      toast.success(`🎉 Weekly plan generated for ${activeBaby?.name || "your baby"}!`, {
+        description: `Meals tailored for ${effectiveAge} months (${activeBabyAgeCategory}).`,
+      });
+    } catch (err: any) {
+      console.error("Error in onGenerationComplete:", err);
+      setIsGenerating(false);
+      toast.error(`Error generating plan: ${err.message || "Please try again"}`);
+    }
   }, [activeBabyAgeMonths, babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, allRecipes, activeBaby, activeBabyAgeCategory]);
 
   const regeneratePersonalizedPlan = () => {
@@ -534,7 +545,7 @@ const MealPlanner = () => {
     const ingredientsMap = new Map<string, { ingredient: string; category: string; fromRecipes: string[] }>();
     Object.entries(plan).forEach(([day, meals]) => {
       Object.entries(meals).forEach(([mealType, slot]) => {
-        const recipe = recipes.find((r) => r.id === slot.recipeId);
+        const recipe = allRecipes.find((r) => String(r.id) === String(slot.recipeId)) || recipes.find((r) => String(r.id) === String(slot.recipeId));
         if (recipe) {
           recipe.ingredients.forEach((ing) => {
             const cleanName = extractIngredientName(ing);
@@ -610,7 +621,7 @@ const MealPlanner = () => {
       <PlanGeneratingOverlay
         isVisible={isGenerating}
         onComplete={onGenerationComplete}
-        babyAgeMonths={babyAgeMonths}
+        babyAgeMonths={activeBabyAgeMonths || babyAgeMonths || 6}
       />
 
       {/* Header */}
@@ -780,7 +791,7 @@ const MealPlanner = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground mb-1">
-                          Personalized Plan for Your {babyAgeMonths}-Month-Old
+                          Personalized Plan for Your {activeBabyAgeMonths || babyAgeMonths || 6}-Month-Old
                         </h3>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           Review the plan below, then accept to save it and generate your shopping list!
@@ -804,7 +815,7 @@ const MealPlanner = () => {
                           {personalizedPlanAccepted ? 'Your Active Meal Plan' : 'Suggested Meal Plan'}
                         </h2>
                         <p className="text-muted-foreground mt-1">
-                          Optimized for {babyAgeMonths}-month-old • Nutritionally balanced
+                          Optimized for {activeBabyAgeMonths || babyAgeMonths || 6}-month-old • Nutritionally balanced
                         </p>
                       </div>
                       <div className="flex gap-2 flex-wrap">
