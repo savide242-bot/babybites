@@ -64,6 +64,7 @@ export const ContentModeration = () => {
       const { data: postsData } = await supabase
         .from('forum_posts')
         .select('*')
+        .neq('title', '__SYSTEM_RECIPE_OVERRIDES__')
         .order('created_at', { ascending: false })
         .limit(50);
 

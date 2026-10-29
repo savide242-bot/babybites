@@ -71,7 +71,7 @@ const AdminDashboard = () => {
         supabase.from('user_sessions').select('id', { count: 'exact', head: true }).gte('last_active', fiveMinutesAgo),
         supabase.from('meal_logs').select('id', { count: 'exact', head: true }),
         supabase.from('meal_plans').select('id', { count: 'exact', head: true }),
-        supabase.from('forum_posts').select('id', { count: 'exact', head: true }),
+        supabase.from('forum_posts').select('id', { count: 'exact', head: true }).neq('title', '__SYSTEM_RECIPE_OVERRIDES__'),
         supabase.from('push_subscriptions').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', today),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),

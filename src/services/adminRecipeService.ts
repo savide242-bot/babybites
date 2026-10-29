@@ -137,6 +137,9 @@ const saveToStorage = (key: string, data: any): void => {
   }
 };
 
+// Cloud sync key for cross-device recipe modifications and image overrides
+export const CLOUD_RECIPES_SYNC_KEY = "__SYSTEM_RECIPE_OVERRIDES__";
+
 // Sync image overrides with Supabase recipe_image_overrides
 export const syncOverridesWithSupabase = async (
   recipeId: string,
@@ -153,6 +156,136 @@ export const syncOverridesWithSupabase = async (
     );
   } catch (err) {
     console.warn("Could not sync with Supabase recipe_image_overrides:", err);
+  }
+};
+
+// Push published recipe catalog to Supabase Cloud so all devices (mobile PWA, web) sync
+export const syncPublishedRecipesToCloud = async (
+  published: Record<string, RecipeModification>
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.warn("User not authenticated, cannot sync published recipes to cloud.");
+      return false;
+    }
+
+    const jsonString = JSON.stringify(published);
+
+    // Check if system post exists
+    const { data: existing, error: fetchErr } = await supabase
+      .from("forum_posts")
+      .select("id")
+      .eq("title", CLOUD_RECIPES_SYNC_KEY)
+      .maybeSingle();
+
+    if (fetchErr) {
+      console.warn("Could not check existing cloud recipes post:", fetchErr);
+    }
+
+    if (existing) {
+      const { error: updateErr } = await supabase
+        .from("forum_posts")
+        .update({
+          content: jsonString,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+
+      if (updateErr) {
+        console.error("Failed to update cloud recipes:", updateErr);
+        return false;
+      }
+    } else {
+      const { error: insertErr } = await supabase
+        .from("forum_posts")
+        .insert({
+          user_id: user.id,
+          title: CLOUD_RECIPES_SYNC_KEY,
+          content: jsonString,
+        });
+
+      if (insertErr) {
+        console.error("Failed to insert cloud recipes:", insertErr);
+        return false;
+      }
+    }
+
+    console.log("☁️ Successfully published recipe catalog to cloud sync!");
+    return true;
+  } catch (err) {
+    console.error("Error in syncPublishedRecipesToCloud:", err);
+    return false;
+  }
+};
+
+// Pull published recipe catalog from Supabase Cloud to local device
+export const fetchPublishedFromCloud = async (): Promise<Record<string, RecipeModification>> => {
+  try {
+    // 1. Fetch from cloud sync post
+    const { data, error } = await supabase
+      .from("forum_posts")
+      .select("content, updated_at")
+      .eq("title", CLOUD_RECIPES_SYNC_KEY)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let cloudPublished: Record<string, RecipeModification> = {};
+
+    if (!error && data?.content) {
+      try {
+        cloudPublished = JSON.parse(data.content);
+      } catch (e) {
+        console.warn("Failed to parse cloud recipes content:", e);
+      }
+    }
+
+    // 2. Also check recipe_image_overrides if any exist
+    try {
+      const { data: imageOverrides } = await supabase
+        .from("recipe_image_overrides")
+        .select("recipe_id, image_url");
+
+      if (imageOverrides && imageOverrides.length > 0) {
+        imageOverrides.forEach((override) => {
+          if (override.recipe_id && override.image_url) {
+            if (!cloudPublished[override.recipe_id]) {
+              cloudPublished[override.recipe_id] = {
+                id: override.recipe_id,
+                title: "",
+                description: "",
+                ageGroup: "",
+                category: "",
+                prepTime: "",
+                servings: "",
+                image: override.image_url,
+                ingredients: [],
+                instructions: [],
+                isStaged: false,
+                updatedAt: new Date().toISOString(),
+              };
+            } else {
+              cloudPublished[override.recipe_id].image = override.image_url;
+            }
+          }
+        });
+      }
+    } catch {
+      // Ignore
+    }
+
+    // Merge with current local published recipes
+    const localPublished = getPublishedModifications();
+    const mergedPublished = { ...localPublished, ...cloudPublished };
+
+    // Persist into localStorage so offline PWA mode still has all the latest recipes
+    saveToStorage(LOCAL_STORAGE_PUBLISHED_KEY, mergedPublished);
+
+    return mergedPublished;
+  } catch (err) {
+    console.error("Error fetching published recipes from cloud:", err);
+    return getPublishedModifications();
   }
 };
 
@@ -196,11 +329,11 @@ export const discardStagedModification = async (recipeId: string): Promise<void>
   }
 };
 
-// Deploy ALL staged changes to Production (Making them live for all users)
-export const deployAllStagedToProduction = async (): Promise<{ count: number }> => {
+// Deploy ALL staged changes to Production (Making them live for all users & mobile PWA)
+export const deployAllStagedToProduction = async (): Promise<{ count: number; cloudSynced: boolean }> => {
   const staged = getStagedModifications();
   const stagedIds = Object.keys(staged);
-  if (stagedIds.length === 0) return { count: 0 };
+  if (stagedIds.length === 0) return { count: 0, cloudSynced: false };
 
   const published = getPublishedModifications();
 
@@ -218,14 +351,17 @@ export const deployAllStagedToProduction = async (): Promise<{ count: number }> 
     }
   }
 
-  // Save published and clear staging
+  // Save published locally and clear staging
   saveToStorage(LOCAL_STORAGE_PUBLISHED_KEY, published);
   saveToStorage(LOCAL_STORAGE_STAGED_KEY, {});
+
+  // Sync with Supabase Cloud so all mobile devices & users receive immediately
+  const cloudSynced = await syncPublishedRecipesToCloud(published);
 
   // Broadcast update
   window.dispatchEvent(new CustomEvent("babybites_recipe_deployed"));
 
-  return { count: stagedIds.length };
+  return { count: stagedIds.length, cloudSynced };
 };
 
 // AI Assistant for Recipes: Clean up, organize, format, and pediatric safety check

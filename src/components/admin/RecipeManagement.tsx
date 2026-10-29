@@ -8,6 +8,8 @@ import {
   deployAllStagedToProduction,
   uploadRecipeImage,
   reviewRecipeWithAI,
+  syncPublishedRecipesToCloud,
+  getPublishedModifications,
 } from "@/services/adminRecipeService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +48,7 @@ import {
   Clock,
   Eye,
   Filter,
+  Cloud,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -66,7 +69,7 @@ const CATEGORIES = [
 ];
 
 export const RecipeManagement = () => {
-  const { recipes, stagedCount, stagedMods, publishedMods, refresh } = useAppRecipes();
+  const { recipes, stagedCount, stagedMods, publishedMods, refresh, syncCloud, isSyncing } = useAppRecipes();
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,6 +82,27 @@ export const RecipeManagement = () => {
   const [isDeploying, setIsDeploying] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAiReviewing, setIsAiReviewing] = useState(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
+  const handleManualCloudSync = async () => {
+    setIsCloudSyncing(true);
+    try {
+      const pub = getPublishedModifications();
+      const ok = await syncPublishedRecipesToCloud(pub);
+      await syncCloud();
+      if (ok) {
+        toast.success("Catálogo sincronizado com a nuvem com sucesso!", {
+          description: "Todos os celulares e computadores receberão as imagens mais recentes.",
+        });
+      } else {
+        toast.info("Catálogo atualizado localmente.");
+      }
+    } catch (e: any) {
+      toast.error("Erro na sincronização: " + (e.message || "Verifique a conexão"));
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
 
   // Editing form draft
   const [isNewRecipe, setIsNewRecipe] = useState(false);
@@ -317,9 +341,15 @@ export const RecipeManagement = () => {
     setIsDeploying(true);
     try {
       const res = await deployAllStagedToProduction();
-      toast.success(`Successfully deployed ${res.count} recipes to production!`, {
-        description: "All parents and users will now see these updated recipes.",
-      });
+      if (res.cloudSynced) {
+        toast.success(`Successfully deployed ${res.count} recipes to production and synced to cloud!`, {
+          description: "All parents and mobile PWA devices will now receive these updated recipes automatically.",
+        });
+      } else {
+        toast.success(`Successfully deployed ${res.count} recipes to production!`, {
+          description: "All parents and users will now see these updated recipes.",
+        });
+      }
       setIsDeployDialogOpen(false);
       refresh();
     } catch (err: any) {
@@ -373,6 +403,19 @@ export const RecipeManagement = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleManualCloudSync}
+            disabled={isCloudSyncing || isSyncing}
+            className="gap-2"
+          >
+            {isCloudSyncing || isSyncing ? (
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            ) : (
+              <Cloud className="h-4 w-4 text-primary" />
+            )}
+            Sincronizar Nuvem
+          </Button>
           <Button onClick={handleOpenNew} className="gap-2 bg-primary hover:bg-primary/90">
             <Plus className="h-4 w-4" />
             Add New Recipe

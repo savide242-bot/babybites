@@ -13,6 +13,7 @@ export const useServiceWorkerUpdate = () => {
     if (!('serviceWorker' in navigator)) return;
 
     let updateCheckInterval: ReturnType<typeof setInterval>;
+    let cleanupListeners: (() => void) | null = null;
 
     const setupServiceWorker = async () => {
       try {
@@ -28,23 +29,39 @@ export const useServiceWorkerUpdate = () => {
               await reg.update();
             }
           } catch {
-            // Silently swallow ALL update errors. The most common one in production
-            // is "script resource is behind a redirect" from the edge proxy, which
-            // is transient and not user-actionable. Any other error here is also
-            // recoverable on the next interval — never spam the console.
+            // Silently swallow update check errors from proxy/redirects
           }
         };
 
-        // Check periodically — 5 min is plenty and reduces error noise.
+        // Check periodically — 5 min interval
         setTimeout(safeUpdateCheck, 2000);
         updateCheckInterval = setInterval(safeUpdateCheck, 5 * 60 * 1000);
 
-        // Also check immediately when coming back online
+        // Check immediately when coming back online
         const onOnline = () => {
           console.log('🌐 Back online — checking for updates...');
           safeUpdateCheck();
         };
         window.addEventListener('online', onOnline);
+
+        // Check for updates whenever app resumes from background or screen turns on (Mobile PWA)
+        const onVisibilityChange = () => {
+          if (document.visibilityState === 'visible') {
+            console.log('📱 PWA resumed into view — checking for updates...');
+            safeUpdateCheck();
+          }
+        };
+        const onFocus = () => {
+          safeUpdateCheck();
+        };
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('focus', onFocus);
+
+        cleanupListeners = () => {
+          window.removeEventListener('online', onOnline);
+          document.removeEventListener('visibilitychange', onVisibilityChange);
+          window.removeEventListener('focus', onFocus);
+        };
 
         // Auto-activate new service worker as soon as it's installed
         reg.addEventListener('updatefound', () => {
@@ -62,7 +79,7 @@ export const useServiceWorkerUpdate = () => {
 
         // Auto-reload when new SW takes control
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-          console.log('🔄 New SW active — reloading...');
+          console.log('🔄 New SW active — reloading app...');
           window.location.reload();
         });
 
@@ -82,7 +99,7 @@ export const useServiceWorkerUpdate = () => {
     return () => {
       clearTimeout(timeoutId);
       if (updateCheckInterval) clearInterval(updateCheckInterval);
-      window.removeEventListener('online', () => {});
+      if (cleanupListeners) cleanupListeners();
     };
   }, [activateUpdate]);
 

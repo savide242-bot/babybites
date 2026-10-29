@@ -84,12 +84,12 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
-            handler: "CacheFirst",
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "images-cache",
               expiration: {
                 maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 30
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days with revalidation
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -98,12 +98,13 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /^https:\/\/.*supabase.*\/storage\/.*/i,
-            handler: "CacheFirst",
+            handler: "NetworkFirst",
             options: {
               cacheName: "supabase-storage-cache",
+              networkTimeoutSeconds: 3,
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 14
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 7
               },
               cacheableResponse: {
                 statuses: [0, 200]
