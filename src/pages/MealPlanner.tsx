@@ -39,6 +39,7 @@ const MealPlanner = () => {
   const allRecipes = useMemo(() => {
     return appRecipes && appRecipes.length > 0 ? appRecipes : staticRecipes;
   }, [appRecipes]);
+  const recipes = allRecipes;
 
   // ========== COMPLETELY SEPARATE STATES ==========
   const [personalizedPlan, setPersonalizedPlan] = useState<MealPlan>({});
@@ -315,7 +316,7 @@ const MealPlanner = () => {
       }));
       
       setHasCustomPlan(true);
-      const recipe = recipes.find(r => r.id === recipeId);
+      const recipe = recipes.find(r => String(r.id) === String(recipeId));
       toast.success(`✅ ${recipe?.title || 'Recipe'} saved to ${day}!`);
     } finally {
       setIsSaving(false);
@@ -602,7 +603,7 @@ const MealPlanner = () => {
       Object.values(dayMeals).forEach(slot => {
         totalMeals++;
         if (slot.prepared) preparedMeals++;
-        const recipe = recipes.find(r => r.id === slot.recipeId);
+        const recipe = recipes.find(r => String(r.id) === String(slot.recipeId));
         if (recipe) {
           totalCalories += parseInt(recipe.nutrition?.calories) || 0;
           totalProtein += parseInt(recipe.nutrition?.protein) || 0;
