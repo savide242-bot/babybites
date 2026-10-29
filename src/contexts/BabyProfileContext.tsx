@@ -85,7 +85,7 @@ export const BabyProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
             if (cloudActiveId) savedActiveId = cloudActiveId;
           } else if (loadedBabies.length === 0) {
             // First time migration: if single baby exists in profiles, create primary baby
-            const primaryName = profile.baby_name || "Meu Bebé";
+            const primaryName = profile.baby_name || "My Baby";
             const primaryBirth = profile.baby_birth_date || new Date().toISOString().split("T")[0];
             loadedBabies = [
               {
@@ -108,7 +108,7 @@ export const BabyProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loadedBabies = [
           {
             id: "baby-default",
-            name: "Meu Bebé",
+            name: "My Baby",
             birthDate: new Date().toISOString().split("T")[0],
             avatarEmoji: "👶",
             isDefault: true,
@@ -221,8 +221,8 @@ export const BabyProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       })
     );
 
-    toast.success(`✨ Perfil alternado para ${target.name}!`, {
-      description: `Idade: ${calculateMonthsFromBirthDate(target.birthDate)} meses. Planos e refeições atualizados.`,
+    toast.success(`✨ Switched active profile to ${target.name}!`, {
+      description: `Age: ${calculateMonthsFromBirthDate(target.birthDate)} months. Meal plans and recipes updated.`,
     });
   };
 
@@ -248,8 +248,8 @@ export const BabyProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       })
     );
 
-    toast.success(`👶 Bebé ${newBaby.name} cadastrado com sucesso!`, {
-      description: "Agora podes alternar e gerar planos para este perfil.",
+    toast.success(`👶 Child ${newBaby.name} registered successfully!`, {
+      description: "You can now switch and generate personalized meal plans for this profile.",
     });
 
     return newBaby;
@@ -266,13 +266,13 @@ export const BabyProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     setBabies(updatedBabies);
     await persistBabies(updatedBabies, activeBabyId);
-    toast.success("Perfil do bebé atualizado!");
+    toast.success("Child profile updated!");
   };
 
   // Delete baby
   const deleteBaby = async (id: string) => {
     if (babies.length <= 1) {
-      toast.error("Você deve manter pelo menos um perfil de bebé.");
+      toast.error("You must keep at least one child profile.");
       return;
     }
 
@@ -283,7 +283,7 @@ export const BabyProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setActiveBabyId(nextActiveId);
     await persistBabies(updatedBabies, nextActiveId);
 
-    toast.info("Perfil removido.");
+    toast.info("Child profile removed.");
   };
 
   return (

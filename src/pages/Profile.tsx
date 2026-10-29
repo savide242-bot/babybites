@@ -470,7 +470,7 @@ const Profile = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-lg font-serif font-bold text-gray-900">
                 <Baby className="h-5 w-5 text-[#1E5E3A]" />
-                Filhos & Bebés ({babies.length})
+                Children & Babies ({babies.length})
               </CardTitle>
               <Button
                 size="sm"
@@ -479,11 +479,11 @@ const Profile = () => {
                 className="gap-1.5 rounded-xl border-[#CCE0D2] bg-white text-[#1E5E3A] hover:bg-[#EAF5EE] text-xs font-semibold"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Adicionar Filho
+                + Add Child
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Gerencie múltiplos filhos na mesma conta. Alterne o perfil para adaptar o planeador e receitas.
+              Manage multiple children under one account. Switch active child to adapt meal plans and recipes.
             </p>
           </CardHeader>
           <CardContent className="p-4 space-y-3">
@@ -510,12 +510,12 @@ const Profile = () => {
                         <h4 className="font-bold text-gray-900 text-sm truncate">{b.name}</h4>
                         {isActive && (
                           <Badge className="bg-[#1E5E3A] text-white border-none text-[10px] font-semibold px-2 py-0.5">
-                            Ativo
+                            Active
                           </Badge>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {months} {months === 1 ? "mês" : "meses"} ({category}) • Nascido: {b.birthDate ? format(new Date(b.birthDate), "dd/MM/yyyy") : "Não definido"}
+                        {months} {months === 1 ? "month" : "months"} ({category}) • Born: {b.birthDate ? format(new Date(b.birthDate), "MMM d, yyyy") : "Not set"}
                       </p>
                     </div>
                   </div>
@@ -528,7 +528,7 @@ const Profile = () => {
                         onClick={() => selectBaby(b.id)}
                         className="rounded-xl text-xs h-8 px-3 border-[#CCE0D2] text-[#1E5E3A] hover:bg-[#EAF5EE]"
                       >
-                        Ativar
+                        Set Active
                       </Button>
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-[#1E5E3A] text-white flex items-center justify-center">
@@ -541,7 +541,7 @@ const Profile = () => {
                         variant="ghost"
                         onClick={() => deleteBaby(b.id)}
                         className="h-8 w-8 text-gray-400 hover:text-red-600 rounded-lg"
-                        title="Remover perfil"
+                        title="Remove child profile"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

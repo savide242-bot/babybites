@@ -25,11 +25,11 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error("Por favor insira o nome do bebé");
+      toast.error("Please enter the child's name");
       return;
     }
     if (!birthDate) {
-      toast.error("Por favor selecione a data de nascimento");
+      toast.error("Please select a birth date");
       return;
     }
 
@@ -52,7 +52,7 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
       setAvatarEmoji("👶");
       onOpenChange(false);
     } catch (err: any) {
-      toast.error("Erro ao adicionar bebé: " + (err.message || "Tente novamente"));
+      toast.error("Error adding child: " + (err.message || "Please try again"));
     } finally {
       setIsSubmitting(false);
     }
@@ -66,10 +66,10 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
             <Baby className="w-6 h-6" />
           </div>
           <DialogTitle className="text-xl font-bold font-serif text-gray-900">
-            Adicionar Novo Bebé / Filho
+            Add New Child / Baby
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
-            Cadastre outro filho para gerenciar as suas refeições, receitas e plano semanal de forma independente na mesma conta.
+            Register another child to manage their meals, recipes, and weekly meal plan independently within the same account.
           </DialogDescription>
         </DialogHeader>
 
@@ -77,11 +77,11 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
           {/* Baby Name */}
           <div className="space-y-1.5">
             <Label htmlFor="baby-name" className="text-xs font-semibold text-gray-700">
-              Nome do Bebé / Filho *
+              Child's Name *
             </Label>
             <Input
               id="baby-name"
-              placeholder="Ex: Lucas ou Sofia"
+              placeholder="e.g. Lucas or Sophia"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="h-10 rounded-xl border-[#E8EDE4] focus:ring-2 focus:ring-[#1E5E3A]"
@@ -92,7 +92,7 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
           {/* Birth Date */}
           <div className="space-y-1.5">
             <Label htmlFor="baby-birthdate" className="text-xs font-semibold text-gray-700">
-              Data de Nascimento *
+              Birth Date *
             </Label>
             <div className="relative">
               <Input
@@ -106,13 +106,13 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
               />
             </div>
             <p className="text-[11px] text-gray-400">
-              O app calculará a idade em meses para calibrar as receitas e o planeador.
+              The app calculates age in months to tailor recipes and weekly meal plans.
             </p>
           </div>
 
           {/* Gender */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-gray-700">Gênero</Label>
+            <Label className="text-xs font-semibold text-gray-700">Gender</Label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -123,7 +123,7 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
                     : "border-[#E8EDE4] text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                👦 Menino
+                👦 Boy
               </button>
               <button
                 type="button"
@@ -134,7 +134,7 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
                     : "border-[#E8EDE4] text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                👧 Menina
+                👧 Girl
               </button>
               <button
                 type="button"
@@ -145,14 +145,14 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
                     : "border-[#E8EDE4] text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                👶 Outro
+                👶 Other
               </button>
             </div>
           </div>
 
           {/* Avatar Icon Selector */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-gray-700">Ícone do Bebé</Label>
+            <Label className="text-xs font-semibold text-gray-700">Child Avatar / Icon</Label>
             <div className="flex flex-wrap gap-2 p-2 bg-[#FAF9F5] rounded-xl border border-[#E8EDE4]">
               {EMOJI_OPTIONS.map((emoji) => (
                 <button
@@ -178,7 +178,7 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
               onClick={() => onOpenChange(false)}
               className="rounded-xl border-[#E8EDE4]"
             >
-              Cancelar
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -186,7 +186,7 @@ export const AddBabyModal: React.FC<AddBabyModalProps> = ({ open, onOpenChange }
               className="bg-[#1E5E3A] hover:bg-[#1E5E3A]/90 text-white rounded-xl gap-1.5 font-medium shadow-md"
             >
               <Sparkles className="w-4 h-4" />
-              {isSubmitting ? "A guardar..." : "Cadastrar Bebé"}
+              {isSubmitting ? "Saving..." : "Save Child Profile"}
             </Button>
           </DialogFooter>
         </form>

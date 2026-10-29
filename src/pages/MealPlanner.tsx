@@ -193,8 +193,8 @@ const MealPlanner = () => {
     setPersonalizedPlanAccepted(false);
     setIsGenerating(false);
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    toast.success(`🎉 Plano gerado para ${activeBaby?.name || "o seu bebé"}!`, {
-      description: `Refeições selecionadas para ${effectiveAge} meses (${activeBabyAgeCategory}).`,
+    toast.success(`🎉 Weekly plan generated for ${activeBaby?.name || "your baby"}!`, {
+      description: `Meals tailored for ${effectiveAge} months (${activeBabyAgeCategory}).`,
     });
   }, [activeBabyAgeMonths, babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, allRecipes, activeBaby, activeBabyAgeCategory]);
 
@@ -623,7 +623,7 @@ const MealPlanner = () => {
                 Meal Planner
               </h1>
               <p className="text-primary-foreground/80 mt-1">
-                {`Cardápio semanal nutritivo para ${activeBaby?.name || "o seu bebé"} (${activeBabyAgeMonths || babyAgeMonths || 6} meses • ${activeBabyAgeCategory})`}
+                {`Nutritious weekly meal plan for ${activeBaby?.name || "your baby"} (${activeBabyAgeMonths || babyAgeMonths || 6} months • ${activeBabyAgeCategory})`}
               </p>
             </div>
             <Button
@@ -724,11 +724,11 @@ const MealPlanner = () => {
                   <Sparkles className="h-10 w-10 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">
-                  ✨ Gerar Plano Semanal para {activeBaby?.name || "o seu Bebé"}
+                  ✨ Generate Weekly Plan for {activeBaby?.name || "Your Baby"}
                 </h2>
                 <p className="text-muted-foreground max-w-md mb-6">
-                  Criamos um plano personalizado com base na idade de {activeBaby?.name || "seu bebé"} ({activeBabyAgeMonths || babyAgeMonths || 6} meses • {activeBabyAgeCategory})
-                  e necessidades nutricionais. Variado e com zero repetições!
+                  We'll create a personalized meal plan based on {activeBaby?.name || "your baby"}'s age ({activeBabyAgeMonths || babyAgeMonths || 6} months • {activeBabyAgeCategory})
+                  and nutritional needs. Varied and with zero repeats!
                 </p>
                 <Button
                   size="lg"
@@ -736,7 +736,7 @@ const MealPlanner = () => {
                   onClick={handleGeneratePersonalizedPlan}
                 >
                   <Wand2 className="h-5 w-5" />
-                  Gerar Plano de {activeBaby?.name || "Bebé"}
+                  Generate {activeBaby?.name ? `${activeBaby.name}'s Plan` : "Baby's Plan"}
                 </Button>
               </div>
             )}

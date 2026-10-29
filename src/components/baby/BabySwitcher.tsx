@@ -31,7 +31,7 @@ export const BabySwitcher: React.FC<{ variant?: "header" | "banner" | "minimal" 
           {variant === "header" ? (
             <button
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#EBE8DF] hover:border-[#CCE0D2] hover:bg-[#F4F8F4] transition-all text-gray-700 shadow-xs text-xs font-medium cursor-pointer"
-              title="Alternar perfil do filho"
+              title="Switch active child profile"
             >
               <span className="text-sm">{activeBaby.avatarEmoji || "👶"}</span>
               <span className="font-semibold text-gray-800 max-w-[85px] truncate">
@@ -52,16 +52,16 @@ export const BabySwitcher: React.FC<{ variant?: "header" | "banner" | "minimal" 
                   <div className="flex items-center gap-2">
                     <h4 className="font-bold text-gray-900 text-sm">{activeBaby.name}</h4>
                     <Badge variant="outline" className="bg-[#EAF5EE] text-[#1E5E3A] border-none text-[10px] font-semibold">
-                      {activeMonths} meses ({activeCategory})
+                      {activeMonths} {activeMonths === 1 ? "month" : "months"} ({activeCategory})
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Toque para trocar de filho ou ver plano de outro bebé
+                    Tap to switch child profile or view meal plan for another child
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-1 text-xs font-semibold text-[#1E5E3A] bg-[#FAF9F5] px-2.5 py-1.5 rounded-xl border border-[#E8EDE4]">
-                <span>Mudar</span>
+                <span>Switch</span>
                 <ChevronDown className="w-3.5 h-3.5" />
               </div>
             </button>
@@ -81,14 +81,14 @@ export const BabySwitcher: React.FC<{ variant?: "header" | "banner" | "minimal" 
           <DropdownMenuLabel className="px-2 py-1.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold font-serif text-gray-900">
-                Filhos Cadastrados ({babies.length})
+                Registered Children ({babies.length})
               </span>
               <span className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">
-                1 Conta
+                1 Account
               </span>
             </div>
             <p className="text-[11px] font-normal text-gray-500 mt-0.5">
-              Selecione para ver receitas e planos ajustados para a idade dele.
+              Select a child to view recipes and meal plans tailored to their age.
             </p>
           </DropdownMenuLabel>
 
@@ -116,7 +116,7 @@ export const BabySwitcher: React.FC<{ variant?: "header" | "banner" | "minimal" 
                     <div className="min-w-0">
                       <p className="text-xs font-bold truncate text-gray-900">{baby.name}</p>
                       <p className="text-[10px] text-gray-500">
-                        {months} {months === 1 ? "mês" : "meses"} • {category}
+                        {months} {months === 1 ? "month" : "months"} • {category}
                       </p>
                     </div>
                   </div>
@@ -140,7 +140,7 @@ export const BabySwitcher: React.FC<{ variant?: "header" | "banner" | "minimal" 
             className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-dashed border-[#CCE0D2] bg-[#F4F8F4] hover:bg-[#EAF5EE] text-[#1E5E3A] text-xs font-semibold transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Adicionar Outro Filho / Bebé</span>
+            <span>+ Add Another Child / Baby</span>
           </button>
         </DropdownMenuContent>
       </DropdownMenu>
