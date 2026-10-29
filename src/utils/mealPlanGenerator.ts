@@ -1,167 +1,186 @@
 import { supabase } from "@/integrations/supabase/client";
-import { recipes } from "@/data/recipes";
-import { differenceInMonths, startOfWeek, format } from "date-fns";
+import { recipes, Recipe } from "@/data/recipes";
+import { startOfWeek, format } from "date-fns";
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
+export const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+export const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
 
-interface MealSlot {
+export interface MealSlot {
   recipeId: string;
   prepared: boolean;
+  dbId?: string;
 }
 
-interface MealPlan {
+export interface MealPlan {
   [day: string]: {
     [mealType: string]: MealSlot;
   };
 }
 
-// Get baby age group from months
-const getAgeGroup = (months: number): string => {
-  if (months < 6) return "0-6 months";
-  if (months < 9) return "6-9 months";
-  if (months < 12) return "9-12 months";
-  if (months < 18) return "12-18 months";
-  return "18-24 months";
-};
+/**
+ * Normalizes and checks if a recipe is appropriate for the baby's age in months.
+ * Includes gentle earlier stage recipes (e.g., a 9m baby can still enjoy 6m smooth purees or mashes).
+ */
+export const isRecipeAppropriateForAge = (recipeAgeGroup: string, babyAgeMonths: number): boolean => {
+  const ageStr = (recipeAgeGroup || "").toLowerCase();
 
-// Filter recipes by age group
-const getRecipesForAge = (ageMonths: number) => {
-  // No solids before 6 months
-  if (ageMonths < 6) return [];
+  // Baby 6-8 months (or younger starting solids)
+  if (babyAgeMonths <= 8) {
+    return ageStr.includes("6-8") || ageStr.includes("6-9") || ageStr.includes("6 months") || ageStr.includes("puree");
+  }
 
-  const ageGroup = getAgeGroup(ageMonths);
-  // Include current age group and simpler recipes for younger ages
-  return recipes.filter(r => {
-    if (r.ageGroup === ageGroup) return true;
-    if (ageMonths >= 9 && r.ageGroup === "6-9 months") return true;
-    if (ageMonths >= 12 && r.ageGroup === "9-12 months") return true;
-    return false;
-  });
-};
+  // Baby 9-11 months (mashes, soft lumps, finger foods)
+  if (babyAgeMonths <= 11) {
+    return (
+      ageStr.includes("9-11") ||
+      ageStr.includes("9-12") ||
+      ageStr.includes("6-8") ||
+      ageStr.includes("6-9")
+    );
+  }
 
-// Get recipes by meal type preference using FOOD-TYPE categories
-const getRecipesByMealType = (mealType: string, ageMonths: number) => {
-  const ageRecipes = getRecipesForAge(ageMonths);
-  
-  // Map meal times to preferred food-type categories
-  const mealTypeToFoodTypes: { [key: string]: string[] } = {
-    breakfast: ["Porridge", "Pancakes", "Smoothie", "Bowl", "Puree"],
-    lunch: ["Bowl", "Pasta", "Soup", "Finger Food", "Mash"],
-    dinner: ["Bowl", "Pasta", "Soup", "Finger Food", "Mash"],
-    snack: ["Bites", "Smoothie", "Puree", "Finger Food"],
-  };
-  
-  const preferredFoodTypes = mealTypeToFoodTypes[mealType] || ["Bowl"];
-  
-  // Score recipes by relevance
-  return ageRecipes
-    .map(recipe => {
-      let score = 0;
-      const title = recipe.title.toLowerCase();
-      const category = recipe.category;
-      
-      // Category matching (using food types)
-      preferredFoodTypes.forEach((foodType, idx) => {
-        if (category === foodType) {
-          score += (6 - idx) * 2; // Higher weight for better matches
-        }
-      });
-      
-      // Meal type specific keyword boosts
-      if (mealType === "breakfast") {
-        if (title.includes("pancake") || title.includes("oatmeal") || title.includes("egg") || 
-            title.includes("porridge") || title.includes("waffle") || title.includes("french toast")) score += 3;
-      } else if (mealType === "lunch" || mealType === "dinner") {
-        if (title.includes("chicken") || title.includes("salmon") || title.includes("beef") || 
-            title.includes("turkey") || title.includes("pasta") || title.includes("rice") ||
-            title.includes("soup") || title.includes("stew") || title.includes("bowl")) score += 3;
-      } else if (mealType === "snack") {
-        if (title.includes("bites") || title.includes("balls") || title.includes("smoothie") || 
-            title.includes("fruit") || title.includes("yogurt") || title.includes("cookies")) score += 3;
-      }
-      
-      return { recipe, score };
-    })
-    .sort((a, b) => b.score - a.score);
+  // Toddler 12-23 months (table foods, hearty meals, toddler snacks)
+  if (babyAgeMonths <= 23) {
+    return (
+      ageStr.includes("12-18") ||
+      ageStr.includes("18-24") ||
+      ageStr.includes("12-23") ||
+      ageStr.includes("9-11") ||
+      ageStr.includes("9-12")
+    );
+  }
+
+  // 24+ months (full toddler / family meals)
+  return true;
 };
 
 /**
- * Get the start of the current week (Monday) in a timezone-safe way.
- * Uses local date formatting to avoid UTC conversion issues.
+ * Filter recipes by age and prioritize based on pediatric meal timing
  */
-export const getWeekStartDate = (date: Date = new Date()): string => {
-  const weekStart = startOfWeek(date, { weekStartsOn: 1 }); // Monday
-  return format(weekStart, 'yyyy-MM-dd');
+export const getRecipesForAge = (
+  ageMonths: number,
+  recipeList: Recipe[] = recipes
+): Recipe[] => {
+  // Safe default: if age is unknown or 0, default to 6-8 months introduction
+  const targetMonths = ageMonths <= 0 ? 6 : ageMonths;
+  const filtered = recipeList.filter((r) => isRecipeAppropriateForAge(r.ageGroup, targetMonths));
+  return filtered.length > 0 ? filtered : recipeList;
 };
 
-// Generate an automatic meal plan
-const generateAutoPlan = (
-  ageMonths: number, 
-  dietaryPrefs: string[] = []
-): MealPlan => {
-  // No solids before 6 months
-  if (ageMonths < 6) return {};
+/**
+ * Get recipes relevant for each meal type
+ */
+export const getRecipesByMealType = (
+  mealType: string,
+  ageMonths: number,
+  recipeList: Recipe[] = recipes
+): Recipe[] => {
+  const ageRecipes = getRecipesForAge(ageMonths, recipeList);
 
-  const usedRecipeIds = new Set<string>();
+  const mealTypeKeywords: Record<string, string[]> = {
+    breakfast: ["breakfast", "porridge", "pancake", "oat", "smoothie", "egg", "waffle", "toast", "fruit", "puree"],
+    lunch: ["lunch", "dinner", "main", "chicken", "salmon", "fish", "beef", "turkey", "pasta", "soup", "stew", "mash", "bowl"],
+    dinner: ["dinner", "lunch", "main", "soup", "stew", "pasta", "rice", "mash", "vegetable", "lentil", "puree"],
+    snack: ["snack", "bites", "smoothie", "puree", "fruit", "yogurt", "cookie", "finger food", "muffin"],
+  };
+
+  const keywords = mealTypeKeywords[mealType] || ["main"];
+
+  return ageRecipes
+    .map((recipe) => {
+      let score = 0;
+      const title = recipe.title.toLowerCase();
+      const category = (recipe.category || "").toLowerCase();
+      const mealTime = (recipe.mealTime || "").toLowerCase();
+
+      if (mealTime === mealType) score += 10;
+
+      keywords.forEach((kw, idx) => {
+        if (title.includes(kw) || category.includes(kw)) {
+          score += 5 - Math.min(4, idx);
+        }
+      });
+
+      return { recipe, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.recipe);
+};
+
+/**
+ * Get the start of the current week (Monday)
+ */
+export const getWeekStartDate = (date: Date = new Date()): string => {
+  const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+  return format(weekStart, "yyyy-MM-dd");
+};
+
+/**
+ * Generates an automatic 7-day meal plan.
+ * GUARANTEED to NEVER return an empty plan for any day or meal slot.
+ */
+export const generateAutoPlan = (
+  ageMonths: number,
+  dietaryPrefs: string[] = [],
+  recentlyUsedRecipeIds: string[] = [],
+  seed: number = Date.now(),
+  availableRecipes: Recipe[] = recipes
+): MealPlan => {
+  // Use safe age: if baby is under 6 months, generate gentle 6-8m starter purees so mother can preview
+  const effectiveAge = ageMonths < 6 ? 6 : ageMonths;
+  const usedRecipeIds = new Set<string>(recentlyUsedRecipeIds);
   const plan: MealPlan = {};
-  
-  // Filter by dietary preferences
-  const filterByDiet = (recipeList: typeof recipes) => {
-    if (dietaryPrefs.length === 0) return recipeList;
-    return recipeList.filter(r => {
-      const allergenFree = dietaryPrefs.every(pref => {
-        if (pref === 'dairy-free') return !r.allergens?.includes('Dairy');
-        if (pref === 'gluten-free') return !r.allergens?.includes('Gluten');
-        if (pref === 'nut-free') return !r.allergens?.includes('Nuts') && !r.allergens?.includes('Tree nuts');
-        if (pref === 'vegetarian') return !r.allergens?.includes('Meat');
-        if (pref === 'vegan') return !r.allergens?.includes('Dairy') && !r.allergens?.includes('Eggs') && !r.allergens?.includes('Meat');
+
+  const filterByDiet = (list: Recipe[]): Recipe[] => {
+    if (dietaryPrefs.length === 0) return list;
+    return list.filter((r) => {
+      return dietaryPrefs.every((pref) => {
+        const p = pref.toLowerCase();
+        const allergens = (r.allergens || []).map((a) => a.toLowerCase());
+        if (p.includes("dairy")) return !allergens.some((a) => a.includes("dairy") || a.includes("milk"));
+        if (p.includes("gluten")) return !allergens.some((a) => a.includes("gluten") || a.includes("wheat"));
+        if (p.includes("nut")) return !allergens.some((a) => a.includes("nut"));
+        if (p.includes("egg")) return !allergens.some((a) => a.includes("egg"));
         return true;
       });
-      return allergenFree;
     });
   };
-  
-  daysOfWeek.forEach(day => {
+
+  let pseudoRandomCounter = seed;
+
+  daysOfWeek.forEach((day, dayIdx) => {
     plan[day] = {};
-    
-    mealTypes.forEach(mealType => {
-      const candidates = getRecipesByMealType(mealType, ageMonths);
-      const filtered = filterByDiet(candidates.map(c => c.recipe));
-      
-      // Find unused recipe
-      const available = filtered.filter(r => !usedRecipeIds.has(r.id));
-      
-      if (available.length > 0) {
-        // Pick randomly from top 5 candidates for variety
-        const topCandidates = available.slice(0, Math.min(5, available.length));
-        const selected = topCandidates[Math.floor(Math.random() * topCandidates.length)];
-        
+
+    mealTypes.forEach((mealType, mealIdx) => {
+      // 1. Get recipes suited for this meal and age
+      const candidates = getRecipesByMealType(mealType, effectiveAge, availableRecipes);
+      // 2. Filter by dietary restrictions
+      const dietaryFiltered = filterByDiet(candidates);
+      const safeList = dietaryFiltered.length > 0 ? dietaryFiltered : candidates;
+
+      // 3. Prioritize unused recipes to avoid repetitions
+      const unused = safeList.filter((r) => !usedRecipeIds.has(r.id));
+      const pool = unused.length > 0 ? unused : safeList;
+
+      pseudoRandomCounter += (dayIdx + 1) * 7 + (mealIdx + 1) * 3;
+      const pickIndex = Math.abs(pseudoRandomCounter) % pool.length;
+      const selected = pool[pickIndex] || safeList[0] || availableRecipes[0];
+
+      if (selected) {
         plan[day][mealType] = {
           recipeId: selected.id,
           prepared: false,
         };
-        
         usedRecipeIds.add(selected.id);
-      } else if (filtered.length > 0) {
-        // All used, pick any
-        const selected = filtered[Math.floor(Math.random() * filtered.length)];
-        plan[day][mealType] = {
-          recipeId: selected.id,
-          prepared: false,
-        };
       }
     });
   });
-  
+
   return plan;
 };
 
 /**
- * Generates and saves a weekly meal plan for a new user after onboarding.
- * @param userId - The user's ID
- * @param birthDate - The baby's birth date
- * @param dietaryPreferences - Array of dietary preference tags
+ * Generates and saves a weekly meal plan for a user
  */
 export const generateInitialMealPlan = async (
   userId: string,
@@ -169,19 +188,13 @@ export const generateInitialMealPlan = async (
   dietaryPreferences: string[] = []
 ): Promise<boolean> => {
   try {
-    // Calculate baby's age in months
-    const ageMonths = birthDate 
-      ? Math.max(0, differenceInMonths(new Date(), birthDate))
-      : 0;
+    const ageMonths = birthDate
+      ? Math.max(0, Math.floor((Date.now() - birthDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000)))
+      : 6;
 
-    // No solids before 6 months: don't generate a plan yet
-    if (ageMonths < 6) return true;
-
-    // Generate the meal plan
     const plan = generateAutoPlan(ageMonths, dietaryPreferences);
     const weekStartDate = getWeekStartDate();
 
-    // Prepare database inserts
     const inserts: Array<{
       user_id: string;
       day_of_week: string;
@@ -189,6 +202,7 @@ export const generateInitialMealPlan = async (
       recipe_id: string;
       prepared: boolean;
       week_start_date: string;
+      plan_type: string;
     }> = [];
 
     Object.entries(plan).forEach(([day, meals]) => {
@@ -201,34 +215,30 @@ export const generateInitialMealPlan = async (
             recipe_id: slot.recipeId,
             prepared: false,
             week_start_date: weekStartDate,
+            plan_type: "personalized",
           });
         }
       });
     });
 
-    // Check if user already has a meal plan for this week
     const { data: existingPlan } = await supabase
-      .from('meal_plans')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('week_start_date', weekStartDate)
+      .from("meal_plans")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("week_start_date", weekStartDate)
       .limit(1);
 
-    // Only insert if no existing plan
     if (!existingPlan || existingPlan.length === 0) {
-      const { error } = await supabase
-        .from('meal_plans')
-        .insert(inserts);
-
+      const { error } = await supabase.from("meal_plans").insert(inserts);
       if (error) {
-        console.error('Error saving meal plan:', error);
+        console.error("Error saving meal plan:", error);
         return false;
       }
     }
 
     return true;
   } catch (error) {
-    console.error('Error generating initial meal plan:', error);
+    console.error("Error generating initial meal plan:", error);
     return false;
   }
 };

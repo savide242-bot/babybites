@@ -8,7 +8,7 @@ import {
   Calendar, TrendingUp, Utensils, Wand2, Hand, Check, PencilLine,
   AlertTriangle, Baby
 } from "lucide-react";
-import { recipes } from "@/data/recipes";
+import { recipes as staticRecipes, Recipe } from "@/data/recipes";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -19,137 +19,27 @@ import { WeekTemplatesModal, WeekTemplate } from "@/components/meal-planner/Week
 import { WeekCompletionModal } from "@/components/meal-planner/WeekCompletionModal";
 import { MealPlanSkeleton } from "@/components/skeletons/MealPlanSkeleton";
 import PlanGeneratingOverlay from "@/components/meal-planner/PlanGeneratingOverlay";
-import { getWeekStartDate } from "@/utils/mealPlanGenerator";
+import { 
+  daysOfWeek, 
+  mealTypes, 
+  MealSlot, 
+  MealPlan, 
+  generateAutoPlan, 
+  getWeekStartDate 
+} from "@/utils/mealPlanGenerator";
+import { useBabyProfiles } from "@/hooks/useBabyProfiles";
+import { useAppRecipes } from "@/hooks/useAppRecipes";
+import { BabySwitcher } from "@/components/baby/BabySwitcher";
 import confetti from "canvas-confetti";
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
-
-interface MealSlot {
-  recipeId: string;
-  prepared: boolean;
-  dbId?: string;
-}
-
-interface MealPlan {
-  [day: string]: {
-    [mealType: string]: MealSlot;
-  };
-}
-
-const getAgeGroup = (months: number): string => {
-  if (months < 6) return "0-6 months";
-  if (months < 9) return "6-9 months";
-  if (months < 12) return "9-12 months";
-  if (months < 18) return "12-18 months";
-  return "18-24 months";
-};
-
-const getRecipesForAge = (ageMonths: number) => {
-  if (ageMonths < 6) return [];
-  const ageGroup = getAgeGroup(ageMonths);
-  return recipes.filter(r => {
-    if (r.ageGroup === ageGroup) return true;
-    if (ageMonths >= 9 && r.ageGroup === "6-9 months") return true;
-    if (ageMonths >= 12 && r.ageGroup === "9-12 months") return true;
-    return false;
-  });
-};
-
-const getRecipesByMealType = (mealType: string, ageMonths: number) => {
-  const ageRecipes = getRecipesForAge(ageMonths);
-  const mealTypeMapping: { [key: string]: string[] } = {
-    breakfast: ["breakfast", "puree", "snack"],
-    lunch: ["lunch", "dinner", "main"],
-    dinner: ["dinner", "lunch", "main"],
-    snack: ["snack", "puree", "breakfast"],
-  };
-  const preferredCategories = mealTypeMapping[mealType] || ["main"];
-  return ageRecipes
-    .map(recipe => {
-      let score = 0;
-      const title = recipe.title.toLowerCase();
-      const ingredients = recipe.ingredients.join(" ").toLowerCase();
-      preferredCategories.forEach((cat, idx) => {
-        if (title.includes(cat) || ingredients.includes(cat)) score += (3 - idx);
-      });
-      if (mealType === "breakfast") {
-        if (title.includes("pancake") || title.includes("oatmeal") || title.includes("egg")) score += 3;
-      } else if (mealType === "lunch" || mealType === "dinner") {
-        if (title.includes("chicken") || title.includes("salmon") || title.includes("beef") || 
-            title.includes("turkey") || title.includes("pasta")) score += 3;
-      } else if (mealType === "snack") {
-        if (title.includes("puree") || title.includes("fruit") || title.includes("yogurt")) score += 3;
-      }
-      return { recipe, score };
-    })
-    .sort((a, b) => b.score - a.score);
-};
-
-const getWeekNumber = (date: Date = new Date()): number => {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-};
-
-const seededRandom = (seed: number) => {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-};
-
-const generateAutoPlan = (
-  ageMonths: number, 
-  dietaryPrefs: string[] = [], 
-  recentlyUsedRecipeIds: string[] = [],
-  seed?: number
-): MealPlan => {
-  if (ageMonths < 6) return {};
-  const usedRecipeIds = new Set<string>([...recentlyUsedRecipeIds]);
-  const plan: MealPlan = {};
-  const baseSeed = seed ?? getWeekNumber();
-  let seedCounter = baseSeed;
-  
-  const filterByDiet = (recipeList: typeof recipes) => {
-    if (dietaryPrefs.length === 0) return recipeList;
-    return recipeList.filter(r => {
-      return dietaryPrefs.every(pref => {
-        if (pref === 'dairy-free') return !r.allergens?.includes('Dairy');
-        if (pref === 'gluten-free') return !r.allergens?.includes('Gluten');
-        if (pref === 'nut-free') return !r.allergens?.includes('Nuts') && !r.allergens?.includes('Tree nuts');
-        if (pref === 'egg-free') return !r.allergens?.includes('Eggs');
-        return true;
-      });
-    });
-  };
-  
-  daysOfWeek.forEach((day, dayIdx) => {
-    plan[day] = {};
-    mealTypes.forEach((mealType, mealIdx) => {
-      const candidates = getRecipesByMealType(mealType, ageMonths);
-      const filtered = filterByDiet(candidates.map(c => c.recipe));
-      const available = filtered.filter(r => !usedRecipeIds.has(r.id));
-      
-      if (available.length > 0) {
-        seedCounter++;
-        const topCandidates = available.slice(0, Math.min(5, available.length));
-        const selectedIdx = Math.floor(seededRandom(seedCounter + dayIdx * 10 + mealIdx) * topCandidates.length);
-        const selected = topCandidates[selectedIdx];
-        plan[day][mealType] = { recipeId: selected.id, prepared: false };
-        usedRecipeIds.add(selected.id);
-      } else if (filtered.length > 0) {
-        seedCounter++;
-        const selectedIdx = Math.floor(seededRandom(seedCounter) * filtered.length);
-        plan[day][mealType] = { recipeId: filtered[selectedIdx].id, prepared: false };
-      }
-    });
-  });
-  
-  return plan;
-};
-
 const MealPlanner = () => {
+  // Baby profile context for multi-child support
+  const { activeBaby, activeBabyAgeMonths, activeBabyAgeCategory } = useBabyProfiles();
+  const { recipes: appRecipes } = useAppRecipes();
+  const allRecipes = useMemo(() => {
+    return appRecipes && appRecipes.length > 0 ? appRecipes : staticRecipes;
+  }, [appRecipes]);
+
   // ========== COMPLETELY SEPARATE STATES ==========
   const [personalizedPlan, setPersonalizedPlan] = useState<MealPlan>({});
   const [customPlan, setCustomPlan] = useState<MealPlan>({});
@@ -174,7 +64,14 @@ const MealPlanner = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const navigate = useNavigate();
 
-  const isTooYoungForSolids = babyAgeMonths < 6;
+  // Synchronize baby age from active baby profile
+  useEffect(() => {
+    if (activeBaby) {
+      setBabyAgeMonths(activeBabyAgeMonths > 0 ? activeBabyAgeMonths : 6);
+    }
+  }, [activeBaby, activeBabyAgeMonths]);
+
+  const isTooYoungForSolids = (activeBabyAgeMonths || babyAgeMonths) < 6;
 
   useEffect(() => { checkUser(); }, []);
 
@@ -284,24 +181,24 @@ const MealPlanner = () => {
 
   // ========== PERSONALIZED PLAN ACTIONS ==========
   const handleGeneratePersonalizedPlan = () => {
-    if (isTooYoungForSolids) return;
     setIsGenerating(true);
-    // The overlay will call onComplete after 3s
   };
 
   const onGenerationComplete = useCallback(() => {
     const newSeed = Date.now();
-    const generated = generateAutoPlan(babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, newSeed);
+    const effectiveAge = activeBabyAgeMonths > 0 ? activeBabyAgeMonths : (babyAgeMonths || 6);
+    const generated = generateAutoPlan(effectiveAge, dietaryPrefs, recentlyUsedRecipes, newSeed, allRecipes);
     setPersonalizedPlan(generated);
     setHasPersonalizedPlan(true);
     setPersonalizedPlanAccepted(false);
     setIsGenerating(false);
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    toast.success("🎉 Your personalized plan is ready!");
-  }, [babyAgeMonths, dietaryPrefs, recentlyUsedRecipes]);
+    toast.success(`🎉 Plano gerado para ${activeBaby?.name || "o seu bebé"}!`, {
+      description: `Refeições selecionadas para ${effectiveAge} meses (${activeBabyAgeCategory}).`,
+    });
+  }, [activeBabyAgeMonths, babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, allRecipes, activeBaby, activeBabyAgeCategory]);
 
   const regeneratePersonalizedPlan = () => {
-    if (isTooYoungForSolids) return;
     setIsGenerating(true);
   };
 
@@ -549,7 +446,8 @@ const MealPlanner = () => {
       const newRecentlyUsed = [...recentlyUsedRecipes, ...currentRecipeIds].slice(-56);
       setRecentlyUsedRecipes(newRecentlyUsed);
       
-      const newPlan = generateAutoPlan(babyAgeMonths, dietaryPrefs, newRecentlyUsed);
+      const effectiveAge = activeBabyAgeMonths > 0 ? activeBabyAgeMonths : (babyAgeMonths || 6);
+      const newPlan = generateAutoPlan(effectiveAge, dietaryPrefs, newRecentlyUsed, Date.now(), allRecipes);
       const newWeekStart = getWeekStartDate();
       
       const upserts: any[] = [];
@@ -725,10 +623,7 @@ const MealPlanner = () => {
                 Meal Planner
               </h1>
               <p className="text-primary-foreground/80 mt-1">
-                {isTooYoungForSolids 
-                  ? `Your baby is ${babyAgeMonths} month${babyAgeMonths !== 1 ? 's' : ''} old - too young for solids`
-                  : `Nutritious meals for your ${babyAgeMonths}-month-old`
-                }
+                {`Cardápio semanal nutritivo para ${activeBaby?.name || "o seu bebé"} (${activeBabyAgeMonths || babyAgeMonths || 6} meses • ${activeBabyAgeCategory})`}
               </p>
             </div>
             <Button
@@ -762,7 +657,11 @@ const MealPlanner = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 w-full max-w-full min-w-0">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 w-full max-w-full min-w-0 pt-6">
+        {/* Active Child Profile Switcher Banner */}
+        <div className="mb-6">
+          <BabySwitcher variant="banner" />
+        </div>
         {/* Too Young Warning */}
         {isTooYoungForSolids && (
           <Card className="mb-6 border-2 border-amber-400/50 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
@@ -825,19 +724,19 @@ const MealPlanner = () => {
                   <Sparkles className="h-10 w-10 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">
-                  ✨ Generate a Weekly Plan for Your Baby
+                  ✨ Gerar Plano Semanal para {activeBaby?.name || "o seu Bebé"}
                 </h2>
                 <p className="text-muted-foreground max-w-md mb-6">
-                  We'll create a personalized meal plan based on your baby's age ({babyAgeMonths} months) 
-                  and dietary needs. Nutritionally balanced, with zero repeats!
+                  Criamos um plano personalizado com base na idade de {activeBaby?.name || "seu bebé"} ({activeBabyAgeMonths || babyAgeMonths || 6} meses • {activeBabyAgeCategory})
+                  e necessidades nutricionais. Variado e com zero repetições!
                 </p>
                 <Button
                   size="lg"
-                  className="gap-2 text-lg px-8 py-6"
+                  className="gap-2 text-lg px-8 py-6 bg-[#1E5E3A] hover:bg-[#1E5E3A]/90 text-white shadow-lg"
                   onClick={handleGeneratePersonalizedPlan}
                 >
                   <Wand2 className="h-5 w-5" />
-                  Generate My Baby's Plan
+                  Gerar Plano de {activeBaby?.name || "Bebé"}
                 </Button>
               </div>
             )}

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { BabyProfileProvider } from "@/contexts/BabyProfileContext";
 import { useEffect, useRef, Suspense, lazy } from "react";
 import { updateLastVisit } from "@/hooks/useNotifications";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -161,13 +162,15 @@ const App = () => (
   <AppErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppWrapper />
-          </BrowserRouter>
-        </TooltipProvider>
+        <BabyProfileProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppWrapper />
+            </BrowserRouter>
+          </TooltipProvider>
+        </BabyProfileProvider>
       </LanguageProvider>
     </QueryClientProvider>
   </AppErrorBoundary>

@@ -16,6 +16,9 @@ import {
 import { differenceInMonths, format } from "date-fns";
 import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
+import { useBabyProfiles, calculateMonthsFromBirthDate, getCategoryFromMonths } from "@/hooks/useBabyProfiles";
+import { AddBabyModal } from "@/components/baby/AddBabyModal";
+import { Plus, Check } from "lucide-react";
 
 interface ProfileData {
   mother_name: string | null;
@@ -42,6 +45,8 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const { babies, activeBaby, selectBaby, deleteBaby } = useBabyProfiles();
+  const [addBabyOpen, setAddBabyOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editForm, setEditForm] = useState({
     mother_name: "",
@@ -459,37 +464,96 @@ const Profile = () => {
           </div>
         </GlassCard>
 
-        {/* Baby Info Card */}
-        {profile?.baby_birth_date && (
-          <Card className="border-2 shadow-lg bg-gradient-to-br from-peach/20 to-mint/10">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Baby className="h-5 w-5 text-primary" />
-                Baby Information
+        {/* Multi-Baby Profile Management Card */}
+        <Card className="border border-[#EBE8DF] shadow-md bg-white rounded-2xl overflow-hidden">
+          <CardHeader className="pb-3 bg-[#FAF9F5] border-b border-[#EBE8DF]">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg font-serif font-bold text-gray-900">
+                <Baby className="h-5 w-5 text-[#1E5E3A]" />
+                Filhos & Bebés ({babies.length})
               </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Name</span>
-                <span className="font-medium">{profile.baby_name || "Not set"}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Birth Date</span>
-                <span className="font-medium">
-                  {format(new Date(profile.baby_birth_date), "MMMM d, yyyy")}
-                </span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Age</span>
-                <Badge className="bg-primary/20 text-primary hover:bg-primary/30">
-                  {getBabyAge()}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setAddBabyOpen(true)}
+                className="gap-1.5 rounded-xl border-[#CCE0D2] bg-white text-[#1E5E3A] hover:bg-[#EAF5EE] text-xs font-semibold"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Adicionar Filho
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Gerencie múltiplos filhos na mesma conta. Alterne o perfil para adaptar o planeador e receitas.
+            </p>
+          </CardHeader>
+          <CardContent className="p-4 space-y-3">
+            {babies.map((b) => {
+              const months = calculateMonthsFromBirthDate(b.birthDate);
+              const category = getCategoryFromMonths(months);
+              const isActive = b.id === activeBaby?.id;
+
+              return (
+                <div
+                  key={b.id}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
+                    isActive
+                      ? "bg-[#EAF5EE]/60 border-[#1E5E3A] shadow-xs"
+                      : "bg-white border-[#EBE8DF] hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-2xl bg-[#EAF5EE] text-2xl flex items-center justify-center border border-[#CCE0D2]">
+                      {b.avatarEmoji || "👶"}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-gray-900 text-sm truncate">{b.name}</h4>
+                        {isActive && (
+                          <Badge className="bg-[#1E5E3A] text-white border-none text-[10px] font-semibold px-2 py-0.5">
+                            Ativo
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {months} {months === 1 ? "mês" : "meses"} ({category}) • Nascido: {b.birthDate ? format(new Date(b.birthDate), "dd/MM/yyyy") : "Não definido"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {!isActive ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => selectBaby(b.id)}
+                        className="rounded-xl text-xs h-8 px-3 border-[#CCE0D2] text-[#1E5E3A] hover:bg-[#EAF5EE]"
+                      >
+                        Ativar
+                      </Button>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#1E5E3A] text-white flex items-center justify-center">
+                        <Check className="w-4 h-4" />
+                      </div>
+                    )}
+                    {babies.length > 1 && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => deleteBaby(b.id)}
+                        className="h-8 w-8 text-gray-400 hover:text-red-600 rounded-lg"
+                        title="Remover perfil"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        <AddBabyModal open={addBabyOpen} onOpenChange={setAddBabyOpen} />
 
         {/* Motivational Card */}
         <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-2xl p-5 border border-primary/20 text-center">

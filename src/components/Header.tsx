@@ -24,6 +24,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import appLogo from "@/assets/logo.png";
+import { BabySwitcher } from "@/components/baby/BabySwitcher";
 
 export const Header = () => {
   const location = useLocation();
@@ -65,8 +66,10 @@ export const Header = () => {
           </span>
         </Link>
 
-        {/* Action Icons right side (Search, Community & Drawer Menu) */}
+        {/* Action Icons right side (Baby Switcher, Search, Community & Drawer Menu) */}
         <div className="flex items-center gap-1.5">
+          <BabySwitcher variant="header" />
+
           <Link
             to="/recipes"
             className="w-9 h-9 rounded-full bg-white border border-[#EBE8DF] flex items-center justify-center text-gray-600 hover:text-forest hover:border-[#CCE0D2] transition-colors shadow-xs"
