@@ -53,7 +53,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#FAF9F5]/90 backdrop-blur-md border-b border-[#EBE8DF]">
-      <div className="max-w-2xl lg:max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="w-full px-3 sm:px-4 lg:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <img
