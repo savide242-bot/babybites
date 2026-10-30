@@ -243,7 +243,7 @@ export const recipes301to310: Omit<Recipe, "healthBenefits" | "servingGuidance">
       "1 tablespoon olive oil",
       "1 cup low-sodium vegetable broth",
       "4-5 fresh basil leaves",
-      "1 teaspoon honey or maple syrup (to reduce acidity)",
+      "1 tablespoon pureed sweet apple or extra grated carrot (to naturally balance acidity)",
       "2 tablespoons full-fat cream or coconut cream"
     ],
     instructions: [
@@ -254,7 +254,7 @@ export const recipes301to310: Omit<Recipe, "healthBenefits" | "servingGuidance">
       "Add minced garlic and cook for 30 seconds until fragrant. Stir constantly to prevent burning.",
       "Add the chopped tomatoes (or canned crushed tomatoes) and vegetable broth. Stir to combine all ingredients.",
       "Bring to a boil, then reduce heat to low. Simmer uncovered for 15-20 minutes, stirring occasionally, until tomatoes are completely broken down.",
-      "Add fresh basil leaves and honey/maple syrup. The sweetener balances the natural acidity of tomatoes, making it gentler on baby's tummy.",
+      "Add fresh basil leaves and sweet apple puree. The natural sweetness balances the acidity of tomatoes, making it gentler on baby's tummy naturally.",
       "Remove from heat and let cool for 10 minutes. Remove basil leaves (they can become bitter if overblended).",
       "Using an immersion blender, puree until completely smooth. Strain through a fine mesh sieve to remove any seeds or skin.",
       "Stir in the cream or coconut cream for richness. This also helps with absorption of fat-soluble vitamins.",

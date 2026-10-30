@@ -323,7 +323,7 @@ export const recipes151to200: Omit<Recipe, "healthBenefits" | "servingGuidance">
     prepTime: "20 minutes",
     servings: "4 servings",
     image: getRecipeImage(["163"]),
-    ingredients: ["4 ripe plums", "1/4 cup water", "1/4 tsp cinnamon", "1 tsp honey (optional for 12+ months)"],
+    ingredients: ["4 ripe plums", "1/4 cup water", "1/4 tsp cinnamon"],
     instructions: [
       "Wash plums thoroughly.",
       "Cut in half, remove pits, and chop into small pieces.",
