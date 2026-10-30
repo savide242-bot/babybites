@@ -71,7 +71,7 @@ export const recipes316to325 = [
   {
     id: "318",
     title: "Tropical Fruit Salad Bowl",
-    description: "A refreshing and naturally sweet bowl of tropical fruits including mango, banana, kiwi, and pineapple, topped with a drizzle of honey and a sprinkle of toasted coconut flakes. Perfect as a healthy dessert or afternoon snack that provides a burst of vitamins and natural energy.",
+    description: "A refreshing and naturally sweet bowl of tropical fruits including mango, banana, kiwi, and pineapple, topped with a drizzle of pure maple syrup and a sprinkle of toasted coconut flakes. Perfect as a healthy dessert or afternoon snack that provides a burst of vitamins and natural energy.",
     ageGroup: "24+ months",
     category: "Bowl",
     prepTime: "10 mins",
@@ -83,7 +83,7 @@ export const recipes316to325 = [
       "1 kiwi, peeled and diced",
       "1/4 cup fresh pineapple, diced small",
       "2 tablespoons plain Greek yogurt",
-      "1 teaspoon honey",
+      "1 teaspoon pure maple syrup",
       "1 tablespoon unsweetened coconut flakes, lightly toasted",
       "Fresh mint leaves for garnish (optional)"
     ],
@@ -94,7 +94,7 @@ export const recipes316to325 = [
       "Peel and slice the banana into rounds about 5mm thick. If preparing slightly ahead of time, toss the banana slices with a tiny squeeze of lemon juice to prevent browning.",
       "Divide all the prepared fruits evenly between two small serving bowls, arranging them in a colorful pattern — the visual appeal encourages toddlers to try each fruit. Mix some together and leave some separated so they can identify and pick their favorites.",
       "Add a generous dollop (about 1 tablespoon) of plain Greek yogurt to the center of each bowl. The yogurt adds protein and calcium, and its creamy tanginess balances the natural sweetness of the fruits beautifully.",
-      "Drizzle half a teaspoon of honey over each bowl in a thin zigzag pattern. Honey should only be given to children over 12 months old — never to younger babies due to the risk of infant botulism.",
+      "Drizzle half a teaspoon of pure maple syrup over each bowl in a thin zigzag pattern.",
       "Finish by sprinkling the toasted coconut flakes over the top for a delicate crunch, and add a small fresh mint leaf for garnish if desired. Serve immediately for the best freshness, flavor, and texture."
     ],
     nutrition: { calories: "145", protein: "3g", carbs: "30g", fat: "3g", fiber: "4g", vitamins: ["Vitamin C", "Vitamin A", "Vitamin K", "Potassium", "Manganese"] },
@@ -255,7 +255,7 @@ export const recipes316to325 = [
       "Heat the coconut oil in a non-stick pan or griddle over medium-low heat (this is important — too high and the outside burns before the inside cooks). Test the heat by dropping a tiny amount of batter into the pan; it should sizzle gently, not aggressively. Pour approximately 2 tablespoons of batter per pancake, spacing them 3-4cm apart.",
       "Cook for 2-3 minutes, watching for the telltale signs that the pancake is ready to flip: small bubbles will form across the surface and the edges will look set and slightly dry. Carefully slide a thin spatula underneath and flip in one confident motion. Cook the second side for 1.5-2 minutes until golden brown.",
       "Transfer the cooked pancakes to a warm plate (you can keep them in a low oven at 200°F while cooking the remaining batter). Repeat with any remaining batter.",
-      "Serve warm, stacked or fanned out on a plate. These are delicious on their own due to the natural banana sweetness, or with a thin drizzle of honey (for 12+ months only), a small dollop of Greek yogurt, or extra fresh berries on the side."
+      "Serve warm, stacked or fanned out on a plate. These are delicious on their own due to the natural banana sweetness, or with a thin drizzle of pure maple syrup, a small dollop of Greek yogurt, or extra fresh berries on the side."
     ],
     nutrition: { calories: "75", protein: "3g", carbs: "12g", fat: "2g", fiber: "2g", vitamins: ["Vitamin B6", "Manganese", "Antioxidants", "Iron"] },
     allergens: ["Egg", "Gluten (oats)"],

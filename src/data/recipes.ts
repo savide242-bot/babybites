@@ -45,52 +45,85 @@ export const categories = ["All Categories", "Breakfast", "Lunch & Dinner", "Sna
 
 // Standardized official 4 age groups normalization
 export const normalizeAgeGroup = (raw: string): string => {
-  const s = (raw || "").toLowerCase();
-  if (s.includes("6-9") || s.includes("6-8") || s.includes("6 months") || s.includes("7 months") || s.includes("8 months")) {
-    return "6-8 months";
-  }
-  if (s.includes("9-12") || s.includes("9-11") || s.includes("9 months") || s.includes("10 months") || s.includes("11 months")) {
-    return "9-11 months";
-  }
-  if (s.includes("12-18") || s.includes("18-24") || s.includes("12-24") || s.includes("12-23") || s.includes("12 months") || s.includes("18 months") || s.includes("1 year")) {
-    return "12-23 months";
-  }
+  const s = (raw || "").toLowerCase().trim();
+
+  // 1. Toddler 24+ months
   if (s.includes("24+") || s.includes("24 months") || s.includes("2 years") || s.includes("toddler")) {
     return "24+ months";
   }
+
+  // 2. 9-11 months (covers 9-12 months, 9-11 months) - must check before "12 months" matches "9-12 months"
+  if (s.includes("9-12") || s.includes("9-11") || s.includes("9 to 12") || s.startsWith("9")) {
+    return "9-11 months";
+  }
+
+  // 3. 12-23 months (Must check 12-18 and 18-24 BEFORE 6-8 months, because '18 months' contains '8 months'!)
+  if (
+    s.includes("12-18") ||
+    s.includes("18-24") ||
+    s.includes("12-24") ||
+    s.includes("12-23") ||
+    s.includes("12 months") ||
+    s.includes("18 months") ||
+    s.includes("1 year")
+  ) {
+    return "12-23 months";
+  }
+
+  // 4. 6-8 months (covers 6-9 months, 6-8 months, 6 months)
+  if (s.includes("6-9") || s.includes("6-8") || s.startsWith("6") || s.startsWith("7") || s.startsWith("8")) {
+    return "6-8 months";
+  }
+
   return "6-8 months";
 };
 
 // Standardized official 4 categories: Breakfast, Lunch & Dinner, Snack, Dessert
 export const getMealCategory = (recipe: any): "Breakfast" | "Lunch & Dinner" | "Snack" | "Dessert" => {
   const title = (recipe.title || "").toLowerCase();
-  const description = (recipe.description || "").toLowerCase();
   const rawCat = (recipe.category || "").toLowerCase();
 
-  // 1. Breakfast: All breakfast grains, porridge, oats, waffles, pancakes, egg scrambles, morning bowls
-  const isBreakfastGrain = /oat|porridge|pancake|waffle|cereal|chia|toast|scramble|french toast|congee|granola|muesli|crepe/.test(title);
-  const isMorningFruitYogurt = /yogurt|parfait|banana avocado|fruit puree with oats|rice cream|baby muesli/.test(title) && !/chicken|fish|meat|beef|salmon|pasta|soup|stew/.test(title);
-  
-  if (isBreakfastGrain || isMorningFruitYogurt || rawCat === 'breakfast' || /breakfast|morning/.test(title)) {
-    if (!/chicken|beef|meat|fish|salmon|soup|stew|lentil stew|curry/.test(title)) {
-      return "Breakfast";
+  // If explicitly a puree, soup, or stew, it is NEVER breakfast
+  const isPureeOrSoup =
+    rawCat === "puree" ||
+    rawCat === "soup" ||
+    rawCat === "stew" ||
+    /puree|purée|soup|stew|broth|chowder|dahl|curry/.test(title);
+
+  // 1. Breakfast: All breakfast grains, porridge, oats, waffles, pancakes, egg scrambles, french toast, breakfast bakes
+  const isBreakfastGrain = /\boats?\b|oatmeal|porridge|pancake|waffle|cereal|french toast|congee|granola|muesli|crepe/.test(title);
+  const isMorningEggOrToast = /scramble|omelette|egg cup|frittata|breakfast toast|toast fingers|avocado toast|\btoast\b/.test(title);
+  const isMorningFruitYogurt = /yogurt bowl|fruit parfait|chia pudding|overnight oats|breakfast bowl|\bparfait\b/.test(title);
+
+  if (!isPureeOrSoup) {
+    if (isBreakfastGrain || isMorningEggOrToast || isMorningFruitYogurt || rawCat === "breakfast") {
+      if (!/chicken|beef|meat|fish|salmon|tuna|turkey|lentil|pasta|risotto/.test(title)) {
+        return "Breakfast";
+      }
     }
   }
 
   // 2. Snacks: finger foods, bites, muffins, teething biscuits, tots, dips
-  if (/bites|muffin|biscuit|cracker|tot|ball|bar|cookie|hummus|chips|finger food|teething|energy|roll|stick|dip/.test(title) || rawCat === 'snack' || rawCat === 'finger food') {
+  if (
+    /bites|muffin|biscuit|cracker|tot|ball|bar|cookie|hummus|chips|finger food|teething|energy|roll|stick|dip/.test(title) ||
+    rawCat === "snack" ||
+    rawCat === "finger food"
+  ) {
     if (!/porridge|pancake|oatmeal/.test(title)) {
       return "Snack";
     }
   }
 
   // 3. Dessert: wholesome compotes, fruit swirls, natural fruit purees
-  if (/compote|pudding|custard|popsicle|nicecream|swirl|puree sweet|dessert/.test(title) || rawCat === 'dessert') {
+  if (
+    /compote|pudding|custard|popsicle|nicecream|swirl|dessert/.test(title) ||
+    rawCat === "dessert"
+  ) {
     return "Dessert";
   }
 
-  // Pure single-fruit purees without vegetables or meat
-  if (/puree|purée/.test(title) && /prune|peach|pear|plum|apricot/.test(title) && !/oat|rice|quinoa|yogurt|chicken|carrot|squash|spinach|potato/.test(title)) {
+  // Pure single-fruit sweet purees
+  if (/puree|purée/.test(title) && /prune|peach|pear|plum|apricot|apple/.test(title) && !/chicken|salmon|beef|turkey|spinach|broccoli|quinoa|lentil|pea/.test(title)) {
     return "Dessert";
   }
 

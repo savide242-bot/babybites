@@ -26,7 +26,7 @@ export const isRecipeAppropriateForAge = (recipeAgeGroup: string, babyAgeMonths:
 
   // Baby 6-8 months (or younger starting solids)
   if (babyAgeMonths <= 8) {
-    return ageStr.includes("6-8") || ageStr.includes("6-9") || ageStr.includes("6 months") || ageStr.includes("puree");
+    return ageStr.includes("6-8") || ageStr.includes("6-9") || ageStr === "6-8 months";
   }
 
   // Baby 9-11 months (mashes, soft lumps, finger foods)

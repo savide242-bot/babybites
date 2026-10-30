@@ -512,46 +512,40 @@ export const recipes272to300: Recipe[] = [
   },
   {
     id: "284",
-    title: "Quinoa & Vegetable Medley",
-    description: "Complete protein grain with colorful vegetables",
+    title: "Golden Polenta & Sweet Corn Mash",
+    description: "Creamy cornmeal porridge blended with sweet corn and gentle olive oil",
     ageGroup: "6-9 months",
     category: "Lunch",
-    prepTime: "30 min",
+    prepTime: "20 min",
     servings: "4 portions",
     image: getRecipeImageById("284"),
     ingredients: [
-      "2 tablespoons quinoa, rinsed well",
-      "1/4 cup diced zucchini",
-      "1/4 cup diced carrots",
-      "1/2 cup water",
-      "1 teaspoon olive oil"
+      "3 tablespoons organic yellow cornmeal (polenta)",
+      "1/2 cup sweet corn kernels, steamed and pureed",
+      "1 cup unsalted vegetable broth or water",
+      "1 teaspoon extra virgin olive oil",
+      "Pinch of mild dried oregano"
     ],
     instructions: [
-      "Rinse quinoa thoroughly under cold water to remove bitter coating.",
-      "Combine quinoa and 1/2 cup water in a small saucepan.",
-      "Bring to a boil, then reduce to simmer.",
-      "Cover and cook for 15 minutes until water is absorbed.",
-      "While quinoa cooks, dice zucchini and carrots into small pieces.",
-      "Steam diced vegetables for 10-12 minutes until very soft.",
-      "Fluff the cooked quinoa with a fork.",
-      "Combine quinoa and steamed vegetables in a blender.",
-      "Add olive oil for healthy fats.",
-      "Blend until desired consistency - smooth or slightly textured.",
-      "Add water if needed to thin the mixture.",
-      "Serve at lukewarm temperature."
+      "Bring water or low-sodium vegetable broth to a gentle simmer in a small saucepan.",
+      "Slowly pour in the cornmeal while whisking vigorously to avoid any lumps.",
+      "Reduce heat to low and cook for 8-10 minutes, stirring frequently until thick and creamy.",
+      "Fold in the pureed sweet corn and olive oil.",
+      "Stir gently until well incorporated and aromatic.",
+      "Allow to cool to lukewarm temperature before feeding baby."
     ],
     nutrition: {
-      calories: "85",
-      protein: "3g",
-      carbs: "12g",
-      fat: "3g",
+      calories: "82",
+      protein: "2g",
+      carbs: "14g",
+      fat: "2.5g",
       fiber: "2g",
-      vitamins: ["Complete Protein", "Iron", "Magnesium"]
+      vitamins: ["Vitamin A", "B Vitamins", "Iron"]
     },
     allergens: [],
-    storage: "Refrigerate for up to 3 days. Freeze for up to 2 months.",
-    healthBenefits: "Quinoa is a complete protein with all essential amino acids. Vegetables add vitamins and fiber.",
-    servingGuidance: "Serve 3-5 tablespoons as a main meal."
+    storage: "Refrigerate for up to 3 days. Freeze in portions for up to 2 months.",
+    healthBenefits: "Naturally gluten-free and gentle on little stomachs, providing clean complex carbohydrates and fiber.",
+    servingGuidance: "Offer 3-4 tablespoons warm with a baby spoon."
   },
   {
     id: "285",

@@ -3,36 +3,36 @@ import { getRecipeImageById } from "./recipeImages";
 export const recipes326to340 = [
   {
     id: "326",
-    title: "Salmon & Sweet Potato Cakes",
-    description: "Golden, crispy fish cakes packed with omega-3 rich salmon and creamy sweet potato. These brain-boosting bites are perfect for supporting your toddler's cognitive development and nervous system growth. The combination of DHA from salmon and beta-carotene from sweet potato makes this one of the most nutrient-dense finger foods you can offer.",
+    title: "Crispy Cod & Herb Fish Cakes",
+    description: "Tender, pan-seared patties made from wild cod, mashed Yukon gold potatoes, and fresh flat-leaf parsley. A wholesome, brain-building finger food loaded with lean protein and minerals.",
     ageGroup: "24+ months",
     category: "Finger Food",
     prepTime: "25 mins",
     servings: "8 small cakes",
     image: getRecipeImageById("326"),
     ingredients: [
-      "1 small salmon fillet (about 150g), skin removed and pin-boned",
-      "1 medium sweet potato, peeled and cubed",
+      "150g fresh skinless cod fillet, checked for bones",
+      "1 large Yukon gold potato, peeled and cubed",
       "1 egg yolk",
-      "2 tablespoons whole wheat breadcrumbs",
-      "1 tablespoon fresh dill, finely chopped",
-      "1 teaspoon lemon zest",
-      "1 tablespoon olive oil for cooking",
-      "Pinch of black pepper"
+      "2 tablespoons whole wheat panko breadcrumbs",
+      "1 tablespoon finely chopped fresh flat-leaf parsley",
+      "1 teaspoon fresh lemon zest",
+      "1 tablespoon olive oil for pan cooking",
+      "Pinch of mild black pepper"
     ],
     instructions: [
-      "Boil or steam the sweet potato cubes for 12-15 minutes until very soft. Drain thoroughly and mash until completely smooth with no lumps remaining.",
-      "Meanwhile, place the salmon fillet in a small saucepan, cover with water, and poach gently over medium-low heat for 8-10 minutes until the fish flakes easily with a fork. Remove, let cool, then flake into small pieces, checking carefully for any remaining bones.",
-      "In a large mixing bowl, combine the mashed sweet potato, flaked salmon, egg yolk, breadcrumbs, fresh dill, lemon zest, and black pepper. Mix gently until everything is evenly distributed — avoid over-mixing to keep a nice texture.",
-      "Divide the mixture into 8 equal portions. Using clean, slightly damp hands, shape each portion into a small patty about 1.5cm thick. Place on a plate lined with parchment paper.",
-      "Refrigerate the patties for 15 minutes to help them firm up — this makes them much easier to cook without falling apart.",
-      "Heat olive oil in a large non-stick frying pan over medium heat. Once the oil shimmers, carefully place the cakes in the pan, leaving space between each one.",
-      "Cook for 3-4 minutes on each side until golden brown and crispy on the outside. Avoid moving them too early — let a crust form before flipping.",
-      "Transfer to a plate lined with paper towel to absorb excess oil. Let cool for 3-4 minutes before serving. These are perfect with a small side of steamed vegetables or yogurt dip."
+      "Boil or steam the potato cubes for 12-15 minutes until fork-tender. Drain and mash thoroughly until smooth.",
+      "Poach the cod fillet in simmering water for 7-8 minutes until it flakes easily. Remove, cool slightly, and flake into small pieces, ensuring all pin-bones are removed.",
+      "In a bowl, mix the mashed potato, flaked cod, egg yolk, breadcrumbs, chopped parsley, and lemon zest.",
+      "Shape the mixture into 8 uniform round patties, about 1.5 cm thick.",
+      "Chill the patties in the refrigerator for 15 minutes to help them hold their shape during cooking.",
+      "Warm olive oil in a non-stick skillet over medium heat.",
+      "Cook each fish cake for 3-4 minutes on each side until crisp and golden brown.",
+      "Cool on paper towels for 5 minutes before serving with steamed peas or sweet corn."
     ],
-    nutrition: { calories: "95", protein: "8g", carbs: "9g", fat: "4g", fiber: "1.5g", vitamins: ["Omega-3 DHA", "Vitamin A", "Vitamin D", "Vitamin B12", "Selenium"] },
+    nutrition: { calories: "90", protein: "9g", carbs: "8g", fat: "3.5g", fiber: "1g", vitamins: ["Protein", "Vitamin B12", "Selenium", "Potassium"] },
     allergens: ["Fish", "Egg", "Gluten"],
-    storage: "Refrigerate in an airtight container for up to 2 days. Freeze uncooked cakes for up to 1 month. Reheat in a pan over medium heat until warmed through."
+    storage: "Refrigerate in an airtight container for up to 2 days. Freeze cooked or uncooked for up to 1 month."
   },
   {
     id: "327",
@@ -276,7 +276,7 @@ export const recipes326to340 = [
   {
     id: "334",
     title: "Banana Oat Energy Balls",
-    description: "No-bake energy balls made with ripe bananas, rolled oats, and a touch of honey. These nutrient-dense bites are packed with complex carbohydrates for sustained energy, making them the perfect snack for active toddlers. The natural sweetness of banana means minimal added sugar, while oats provide essential B vitamins and fiber for healthy digestion.",
+    description: "No-bake energy balls made with ripe bananas, rolled oats, and a touch of pure maple syrup. These nutrient-dense bites are packed with complex carbohydrates for sustained energy, making them the perfect snack for active toddlers. The natural sweetness of banana means minimal added sugar, while oats provide essential B vitamins and fiber for healthy digestion.",
     ageGroup: "24+ months",
     category: "Bites",
     prepTime: "15 mins",
@@ -286,7 +286,7 @@ export const recipes326to340 = [
       "1 ripe banana, mashed",
       "1 cup rolled oats",
       "2 tablespoons smooth peanut butter or almond butter",
-      "1 tablespoon honey",
+      "1 tablespoon pure maple syrup",
       "2 tablespoons unsweetened shredded coconut",
       "1 tablespoon ground flaxseed",
       "1/4 teaspoon cinnamon",
@@ -294,7 +294,7 @@ export const recipes326to340 = [
     ],
     instructions: [
       "In a large mixing bowl, mash the banana thoroughly with a fork until smooth and creamy with no large chunks remaining.",
-      "Add the rolled oats, peanut butter, honey, shredded coconut, ground flaxseed, and cinnamon to the mashed banana. Stir everything together with a wooden spoon until a thick, sticky dough forms. If using chocolate chips, fold them in now.",
+      "Add the rolled oats, peanut butter, pure maple syrup, shredded coconut, ground flaxseed, and cinnamon to the mashed banana. Stir everything together with a wooden spoon until a thick, sticky dough forms. If using chocolate chips, fold them in now.",
       "If the mixture feels too wet and sticky to handle, add an extra tablespoon of oats. If too dry, add a tiny splash of milk. The consistency should hold together when pressed.",
       "Cover the bowl with plastic wrap and refrigerate for at least 20 minutes. This firms up the mixture significantly and makes rolling much easier.",
       "Remove from the fridge. Scoop about 1 tablespoon of mixture and roll firmly between your palms to form a ball. If the mixture sticks to your hands, wet them slightly with cold water. Repeat until all mixture is used — you should get about 12 balls.",
@@ -388,7 +388,7 @@ export const recipes326to340 = [
       "1.5 tablespoons smooth peanut butter (no added salt or sugar)",
       "1/2 ripe banana, sliced",
       "1/2 teaspoon chia seeds",
-      "Drizzle of honey (optional)",
+      "Drizzle of pure maple syrup (optional)",
       "Pinch of cinnamon"
     ],
     instructions: [
@@ -396,7 +396,7 @@ export const recipes326to340 = [
       "Spread the smooth peanut butter evenly across the entire surface of the toast in a thin, even layer. Make sure there are no thick clumps — a thin, even spread is safer and easier for toddlers to eat.",
       "Slice the banana into thin rounds, about 3-4mm thick. Arrange the banana slices neatly in rows across the peanut butter layer, pressing each one gently so it sticks.",
       "Sprinkle the chia seeds evenly over the banana slices — these tiny seeds are packed with omega-3s and fiber but are virtually unnoticeable in taste and texture.",
-      "Dust lightly with cinnamon for added warmth and flavor. If desired, drizzle a very thin line of honey over the top for extra sweetness.",
+      "Dust lightly with cinnamon for added warmth and flavor. If desired, drizzle a very thin line of pure maple syrup over the top for extra sweetness.",
       "Using a sharp knife, cut the toast into 4 even fingers (strips) — lengthwise works best for small hands to grip.",
       "Arrange the fingers on a small plate and serve immediately. The toast is best eaten right away while still slightly warm and the peanut butter is soft.",
       "For variety, try swapping banana for thin apple slices or adding a few fresh blueberries between the banana rounds."
@@ -486,7 +486,7 @@ export const recipes326to340 = [
     image: getRecipeImageById("340"),
     ingredients: [
       "1 cup mixed berries (blueberries, raspberries, strawberries — fresh or frozen)",
-      "1 teaspoon honey",
+      "1 teaspoon pure maple syrup",
       "1 teaspoon lemon juice",
       "1/2 teaspoon cornstarch mixed with 1 tablespoon water",
       "3/4 cup rolled oats",
@@ -499,7 +499,7 @@ export const recipes326to340 = [
     instructions: [
       "Preheat oven to 350°F (175°C). Lightly grease a small oven-safe baking dish or 3 individual ramekins.",
       "If using fresh strawberries, hull and quarter them. If using frozen berries, there's no need to thaw — they'll cook beautifully from frozen and release delicious juices.",
-      "Place the berries in a small saucepan with honey and lemon juice. Cook over medium heat for 5-7 minutes, stirring gently, until the berries begin to soften and release their juices. Add the cornstarch-water mixture and stir for another minute until the berry sauce thickens slightly. Pour into the prepared baking dish.",
+      "Place the berries in a small saucepan with pure maple syrup and lemon juice. Cook over medium heat for 5-7 minutes, stirring gently, until the berries begin to soften and release their juices. Add the cornstarch-water mixture and stir for another minute until the berry sauce thickens slightly. Pour into the prepared baking dish.",
       "In a mixing bowl, combine the rolled oats, ground almonds, and cinnamon. Add the cold cubed butter and rub it into the oat mixture using your fingertips until it resembles coarse breadcrumbs with some larger, pea-sized pieces — these create the best crumbly texture.",
       "Drizzle the maple syrup over the crumble mixture and toss with a fork until evenly distributed. The mixture should clump slightly when pressed.",
       "Scatter the crumble topping evenly over the berry base. Don't press it down — a loose, uneven layer creates the crispiest crumble. Leave some gaps for the berry juices to bubble through.",

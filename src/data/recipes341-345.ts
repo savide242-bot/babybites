@@ -58,31 +58,29 @@ export const recipes341to345 = [
   },
   {
     id: "343",
-    title: "Cheesy Broccoli Bites",
-    description: "Steamed broccoli florets tossed with melted cheddar cheese — a simple, nutritious finger food that helps your baby learn to self-feed. Broccoli is packed with iron, vitamin C, and fiber, while the cheese adds calcium and protein. Only 3 ingredients and 10 minutes!",
+    title: "Steamed Cauliflower & Cheddar Tots",
+    description: "Tender, bite-sized cauliflower florets coated in warm melted cheddar cheese — an easy finger food packed with choline, calcium, and vitamin C.",
     ageGroup: "9-12 months",
     category: "Finger Food",
-    prepTime: "10 minutes",
-    servings: "1 serving",
+    prepTime: "12 minutes",
+    servings: "2 servings",
     image: getRecipeImageById("343"),
     ingredients: [
-      "6 small broccoli florets",
-      "2 tablespoons shredded cheddar cheese",
-      "1 teaspoon olive oil"
+      "8 small cauliflower florets",
+      "2 tablespoons finely shredded mild cheddar cheese",
+      "1 teaspoon extra virgin olive oil",
+      "Pinch of dried parsley"
     ],
     instructions: [
-      "Wash 6 small broccoli florets under cold running water. Choose florets that are about the size of your baby's fist — they're easier to grip.",
-      "Bring a small pot of water to a boil. Place the broccoli florets in a steamer basket over the boiling water. If you don't have a steamer, you can boil them directly in the water.",
-      "Steam for 6-8 minutes until the broccoli is very soft — you should be able to easily squash a piece between your fingers. Don't undercook — for babies, broccoli must be very tender.",
-      "Remove the broccoli from the steamer and place in a bowl. While still hot, drizzle with 1 teaspoon of olive oil.",
-      "Sprinkle the shredded cheddar cheese over the hot broccoli. The heat from the broccoli will melt the cheese, creating a delicious coating.",
-      "Toss gently so the cheese covers the florets. Let cool for 3-4 minutes until safe to touch.",
-      "Serve as finger food. The broccoli stem acts as a natural handle for your baby to grip. The melted cheese makes it more appealing and adds important calcium.",
-      "Supervise your baby while eating. If any pieces seem too large, cut them in half lengthwise."
+      "Wash cauliflower florets thoroughly under cold water.",
+      "Steam florets for 8-10 minutes until completely fork-tender and easily crushable between fingers.",
+      "Transfer hot cauliflower to a small mixing bowl.",
+      "Drizzle with olive oil and sprinkle with shredded cheddar and parsley.",
+      "Toss gently so the cheese melts over the warm florets.",
+      "Allow to cool for 3-5 minutes until lukewarm before offering as finger food."
     ],
-    nutrition: { calories: "75", protein: "5g", carbs: "3g", fat: "5g", fiber: "2g", vitamins: ["Vitamin C", "Calcium", "Iron", "Vitamin K"] },
-    allergens: ["Dairy"],
-    storage: "Best served fresh, can refrigerate 1 day"
+    nutrition: { calories: "68", protein: "4g", carbs: "2.5g", fat: "4.5g", fiber: "1.5g", vitamins: ["Vitamin C", "Calcium", "Choline", "Vitamin K"] },
+    allergens: ["Dairy"]
   },
   {
     id: "344",

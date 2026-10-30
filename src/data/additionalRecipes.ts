@@ -55,27 +55,31 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
   },
   {
     id: "43",
-    title: "Sweet Pea & Mint Soup",
-    description: "Fresh green soup",
+    title: "Creamy Butternut Squash & Red Lentil Soup",
+    description: "Velvety warming soup rich in plant protein, iron, and beta-carotene",
     ageGroup: "9-12 months",
     category: "Lunch",
-    prepTime: "15 minutes",
+    prepTime: "20 minutes",
     servings: "4 servings",
     image: getRecipeImageById("43"),
-    ingredients: ["1 1/2 cups frozen peas", "1/2 cup low-sodium vegetable broth", "2-3 fresh mint leaves", "1 tbsp plain yogurt for serving"],
-    instructions: [
-      "Bring a pot of water to boil. Add frozen peas and cook for 5 minutes until very tender.",
-      "Drain peas well, reserving 1/4 cup of the cooking liquid.",
-      "Transfer peas to a blender. Add 1/2 cup vegetable broth and the reserved cooking liquid.",
-      "Add 2-3 fresh mint leaves (stems removed) for a subtle fresh flavor.",
-      "Blend on high for 1-2 minutes until completely smooth. Add more liquid if needed for desired consistency.",
-      "For very young babies, strain through a fine mesh sieve to remove any remaining skins.",
-      "Transfer to a bowl and let cool to a safe eating temperature.",
-      "Serve with a small dollop of plain yogurt swirled on top for extra creaminess and probiotics."
+    ingredients: [
+      "1 cup butternut squash, peeled and diced",
+      "1/4 cup red lentils, rinsed thoroughly",
+      "1 1/2 cups low-sodium vegetable broth",
+      "1 tsp olive oil",
+      "Pinch of ground cumin"
     ],
-    nutrition: { calories: "55", protein: "4g", carbs: "10g", fat: "0g", fiber: "4g", vitamins: ["Vitamin K", "Vitamin C", "Iron"] },
-    allergens: ["Dairy"],
-    storage: "Refrigerate 3 days or freeze"
+    instructions: [
+      "Heat olive oil in a saucepan over medium heat; add cumin and toast for 30 seconds.",
+      "Add diced butternut squash, rinsed red lentils, and vegetable broth.",
+      "Bring to a boil, then reduce heat to low and cover.",
+      "Simmer for 15-18 minutes until squash and lentils are completely soft.",
+      "Blend with an immersion blender until velvety and smooth.",
+      "Cool to lukewarm temperature before feeding baby."
+    ],
+    nutrition: { calories: "75", protein: "4g", carbs: "13g", fat: "1.5g", fiber: "3.5g", vitamins: ["Vitamin A", "Iron", "Fiber", "Potassium"] },
+    allergens: [],
+    storage: "Refrigerate for up to 3 days or freeze for up to 2 months."
   },
   {
     id: "44",
@@ -134,7 +138,7 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
     prepTime: "25 minutes",
     servings: "4 servings",
     image: getRecipeImageById("46"),
-    ingredients: ["1/2 cup jasmine rice", "1 cup coconut milk", "1/2 cup water", "1 ripe mango, diced", "1 tbsp honey (optional, 12+ months)"],
+    ingredients: ["1/2 cup jasmine rice", "1 cup coconut milk", "1/2 cup water", "1 ripe mango, diced", "1 tbsp pure maple syrup (optional)"],
     instructions: [
       "Rinse jasmine rice under cold water until water runs clear.",
       "In a small pot, combine rice, coconut milk, and water.",
@@ -143,7 +147,7 @@ export const additionalRecipes: Omit<Recipe, "healthBenefits" | "servingGuidance
       "While rice cooks, peel and dice a ripe mango into small cubes.",
       "Remove rice from heat and let stand covered for 5 minutes.",
       "Fluff with a fork and stir in diced mango.",
-      "Add honey if desired for extra sweetness (only for babies 12+ months).",
+      "Add pure maple syrup if desired for extra sweetness.",
       "Serve warm or chilled. The coconut milk makes it naturally creamy and delicious."
     ],
     nutrition: { calories: "145", protein: "2g", carbs: "28g", fat: "4g", fiber: "2g", vitamins: ["Vitamin C", "Vitamin A", "Manganese"] },

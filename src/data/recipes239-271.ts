@@ -76,20 +76,28 @@ export const recipes239to271: Recipe[] = [
   },
   {
     id: "243",
-    title: "Sweet Potato Wedges",
-    description: "Soft baked sweet potato wedges with naturally caramelized flavor.",
+    title: "Roasted Butternut Squash Fries",
+    description: "Soft, oven-roasted butternut squash spears lightly infused with extra virgin olive oil and fragrant thyme.",
     ageGroup: "9-12 months",
     category: "Finger Food",
-    prepTime: "35 mins",
+    prepTime: "30 mins",
     servings: "4",
-    image: getRecipeImage(["243", "sweet", "potato", "wedges"]),
-    ingredients: ["2 medium sweet potatoes", "1 tbsp olive oil", "1/4 tsp cinnamon (optional)"],
-    instructions: ["Preheat oven to 400°F (200°C).", "Wash and peel sweet potatoes.", "Cut into wedge shapes about 1/2 inch thick.", "Toss wedges with olive oil and cinnamon.", "Spread on baking sheet in single layer.", "Bake 25-30 minutes, flipping halfway.", "Wedges should be golden and very soft.", "Cool before serving as finger food."],
-    nutrition: { calories: "90", protein: "1g", carbs: "18g", fat: "2g", fiber: "3g", vitamins: ["A", "C", "B6", "Potassium"] },
+    image: getRecipeImage(["243", "butternut", "squash", "fries"]),
+    ingredients: ["1/2 medium butternut squash, peeled and deseeded", "1 tbsp extra virgin olive oil", "1/4 tsp dried thyme leaves"],
+    instructions: [
+      "Preheat oven to 400°F (200°C) and line a baking sheet with parchment paper.",
+      "Cut peeled butternut squash into toddler-friendly finger sticks about 1/2 inch wide.",
+      "Toss the squash sticks in a bowl with olive oil and thyme until evenly coated.",
+      "Arrange the sticks in a single layer on the prepared baking sheet with space between each.",
+      "Roast for 22-25 minutes, flipping once halfway through, until completely tender and lightly caramelized.",
+      "Ensure squash is tender enough to easily press between your fingers before offering to baby.",
+      "Allow to cool to room temperature before serving as finger food."
+    ],
+    nutrition: { calories: "65", protein: "1g", carbs: "12g", fat: "2.5g", fiber: "2.5g", vitamins: ["Vitamin A", "Vitamin C", "Potassium", "Magnesium"] },
     allergens: [],
-    storage: "Refrigerate 4 days. Freeze up to 2 months.",
-    healthBenefits: "Sweet potatoes are one of the most nutritious vegetables, packed with beta-carotene for immune health and vision. Natural sweetness appeals to babies.",
-    servingGuidance: "Offer 3-5 wedges per serving. Perfect for developing self-feeding skills."
+    storage: "Refrigerate in an airtight container for up to 4 days.",
+    healthBenefits: "Butternut squash is exceptionally rich in beta-carotene for immune health and eyesight, offering gentle dietary fiber for digestion.",
+    servingGuidance: "Offer 3-4 soft spears per meal. Great for encouraging the baby pincer grasp."
   },
   {
     id: "244",

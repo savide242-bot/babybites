@@ -73,36 +73,33 @@ export const recipes311to315 = [
   },
   {
     id: "313",
-    title: "Mini Veggie Frittata Bites",
-    description: "Protein-packed egg bites loaded with colorful vegetables. Baked in a mini muffin tin for perfect little portions that are easy to hold and eat.",
+    title: "Sweet Corn & Spinach Egg Muffins",
+    description: "Fluffy baked mini egg muffins loaded with sweet corn, finely chopped baby spinach, and mild cheddar cheese. Perfect handheld breakfast or snack for toddlers.",
     ageGroup: "12-18 months",
     category: "Finger Food",
     prepTime: "25 min",
-    servings: "12 mini bites",
+    servings: "12 mini muffins",
     image: "",
     ingredients: [
       "4 large eggs",
       "2 tbsp whole milk",
-      "1/4 cup finely diced red bell pepper",
-      "1/4 cup finely diced zucchini",
-      "2 tbsp finely chopped fresh spinach",
-      "2 tbsp grated mild cheddar cheese",
-      "1 tsp olive oil",
-      "Pinch of dried oregano"
+      "1/3 cup sweet corn kernels",
+      "1/3 cup finely chopped baby spinach",
+      "3 tbsp shredded mild cheddar cheese",
+      "1 tsp olive oil for greasing",
+      "Pinch of dried basil"
     ],
     instructions: [
-      "Preheat your oven to 180°C (350°F). Using a pastry brush or paper towel, thoroughly coat each cup of a 12-cup mini muffin tin with olive oil — make sure to cover the sides and bottom completely, as egg sticks easily and can be very difficult to remove otherwise.",
-      "Prepare all the vegetables: wash and finely dice the red bell pepper into pieces no larger than 5mm (very small so they cook through evenly in the short baking time). Dice the zucchini to the same size. Wash the spinach thoroughly, pat dry with a paper towel, and chop as finely as possible.",
-      "Crack the 4 eggs into a large mixing bowl or measuring jug with a spout (a jug makes pouring easier). Add the milk and whisk vigorously for about 30 seconds until the yolks and whites are completely combined and the mixture is slightly frothy — this incorporates air for a fluffier result.",
-      "Add all the diced vegetables (bell pepper, zucchini, spinach), grated cheddar cheese, and dried oregano to the egg mixture. Stir well with a fork to distribute the vegetables and cheese evenly throughout — if you don't stir well, some bites will be all egg and others all veggie.",
-      "Carefully pour or ladle the mixture evenly into the 12 prepared muffin cups, filling each about three-quarters full. Use a small spoon to fish out and redistribute any vegetables that have sunk to the bottom of the bowl. Tap the tin gently on the counter 2-3 times to release any trapped air bubbles.",
-      "Place in the center of the preheated oven and bake for 12-15 minutes until the frittata bites have puffed up, the tops are golden, and the centers are fully set — they shouldn't jiggle when you gently shake the tin. A toothpick inserted into the center should come out clean.",
-      "Remove from the oven and let the bites cool in the tin for a full 5 minutes — they will deflate slightly as they cool, which is completely normal. Run a small butter knife around the edge of each bite to loosen, then carefully pop them out.",
-      "Serve warm or at room temperature. These are perfect for breakfast, snack time, or packed in lunchboxes. They can be reheated in the oven at 160°C for 3-4 minutes if desired."
+      "Preheat oven to 180°C (350°F) and grease a 12-cup mini muffin tin with olive oil.",
+      "Steam or thaw the sweet corn until tender. Pat dry along with the chopped spinach.",
+      "In a bowl, whisk eggs and milk until light and slightly frothy.",
+      "Stir in the sweet corn, spinach, shredded cheddar cheese, and basil.",
+      "Divide mixture evenly among the 12 mini muffin cups.",
+      "Bake for 14-16 minutes until muffins have puffed up and centers are set.",
+      "Let cool in the tin for 5 minutes, then pop out with a butter knife and serve warm."
     ],
-    nutrition: { calories: "35 kcal per bite", protein: "3g", carbs: "1g", fat: "2.5g", fiber: "0.2g", vitamins: ["Vitamin A", "Vitamin D", "Protein", "Calcium", "Choline"] },
-    allergens: ["Eggs", "Dairy (milk, cheese)"],
-    storage: "Refrigerate in an airtight container for up to 3 days. Freeze individually on a tray, then transfer to a freezer bag for up to 1 month. Defrost overnight in the fridge and reheat gently."
+    nutrition: { calories: "38 kcal per muffin", protein: "3g", carbs: "1.5g", fat: "2.5g", fiber: "0.4g", vitamins: ["Protein", "Choline", "Vitamin A", "Lutein", "Calcium"] },
+    allergens: ["Eggs", "Dairy"]
   },
   {
     id: "314",
