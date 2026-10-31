@@ -113,6 +113,7 @@ export const Community: React.FC = () => {
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
+  const [newAgeTag, setNewAgeTag] = useState("6-8 Months");
   const [newHashtags, setNewHashtags] = useState<string[]>(["#BabyWeaning", "#BLW"]);
   const [customHashtagInput, setCustomHashtagInput] = useState("");
   const [newMediaPreview, setNewMediaPreview] = useState<string | null>(null);
@@ -467,6 +468,10 @@ export const Community: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const removeHashtag = (tag: string) => {
+    setNewHashtags((prev) => prev.filter((t) => t !== tag));
+  };
+
   const toggleHashtag = (tag: string) => {
     setNewHashtags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
@@ -530,6 +535,7 @@ export const Community: React.FC = () => {
         author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
         user_has_liked: true,
         status: "published",
+        age_tag: newAgeTag,
       };
 
       // Save locally
