@@ -4,7 +4,8 @@ import {
   Heart, MessageCircle, Share2, Bookmark, Plus, 
   Sparkles, Send, Bell, Loader2, Check, User,
   Camera, Image as ImageIcon, Video, X, Smile, UserPlus, UserCheck, 
-  MoreHorizontal, Flag, Film, Baby, ShieldCheck, Hash, Tag
+  MoreHorizontal, Flag, Film, Baby, ShieldCheck, Hash, Tag,
+  CheckCircle2, Volume2, VolumeX
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
