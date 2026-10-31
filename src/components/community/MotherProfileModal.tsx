@@ -69,7 +69,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full rounded-[28px] p-0 overflow-hidden bg-white border border-[#EBE8DF]">
+      <DialogContent className="max-w-md w-full rounded-[28px] p-0 overflow-hidden bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100">
         {/* Cover Banner */}
         <div className="h-28 bg-gradient-to-r from-[#1E5E3A] via-[#2F7E50] to-[#55B37B] relative p-4 flex items-end">
           <div className="absolute top-3 right-3 flex gap-2">

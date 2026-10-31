@@ -97,20 +97,20 @@
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 40 20% 98%;
+    --background: 148 20% 7%;
+    --foreground: 45 15% 96%;
 
-    --card: 220 18% 14%;
-    --card-foreground: 40 20% 98%;
+    --card: 148 16% 11%;
+    --card-foreground: 45 15% 96%;
 
-    --popover: 220 18% 14%;
-    --popover-foreground: 40 20% 98%;
+    --popover: 148 16% 11%;
+    --popover-foreground: 45 15% 96%;
 
-    --primary: 350 65% 65%;
+    --primary: 144 50% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 350 70% 75%;
+    --primary-glow: 144 55% 55%;
 
-    --mint: 160 45% 50%;
+    --mint: 144 45% 50%;
     --mint-foreground: 0 0% 100%;
     --mint-glow: 160 50% 60%;
 
@@ -118,8 +118,8 @@
     --secondary-foreground: 0 0% 100%;
     --secondary-glow: 175 50% 60%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 148 12% 15%;
+    --muted-foreground: 148 10% 65%;
 
     --accent: 38 75% 60%;
     --accent-foreground: 0 0% 100%;
@@ -143,9 +143,9 @@
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 22%;
-    --input: 220 15% 22%;
-    --ring: 350 65% 65%;
+    --border: 148 12% 18%;
+    --input: 148 12% 18%;
+    --ring: 144 50% 45%;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary-glow)));

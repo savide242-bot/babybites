@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { BabyProfileProvider } from "@/contexts/BabyProfileContext";
 import { useEffect, useRef, Suspense, lazy } from "react";
@@ -94,7 +95,7 @@ const AppContent = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF9F5] w-full max-w-full overflow-x-hidden min-w-0">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F5] dark:bg-[#0f1411] text-stone-900 dark:text-stone-100 w-full max-w-full overflow-x-hidden min-w-0 transition-colors duration-200">
       <AdminPreviewBanner />
       {!isFullscreenRoute && <Header />}
       {!isFullscreenRoute && <BottomNavigation />}
@@ -160,19 +161,21 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <AppErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <BabyProfileProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppWrapper />
-            </BrowserRouter>
-          </TooltipProvider>
-        </BabyProfileProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <BabyProfileProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppWrapper />
+              </BrowserRouter>
+            </TooltipProvider>
+          </BabyProfileProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </AppErrorBoundary>
 );
 

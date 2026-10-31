@@ -8,7 +8,8 @@ import { useDietaryPreferences, DIETARY_OPTIONS } from '@/hooks/useDietaryPrefer
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { useAutoResubscribe } from '@/hooks/useAutoResubscribe';
-import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Clock, Shield, Flame, Trophy, CalendarCheck, PartyPopper, Send } from 'lucide-react';
+import { Settings as SettingsIcon, RefreshCw, Salad, Check, Bell, BellOff, Clock, Shield, Flame, Trophy, CalendarCheck, PartyPopper, Send, Moon } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
@@ -198,6 +199,27 @@ const Settings = () => {
                     <p className="text-xs text-muted-foreground">The app is available in English</p>
                   </div>
                   <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-3">English</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          {/* Theme & Dark Mode Selection */}
+          <motion.div variants={itemVariants}>
+            <Card className="border border-border/50 shadow-lg rounded-2xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-mint/5 pb-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Moon className="h-5 w-5 text-primary" />
+                  Appearance & Dark Mode
+                </CardTitle>
+                <CardDescription>Customize the look and feel of BabyBites</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/50 rounded-xl border border-border/30">
+                  <div>
+                    <p className="font-medium text-sm">Theme Mode</p>
+                    <p className="text-xs text-muted-foreground">Select Light, Dark, or System mode</p>
+                  </div>
+                  <ThemeToggle variant="segmented" className="w-full sm:w-64" />
                 </div>
               </CardContent>
             </Card>

@@ -85,7 +85,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full rounded-[28px] p-5 bg-white border border-[#EBE8DF]">
+      <DialogContent className="max-w-md w-full rounded-[28px] p-5 bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100">
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl text-forest flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#48B774]" />

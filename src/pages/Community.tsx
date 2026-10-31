@@ -126,6 +126,37 @@ export const Community: React.FC = () => {
   const [isDMOpen, setIsDMOpen] = useState(false);
   const [targetDMMom, setTargetDMMom] = useState<MotherProfileData | null>(null);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem("babygram_saved_posts_v1");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const [mutedVideos, setMutedVideos] = useState<Record<string, boolean>>({});
+
+  const handleToggleSave = (postId: string) => {
+    setSavedPosts((prev) => {
+      const updated = { ...prev, [postId]: !prev[postId] };
+      try {
+        localStorage.setItem("babygram_saved_posts_v1", JSON.stringify(updated));
+      } catch {}
+      if (updated[postId]) {
+        toast.success("Post saved to your BabyGram collection! 🔖");
+      } else {
+        toast.info("Removed from saved collection");
+      }
+      return updated;
+    });
+  };
+
+  const toggleVideoMute = (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMutedVideos((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
   const [profileModalState, setProfileModalState] = useState<{
     open: boolean;
     profile: MotherProfileData | null;
@@ -565,7 +596,7 @@ export const Community: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-3 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
+    <div className="min-h-screen bg-[#FAF9F5] dark:bg-[#0f1411] text-stone-900 dark:text-stone-100 pb-24 pt-3 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0 transition-colors">
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -589,72 +620,48 @@ export const Community: React.FC = () => {
         className="hidden"
       />
 
-      {/* Header Banner & Social Action Buttons */}
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <span className="text-[11px] font-bold tracking-wider uppercase text-[#1E5E3A] flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#48B774] inline-block animate-pulse" />
-            BabyBites Social
+      {/* 1. BabyGram Instagram-Style Top Bar */}
+      <div className="mb-4 py-1.5 px-0.5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex items-baseline gap-1">
+            <h1 className="font-serif italic font-extrabold text-2xl sm:text-3xl tracking-tight text-[#1E5E3A] dark:text-[#48B774] flex items-center gap-1 cursor-pointer select-none">
+              BabyGram
+              <span className="text-xs text-stone-400 not-italic font-sans">▾</span>
+            </h1>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#1E5E3A] dark:bg-emerald-950/70 dark:text-emerald-300 border border-[#CCE0D2] dark:border-emerald-800/40">
+            Moms Club
           </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-forest mt-0.5">
-            Moms' Community
-          </h1>
-          <p className="text-[11px] text-gray-500">
-            Real feeding moments, milestone videos, and meal ideas from mothers.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Direct Messages (DMs) Button - Opens Inbox */}
-          <button
-            onClick={() => {
-              setTargetDMMom(null);
-              setIsDMOpen(true);
-            }}
-            title="Direct Messages"
-            className="w-10 h-10 rounded-full bg-white border border-[#EBE8DF] text-gray-700 hover:text-forest hover:bg-stone-50 flex items-center justify-center relative shadow-xs transition-colors"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-
-          {/* Current Mom Profile Button */}
-          <button
-            onClick={() => handleOpenMotherProfile("You (Mom)", true)}
-            title="My Profile"
-            className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847] shadow-xs hover:scale-105 transition-transform"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
-              alt="My Profile"
-              className="w-full h-full rounded-full object-cover border border-white"
-            />
-          </button>
-
-          {/* Create Post Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Create Post Button (+) */}
           <Dialog open={isNewPostOpen} onOpenChange={setIsNewPostOpen}>
             <DialogTrigger asChild>
-              <Button className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold text-xs px-3.5 py-2 flex items-center gap-1.5 shadow-sm">
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span className="hidden sm:inline">Post</span>
-              </Button>
+              <button
+                title="Create New Post"
+                className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] flex items-center justify-center shadow-xs transition-transform hover:scale-105"
+              >
+                <Plus className="w-5 h-5 stroke-[2.3]" />
+              </button>
             </DialogTrigger>
-            <DialogContent className="rounded-[28px] max-w-md bg-white border border-[#EBE8DF] max-h-[90vh] overflow-y-auto no-scrollbar">
+            <DialogContent className="rounded-[28px] max-w-md bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100 max-h-[90vh] overflow-y-auto no-scrollbar">
               <DialogHeader>
-                <DialogTitle className="font-serif text-2xl text-forest">
-                  Create a Post
+                <DialogTitle className="font-serif text-2xl text-forest dark:text-emerald-400">
+                  New BabyGram Post ✨
                 </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-4 pt-1">
                 {/* Media Type Switcher & Uploader */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-2">
+                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-2">
                     Choose what to share:
                   </label>
 
                   {newMediaPreview ? (
                     <div className="space-y-2">
-                      <div className="relative rounded-2xl overflow-hidden border border-[#EBE8DF] aspect-video bg-stone-900 flex items-center justify-center">
+                      <div className="relative rounded-2xl overflow-hidden border border-[#EBE8DF] dark:border-stone-800 aspect-video bg-stone-900 flex items-center justify-center">
                         {newMediaType === "video" ? (
                           <video
                             src={newMediaPreview}
@@ -684,7 +691,7 @@ export const Community: React.FC = () => {
 
                       {/* Video Thumbnail / Cover Picker */}
                       {newMediaType === "video" && (
-                        <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#EBE8DF] flex items-center justify-between">
+                        <div className="p-3 bg-[#FAF9F5] dark:bg-stone-900 rounded-xl border border-[#EBE8DF] dark:border-stone-800 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             {newVideoThumbnail ? (
                               <img
@@ -693,13 +700,13 @@ export const Community: React.FC = () => {
                                 className="w-10 h-10 rounded-lg object-cover border"
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-stone-200 flex items-center justify-center text-gray-500">
+                              <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-gray-500">
                                 <ImageIcon className="w-4 h-4" />
                               </div>
                             )}
                             <div>
-                              <p className="text-xs font-semibold text-gray-800">Video Cover</p>
-                              <p className="text-[10px] text-gray-500">
+                              <p className="text-xs font-semibold text-gray-800 dark:text-stone-200">Video Cover</p>
+                              <p className="text-[10px] text-gray-500 dark:text-stone-400">
                                 {newVideoThumbnail ? "Custom cover selected" : "Select a cover photo (optional)"}
                               </p>
                             </div>
@@ -722,20 +729,20 @@ export const Community: React.FC = () => {
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="rounded-2xl h-16 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
+                        className="rounded-2xl h-16 border-[#E3DFD3] dark:border-stone-700 flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40 dark:hover:bg-emerald-950/30"
                       >
-                        <Camera className="w-5 h-5 text-[#1E5E3A]" />
-                        <span className="text-[11px] font-semibold text-gray-700">Photo / Gallery</span>
+                        <Camera className="w-5 h-5 text-[#1E5E3A] dark:text-emerald-400" />
+                        <span className="text-[11px] font-semibold text-gray-700 dark:text-stone-300">Photo / Gallery</span>
                       </Button>
 
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => videoInputRef.current?.click()}
-                        className="rounded-2xl h-16 border-[#E3DFD3] flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40"
+                        className="rounded-2xl h-16 border-[#E3DFD3] dark:border-stone-700 flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40 dark:hover:bg-emerald-950/30"
                       >
-                        <Film className="w-5 h-5 text-[#1E5E3A]" />
-                        <span className="text-[11px] font-semibold text-gray-700">Baby Video</span>
+                        <Film className="w-5 h-5 text-[#1E5E3A] dark:text-emerald-400" />
+                        <span className="text-[11px] font-semibold text-gray-700 dark:text-stone-300">Baby Video</span>
                       </Button>
                     </div>
                   )}
@@ -743,50 +750,70 @@ export const Community: React.FC = () => {
 
                 {/* Title */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
+                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
                     Post Title
                   </label>
                   <Input
                     placeholder="e.g. First time trying avocado mash!"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="rounded-xl border-[#E3DFD3] text-xs"
+                    value={newPostTitle}
+                    onChange={(e) => setNewPostTitle(e.target.value)}
+                    className="rounded-xl border-[#E3DFD3] dark:border-stone-700 text-xs dark:bg-stone-900"
                   />
                 </div>
 
-                {/* Description */}
+                {/* Content */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Description & Tips
+                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
+                    Story / Caption
                   </label>
                   <Textarea
-                    placeholder="Describe the meal, recipe ingredients, or how baby reacted..."
-                    value={newContent}
-                    onChange={(e) => setNewContent(e.target.value)}
+                    placeholder="Share how your baby reacted, recipe ingredients, or feeding tips with fellow moms..."
+                    value={newPostContent}
+                    onChange={(e) => setNewPostContent(e.target.value)}
                     rows={3}
-                    className="rounded-xl border-[#E3DFD3] text-xs"
+                    className="rounded-xl border-[#E3DFD3] dark:border-stone-700 text-xs resize-none dark:bg-stone-900"
                   />
                 </div>
 
-                {/* Hashtags Section */}
+                {/* Age Tag */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1.5 flex items-center gap-1">
-                    <Hash className="w-3.5 h-3.5 text-[#1E5E3A]" />
+                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
+                    Baby Age Category
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {["6-8 Months", "9-11 Months", "12-23 Months", "24+ Months"].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setNewAgeTag(tag)}
+                        className={`text-[10px] py-1.5 px-1 rounded-xl border font-semibold text-center transition-all ${
+                          newAgeTag === tag
+                            ? "bg-[#1E5E3A] text-white border-[#1E5E3A] shadow-xs"
+                            : "bg-[#FAF9F5] dark:bg-stone-900 text-gray-700 dark:text-stone-300 border-[#E3DFD3] dark:border-stone-700 hover:bg-stone-100"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Hashtags */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
                     Hashtags
                   </label>
-
-                  {/* Selected Hashtags */}
                   {newHashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {newHashtags.map((tag) => (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {newHashtags.map((h) => (
                         <span
-                          key={tag}
-                          className="bg-[#EAF5EF] text-[#1E5E3A] px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1"
+                          key={h}
+                          className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
                         >
-                          {tag}
+                          {h}
                           <button
                             type="button"
-                            onClick={() => toggleHashtag(tag)}
+                            onClick={() => removeHashtag(h)}
                             className="hover:text-red-500"
                           >
                             <X className="w-3 h-3" />
@@ -806,7 +833,7 @@ export const Community: React.FC = () => {
                         className={`text-[10px] px-2 py-0.5 rounded-md border transition-all ${
                           newHashtags.includes(tag)
                             ? "bg-[#1E5E3A] text-white border-[#1E5E3A]"
-                            : "bg-white text-gray-600 border-gray-200 hover:bg-stone-50"
+                            : "bg-white dark:bg-stone-900 text-gray-600 dark:text-stone-400 border-gray-200 dark:border-stone-700 hover:bg-stone-50"
                         }`}
                       >
                         {tag}
@@ -826,7 +853,7 @@ export const Community: React.FC = () => {
                           addCustomHashtag();
                         }
                       }}
-                      className="rounded-lg border-[#E3DFD3] text-xs h-8"
+                      className="rounded-lg border-[#E3DFD3] dark:border-stone-700 text-xs h-8 dark:bg-stone-900"
                     />
                     <Button
                       type="button"
@@ -843,16 +870,52 @@ export const Community: React.FC = () => {
                 <Button
                   onClick={handleCreatePost}
                   disabled={isSubmitting}
-                  className="w-full rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white font-semibold py-3 shadow-md"
+                  className="w-full rounded-full bg-[#1E5E3A] dark:bg-emerald-600 hover:bg-[#16472c] text-white font-semibold py-3 shadow-md"
                 >
-                  {isSubmitting ? "Publishing..." : "Publish Post ❤️"}
+                  {isSubmitting ? "Publishing..." : "Publish to BabyGram ❤️"}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Activity / Notifications (Heart) */}
+          <button
+            onClick={() => toast.info("Your BabyGram notifications are active! When moms like or comment on your posts, you'll see alerts here. 💕")}
+            title="Activity Notifications"
+            className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 text-gray-700 dark:text-stone-300 hover:text-rose-500 dark:hover:text-rose-400 flex items-center justify-center relative shadow-xs transition-transform hover:scale-105"
+          >
+            <Heart className="w-4 h-4" />
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-stone-900 animate-pulse" />
+          </button>
+
+          {/* Direct Messages (DMs) Button - Opens Inbox */}
+          <button
+            onClick={() => {
+              setTargetDMMom(null);
+              setIsDMOpen(true);
+            }}
+            title="Direct Messages"
+            className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 flex items-center justify-center relative shadow-xs transition-transform hover:scale-105"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+
+          {/* Current Mom Profile Button */}
+          <button
+            onClick={() => handleOpenMotherProfile("You (Mom)", true)}
+            title="My Profile"
+            className="w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847] shadow-xs hover:scale-105 transition-transform"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+              alt="My Profile"
+              className="w-full h-full rounded-full object-cover border border-white dark:border-stone-900"
+            />
+          </button>
         </div>
       </div>
 
+      {/* 2. Instagram Stories Bar on Top */}
       {/* 1. Instagram Stories Bar on Top (Only shows followed moms, or empty for new users) */}
       <CommunityStories
         onAddStoryClick={() => setIsStoryModalOpen(true)}
@@ -901,39 +964,40 @@ export const Community: React.FC = () => {
             return (
               <article
                 key={post.id}
-                className="rounded-[28px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden transition-all duration-200"
+                className="rounded-[28px] bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-200 mb-6"
               >
-                {/* Instagram Post Header */}
+                {/* 1. Instagram Post Header */}
                 <div className="p-3 sm:p-4 flex items-center justify-between">
                   <div
                     className="flex items-center gap-3 cursor-pointer"
                     onClick={() => handleOpenMotherProfile(post.author_name)}
                   >
-                    {/* Avatar with Story gradient ring */}
-                    <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847]">
+                    {/* Avatar with authentic Instagram gradient ring */}
+                    <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#F59E0B] via-[#E1306C] to-[#833AB4] shrink-0">
                       <img
                         src={post.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"}
                         alt={post.author_name}
-                        className="w-full h-full rounded-full object-cover border border-white"
+                        className="w-full h-full rounded-full object-cover border-2 border-white dark:border-stone-900"
                       />
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight hover:underline">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-stone-100 leading-tight hover:underline flex items-center gap-1">
                           {post.author_name}
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0095F6] fill-[#0095F6] text-white shrink-0" />
                         </h4>
-                        <span className="text-[10px] bg-[#EAF5EF] text-[#1E5E3A] px-2 py-0.5 rounded-full font-semibold">
+                        <span className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
                           {post.author_baby}
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-gray-400 dark:text-stone-500">
                         {new Date(post.created_at).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        })}
+                        })} • BabyGram
                       </span>
                     </div>
                   </div>
@@ -946,8 +1010,8 @@ export const Community: React.FC = () => {
                       onClick={() => handleToggleFollow(post.author_name || "")}
                       className={`rounded-full h-7 px-2.5 text-[11px] font-semibold transition-all ${
                         isFollowing
-                          ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          : "bg-[#EAF5EF] text-[#1E5E3A] hover:bg-[#d6ecde]"
+                          ? "bg-gray-100 dark:bg-stone-800 text-gray-600 dark:text-stone-300 hover:bg-gray-200"
+                          : "bg-[#EAF5EF] dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 hover:bg-[#d6ecde]"
                       }`}
                     >
                       {isFollowing ? (
@@ -957,19 +1021,27 @@ export const Community: React.FC = () => {
                       )}
                     </Button>
 
-                    {/* 3-dots Menu for Reporting */}
+                    {/* 3-dots Menu */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700">
+                        <button className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-stone-200">
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl text-xs">
+                      <DropdownMenuContent align="end" className="rounded-xl text-xs dark:bg-stone-900 dark:border-stone-800">
+                        <DropdownMenuItem
+                          onClick={() => handleToggleSave(post.id)}
+                          className="cursor-pointer"
+                        >
+                          <Bookmark className="w-3.5 h-3.5 mr-2" />
+                          {savedPosts[post.id] ? "Remove from Saved" : "Save Post"}
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleSharePost(post)}
                           className="cursor-pointer"
                         >
-                          Copy link
+                          <Share2 className="w-3.5 h-3.5 mr-2" />
+                          Share Post
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleReportPost(post)}
@@ -983,10 +1055,10 @@ export const Community: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Instagram High-Res Post Media (Photo OR Video) with Double-Tap Like */}
+                {/* 2. Instagram High-Res Post Media (Aspect 4:5 or 4:3) with Double-Tap Heart */}
                 {hasMedia && (
                   <div
-                    className="relative w-full aspect-[4/3] bg-stone-900 cursor-pointer overflow-hidden select-none"
+                    className="relative w-full aspect-[4/5] sm:aspect-square bg-stone-950 cursor-pointer overflow-hidden select-none flex items-center justify-center"
                     onDoubleClick={() => handleDoubleTapPhoto(post.id)}
                   >
                     {isVideo ? (
@@ -994,6 +1066,7 @@ export const Community: React.FC = () => {
                         src={mediaSrc!}
                         poster={post.video_thumbnail}
                         controls
+                        muted={mutedVideos[post.id] ?? false}
                         playsInline
                         className="w-full h-full object-cover"
                       />
@@ -1006,28 +1079,41 @@ export const Community: React.FC = () => {
                       />
                     )}
 
+                    {/* Video sound toggle overlay */}
+                    {isVideo && (
+                      <button
+                        type="button"
+                        onClick={(e) => toggleVideoMute(post.id, e)}
+                        className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors z-20 shadow-md"
+                        title={mutedVideos[post.id] ? "Unmute" : "Mute"}
+                      >
+                        {mutedVideos[post.id] ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      </button>
+                    )}
+
                     {/* Blooming Pop Heart on Double Tap */}
                     {isHeartPopping && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
-                        <Heart className="w-24 h-24 text-white fill-white drop-shadow-2xl scale-125 transition-transform" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300 z-30">
+                        <Heart className="w-24 h-24 text-white fill-white drop-shadow-2xl scale-125 transition-transform animate-pulse" />
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Post Actions Bar */}
+                {/* 3. Instagram Action Bar */}
                 <div className="p-4 pt-3 pb-2 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {/* Like Button */}
+                    {/* Heart (Like) Button */}
                     <button
                       onClick={() => handleLike(post.id)}
-                      className="flex items-center gap-1.5 text-gray-700 hover:text-red-500 transition-colors focus:outline-none"
+                      className="flex items-center gap-1.5 focus:outline-none transition-transform active:scale-125"
+                      title="Like"
                     >
                       <Heart
-                        className={`w-6 h-6 transition-all duration-200 active:scale-125 ${
+                        className={`w-6 h-6 transition-all duration-200 ${
                           post.user_has_liked
-                            ? "fill-[#E53E3E] text-[#E53E3E] scale-110"
-                            : "text-gray-700 hover:text-red-500"
+                            ? "fill-rose-500 text-rose-500 scale-110 drop-shadow-xs"
+                            : "text-gray-700 dark:text-stone-300 hover:text-rose-500"
                         }`}
                       />
                     </button>
@@ -1035,12 +1121,13 @@ export const Community: React.FC = () => {
                     {/* Comment Button */}
                     <button
                       onClick={() => toggleComments(post.id)}
-                      className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
+                      className="text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 transition-colors focus:outline-none"
+                      title="Comment"
                     >
                       <MessageCircle className="w-6 h-6" />
                     </button>
 
-                    {/* DM author directly */}
+                    {/* Send / Direct Message Button */}
                     <button
                       onClick={() => {
                         setTargetDMMom({
@@ -1057,46 +1144,55 @@ export const Community: React.FC = () => {
                         setIsDMOpen(true);
                       }}
                       title={`Message ${post.author_name}`}
-                      className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
+                      className="text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 transition-colors focus:outline-none"
                     >
-                      <Send className="w-5 h-5" />
+                      <Send className="w-5 h-5 -rotate-12" />
                     </button>
 
                     {/* Share Button */}
                     <button
                       onClick={() => handleSharePost(post)}
-                      className="text-gray-700 hover:text-forest transition-colors focus:outline-none"
+                      className="text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 transition-colors focus:outline-none"
+                      title="Share"
                     >
                       <Share2 className="w-5 h-5" />
                     </button>
                   </div>
 
-                  {/* Bookmark */}
+                  {/* Bookmark / Save Button */}
                   <button
-                    onClick={() => toast.success("Saved to favorites! 🌟")}
-                    className="text-gray-400 hover:text-forest transition-colors"
+                    onClick={() => handleToggleSave(post.id)}
+                    className="focus:outline-none transition-transform active:scale-125"
+                    title={savedPosts[post.id] ? "Saved" : "Save"}
                   >
-                    <Bookmark className="w-5 h-5" />
+                    <Bookmark
+                      className={`w-6 h-6 transition-colors ${
+                        savedPosts[post.id]
+                          ? "fill-[#1E5E3A] text-[#1E5E3A] dark:fill-emerald-400 dark:text-emerald-400"
+                          : "text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400"
+                      }`}
+                    />
                   </button>
                 </div>
 
-                {/* Likes Count */}
+                {/* 4. Instagram Likes Count */}
                 <div className="px-4 pb-1">
-                  <span className="text-xs font-bold text-gray-900">
-                    {post.likes_count} {post.likes_count === 1 ? "like" : "likes"}
+                  <span className="text-xs font-bold text-gray-900 dark:text-stone-100">
+                    Liked by <span className="hover:underline cursor-pointer">sarah_jenkins</span> and {post.likes_count} others
                   </span>
                 </div>
 
-                {/* Caption & Content */}
+                {/* 5. Instagram Caption */}
                 <div className="px-4 pb-2">
-                  <p className="text-xs text-gray-800 leading-relaxed">
+                  <p className="text-xs text-gray-800 dark:text-stone-200 leading-relaxed">
                     <span
                       onClick={() => handleOpenMotherProfile(post.author_name)}
-                      className="font-bold text-gray-900 mr-1.5 cursor-pointer hover:underline"
+                      className="font-bold text-gray-900 dark:text-stone-100 mr-1.5 cursor-pointer hover:underline inline-flex items-center gap-1"
                     >
                       {post.author_name}
+                      <CheckCircle2 className="w-3 h-3 text-[#0095F6] fill-[#0095F6] text-white" />
                     </span>
-                    <span className="font-semibold text-forest mr-1.5">{post.title} —</span>
+                    <span className="font-semibold text-forest dark:text-emerald-400 mr-1.5">{post.title} —</span>
                     {post.content}
                   </p>
 
@@ -1104,7 +1200,7 @@ export const Community: React.FC = () => {
                   {post.hashtags && post.hashtags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {post.hashtags.map((h) => (
-                        <span key={h} className="text-[11px] font-semibold text-[#1E5E3A] hover:underline cursor-pointer">
+                        <span key={h} className="text-[11px] font-semibold text-[#1E5E3A] dark:text-emerald-400 hover:underline cursor-pointer">
                           {h}
                         </span>
                       ))}
@@ -1112,12 +1208,12 @@ export const Community: React.FC = () => {
                   )}
                 </div>
 
-                {/* Expandable Comments Drawer */}
+                {/* 6. Expandable Comments Preview */}
                 {postComments.length > 0 && !isExpanded && (
                   <div className="px-4 pb-2">
                     <button
                       onClick={() => toggleComments(post.id)}
-                      className="text-xs text-gray-500 hover:text-forest transition-colors font-medium"
+                      className="text-xs text-gray-500 dark:text-stone-400 hover:text-forest dark:hover:text-emerald-400 transition-colors font-medium"
                     >
                       View all {postComments.length} comments
                     </button>
@@ -1126,20 +1222,21 @@ export const Community: React.FC = () => {
 
                 {/* Expanded Comment Thread */}
                 {isExpanded && (
-                  <div className="px-4 pb-3 border-t border-stone-100 pt-3 space-y-2.5 bg-[#FAF9F5]/50">
+                  <div className="px-4 pb-3 border-t border-stone-100 dark:border-stone-800 pt-3 space-y-2.5 bg-[#FAF9F5]/50 dark:bg-stone-900/40">
                     {postComments.map((comment) => (
                       <div key={comment.id} className="text-xs leading-relaxed">
-                        <span className="font-bold text-gray-900 mr-1.5">
+                        <span className="font-bold text-gray-900 dark:text-stone-100 mr-1.5">
                           {comment.author_name}
                         </span>
-                        <span className="text-gray-700">{comment.content}</span>
+                        <span className="text-gray-700 dark:text-stone-300">{comment.content}</span>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Quick Reply Bar */}
-                <div className="px-4 py-2 border-t border-stone-100 flex items-center gap-2 bg-white">
+                {/* 7. Instagram Quick Reply Bar with Smiley */}
+                <div className="px-4 py-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center gap-2 bg-white dark:bg-[#161c18]">
+                  <Smile className="w-4 h-4 text-gray-400 dark:text-stone-500 shrink-0" />
                   <Input
                     value={currentReply}
                     onChange={(e) =>
@@ -1151,17 +1248,19 @@ export const Community: React.FC = () => {
                         handleSendComment(post);
                       }
                     }}
-                    placeholder="Write a sweet comment..."
-                    className="rounded-full border-[#E3DFD3] text-xs h-9 px-3.5 focus-visible:ring-[#1E5E3A]"
+                    placeholder="Add a comment as a mom..."
+                    className="border-0 bg-transparent text-xs h-8 px-1 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 dark:placeholder:text-stone-500 dark:text-stone-100 flex-1 shadow-none"
                   />
-                  <Button
-                    size="sm"
-                    onClick={() => handleSendComment(post)}
-                    disabled={isPostingReply || !currentReply.trim()}
-                    className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs h-9 px-3 font-semibold shrink-0"
-                  >
-                    {isPostingReply ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Send"}
-                  </Button>
+                  {currentReply.trim() && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleSendComment(post)}
+                      disabled={isPostingReply}
+                      className="rounded-full bg-[#1E5E3A] dark:bg-emerald-600 hover:bg-[#16472c] text-white text-xs h-7 px-3 font-semibold shrink-0"
+                    >
+                      {isPostingReply ? <Loader2 className="w-3 h-3 animate-spin" /> : "Post"}
+                    </Button>
+                  )}
                 </div>
               </article>
             );

@@ -185,12 +185,12 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full h-[620px] rounded-[28px] p-0 overflow-hidden bg-white border border-[#EBE8DF] flex flex-col">
+      <DialogContent className="max-w-md w-full h-[620px] rounded-[28px] p-0 overflow-hidden bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100 flex flex-col">
         {currentView === "inbox" ? (
           /* ================= VIEW 1: INBOX CONVERSATIONS LIST ================= */
           <div className="flex flex-col h-full">
             {/* Inbox Header */}
-            <div className="p-4 border-b border-[#EBE8DF] bg-[#FAF9F5] flex items-center justify-between">
+            <div className="p-4 border-b border-[#EBE8DF] dark:border-stone-800 bg-[#FAF9F5] dark:bg-[#121614] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-full bg-[#1E5E3A] text-white flex items-center justify-center shadow-xs">
                   <MessageCircle className="w-5 h-5" />
