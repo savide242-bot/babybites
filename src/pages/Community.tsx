@@ -755,8 +755,8 @@ export const Community: React.FC = () => {
                   </label>
                   <Input
                     placeholder="e.g. First time trying avocado mash!"
-                    value={newPostTitle}
-                    onChange={(e) => setNewPostTitle(e.target.value)}
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
                     className="rounded-xl border-[#E3DFD3] dark:border-stone-700 text-xs dark:bg-stone-900"
                   />
                 </div>
@@ -768,8 +768,8 @@ export const Community: React.FC = () => {
                   </label>
                   <Textarea
                     placeholder="Share how your baby reacted, recipe ingredients, or feeding tips with fellow moms..."
-                    value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
+                    value={newContent}
+                    onChange={(e) => setNewContent(e.target.value)}
                     rows={3}
                     className="rounded-xl border-[#E3DFD3] dark:border-stone-700 text-xs resize-none dark:bg-stone-900"
                   />
