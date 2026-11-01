@@ -5,18 +5,22 @@ import {
   Sparkles, Send, Bell, Loader2, Check, User,
   Camera, Image as ImageIcon, Video, X, Smile, UserPlus, UserCheck, 
   MoreHorizontal, Flag, Film, Baby, ShieldCheck, Hash, Tag,
-  CheckCircle2, Volume2, VolumeX
+  CheckCircle2, Volume2, VolumeX, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import CommunityStories, { StoryItem } from "@/components/community/CommunityStories";
 import MotherProfileModal, { MotherProfileData } from "@/components/community/MotherProfileModal";
 import DirectMessagesModal from "@/components/community/DirectMessagesModal";
 import CreateStoryModal from "@/components/community/CreateStoryModal";
+import CreatePostModal from "@/components/community/CreatePostModal";
+import ReportPostModal from "@/components/community/ReportPostModal";
+import { 
+  getDeletedPostIds, 
+  deletePostGlobally, 
+  COMMUNITY_LOCAL_POSTS_KEY 
+} from "@/services/communityService";
 
 export interface Post {
   id: string;
@@ -36,6 +40,8 @@ export interface Post {
   author_avatar?: string;
   user_has_liked?: boolean;
   age_tag?: string;
+  location?: string;
+  audio_track?: string;
   status?: "published" | "under_review" | "hidden" | "banned";
 }
 
@@ -49,85 +55,103 @@ export interface CommentItem {
   created_at: string;
 }
 
-const ADMIN_EMAILS = ["savide242@gmail.com", "octaviomoiane2007@gmail.com"];
+const ADMIN_EMAILS = [
+  "admin@babybites.app",
+  "superadmin@babybites.app",
+  "dona@babybites.app",
+  "pediatra@babybites.app",
+  "nutri@babybites.app",
+];
 
-const SAMPLE_ADMIN_POSTS: Post[] = [
+// Rich Sample Feed for initial experience
+const SAMPLE_COMMUNITY_POSTS: Post[] = [
   {
     id: "sample-1",
-    user_id: "usr-1",
-    title: "Golden Sweet Potato & Chicken Patties! 🍠✨",
-    content: "Made these soft BLW patties from the 6-8 months recipe section. Noah held them easily with his little hands and ate every single bite!",
-    image_urls: ["/community/sarah-fritters.jpg"],
+    user_id: "admin-sarah",
+    title: "BLW Sweet Potato Fries Success! 🍠",
+    content: "Noah (7 months) managed to grab and chew these roasted sweet potato fingers with zero fuss today! Steamed for 6 minutes then lightly baked with a drop of olive oil. Such a proud BLW milestone! ❤️✨",
     media_type: "image",
-    hashtags: ["#BLW", "#FingerFood", "#BabyBites", "#FirstBite"],
-    likes_count: 24,
-    comments_count: 2,
+    image_urls: [
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80",
+    ],
+    hashtags: ["#BLWJourney", "#SweetPotato", "#7MonthsOld", "#FingerFoods"],
+    likes_count: 42,
+    comments_count: 7,
     created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
     author_name: "Sarah Jenkins",
-    author_baby: "Noah • 7m",
+    author_baby: "Mom of Noah • 7m",
     author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-    user_has_liked: true,
+    user_has_liked: false,
     age_tag: "6-8 Months",
   },
   {
-    id: "sample-video-1",
-    user_id: "usr-demo-video",
-    author_name: "Mariana Costa",
-    author_baby: "Lucas • 8m",
-    title: "Milestone: Holding his own baby spoon for the first time! 🥄✨",
-    content: "Look at his focus trying to bring the pumpkin puree to his mouth independently. Mama's heart is melting!",
-    image_urls: ["https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4"],
+    id: "sample-2",
+    user_id: "admin-emily",
+    title: "Freezer Prep: 18 Lentil Veggie Cakes 🥦✨",
+    content: "Sunday batch-cooking done! Made 18 soft red lentil patties with grated zucchini and carrots for Maya. Freeze flat on baking parchment, then store in silicone bags for quick midweek baby dinners.",
     media_type: "video",
-    video_url: "https://assets.mixkit.co/videos/preview/mixkit-mother-feeding-her-baby-boy-41318-large.mp4",
-    hashtags: ["#HealthyBaby", "#MilestoneMoment", "#RealMotherhood"],
-    likes_count: 36,
-    comments_count: 1,
-    created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    video_thumbnail: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=1200&q=80",
+    hashtags: ["#FreezerPrep", "#MealPrepSunday", "#VeggieBites"],
+    likes_count: 89,
+    comments_count: 14,
+    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+    author_name: "Emily Rodriguez",
+    author_baby: "Mom of Maya • 11m",
+    author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+    user_has_liked: false,
+    age_tag: "9-11 Months",
+  },
+  {
+    id: "sample-3",
+    user_id: "admin-clara",
+    title: "Avocado & Banana Breakfast Mash 🥑🍌",
+    content: "A gentle classic morning texture for Leo! He loves dipping his spoon or using his fingers. No sugar, no dairy, just pure rich healthy fats for growing babies.",
+    media_type: "image",
+    image_urls: [
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80",
+    ],
+    hashtags: ["#HealthyFats", "#AvocadoLove", "#BreakfastMilestone"],
+    likes_count: 56,
+    comments_count: 5,
+    created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
+    author_name: "Clara Santos",
+    author_baby: "Mom of Leo • 9m",
     author_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
     user_has_liked: false,
     age_tag: "6-8 Months",
   },
 ];
 
-const SUGGESTED_HASHTAGS = [
-  "#BLW",
-  "#BabyWeaning",
-  "#FirstBite",
-  "#HealthyBaby",
-  "#BabyRecipes",
-  "#RealMotherhood",
-  "#ToddlerMeals",
-];
-
 const COMMENTS_STORAGE_KEY = "babybites_community_comments_v3";
 const FOLLOWS_STORAGE_KEY = "babybites_followed_moms_v3";
-const LOCAL_POSTS_KEY = "babybites_community_local_posts_v3";
 
 export const Community: React.FC = () => {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>("guest");
+  const [currentUserName, setCurrentUserName] = useState<string>("Loving Mom");
+  const [currentUserBaby, setCurrentUserBaby] = useState<string>("Mom of Baby");
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>(
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+  );
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
 
-  // Post creation modal
+  // New Post Modal (Instagram Style Flow: Image 3 & 4)
   const [isNewPostOpen, setIsNewPostOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newContent, setNewContent] = useState("");
-  const [newAgeTag, setNewAgeTag] = useState("6-8 Months");
-  const [newHashtags, setNewHashtags] = useState<string[]>(["#BabyWeaning", "#BLW"]);
-  const [customHashtagInput, setCustomHashtagInput] = useState("");
-  const [newMediaPreview, setNewMediaPreview] = useState<string | null>(null);
-  const [newMediaType, setNewMediaType] = useState<"image" | "video">("image");
-  const [newVideoThumbnail, setNewVideoThumbnail] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [heartPops, setHeartPops] = useState<Record<string, boolean>>({});
 
-  // Modals state
-  const [isDMOpen, setIsDMOpen] = useState(false);
-  const [targetDMMom, setTargetDMMom] = useState<MotherProfileData | null>(null);
+  // Story Creation Modal (Image 1 & 2)
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+
+  // Report Modal (Requirement 2)
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [postToReport, setPostToReport] = useState<Post | null>(null);
+
+  // Interactions state
+  const [heartPops, setHeartPops] = useState<Record<string, boolean>>({});
+  const [mutedVideos, setMutedVideos] = useState<Record<string, boolean>>({});
   const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem("babygram_saved_posts_v1");
@@ -137,39 +161,15 @@ export const Community: React.FC = () => {
     }
   });
 
-  const [mutedVideos, setMutedVideos] = useState<Record<string, boolean>>({});
-
-  const handleToggleSave = (postId: string) => {
-    setSavedPosts((prev) => {
-      const updated = { ...prev, [postId]: !prev[postId] };
-      try {
-        localStorage.setItem("babygram_saved_posts_v1", JSON.stringify(updated));
-      } catch {}
-      if (updated[postId]) {
-        toast.success("Post saved to your BabyGram collection! 🔖");
-      } else {
-        toast.info("Removed from saved collection");
-      }
-      return updated;
-    });
-  };
-
-  const toggleVideoMute = (postId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMutedVideos((prev) => ({ ...prev, [postId]: !prev[postId] }));
-  };
-
+  // Modals state
+  const [isDMOpen, setIsDMOpen] = useState(false);
+  const [targetDMMom, setTargetDMMom] = useState<MotherProfileData | null>(null);
   const [profileModalState, setProfileModalState] = useState<{
     open: boolean;
     profile: MotherProfileData | null;
   }>({ open: false, profile: null });
 
-  // Refs for media pickers
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
-
-  // Follow system: starts empty for regular users (they don't follow anyone initially)
+  // Follow system
   const [followedMoms, setFollowedMoms] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem(FOLLOWS_STORAGE_KEY);
@@ -199,17 +199,46 @@ export const Community: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
         const email = session?.user?.email?.toLowerCase() || "";
         setCurrentUserEmail(email);
+        setCurrentUserId(session?.user?.id || "guest");
         const adminCheck = ADMIN_EMAILS.includes(email);
         setIsAdminUser(adminCheck);
 
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("mother_name, baby_name, full_name, avatar_url")
+            .eq("id", session.user.id)
+            .single();
+
+          if (profile?.mother_name || profile?.full_name) {
+            setCurrentUserName(profile.mother_name || profile.full_name);
+          }
+          if (profile?.baby_name) {
+            setCurrentUserBaby(`Mom of ${profile.baby_name}`);
+          }
+          if (profile?.avatar_url) {
+            setCurrentUserAvatar(profile.avatar_url);
+          }
+        }
+
         // Fetch Supabase posts
-        await fetchSupabasePosts(adminCheck);
+        await fetchSupabasePosts();
       } catch (err) {
         console.error("Auth init error:", err);
         setIsLoadingFeed(false);
       }
     };
     initAuth();
+
+    // Listen to real-time global deletion events
+    const onPostDeleted = (e: any) => {
+      const deletedId = e.detail?.postId;
+      if (deletedId) {
+        setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+      }
+    };
+    window.addEventListener("babygram:post_deleted", onPostDeleted);
+    return () => window.removeEventListener("babygram:post_deleted", onPostDeleted);
   }, []);
 
   useEffect(() => {
@@ -228,20 +257,22 @@ export const Community: React.FC = () => {
     }
   }, [followedMoms]);
 
-  const fetchSupabasePosts = async (allowAdminDemo: boolean) => {
+  const fetchSupabasePosts = async () => {
     setIsLoadingFeed(true);
     try {
+      const deletedIds = getDeletedPostIds();
+
       const { data, error } = await supabase
         .from("forum_posts")
         .select("*")
         .neq("title", "__SYSTEM_RECIPE_OVERRIDES__")
         .order("created_at", { ascending: false })
-        .limit(30);
+        .limit(40);
 
       // Locally saved posts
       let localPosts: Post[] = [];
       try {
-        const saved = localStorage.getItem(LOCAL_POSTS_KEY);
+        const saved = localStorage.getItem(COMMUNITY_LOCAL_POSTS_KEY);
         if (saved) localPosts = JSON.parse(saved);
       } catch (e) {
         console.error(e);
@@ -267,14 +298,16 @@ export const Community: React.FC = () => {
         age_tag: p.age_tag || "6-8 Months",
       })) : [];
 
-      // Only include sample admin posts if current user is an admin!
       const initialPool = [
         ...localPosts,
         ...mappedSupabase,
-        ...(allowAdminDemo ? SAMPLE_ADMIN_POSTS : []),
+        ...SAMPLE_COMMUNITY_POSTS,
       ];
 
-      const deduplicated = Array.from(new Map(initialPool.map((p) => [p.id, p])).values());
+      // Filter out deleted posts (Requirement 1)
+      const deduplicated = Array.from(new Map(initialPool.map((p) => [p.id, p])).values())
+        .filter((p) => !deletedIds.includes(p.id));
+
       setPosts(deduplicated);
     } catch (err) {
       console.log("Feed fetch error:", err);
@@ -299,7 +332,6 @@ export const Community: React.FC = () => {
     );
   };
 
-  // Double-tap photo/video like with heart animation
   const handleDoubleTapPhoto = (id: string) => {
     setPosts((prev) =>
       prev.map((p) => {
@@ -323,38 +355,70 @@ export const Community: React.FC = () => {
   };
 
   const handleToggleFollow = (authorName: string) => {
+    if (!authorName) return;
     setFollowedMoms((prev) => {
-      const isFollowing = !!prev[authorName];
-      const updated = { ...prev, [authorName]: !isFollowing };
-      toast.success(
-        !isFollowing
-          ? `You are now following ${authorName}! 💚`
-          : `Unfollowed ${authorName}`
-      );
+      const isCurrentlyFollowing = !!prev[authorName];
+      const nextState = !isCurrentlyFollowing;
+      const updated = { ...prev, [authorName]: nextState };
+      if (nextState) {
+        toast.success(`You are now following ${authorName}! 🌸`);
+      } else {
+        toast.info(`Unfollowed ${authorName}`);
+      }
       return updated;
     });
   };
 
-  const handleSharePost = async (post: Post) => {
-    const shareText = `Check out "${post.title}" on BabyBites Community! 🥑👶`;
-    if (navigator.share) {
+  const handleToggleSave = (postId: string) => {
+    setSavedPosts((prev) => {
+      const updated = { ...prev, [postId]: !prev[postId] };
       try {
-        await navigator.share({
-          title: post.title,
-          text: shareText,
-          url: window.location.href,
-        });
-      } catch {
-        /* user cancelled */
+        localStorage.setItem("babygram_saved_posts_v1", JSON.stringify(updated));
+      } catch {}
+      if (updated[postId]) {
+        toast.success("Post saved to your BabyGram collection! 🔖");
+      } else {
+        toast.info("Removed from saved collection");
       }
+      return updated;
+    });
+  };
+
+  const toggleVideoMute = (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMutedVideos((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const handleSharePost = (post: Post) => {
+    const shareText = `Check out this weaning milestone from ${post.author_name} on BabyGram: "${post.title}"`;
+    if (navigator.share) {
+      navigator.share({
+        title: post.title,
+        text: shareText,
+        url: window.location.href,
+      }).catch(() => {});
     } else {
       navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
       toast.success("Post link copied to clipboard!");
     }
   };
 
+  // Requirement 2: Open Report Modal
   const handleReportPost = (post: Post) => {
-    toast.success("Post reported. The admin will review it in the moderation dashboard.");
+    setPostToReport(post);
+    setIsReportOpen(true);
+  };
+
+  // Requirement 1: Delete Post Globally
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await deletePostGlobally(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      toast.success("Post deleted permanently from the Community! 🗑️");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not delete post.");
+    }
   };
 
   const toggleComments = async (postId: string) => {
@@ -373,31 +437,13 @@ export const Community: React.FC = () => {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      let commenterName = "Loving Mom";
-      let commenterRole = "Mom of Baby";
-
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("mother_name, baby_name, full_name")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profile?.mother_name || profile?.full_name) {
-          commenterName = profile.mother_name || profile.full_name;
-        }
-        if (profile?.baby_name) {
-          commenterRole = `Mom of ${profile.baby_name}`;
-        }
-      }
 
       const newCommentObj: CommentItem = {
         id: "c-" + Date.now(),
         post_id: post.id,
-        user_id: session?.user?.id || "guest",
-        author_name: commenterName,
-        author_baby: commenterRole,
+        user_id: session?.user?.id || currentUserId,
+        author_name: currentUserName,
+        author_baby: currentUserBaby,
         content: text,
         created_at: new Date().toISOString(),
       };
@@ -429,461 +475,51 @@ export const Community: React.FC = () => {
     }
   };
 
-  // Media Pickers
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setNewMediaType("image");
-    setSelectedFile(file);
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setNewMediaPreview(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setNewMediaType("video");
-    setSelectedFile(file);
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setNewMediaPreview(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setNewVideoThumbnail(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeHashtag = (tag: string) => {
-    setNewHashtags((prev) => prev.filter((t) => t !== tag));
-  };
-
-  const toggleHashtag = (tag: string) => {
-    setNewHashtags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const addCustomHashtag = () => {
-    const tag = customHashtagInput.trim();
-    if (!tag) return;
-    const formatted = tag.startsWith("#") ? tag : `#${tag}`;
-    if (!newHashtags.includes(formatted)) {
-      setNewHashtags([...newHashtags, formatted]);
-    }
-    setCustomHashtagInput("");
-  };
-
-  const handleCreatePost = async () => {
-    if (!newTitle.trim() || !newContent.trim()) {
-      toast.error("Please add a title and description for your post");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      let authorName = "Community Mom";
-      let babyRole = "Baby • 7m";
-
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("mother_name, baby_name, full_name")
-          .eq("id", session.user.id)
-          .single();
-
-        if (profile?.mother_name || profile?.full_name) {
-          authorName = profile.mother_name || profile.full_name;
-        }
-        if (profile?.baby_name) {
-          babyRole = `${profile.baby_name} • 7m`;
-        }
-      }
-
-      const newPostId = "post-" + Date.now();
-      const newPostObj: Post = {
-        id: newPostId,
-        user_id: session?.user?.id || "guest",
-        title: newTitle,
-        content: newContent,
-        image_urls: newMediaPreview ? [newMediaPreview] : null,
-        media_type: newMediaType,
-        video_url: newMediaType === "video" ? newMediaPreview || undefined : undefined,
-        video_thumbnail: newVideoThumbnail || undefined,
-        hashtags: newHashtags,
-        likes_count: 1,
-        comments_count: 0,
-        created_at: new Date().toISOString(),
-        author_name: authorName,
-        author_baby: babyRole,
-        author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-        user_has_liked: true,
-        status: "published",
-        age_tag: newAgeTag,
-      };
-
-      // Save locally
-      const updatedPosts = [newPostObj, ...posts];
-      setPosts(updatedPosts);
-      try {
-        localStorage.setItem(LOCAL_POSTS_KEY, JSON.stringify([newPostObj]));
-      } catch (e) {
-        console.error(e);
-      }
-
-      // Sync with Supabase
-      try {
-        if (session?.user) {
-          await supabase.from("forum_posts").insert({
-            user_id: session.user.id,
-            title: newTitle,
-            content: newContent,
-            image_urls: newMediaPreview ? [newMediaPreview] : null,
-          });
-        }
-      } catch (sbErr) {
-        console.log("Supabase post sync:", sbErr);
-      }
-
-      setNewTitle("");
-      setNewContent("");
-      setNewMediaPreview(null);
-      setNewVideoThumbnail(null);
-      setSelectedFile(null);
-      setIsNewPostOpen(false);
-      toast.success("Post published to the community! ❤️");
-    } catch (err) {
-      toast.error("Could not share post.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Open Mother Profile
-  const handleOpenMotherProfile = (authorName: string, isCurrent: boolean = false) => {
-    const authorPosts = posts.filter((p) => p.author_name === authorName);
+  const handleOpenMotherProfile = (authorName: string, isCurrentUser = false) => {
+    const userPosts = posts.filter((p) => p.author_name === authorName);
     const profileData: MotherProfileData = {
-      id: authorName,
+      id: isCurrentUser ? currentUserId : authorName.toLowerCase().replace(/\s+/g, "-"),
       name: authorName,
-      babyName: authorPosts[0]?.author_baby?.split("•")[0]?.trim() || "Baby",
-      babyAge: authorPosts[0]?.author_baby?.split("•")[1]?.trim() || "8m",
-      avatar: authorPosts[0]?.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-      bio: "Loving mother learning wholesome baby-led weaning and sharing healthy meal ideas on BabyBites! 🥑🥣",
-      followersCount: followedMoms[authorName] ? 1 : 0,
-      followingCount: 0,
-      isFollowing: !!followedMoms[authorName],
-      isCurrentUser: isCurrent,
-      posts: authorPosts.map((p) => ({
-        id: p.id,
-        title: p.title,
-        mediaUrl: p.image_urls?.[0] || "",
-        mediaType: p.media_type,
-        likesCount: p.likes_count,
-      })),
+      babyName: isCurrentUser ? currentUserBaby : authorName === "Sarah Jenkins" ? "Noah" : "Maya",
+      babyAge: authorName === "Sarah Jenkins" ? "7 months" : "11 months",
+      avatar: isCurrentUser
+        ? currentUserAvatar
+        : authorName === "Sarah Jenkins"
+        ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"
+        : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+      bio: isCurrentUser
+        ? "Loving mother exploring the magic of weaning and healthy eating on BabyBites! 🥑✨"
+        : "Mom passionate about baby-led weaning, finger food snacks, and nutrient-dense purées.",
+      followersCount: isCurrentUser ? 18 : 240,
+      followingCount: isCurrentUser ? Object.keys(followedMoms).length : 110,
+      posts: userPosts,
     };
-
     setProfileModalState({ open: true, profile: profileData });
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] dark:bg-[#0f1411] text-stone-900 dark:text-stone-100 pb-24 pt-3 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0 transition-colors">
-      {/* Hidden File Inputs */}
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handlePhotoSelect}
-        className="hidden"
-      />
-      <input
-        type="file"
-        accept="video/*"
-        ref={videoInputRef}
-        onChange={handleVideoSelect}
-        className="hidden"
-      />
-      <input
-        type="file"
-        accept="image/*"
-        ref={thumbnailInputRef}
-        onChange={handleThumbnailSelect}
-        className="hidden"
-      />
-
-      {/* 1. BabyGram Instagram-Style Top Bar */}
-      <div className="mb-4 py-1.5 px-0.5 flex items-center justify-between">
+    <div className="max-w-xl mx-auto px-3 sm:px-4 py-4 pb-24 text-stone-900 dark:text-stone-100 min-h-screen">
+      {/* 1. Authentic Instagram-Style Top Bar */}
+      <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-[#EBE8DF]/80 dark:border-stone-800/80">
         <div className="flex items-center gap-2">
-          <div className="flex items-baseline gap-1">
-            <h1 className="font-serif italic font-extrabold text-2xl sm:text-3xl tracking-tight text-[#1E5E3A] dark:text-[#48B774] flex items-center gap-1 cursor-pointer select-none">
-              BabyGram
-              <span className="text-xs text-stone-400 not-italic font-sans">▾</span>
-            </h1>
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#1E5E3A] dark:bg-emerald-950/70 dark:text-emerald-300 border border-[#CCE0D2] dark:border-emerald-800/40">
+          <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#1E5E3A] dark:text-emerald-400 tracking-tight flex items-center gap-1.5 cursor-pointer">
+            <span>BabyGram</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500 font-sans font-normal pt-1">⌄</span>
+          </h1>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EAF5EF] dark:bg-emerald-950/80 text-[#1E5E3A] dark:text-emerald-300 border border-[#CCE0D2] dark:border-emerald-800/60 hidden sm:inline-block">
             Moms Club
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Create Post Button (+) */}
-          <Dialog open={isNewPostOpen} onOpenChange={setIsNewPostOpen}>
-            <DialogTrigger asChild>
-              <button
-                title="Create New Post"
-                className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] flex items-center justify-center shadow-xs transition-transform hover:scale-105"
-              >
-                <Plus className="w-5 h-5 stroke-[2.3]" />
-              </button>
-            </DialogTrigger>
-            <DialogContent className="rounded-[28px] max-w-md bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100 max-h-[90vh] overflow-y-auto no-scrollbar">
-              <DialogHeader>
-                <DialogTitle className="font-serif text-2xl text-forest dark:text-emerald-400">
-                  New BabyGram Post ✨
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4 pt-1">
-                {/* Media Type Switcher & Uploader */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-2">
-                    Choose what to share:
-                  </label>
-
-                  {newMediaPreview ? (
-                    <div className="space-y-2">
-                      <div className="relative rounded-2xl overflow-hidden border border-[#EBE8DF] dark:border-stone-800 aspect-video bg-stone-900 flex items-center justify-center">
-                        {newMediaType === "video" ? (
-                          <video
-                            src={newMediaPreview}
-                            poster={newVideoThumbnail || undefined}
-                            controls
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <img
-                            src={newMediaPreview}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewMediaPreview(null);
-                            setNewVideoThumbnail(null);
-                            setSelectedFile(null);
-                          }}
-                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Video Thumbnail / Cover Picker */}
-                      {newMediaType === "video" && (
-                        <div className="p-3 bg-[#FAF9F5] dark:bg-stone-900 rounded-xl border border-[#EBE8DF] dark:border-stone-800 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {newVideoThumbnail ? (
-                              <img
-                                src={newVideoThumbnail}
-                                alt="Cover"
-                                className="w-10 h-10 rounded-lg object-cover border"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-gray-500">
-                                <ImageIcon className="w-4 h-4" />
-                              </div>
-                            )}
-                            <div>
-                              <p className="text-xs font-semibold text-gray-800 dark:text-stone-200">Video Cover</p>
-                              <p className="text-[10px] text-gray-500 dark:text-stone-400">
-                                {newVideoThumbnail ? "Custom cover selected" : "Select a cover photo (optional)"}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => thumbnailInputRef.current?.click()}
-                            className="text-xs h-8 rounded-lg"
-                          >
-                            {newVideoThumbnail ? "Change" : "Add Cover"}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="rounded-2xl h-16 border-[#E3DFD3] dark:border-stone-700 flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40 dark:hover:bg-emerald-950/30"
-                      >
-                        <Camera className="w-5 h-5 text-[#1E5E3A] dark:text-emerald-400" />
-                        <span className="text-[11px] font-semibold text-gray-700 dark:text-stone-300">Photo / Gallery</span>
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => videoInputRef.current?.click()}
-                        className="rounded-2xl h-16 border-[#E3DFD3] dark:border-stone-700 flex flex-col items-center justify-center gap-1 hover:border-[#48B774] hover:bg-[#EAF5EF]/40 dark:hover:bg-emerald-950/30"
-                      >
-                        <Film className="w-5 h-5 text-[#1E5E3A] dark:text-emerald-400" />
-                        <span className="text-[11px] font-semibold text-gray-700 dark:text-stone-300">Baby Video</span>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Title */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
-                    Post Title
-                  </label>
-                  <Input
-                    placeholder="e.g. First time trying avocado mash!"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="rounded-xl border-[#E3DFD3] dark:border-stone-700 text-xs dark:bg-stone-900"
-                  />
-                </div>
-
-                {/* Content */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
-                    Story / Caption
-                  </label>
-                  <Textarea
-                    placeholder="Share how your baby reacted, recipe ingredients, or feeding tips with fellow moms..."
-                    value={newContent}
-                    onChange={(e) => setNewContent(e.target.value)}
-                    rows={3}
-                    className="rounded-xl border-[#E3DFD3] dark:border-stone-700 text-xs resize-none dark:bg-stone-900"
-                  />
-                </div>
-
-                {/* Age Tag */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
-                    Baby Age Category
-                  </label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {["6-8 Months", "9-11 Months", "12-23 Months", "24+ Months"].map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => setNewAgeTag(tag)}
-                        className={`text-[10px] py-1.5 px-1 rounded-xl border font-semibold text-center transition-all ${
-                          newAgeTag === tag
-                            ? "bg-[#1E5E3A] text-white border-[#1E5E3A] shadow-xs"
-                            : "bg-[#FAF9F5] dark:bg-stone-900 text-gray-700 dark:text-stone-300 border-[#E3DFD3] dark:border-stone-700 hover:bg-stone-100"
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Hashtags */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-stone-300 block mb-1">
-                    Hashtags
-                  </label>
-                  {newHashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {newHashtags.map((h) => (
-                        <span
-                          key={h}
-                          className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
-                        >
-                          {h}
-                          <button
-                            type="button"
-                            onClick={() => removeHashtag(h)}
-                            className="hover:text-red-500"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Suggested Hashtags */}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {SUGGESTED_HASHTAGS.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => toggleHashtag(tag)}
-                        className={`text-[10px] px-2 py-0.5 rounded-md border transition-all ${
-                          newHashtags.includes(tag)
-                            ? "bg-[#1E5E3A] text-white border-[#1E5E3A]"
-                            : "bg-white dark:bg-stone-900 text-gray-600 dark:text-stone-400 border-gray-200 dark:border-stone-700 hover:bg-stone-50"
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Add Custom Hashtag Input */}
-                  <div className="flex gap-1.5">
-                    <Input
-                      placeholder="#AddHashtag"
-                      value={customHashtagInput}
-                      onChange={(e) => setCustomHashtagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addCustomHashtag();
-                        }
-                      }}
-                      className="rounded-lg border-[#E3DFD3] dark:border-stone-700 text-xs h-8 dark:bg-stone-900"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={addCustomHashtag}
-                      className="h-8 text-xs rounded-lg px-3"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleCreatePost}
-                  disabled={isSubmitting}
-                  className="w-full rounded-full bg-[#1E5E3A] dark:bg-emerald-600 hover:bg-[#16472c] text-white font-semibold py-3 shadow-md"
-                >
-                  {isSubmitting ? "Publishing..." : "Publish to BabyGram ❤️"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {/* Create Post Button (+) - Opens Instagram Creation Flow (Image 3 & 4) */}
+          <button
+            onClick={() => setIsNewPostOpen(true)}
+            title="Create New Post"
+            className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 text-gray-700 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] flex items-center justify-center shadow-xs transition-transform hover:scale-105"
+          >
+            <Plus className="w-5 h-5 stroke-[2.3]" />
+          </button>
 
           {/* Activity / Notifications (Heart) */}
           <button
@@ -914,7 +550,7 @@ export const Community: React.FC = () => {
             className="w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847] shadow-xs hover:scale-105 transition-transform"
           >
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+              src={currentUserAvatar}
               alt="My Profile"
               className="w-full h-full rounded-full object-cover border border-white dark:border-stone-900"
             />
@@ -922,8 +558,7 @@ export const Community: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Instagram Stories Bar on Top */}
-      {/* 1. Instagram Stories Bar on Top (Only shows followed moms, or empty for new users) */}
+      {/* 2. Instagram Stories Bar (Requirement 4: Unviewed first, viewed last with gray ring) */}
       <CommunityStories
         onAddStoryClick={() => setIsStoryModalOpen(true)}
         followedMoms={followedMoms}
@@ -931,7 +566,7 @@ export const Community: React.FC = () => {
         onAuthorClick={(name) => handleOpenMotherProfile(name)}
       />
 
-      {/* 2. Instagram-Style Continuous Feed */}
+      {/* 3. Instagram-Style Continuous Feed */}
       <div className="space-y-6">
         {isLoadingFeed ? (
           <div className="text-center py-16 text-gray-400 text-xs flex items-center justify-center gap-2">
@@ -939,14 +574,14 @@ export const Community: React.FC = () => {
             <span>Loading community feed...</span>
           </div>
         ) : posts.length === 0 ? (
-          <div className="rounded-[28px] bg-white border border-[#EBE8DF] p-10 text-center space-y-3">
-            <div className="w-16 h-16 rounded-full bg-[#EAF5EF] text-[#1E5E3A] flex items-center justify-center mx-auto shadow-xs">
+          <div className="rounded-[28px] bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 p-10 text-center space-y-3">
+            <div className="w-16 h-16 rounded-full bg-[#EAF5EF] dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center mx-auto shadow-xs">
               <Sparkles className="w-8 h-8 stroke-[1.5]" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-gray-900">
+            <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-stone-100">
               Welcome to Moms' Community!
             </h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs text-gray-500 dark:text-stone-400 max-w-sm mx-auto leading-relaxed">
               No posts have been shared yet. Be the very first mother to post a baby weaning photo, video, or recipe milestone!
             </p>
             <Button
@@ -967,6 +602,7 @@ export const Community: React.FC = () => {
             const mediaSrc = (post.image_urls && post.image_urls[0]) || post.video_url || null;
             const isFollowing = !!followedMoms[post.author_name || ""];
             const isHeartPopping = !!heartPops[post.id];
+            const canDelete = isAdminUser || post.user_id === currentUserId || post.author_name === currentUserName;
 
             return (
               <article
@@ -1004,7 +640,7 @@ export const Community: React.FC = () => {
                           day: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        })} • BabyGram
+                        })} • BabyGram {post.location ? `• 📍 ${post.location}` : ""}
                       </span>
                     </div>
                   </div>
@@ -1028,7 +664,7 @@ export const Community: React.FC = () => {
                       )}
                     </Button>
 
-                    {/* 3-dots Menu */}
+                    {/* 3-dots Menu with Delete & Report */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-stone-200">
@@ -1050,11 +686,24 @@ export const Community: React.FC = () => {
                           <Share2 className="w-3.5 h-3.5 mr-2" />
                           Share Post
                         </DropdownMenuItem>
+
+                        {/* Requirement 1: Delete Post */}
+                        {canDelete && (
+                          <DropdownMenuItem
+                            onClick={() => handleDeletePost(post.id)}
+                            className="cursor-pointer text-rose-600 focus:text-rose-600 font-semibold"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-2 text-rose-600" />
+                            Delete Post
+                          </DropdownMenuItem>
+                        )}
+
+                        {/* Requirement 2: Report Post */}
                         <DropdownMenuItem
                           onClick={() => handleReportPost(post)}
-                          className="cursor-pointer text-red-600 focus:text-red-600"
+                          className="cursor-pointer text-amber-600 focus:text-amber-600"
                         >
-                          <Flag className="w-3.5 h-3.5 mr-2" />
+                          <Flag className="w-3.5 h-3.5 mr-2 text-amber-600" />
                           Report to Admin
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -1062,10 +711,13 @@ export const Community: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. Instagram High-Res Post Media (Aspect 4:5 or 4:3) with Double-Tap Heart */}
+                {/* 
+                  Requirement 3: Media displayed in ORIGINAL size/ratio WITHOUT CROPPING!
+                  Uses object-contain with max-h-[750px] so full height and width are preserved.
+                */}
                 {hasMedia && (
                   <div
-                    className="relative w-full aspect-[4/5] sm:aspect-square bg-stone-950 cursor-pointer overflow-hidden select-none flex items-center justify-center"
+                    className="relative w-full bg-stone-950/95 dark:bg-black cursor-pointer overflow-hidden select-none flex items-center justify-center min-h-[220px]"
                     onDoubleClick={() => handleDoubleTapPhoto(post.id)}
                   >
                     {isVideo ? (
@@ -1075,13 +727,13 @@ export const Community: React.FC = () => {
                         controls
                         muted={mutedVideos[post.id] ?? false}
                         playsInline
-                        className="w-full h-full object-cover"
+                        className="w-full max-h-[750px] object-contain block mx-auto"
                       />
                     ) : (
                       <img
                         src={mediaSrc!}
                         alt={post.title}
-                        className="w-full h-full object-cover"
+                        className="w-full max-h-[750px] object-contain block mx-auto"
                         loading="lazy"
                       />
                     )}
@@ -1199,15 +851,17 @@ export const Community: React.FC = () => {
                       {post.author_name}
                       <CheckCircle2 className="w-3 h-3 text-[#0095F6] fill-[#0095F6] text-white" />
                     </span>
-                    <span className="font-semibold text-forest dark:text-emerald-400 mr-1.5">{post.title} —</span>
                     {post.content}
                   </p>
 
-                  {/* Hashtags display */}
+                  {/* Hashtags */}
                   {post.hashtags && post.hashtags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {post.hashtags.map((h) => (
-                        <span key={h} className="text-[11px] font-semibold text-[#1E5E3A] dark:text-emerald-400 hover:underline cursor-pointer">
+                      {post.hashtags.map((h, i) => (
+                        <span
+                          key={i}
+                          className="text-[11px] font-semibold text-[#00376B] dark:text-[#3897f0] hover:underline cursor-pointer"
+                        >
                           {h}
                         </span>
                       ))}
@@ -1215,59 +869,61 @@ export const Community: React.FC = () => {
                   )}
                 </div>
 
-                {/* 6. Expandable Comments Preview */}
-                {postComments.length > 0 && !isExpanded && (
-                  <div className="px-4 pb-2">
+                {/* 6. Expandable Comments Section */}
+                <div className="px-4 pb-3">
+                  {post.comments_count > 0 && (
                     <button
                       onClick={() => toggleComments(post.id)}
-                      className="text-xs text-gray-500 dark:text-stone-400 hover:text-forest dark:hover:text-emerald-400 transition-colors font-medium"
+                      className="text-xs text-gray-500 dark:text-stone-400 hover:text-gray-700 font-medium mb-2 block"
                     >
-                      View all {postComments.length} comments
+                      {isExpanded
+                        ? "Hide comments"
+                        : `View all ${post.comments_count} ${post.comments_count === 1 ? "comment" : "comments"}`}
                     </button>
-                  </div>
-                )}
-
-                {/* Expanded Comment Thread */}
-                {isExpanded && (
-                  <div className="px-4 pb-3 border-t border-stone-100 dark:border-stone-800 pt-3 space-y-2.5 bg-[#FAF9F5]/50 dark:bg-stone-900/40">
-                    {postComments.map((comment) => (
-                      <div key={comment.id} className="text-xs leading-relaxed">
-                        <span className="font-bold text-gray-900 dark:text-stone-100 mr-1.5">
-                          {comment.author_name}
-                        </span>
-                        <span className="text-gray-700 dark:text-stone-300">{comment.content}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 7. Instagram Quick Reply Bar with Smiley */}
-                <div className="px-4 py-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center gap-2 bg-white dark:bg-[#161c18]">
-                  <Smile className="w-4 h-4 text-gray-400 dark:text-stone-500 shrink-0" />
-                  <Input
-                    value={currentReply}
-                    onChange={(e) =>
-                      setReplyInputByPost((prev) => ({ ...prev, [post.id]: e.target.value }))
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendComment(post);
-                      }
-                    }}
-                    placeholder="Add a comment as a mom..."
-                    className="border-0 bg-transparent text-xs h-8 px-1 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-400 dark:placeholder:text-stone-500 dark:text-stone-100 flex-1 shadow-none"
-                  />
-                  {currentReply.trim() && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleSendComment(post)}
-                      disabled={isPostingReply}
-                      className="rounded-full bg-[#1E5E3A] dark:bg-emerald-600 hover:bg-[#16472c] text-white text-xs h-7 px-3 font-semibold shrink-0"
-                    >
-                      {isPostingReply ? <Loader2 className="w-3 h-3 animate-spin" /> : "Post"}
-                    </Button>
                   )}
+
+                  {isExpanded && (
+                    <div className="space-y-2 mb-3 bg-gray-50/70 dark:bg-stone-900/50 p-3 rounded-2xl border border-gray-100 dark:border-stone-800/60 max-h-48 overflow-y-auto no-scrollbar">
+                      {postComments.length === 0 ? (
+                        <p className="text-[11px] text-gray-400 dark:text-stone-500 italic">No comments yet. Be the first to cheer this mom!</p>
+                      ) : (
+                        postComments.map((c) => (
+                          <div key={c.id} className="text-xs">
+                            <span className="font-bold text-gray-900 dark:text-stone-200 mr-1.5">{c.author_name}</span>
+                            <span className="text-gray-700 dark:text-stone-300">{c.content}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* 7. Quick Comment Input */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSendComment(post);
+                    }}
+                    className="flex items-center gap-2 pt-1 border-t border-[#EBE8DF]/50 dark:border-stone-800/50"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Add a comment with love..."
+                      value={currentReply}
+                      onChange={(e) =>
+                        setReplyInputByPost((prev) => ({ ...prev, [post.id]: e.target.value }))
+                      }
+                      className="flex-1 text-xs bg-transparent border-0 text-gray-800 dark:text-stone-200 placeholder-gray-400 dark:placeholder-stone-500 focus:outline-none focus:ring-0 py-1 px-0"
+                    />
+                    {currentReply.trim() && (
+                      <button
+                        type="submit"
+                        disabled={isPostingReply}
+                        className="text-xs font-bold text-[#0095F6] hover:text-[#1877F2] transition-colors disabled:opacity-50"
+                      >
+                        {isPostingReply ? "..." : "Post"}
+                      </button>
+                    )}
+                  </form>
                 </div>
               </article>
             );
@@ -1295,13 +951,42 @@ export const Community: React.FC = () => {
         isAdminUser={isAdminUser}
       />
 
-      {/* Create Story Modal */}
+      {/* Requirement 5: Create Story Modal (Instagram 2-step flow: Image 1 & Image 2) */}
       <CreateStoryModal
         isOpen={isStoryModalOpen}
         onClose={() => setIsStoryModalOpen(false)}
         onStoryCreated={(newStory) => {
-          // Handled inside CommunityStories
+          toast.success("Story posted! 🌟");
         }}
+        currentUserAvatar={currentUserAvatar}
+        currentUserName={currentUserName}
+      />
+
+      {/* Requirement 5: Create Post Modal (Instagram 2-step flow: Image 3 & Image 4) */}
+      <CreatePostModal
+        isOpen={isNewPostOpen}
+        onClose={() => setIsNewPostOpen(false)}
+        onPostCreated={(newPost) => {
+          setPosts((prev) => [newPost, ...prev]);
+        }}
+        currentUser={{
+          id: currentUserId,
+          name: currentUserName,
+          baby: currentUserBaby,
+          avatar: currentUserAvatar,
+        }}
+      />
+
+      {/* Requirement 2: Report Post Modal */}
+      <ReportPostModal
+        isOpen={isReportOpen}
+        onClose={() => {
+          setIsReportOpen(false);
+          setPostToReport(null);
+        }}
+        post={postToReport}
+        reporterName={currentUserName}
+        reporterId={currentUserId}
       />
     </div>
   );

@@ -78,7 +78,7 @@ const Admin = () => {
           </TabsTrigger>
           <TabsTrigger value="content" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Content</span>
+            <span className="hidden sm:inline">Community</span>
           </TabsTrigger>
           <TabsTrigger value="health" className="flex items-center gap-2">
             <Server className="h-4 w-4" />

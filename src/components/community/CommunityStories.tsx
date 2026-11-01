@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, X, Heart, Sparkles, ChevronRight, ChevronLeft, Film } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { getViewedStoryIds, markStoryAsViewed } from "@/services/communityService";
 
 export interface StoryItem {
   id: string;
@@ -87,6 +88,7 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
     }
   });
 
+  const [viewedStoryIds, setViewedStoryIds] = useState<string[]>(() => getViewedStoryIds());
   const [activeStoryIdx, setActiveStoryIdx] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
 
@@ -105,7 +107,25 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
     }
   }, [customStories]);
 
-  const visibleStories = allStories.length > 0 ? allStories : SAMPLE_STORIES;
+  // Listen to viewed story events
+  useEffect(() => {
+    const handleStoryViewed = () => {
+      setViewedStoryIds(getViewedStoryIds());
+    };
+    window.addEventListener("babygram:story_viewed", handleStoryViewed);
+    return () => window.removeEventListener("babygram:story_viewed", handleStoryViewed);
+  }, []);
+
+  const rawStories = allStories.length > 0 ? allStories : SAMPLE_STORIES;
+
+  // Requirement 4: Unviewed stories appear FIRST, viewed stories pass to the LAST
+  const visibleStories = [...rawStories].sort((a, b) => {
+    const aViewed = viewedStoryIds.includes(a.id);
+    const bViewed = viewedStoryIds.includes(b.id);
+    if (!aViewed && bViewed) return -1;
+    if (aViewed && !bViewed) return 1;
+    return 0;
+  });
 
   // Auto-progress stories
   useEffect(() => {
@@ -118,7 +138,13 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
       setProgress((prev) => {
         if (prev >= 100) {
           if (activeStoryIdx < visibleStories.length - 1) {
-            setActiveStoryIdx((idx) => (idx !== null ? idx + 1 : null));
+            const nextIdx = activeStoryIdx + 1;
+            const nextStory = visibleStories[nextIdx];
+            if (nextStory) {
+              markStoryAsViewed(nextStory.id);
+              setViewedStoryIds((v) => (v.includes(nextStory.id) ? v : [...v, nextStory.id]));
+            }
+            setActiveStoryIdx(nextIdx);
             return 0;
           } else {
             setActiveStoryIdx(null);
@@ -130,7 +156,7 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [activeStoryIdx, visibleStories.length]);
+  }, [activeStoryIdx, visibleStories]);
 
   const currentStory = activeStoryIdx !== null ? visibleStories[activeStoryIdx] : null;
 
@@ -157,35 +183,59 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
           </button>
 
           {/* Followed / Community Stories */}
-          {visibleStories.map((story, idx) => (
-            <button
-              key={story.id}
-              onClick={() => {
-                setActiveStoryIdx(idx);
-                setProgress(0);
-              }}
-              className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none"
-            >
-              {/* Instagram-style colorful gradient ring */}
-              <div className="w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-[#F59E0B] via-[#E1306C] to-[#833AB4] shadow-xs group-hover:scale-105 transition-transform relative">
-                <div className="w-full h-full rounded-full bg-white dark:bg-stone-900 p-0.5">
-                  <img
-                    src={story.avatar}
-                    alt={story.author_name}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                </div>
-                {story.media_type === "video" && (
-                  <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#1E5E3A] text-white flex items-center justify-center text-[8px] border border-white">
-                    <Film className="w-2.5 h-2.5" />
+          {visibleStories.map((story, idx) => {
+            const isViewed = viewedStoryIds.includes(story.id);
+
+            return (
+              <button
+                key={story.id}
+                onClick={() => {
+                  setActiveStoryIdx(idx);
+                  setProgress(0);
+                  markStoryAsViewed(story.id);
+                  setViewedStoryIds((v) => (v.includes(story.id) ? v : [...v, story.id]));
+                }}
+                className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none"
+              >
+                {/* 
+                  Requirement 4: 
+                  - Unviewed: Vibrant Instagram colorful gradient ring
+                  - Viewed: Subtle gray ring, no red/colorful border 
+                */}
+                <div
+                  className={`w-16 h-16 rounded-full group-hover:scale-105 transition-all relative ${
+                    isViewed
+                      ? "p-[2px] bg-stone-300 dark:bg-stone-700 shadow-none opacity-85"
+                      : "p-[2.5px] bg-gradient-to-tr from-[#F59E0B] via-[#E1306C] to-[#833AB4] shadow-xs"
+                  }`}
+                >
+                  <div className="w-full h-full rounded-full bg-white dark:bg-stone-900 p-0.5">
+                    <img
+                      src={story.avatar}
+                      alt={story.author_name}
+                      className={`w-full h-full rounded-full object-cover ${
+                        isViewed ? "grayscale-[15%]" : ""
+                      }`}
+                    />
                   </div>
-                )}
-              </div>
-              <span className="text-[11px] font-medium text-gray-700 dark:text-stone-300 max-w-[68px] truncate text-center">
-                {story.baby_name || story.author_name.split(" ")[0]}
-              </span>
-            </button>
-          ))}
+                  {story.media_type === "video" && (
+                    <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#1E5E3A] text-white flex items-center justify-center text-[8px] border border-white">
+                      <Film className="w-2.5 h-2.5" />
+                    </div>
+                  )}
+                </div>
+                <span
+                  className={`text-[11px] max-w-[68px] truncate text-center ${
+                    isViewed
+                      ? "text-stone-400 dark:text-stone-500 font-normal"
+                      : "text-gray-800 dark:text-stone-200 font-semibold"
+                  }`}
+                >
+                  {story.baby_name || story.author_name.split(" ")[0]}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -268,7 +318,8 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
                   className="absolute inset-y-0 left-0 w-1/3 z-20 cursor-pointer"
                   onClick={() => {
                     if (activeStoryIdx > 0) {
-                      setActiveStoryIdx(activeStoryIdx - 1);
+                      const prevIdx = activeStoryIdx - 1;
+                      setActiveStoryIdx(prevIdx);
                       setProgress(0);
                     }
                   }}
@@ -277,7 +328,13 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
                   className="absolute inset-y-0 right-0 w-1/3 z-20 cursor-pointer"
                   onClick={() => {
                     if (activeStoryIdx < visibleStories.length - 1) {
-                      setActiveStoryIdx(activeStoryIdx + 1);
+                      const nextIdx = activeStoryIdx + 1;
+                      const nextStory = visibleStories[nextIdx];
+                      if (nextStory) {
+                        markStoryAsViewed(nextStory.id);
+                        setViewedStoryIds((v) => (v.includes(nextStory.id) ? v : [...v, nextStory.id]));
+                      }
+                      setActiveStoryIdx(nextIdx);
                       setProgress(0);
                     } else {
                       setActiveStoryIdx(null);
