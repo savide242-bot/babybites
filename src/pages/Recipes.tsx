@@ -46,9 +46,10 @@ const OFFICIAL_AGE_OPTIONS = [
 const OFFICIAL_CATEGORY_OPTIONS = [
   { id: "All Categories", label: "🌟 All" },
   { id: "Breakfast", label: "🥞 Breakfast" },
-  { id: "Lunch & Dinner", label: "🥑 Lunch & Dinner" },
+  { id: "Lunch", label: "🥗 Lunch" },
+  { id: "Dinner", label: "🍲 Dinner" },
   { id: "Snack", label: "🥕 Snack" },
-  { id: "Dessert", label: "🍓 Dessert & Compotes" },
+  { id: "Dessert", label: "🍓 Desserts & Smoothies" },
 ];
 
 // Helper to normalize age string
@@ -180,8 +181,12 @@ export const Recipes = () => {
       const decodedCat = decodeURIComponent(catParam).toLowerCase();
       if (decodedCat.includes("breakfast")) {
         setSelectedCategory("Breakfast");
-      } else if (decodedCat.includes("lunch") || decodedCat.includes("dinner")) {
-        setSelectedCategory("Lunch & Dinner");
+      } else if (decodedCat.includes("lunch") && !decodedCat.includes("dinner")) {
+        setSelectedCategory("Lunch");
+      } else if (decodedCat.includes("dinner") && !decodedCat.includes("lunch")) {
+        setSelectedCategory("Dinner");
+      } else if (decodedCat.includes("lunch") && decodedCat.includes("dinner")) {
+        setSelectedCategory("Lunch");
       } else if (decodedCat.includes("snack")) {
         setSelectedCategory("Snack");
       } else if (decodedCat.includes("dessert") || decodedCat.includes("smoothie")) {
@@ -215,7 +220,11 @@ export const Recipes = () => {
       // 3. Strict Category Matching
       if (selectedCategory !== "All Categories") {
         const mealCat = getMealCategory(recipe);
-        if (mealCat !== selectedCategory) return false;
+        if (selectedCategory === "Lunch & Dinner") {
+          if (mealCat !== "Lunch" && mealCat !== "Dinner") return false;
+        } else if (mealCat !== selectedCategory) {
+          return false;
+        }
       }
 
       return true;
@@ -263,12 +272,20 @@ export const Recipes = () => {
           tag: "6–8 MONTHS • BREAKFAST",
         };
       }
-      if (selectedCategory === "Lunch & Dinner") {
+      if (selectedCategory === "Lunch" || selectedCategory === "Lunch & Dinner") {
         return {
           image: posterLunchDinner68,
-          title: "Lunch & Dinner: Nourishing Moments",
-          subtitle: "Soft steamed vegetable purees, mild lentil dahl, and tender poultry blends.",
-          tag: "6–8 MONTHS • LUNCH & DINNER",
+          title: "Lunch: Wholesome Midday Moments",
+          subtitle: "Gentle vegetable mashes, mild lentil bowls, and tender poultry lunch purees.",
+          tag: "6–8 MONTHS • LUNCH",
+        };
+      }
+      if (selectedCategory === "Dinner") {
+        return {
+          image: posterLunchDinner68,
+          title: "Dinner: Nourishing Evening Warmth",
+          subtitle: "Cozy root vegetable purees, comforting baby stews, and warming nighttime bowls.",
+          tag: "6–8 MONTHS • DINNER",
         };
       }
       if (selectedCategory === "Snack") {
@@ -298,12 +315,20 @@ export const Recipes = () => {
           tag: "9–11 MONTHS • BREAKFAST",
         };
       }
-      if (selectedCategory === "Lunch & Dinner") {
+      if (selectedCategory === "Lunch" || selectedCategory === "Lunch & Dinner") {
         return {
           image: posterLunchDinner911,
-          title: "Lunch & Dinner: Nourishing Moments",
-          subtitle: "Soft spiral pasta with chicken and sweet peas, mild vegetable curries & grain bowls.",
-          tag: "9–11 MONTHS • LUNCH & DINNER",
+          title: "Lunch: Nourishing Midday Meals",
+          subtitle: "Soft chicken and sweet pea bowls, tender patties, and wholesome veggie quinoa lunches.",
+          tag: "9–11 MONTHS • LUNCH",
+        };
+      }
+      if (selectedCategory === "Dinner") {
+        return {
+          image: posterLunchDinner911,
+          title: "Dinner: Warm & Comforting Dinners",
+          subtitle: "Mild vegetable curries, soft stewed fish with mash, and cozy evening baby pastas.",
+          tag: "9–11 MONTHS • DINNER",
         };
       }
       if (selectedCategory === "Snack") {
@@ -333,12 +358,20 @@ export const Recipes = () => {
           tag: "12–23 MONTHS • BREAKFAST",
         };
       }
-      if (selectedCategory === "Lunch & Dinner") {
+      if (selectedCategory === "Lunch" || selectedCategory === "Lunch & Dinner") {
         return {
           image: posterLunchDinner1223,
-          title: "Lunch & Dinner: Nourishing Moments",
-          subtitle: "Mini pasta wheels with fresh avocado, roasted pumpkin chunks, sweet peas and shredded chicken.",
-          tag: "12–23 MONTHS • LUNCH & DINNER",
+          title: "Lunch: Vibrant Toddler Lunches",
+          subtitle: "Avocado quesadillas, chicken brown rice bowls, and wholesome veggie fritters.",
+          tag: "12–23 MONTHS • LUNCH",
+        };
+      }
+      if (selectedCategory === "Dinner") {
+        return {
+          image: posterLunchDinner1223,
+          title: "Dinner: Hearty Family-Style Dinners",
+          subtitle: "Mini pasta wheels with mild sauce, soft beef shepherd's pie, and creamy vegetable risottos.",
+          tag: "12–23 MONTHS • DINNER",
         };
       }
       if (selectedCategory === "Snack") {
@@ -508,10 +541,11 @@ export const Recipes = () => {
               Explore 6–8 Months Categories
             </h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
             {[
               { title: "Breakfast", img: posterBreakfast68, cat: "Breakfast" },
-              { title: "Lunch & Dinner", img: posterLunchDinner68, cat: "Lunch & Dinner" },
+              { title: "Lunch", img: posterLunchDinner68, cat: "Lunch" },
+              { title: "Dinner", img: posterLunchDinner68, cat: "Dinner" },
               { title: "Snacks", img: posterSnacks68, cat: "Snack" },
               { title: "Desserts", img: posterDesserts68, cat: "Dessert" },
             ].map((item, idx) => (
@@ -547,10 +581,11 @@ export const Recipes = () => {
               Explore 9–11 Months Categories
             </h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
             {[
               { title: "Breakfast", img: posterBreakfast911, cat: "Breakfast" },
-              { title: "Lunch & Dinner", img: posterLunchDinner911, cat: "Lunch & Dinner" },
+              { title: "Lunch", img: posterLunchDinner911, cat: "Lunch" },
+              { title: "Dinner", img: posterLunchDinner911, cat: "Dinner" },
               { title: "Snacks", img: posterSnacks911, cat: "Snack" },
               { title: "Desserts", img: posterDesserts911, cat: "Dessert" },
             ].map((item, idx) => (
@@ -586,10 +621,11 @@ export const Recipes = () => {
               Explore 12–23 Months Categories
             </h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
             {[
               { title: "Breakfast", img: posterBreakfast1223, cat: "Breakfast" },
-              { title: "Lunch & Dinner", img: posterLunchDinner1223, cat: "Lunch & Dinner" },
+              { title: "Lunch", img: posterLunchDinner1223, cat: "Lunch" },
+              { title: "Dinner", img: posterLunchDinner1223, cat: "Dinner" },
               { title: "Snacks", img: posterSnacks1223, cat: "Snack" },
               { title: "Desserts", img: posterDesserts1223, cat: "Dessert" },
             ].map((item, idx) => (
@@ -625,10 +661,11 @@ export const Recipes = () => {
               Explore 24+ Months Categories
             </h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
             {[
               { title: "Breakfast", img: posterBreakfast24, cat: "Breakfast" },
-              { title: "Lunch & Dinner", img: posterLunchDinner24, cat: "Lunch & Dinner" },
+              { title: "Lunch", img: posterLunchDinner24, cat: "Lunch" },
+              { title: "Dinner", img: posterLunchDinner24, cat: "Dinner" },
               { title: "Snacks", img: posterSnacks24, cat: "Snack" },
               { title: "Desserts", img: posterDesserts24, cat: "Dessert" },
             ].map((item, idx) => (

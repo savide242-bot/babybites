@@ -79,11 +79,19 @@ export const Home = () => {
       isPosterCard: true,
     },
     {
-      title: "Lunch-Dinner",
-      subtitle: "nourishing little moments",
+      title: "Lunch",
+      subtitle: "nourishing midday moments",
       ageTag: "6-8 Months",
       image: posterLunchDinner68,
-      link: "/recipes?age=6-8&category=Lunch%20%26%20Dinner",
+      link: "/recipes?age=6-8&category=Lunch",
+      isPosterCard: true,
+    },
+    {
+      title: "Dinner",
+      subtitle: "cozy evening purees & stews",
+      ageTag: "6-8 Months",
+      image: posterLunchDinner68,
+      link: "/recipes?age=6-8&category=Dinner",
       isPosterCard: true,
     },
     {

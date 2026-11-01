@@ -61,7 +61,8 @@ const AGE_GROUPS = [
 
 const CATEGORIES = [
   "Breakfast",
-  "Lunch & Dinner",
+  "Lunch",
+  "Dinner",
   "Snack",
   "Dessert & Compotes",
   "Puree",
@@ -110,7 +111,7 @@ export const RecipeManagement = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [ageGroup, setAgeGroup] = useState("6-8 months");
-  const [category, setCategory] = useState("Lunch & Dinner");
+  const [category, setCategory] = useState("Lunch");
   const [prepTime, setPrepTime] = useState("15 min");
   const [servings, setServings] = useState("2 servings");
   const [imagePreview, setImagePreview] = useState("");
@@ -124,9 +125,12 @@ export const RecipeManagement = () => {
   // Filtered recipes list
   const filteredRecipes = useMemo(() => {
     return recipes.filter((r) => {
+      const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
-        r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.ingredients.some((ing) => ing.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        r.id.toLowerCase() === q ||
+        r.title.toLowerCase().includes(q) ||
+        r.ingredients.some((ing) => ing.toLowerCase().includes(q));
 
       const matchesAge =
         selectedAge === "all" ||

@@ -41,7 +41,7 @@ export interface Recipe {
 }
 
 export const ageGroups = ["All Ages", "6-8 months", "9-11 months", "12-23 months", "24+ months"];
-export const categories = ["All Categories", "Breakfast", "Lunch & Dinner", "Snack", "Dessert"];
+export const categories = ["All Categories", "Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
 
 // Standardized official 4 age groups normalization
 export const normalizeAgeGroup = (raw: string): string => {
@@ -79,7 +79,7 @@ export const normalizeAgeGroup = (raw: string): string => {
 };
 
 // Standardized official 4 categories: Breakfast, Lunch & Dinner, Snack, Dessert
-export const getMealCategory = (recipe: any): "Breakfast" | "Lunch & Dinner" | "Snack" | "Dessert" => {
+export const getMealCategory = (recipe: any): "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Dessert" => {
   const title = (recipe.title || "").toLowerCase();
   const rawCat = (recipe.category || "").toLowerCase();
 
@@ -90,16 +90,17 @@ export const getMealCategory = (recipe: any): "Breakfast" | "Lunch & Dinner" | "
     rawCat === "stew" ||
     /puree|purée|soup|stew|broth|chowder|dahl|curry/.test(title);
 
-  // 1. Breakfast: All breakfast grains, porridge, oats, waffles, pancakes, egg scrambles, french toast, breakfast bakes
+  // 1. Breakfast: ONLY breakfast grains, porridge, oats, waffles, pancakes, egg scrambles, french toast, morning breakfast bowls
   const isBreakfastGrain = /\boats?\b|oatmeal|porridge|pancake|waffle|cereal|french toast|congee|granola|muesli|crepe/.test(title);
   const isMorningEggOrToast = /scramble|omelette|egg cup|frittata|breakfast toast|toast fingers|avocado toast|\btoast\b/.test(title);
   const isMorningFruitYogurt = /yogurt bowl|fruit parfait|chia pudding|overnight oats|breakfast bowl|\bparfait\b/.test(title);
 
-  if (!isPureeOrSoup) {
+  // Vegetable, meat, or fish purees can NEVER be breakfast!
+  const hasSavoryLunchIngredients = /chicken|beef|meat|fish|salmon|tuna|turkey|lentil|pasta|risotto|broccoli|pea|zucchini|parsnip|cauliflower|lamb|tofu scramble/.test(title) && !/tofu scramble/.test(title);
+
+  if (!isPureeOrSoup && !hasSavoryLunchIngredients) {
     if (isBreakfastGrain || isMorningEggOrToast || isMorningFruitYogurt || rawCat === "breakfast") {
-      if (!/chicken|beef|meat|fish|salmon|tuna|turkey|lentil|pasta|risotto/.test(title)) {
-        return "Breakfast";
-      }
+      return "Breakfast";
     }
   }
 
@@ -109,26 +110,35 @@ export const getMealCategory = (recipe: any): "Breakfast" | "Lunch & Dinner" | "
     rawCat === "snack" ||
     rawCat === "finger food"
   ) {
-    if (!/porridge|pancake|oatmeal/.test(title)) {
+    if (!/porridge|pancake|oatmeal|soup|stew|risotto/.test(title)) {
       return "Snack";
     }
   }
 
-  // 3. Dessert: wholesome compotes, fruit swirls, natural fruit purees
+  // 3. Dessert: wholesome compotes, fruit swirls, natural fruit purees, smoothies
   if (
-    /compote|pudding|custard|popsicle|nicecream|swirl|dessert/.test(title) ||
-    rawCat === "dessert"
+    /compote|pudding|custard|popsicle|nicecream|swirl|dessert|smoothie/.test(title) ||
+    rawCat === "dessert" ||
+    rawCat === "smoothie"
   ) {
     return "Dessert";
   }
 
   // Pure single-fruit sweet purees
-  if (/puree|purée/.test(title) && /prune|peach|pear|plum|apricot|apple/.test(title) && !/chicken|salmon|beef|turkey|spinach|broccoli|quinoa|lentil|pea/.test(title)) {
+  if (/puree|purée/.test(title) && /prune|peach|pear|plum|apricot|apple|mango|papaya|berry|blueberry/.test(title) && !/chicken|salmon|beef|turkey|spinach|broccoli|quinoa|lentil|pea/.test(title)) {
     return "Dessert";
   }
 
-  // 4. Lunch & Dinner: All savory vegetable purees, chicken, meat, fish, soups, pastas, risottos, stews
-  return "Lunch & Dinner";
+  // 4. Dinner: Hearty evening warm dishes, stews, warm soups, bakes, pastas, casseroles, curries, risottos, meatloaf, fish pie
+  if (
+    rawCat === "dinner" ||
+    /dinner|stew|casserole|pasta|bolognese|risotto|soup|pie|lasagna|curry|meatloaf|chowder|pot pie|bake|ziti|mac & cheese/.test(title)
+  ) {
+    return "Dinner";
+  }
+
+  // 5. Lunch: Midday bowls, light finger food meals, veggie cakes, quesadillas, wraps, salads, patties, and savory purees
+  return "Lunch";
 };
 
 // Infer food-type category from recipe content using intelligent keyword matching
@@ -326,30 +336,33 @@ export const recipes: Recipe[] = [
   },
   {
     id: "3",
-    title: "Green Pea Puree",
-    description: "Protein-packed green puree with mild flavor",
+    title: "Sweet Pea, Mint & Ricotta Velouté",
+    description: "Silky bright green garden pea puree blended with fresh aromatic mint, creamy whole milk ricotta, and extra virgin olive oil.",
     ageGroup: "6-9 months",
-    category: "Puree",
+    category: "Lunch",
     prepTime: "15 minutes",
     servings: "3-4 servings",
     image: getRecipeImage(["pea", "green"]),
-    ingredients: ["1 cup fresh or frozen peas", "3 tbsp water"],
-    instructions: [
-      "If using fresh peas, remove them from their pods by running your thumb along the seam to pop them open. If using frozen peas, let them sit at room temperature for 5 minutes to slightly thaw, making them easier to work with.",
-      "Rinse the peas thoroughly under cold running water in a fine-mesh strainer, gently agitating them with your hand to ensure all surfaces are clean.",
-      "Prepare your steaming setup by filling a pot with 2 inches of water and placing a steamer basket inside. Bring the water to a vigorous boil over high heat.",
-      "Add the peas to the steamer basket, spreading them out evenly in a single layer if possible. Cover tightly with a lid to contain all the steam.",
-      "Steam the peas for 8-10 minutes for fresh peas or 5-7 minutes for frozen peas. They should be very soft and bright green, easily mashing between your fingers when tested.",
-      "Carefully remove the steamer basket and transfer the hot peas to a blender or food processor. Add 3 tablespoons of filtered water or some of the steaming liquid.",
-      "Blend on high speed for 1-2 minutes, pausing to scrape down the sides with a rubber spatula as needed. The mixture should become a smooth, vibrant green puree.",
-      "For babies just starting solids (6 months), pour the blended mixture through a fine-mesh strainer into a clean bowl, using the back of a spoon to press it through. This removes the pea skins which can be difficult for very young babies to digest.",
-      "For babies 7 months and older, straining is optional. Allow the puree to cool to room temperature, stirring occasionally to release heat evenly. Test the temperature before serving to ensure it's lukewarm and safe for your baby."
+    ingredients: [
+      "1 1/2 cups sweet tender green peas (fresh or frozen)",
+      "2 tablespoons whole milk ricotta cheese",
+      "3-4 fresh baby mint leaves",
+      "1 teaspoon extra virgin olive oil",
+      "1/4 cup unsalted vegetable broth or warm water"
     ],
-    nutrition: { calories: "62", protein: "4g", carbs: "11g", fat: "0g", fiber: "4g", vitamins: ["Vitamin K", "Vitamin C", "Folate"] },
-    allergens: [],
+    instructions: [
+      "Steam or simmer peas in unsalted vegetable broth for 5-6 minutes until tender and vibrant green.",
+      "Transfer hot cooked peas and broth into a blender along with fresh baby mint leaves.",
+      "Add whole milk ricotta cheese and extra virgin olive oil.",
+      "Blend on high speed for 1-2 minutes until exceptionally silky and smooth.",
+      "Pass through a fine-mesh sieve if serving to babies just starting solids (6-7 months) to remove pea skins.",
+      "Allow to cool to lukewarm before serving with a soft spoon."
+    ],
+    nutrition: { calories: "78", protein: "4.5g", carbs: "9g", fat: "2.5g", fiber: "3g", vitamins: ["Vitamin C", "Calcium", "Vitamin K", "Protein"] },
+    allergens: ["Dairy"],
     storage: "Refrigerate up to 3 days",
-    healthBenefits: "Green peas are an excellent source of plant-based protein, essential for your baby's muscle development and growth. They're packed with vitamin K for bone health, vitamin C to boost immunity, and folate which supports cell growth and brain development. The fiber aids digestion and helps prevent constipation. Peas also contain antioxidants that protect cells and support eye health.",
-    servingGuidance: "Serve 2-3 tablespoons per meal, 1-2 times daily. Best served at lunch or dinner. Offer 2-3 times per week. Can be mixed with rice cereal, potato puree, or other vegetables for variety."
+    healthBenefits: "Rich in muscle-building plant protein, bone-strengthening calcium from ricotta, and essential digestion-friendly fiber.",
+    servingGuidance: "Serve 3-4 tablespoons for lunch. Can be mixed with baby rice cereal or warm potato mash."
   },
   {
     id: "4",
@@ -429,26 +442,32 @@ export const recipes: Recipe[] = [
   },
   {
     id: "7",
-    title: "Banana Baby Mash",
-    description: "Quick no-cook first food",
+    title: "Nourishing Banana, Tahini & Oat Porridge",
+    description: "A creamy, calcium-rich morning breakfast porridge made from ripe bananas, gentle calcium-loaded sesame tahini, and ground baby oats.",
     ageGroup: "6-9 months",
-    category: "Puree",
-    prepTime: "3 minutes",
+    category: "Breakfast",
+    prepTime: "8 minutes",
     servings: "1-2 servings",
     image: getRecipeImage(["banana"]),
-    ingredients: ["1 ripe banana", "1-2 tbsp breast milk or formula (optional)"],
-    instructions: [
-      "Choose a ripe banana with yellow skin and brown spots - this indicates natural sweetness and softer texture perfect for babies. Very ripe bananas are easier to digest.",
-      "Peel the banana completely, removing all the stringy bits that cling to the fruit. These strings can be a choking hazard and are difficult for babies to swallow.",
-      "Place the peeled banana on a clean plate or in a shallow bowl. Break it into 3-4 large chunks for easier mashing.",
-      "Using a fork, begin mashing the banana pieces with firm, downward pressure. Continue mashing in a circular motion for 2-3 minutes until no lumps remain and the consistency is completely smooth and creamy.",
-      "If the mash seems too thick or your baby is just starting solids, add 1 tablespoon of warm breast milk or formula. Mix thoroughly to achieve a thinner, smoother consistency.",
-      "Check the texture by lifting a spoonful - it should be smooth and creamy with no lumps, dripping slowly from the spoon. Add more liquid if needed, one teaspoon at a time.",
-      "Serve immediately at room temperature. Bananas oxidize quickly and turn brown, which affects both appearance and nutritional value. This is a perfect on-the-go first food requiring no cooking."
+    ingredients: [
+      "1 ripe sweet banana, peeled and mashed",
+      "1/3 cup finely ground rolled baby oats",
+      "1 teaspoon creamy hulled sesame tahini",
+      "3/4 cup warm breast milk, formula, or whole milk",
+      "Tiny pinch of ground ceylon cinnamon"
     ],
-    nutrition: { calories: "105", protein: "1g", carbs: "27g", fat: "0g", fiber: "3g", vitamins: ["Potassium", "Vitamin B6", "Vitamin C"] },
-    allergens: [],
-    storage: "Best served fresh, browns quickly"
+    instructions: [
+      "In a small saucepan, combine finely ground baby oats with warm breast milk or formula.",
+      "Simmer over low heat for 3-4 minutes, stirring continuously with a whisk until thickened and smooth.",
+      "Remove from heat and stir in the mashed ripe banana and creamy sesame tahini.",
+      "Dust with a tiny pinch of ceylon cinnamon and stir thoroughly.",
+      "Let cool to a safe lukewarm temperature before offering to baby with a spoon."
+    ],
+    nutrition: { calories: "145", protein: "4g", carbs: "26g", fat: "3.5g", fiber: "3g", vitamins: ["Potassium", "Calcium", "Iron", "Vitamin B6"] },
+    allergens: ["Sesame"],
+    storage: "Best served fresh warm.",
+    healthBenefits: "Provides slow-release morning energy from complex oats, potassium from banana, and superior bioavailable calcium from sesame tahini.",
+    servingGuidance: "Serve warm for breakfast. A hearty, satiating start to baby's day."
   },
   {
     id: "8",
@@ -1050,64 +1069,64 @@ export const recipes: Recipe[] = [
     allergens: ["Dairy", "Eggs", "Gluten"], 
     storage: "Freeze up to 2 months" 
   },
-  { 
-    id: "30", 
-    title: "Apple Cinnamon Rice Cakes", 
-    description: "Crunchy topped snack", 
-    ageGroup: "9-12 months", 
-    category: "Snack", 
-    prepTime: "5 min", 
-    servings: "2 cakes", 
-    image: getRecipeImage(["apple", "rice"]), 
-    ingredients: ["2 plain rice cakes", "2 tbsp unsweetened apple butter", "Tiny pinch of cinnamon"], 
+  {
+    id: "30",
+    title: "Baked Apple, Blueberry & Quinoa Breakfast Crisp",
+    description: "Warm baked breakfast crisp featuring grated sweet apples, wild blueberries, fluffy quinoa, and rolled oats.",
+    ageGroup: "9-12 months",
+    category: "Breakfast",
+    prepTime: "25 min",
+    servings: "4 servings",
+    image: getRecipeImage(["apple", "rice"]),
+    ingredients: [
+      "1 sweet gala apple, peeled and grated",
+      "1/3 cup fresh or frozen wild blueberries",
+      "1/4 cup cooked fluffy quinoa",
+      "1/3 cup rolled oats",
+      "1/4 teaspoon ground ceylon cinnamon",
+      "1 teaspoon melted coconut oil or butter"
+    ],
     instructions: [
-      "Place 2 plain rice cakes on a clean plate or serving surface. Make sure they're fresh and crisp, not stale.",
-      "Take 2 tablespoons of unsweetened apple butter (check that it contains only apples and no added sugar or artificial sweeteners).",
-      "Using a butter knife or small spoon, spread 1 tablespoon of apple butter evenly over the top of each rice cake, covering the entire surface from edge to edge.",
-      "Sprinkle a very tiny pinch of ground cinnamon (about 1/16 teaspoon total) over both topped rice cakes. The cinnamon adds a warm flavor but should be barely visible.",
-      "Serve immediately while the rice cakes are still crispy. The apple butter provides natural sweetness and moisture.",
-      "For babies just starting finger foods, you can break each topped rice cake into 4 smaller pieces to make them easier to hold and less of a choking risk.",
-      "Watch your baby while eating to ensure they're managing the crunchy texture safely. This snack helps develop chewing skills."
-    ], 
-    nutrition: { calories: "55", protein: "1g", carbs: "12g", fat: "0g", fiber: "1g", vitamins: ["Whole grains"] }, 
-    allergens: [], 
-    storage: "Serve fresh" 
+      "Preheat oven to 350°F (175°C) and lightly grease small ramekins.",
+      "In a mixing bowl, toss grated apple, blueberries, cooked quinoa, rolled oats, and cinnamon.",
+      "Stir in melted coconut oil until the oat and quinoa mixture is moistened.",
+      "Divide into ramekins and bake for 18-20 minutes until bubbling and fragrant.",
+      "Cool to room temperature before serving with a spoon. Naturally sweet with no added sugar."
+    ],
+    nutrition: { calories: "95", protein: "2.5g", carbs: "18g", fat: "2g", fiber: "3g", vitamins: ["Antioxidants", "Vitamin C", "Iron"] },
+    allergens: [],
+    storage: "Refrigerate up to 3 days."
   },
-
-  // FINGER FOODS (30 recipes)
-  { 
-    id: "31", 
-    title: "Sweet Potato Wedges", 
-    description: "Soft roasted fries", 
-    ageGroup: "9-12 months", 
-    category: "Finger Food", 
-    prepTime: "30 min", 
-    servings: "4 servings", 
-    image: getRecipeImage(["sweet potato"]), 
-    ingredients: ["1 large sweet potato (about 12 oz)", "1 tbsp olive oil", "Optional: tiny pinch of cinnamon"], 
+  {
+    id: "31",
+    title: "Crispy Polenta & Sweet Potato Herb Wedges",
+    description: "Tender roasted sweet potato wedges crusted in fine golden cornmeal polenta, rosemary, and olive oil for the ultimate baby grip.",
+    ageGroup: "9-12 months",
+    category: "Lunch",
+    prepTime: "30 min",
+    servings: "4 servings",
+    image: getRecipeImage(["sweet potato"]),
+    ingredients: [
+      "1 large orange sweet potato, cut into 1/2-inch finger wedges",
+      "2 tablespoons fine yellow cornmeal (polenta)",
+      "1 tablespoon extra virgin olive oil",
+      "1/4 teaspoon dried rosemary, crushed fine",
+      "1/4 teaspoon sweet paprika (mild)"
+    ],
     instructions: [
-      "Preheat your oven to 425°F (220°C) and line a large baking sheet with parchment paper or aluminum foil for easy cleanup.",
-      "Wash the sweet potato thoroughly under running water, scrubbing with a vegetable brush to remove any dirt. Pat it completely dry with a clean kitchen towel.",
-      "Peel the sweet potato completely using a vegetable peeler, removing all the skin. The skin can be tough for babies to chew.",
-      "Place the peeled sweet potato on a cutting board. Cut it in half lengthwise, then cut each half lengthwise again to create quarters.",
-      "Cut each quarter lengthwise into 2-3 wedges, depending on the size of your sweet potato. Aim for wedges that are about 1/2 to 3/4 inch thick - thick enough to hold their shape but thin enough to become very soft when roasted.",
-      "Place all the sweet potato wedges in a large bowl. Drizzle 1 tablespoon of olive oil over them.",
-      "Using your hands, toss the wedges gently to coat each piece evenly with the oil. If desired, sprinkle a tiny pinch of cinnamon (about 1/8 teaspoon) over the wedges for extra flavor.",
-      "Arrange the wedges in a single layer on the prepared baking sheet, making sure they don't overlap. Leave a little space between each wedge for even roasting.",
-      "Roast in the preheated oven for 25-30 minutes, flipping the wedges halfway through with a spatula. They're done when they're very soft throughout, easily pierced with a fork, and lightly caramelized on the edges.",
-      "Remove from oven and let cool on the baking sheet for 10 minutes. Test one by squishing it gently - it should be soft enough to mash easily between your fingers. Serve warm or at room temperature."
-    ], 
-    nutrition: { calories: "68", protein: "1g", carbs: "15g", fat: "1g", fiber: "2g", vitamins: ["Vitamin A", "Vitamin C"] }, 
-    allergens: [], 
-    storage: "Refrigerate 3 days" 
+      "Preheat oven to 400°F (200°C) and line a baking sheet with parchment paper.",
+      "Cut peeled sweet potato into thick finger-length batons.",
+      "In a bowl, toss the sweet potato batons with olive oil.",
+      "Sprinkle the polenta, crushed rosemary, and paprika over the oiled batons and toss to crust evenly.",
+      "Arrange in a single layer on the baking sheet.",
+      "Roast for 22-25 minutes, flipping once, until golden and tender inside.",
+      "Cool for 10 minutes before offering as finger food."
+    ],
+    nutrition: { calories: "85", protein: "1.5g", carbs: "16g", fat: "2.5g", fiber: "2.5g", vitamins: ["Vitamin A", "Vitamin C", "Potassium"] },
+    allergens: [],
+    storage: "Refrigerate 3 days"
   },
-
-
-  // Total: 200 complete recipes with detailed step-by-step instructions
-  // All recipes follow professional standards with specific ingredients and detailed preparation steps
-  
-  // Additional 169 recipes with complete details (IDs 32-200)
-  { 
+  {
     id: "32", 
     title: "Cottage Cheese & Peach Bowl", 
     description: "Protein-rich breakfast", 
