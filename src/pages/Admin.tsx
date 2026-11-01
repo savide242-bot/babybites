@@ -57,6 +57,10 @@ const Admin = () => {
             <UtensilsCrossed className="h-4 w-4" />
             <span className="hidden sm:inline">Recipes</span>
           </TabsTrigger>
+          <TabsTrigger value="images" className="flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Images</span>
+          </TabsTrigger>
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>

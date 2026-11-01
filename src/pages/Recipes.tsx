@@ -148,6 +148,66 @@ const RecipeCard = memo(({
 
 RecipeCard.displayName = "RecipeCard";
 
+
+// Helper to match category robustly
+const matchesTargetCategory = (recipe: Recipe, targetCategory: string): boolean => {
+  if (targetCategory === "All Categories") return true;
+
+  const target = targetCategory.toLowerCase();
+  const rawCat = (recipe.category || "").toLowerCase();
+  const mealTime = (recipe.mealTime || "").toLowerCase();
+  const title = (recipe.title || "").toLowerCase();
+  const mealCat = getMealCategory(recipe).toLowerCase();
+
+  if (target === "breakfast") {
+    return (
+      rawCat === "breakfast" ||
+      mealTime === "breakfast" ||
+      mealCat === "porridge" ||
+      mealCat === "pancakes" ||
+      /pancake|waffle|porridge|oatmeal|cereal|breakfast|parfait|scramble|frittata/.test(title)
+    );
+  }
+
+  if (target === "lunch") {
+    return (
+      rawCat === "lunch" ||
+      mealTime === "lunch" ||
+      rawCat.includes("lunch") ||
+      (mealTime !== "breakfast" && (mealCat === "soup" || mealCat === "pasta" || mealCat === "bowl" || mealCat === "puree" || mealCat === "mash"))
+    );
+  }
+
+  if (target === "dinner") {
+    return (
+      rawCat === "dinner" ||
+      mealTime === "dinner" ||
+      rawCat.includes("dinner") ||
+      (mealTime !== "breakfast" && (mealCat === "soup" || mealCat === "pasta" || mealCat === "bowl" || mealCat === "puree" || mealCat === "mash"))
+    );
+  }
+
+  if (target === "snack") {
+    return (
+      rawCat === "snack" ||
+      mealTime === "snack" ||
+      mealCat === "bites" ||
+      mealCat === "finger food" ||
+      /snack|bites|tots|cookie|muffin|cracker|bar|pinwheel|finger|dip/.test(title)
+    );
+  }
+
+  if (target === "dessert" || target.includes("dessert") || target.includes("smoothie")) {
+    return (
+      rawCat === "dessert" ||
+      mealCat === "smoothie" ||
+      /dessert|smoothie|pudding|parfait|popsicle|compote|nice cream|swirl/.test(title)
+    );
+  }
+
+  return rawCat === target || mealTime === target || mealCat === target;
+};
+
 export const Recipes = () => {
   const { recipes } = useAppRecipes();
   const allRecipes = (recipes && recipes.length > 0) ? recipes : staticRecipes;
@@ -205,11 +265,12 @@ export const Recipes = () => {
     return allRecipes.filter((recipe) => {
       // 1. Search Query
       if (searchQuery.trim() !== "") {
-        const q = searchQuery.toLowerCase();
+        const q = searchQuery.toLowerCase().trim();
         const matchesTitle = recipe.title.toLowerCase().includes(q);
-        const matchesDesc = recipe.description.toLowerCase().includes(q);
-        const matchesIng = recipe.ingredients.some((i) => i.toLowerCase().includes(q));
-        if (!matchesTitle && !matchesDesc && !matchesIng) return false;
+        const matchesDesc = (recipe.description || "").toLowerCase().includes(q);
+        const matchesIng = (recipe.ingredients || []).some((i) => i.toLowerCase().includes(q));
+        const matchesId = recipe.id.toLowerCase() === q || recipe.id.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesDesc && !matchesIng && !matchesId) return false;
       }
 
       // 2. Strict Age Matching
@@ -217,19 +278,14 @@ export const Recipes = () => {
         if (!matchesTargetAge(recipe.ageGroup, selectedAge)) return false;
       }
 
-      // 3. Strict Category Matching
+      // 3. Category Matching
       if (selectedCategory !== "All Categories") {
-        const mealCat = getMealCategory(recipe);
-        if (selectedCategory === "Lunch & Dinner") {
-          if (mealCat !== "Lunch" && mealCat !== "Dinner") return false;
-        } else if (mealCat !== selectedCategory) {
-          return false;
-        }
+        if (!matchesTargetCategory(recipe, selectedCategory)) return false;
       }
 
       return true;
     });
-  }, [searchQuery, selectedAge, selectedCategory]);
+  }, [allRecipes, searchQuery, selectedAge, selectedCategory]);
 
   const visibleRecipes = useMemo(() => {
     return filteredRecipes.slice(0, visibleCount);
