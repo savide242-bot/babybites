@@ -285,7 +285,7 @@ export const recipes: Recipe[] = [
   {
     id: "1",
     title: "Creamy Avocado Puree",
-    description: "Rich in healthy fats and perfect for baby's brain development",
+    description: "Silky, velvety, and packed with healthy monounsaturated fats, this avocado puree supports baby's rapid brain and vision development while being exceptionally gentle on brand-new digestive systems.'s brain development",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "5 minutes",
@@ -310,7 +310,7 @@ export const recipes: Recipe[] = [
   {
     id: "2",
     title: "Sweet Potato & Carrot Blend",
-    description: "Beta-carotene rich puree with natural sweetness",
+    description: "A golden, naturally sweet puree packed with beta-carotene, Vitamin A, and soluble fiber to support eye health, immune function, and gentle digestion during the early weaning stages.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "25 minutes",
@@ -367,7 +367,7 @@ export const recipes: Recipe[] = [
   {
     id: "4",
     title: "Butternut Squash Puree",
-    description: "Naturally sweet and creamy winter squash",
+    description: "Velvety smooth and naturally sweet, roasted butternut squash provides a rich dose of Vitamin A, potassium, and gentle dietary fiber that babies adore from the very first spoonful.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "30 minutes",
@@ -393,7 +393,7 @@ export const recipes: Recipe[] = [
   {
     id: "5",
     title: "Apple Cinnamon Sauce",
-    description: "Classic first fruit with gentle spice",
+    description: "Gently simmered sweet apples infused with a delicate pinch of warming Ceylon cinnamon to introduce baby to soothing aromatic spices while providing pectin fiber for easy digestion.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "20 minutes",
@@ -420,7 +420,7 @@ export const recipes: Recipe[] = [
   {
     id: "6",
     title: "Mango Tropical Puree",
-    description: "Vitamin C-rich tropical treat",
+    description: "Luscious, sunny mango puree brimming with immune-boosting Vitamin C, folate, and natural enzymes that aid gut comfort and delight baby's expanding taste palate.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "10 minutes",
@@ -472,7 +472,7 @@ export const recipes: Recipe[] = [
   {
     id: "8",
     title: "Pear & Prune Blend",
-    description: "Gentle on tummies, helps with digestion",
+    description: "A soothing, gentle combination of ripe pears and tender prunes that works wonders for relieving infant constipation naturally while offering a naturally sweet, mellow flavor.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "20 minutes",
@@ -498,7 +498,7 @@ export const recipes: Recipe[] = [
   {
     id: "9",
     title: "Zucchini & Potato Mash",
-    description: "Mild vegetables perfect for sensitive tummies",
+    description: "A mild, comforting vegetable mash combining tender zucchini with creamy potato, offering potassium, hydration, and an ultra-gentle texture ideal for sensitive baby tummies.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "20 minutes",
@@ -524,7 +524,7 @@ export const recipes: Recipe[] = [
   {
     id: "10",
     title: "Peach & Rice Cereal",
-    description: "Iron-fortified first meal combination",
+    description: "A nourishing, iron-fortified warm cereal naturally sweetened with fragrant ripe peaches, providing sustained morning energy and essential minerals for active, growing babies.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "15 minutes",
@@ -550,7 +550,7 @@ export const recipes: Recipe[] = [
   {
     id: "11",
     title: "Blueberry Banana Blend",
-    description: "Antioxidant-rich purple puree",
+    description: "An antioxidant-rich, deep violet puree pairing brain-boosting wild blueberries with naturally creamy bananas for a sweet, nutrient-dense breakfast or afternoon treat.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "10 minutes",
@@ -576,7 +576,7 @@ export const recipes: Recipe[] = [
   {
     id: "12",
     title: "Cauliflower & Parsnip Puree",
-    description: "Mild white vegetables with subtle sweetness",
+    description: "A delicately sweet and creamy white vegetable puree combining tender cauliflower florets and roasted parsnip, rich in Vitamin C, fiber, and subtle earthy sweetness.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "25 minutes",
@@ -605,7 +605,7 @@ export const recipes: Recipe[] = [
   {
     id: "13",
     title: "Papaya Lime Puree",
-    description: "Tropical enzyme-rich digestive aid",
+    description: "A bright tropical puree naturally rich in digestive papain enzymes and Vitamin C, lifted with a tiny squeeze of fresh lime juice to introduce baby to refreshing citrus notes.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "8 minutes",
@@ -630,7 +630,7 @@ export const recipes: Recipe[] = [
   {
     id: "14",
     title: "Spinach & Apple Surprise",
-    description: "Sneaky greens with fruit sweetness",
+    description: "A clever nutrient booster blending iron-rich baby spinach with naturally sweet cooked apples, helping baby develop a love for leafy greens through a familiar, delicious fruit base.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "15 minutes",
@@ -657,7 +657,7 @@ export const recipes: Recipe[] = [
   {
     id: "15",
     title: "Pumpkin Cinnamon Delight",
-    description: "Fall favorite with warming spice",
+    description: "A cozy, comforting puree of steamed pumpkin with a whisper of sweet spice, packed with beta-carotene, zinc, and dietary fiber to nourish baby during cooler seasons.",
     ageGroup: "6-9 months",
     category: "Puree",
     prepTime: "30 minutes",
@@ -684,7 +684,7 @@ export const recipes: Recipe[] = [
   {
     id: "16",
     title: "Banana Pancakes",
-    description: "Fluffy two-ingredient pancakes",
+    description: "Tender, naturally sweet two-ingredient baby pancakes crafted from ripe bananas and whisked eggs, offering an easy-to-grasp finger food ideal for baby-led weaning practice.",
     ageGroup: "9-12 months",
     category: "Breakfast",
     prepTime: "15 minutes",
@@ -711,7 +711,7 @@ export const recipes: Recipe[] = [
   {
     id: "17",
     title: "Blueberry Oatmeal Bites",
-    description: "Soft baked oat clusters with berries",
+    description: "Soft, chewy baked oatmeal clusters bursting with antioxidant-rich blueberries, perfect for little fingers practicing the pincer grasp during morning breakfast or on-the-go snacks.",
     ageGroup: "9-12 months",
     category: "Breakfast",
     prepTime: "25 minutes",
@@ -738,7 +738,7 @@ export const recipes: Recipe[] = [
   {
     id: "18",
     title: "Mini Veggie Egg Muffins",
-    description: "Protein-packed portable breakfast",
+    description: "Fluffy, handheld mini egg cups studded with finely diced colorful vegetables and mild cheddar, delivering high-quality choline and protein in a mess-free finger food format.",
     ageGroup: "9-12 months",
     category: "Breakfast",
     prepTime: "30 minutes",
@@ -765,7 +765,7 @@ export const recipes: Recipe[] = [
   {
     id: "19",
     title: "Apple Cinnamon Oatmeal",
-    description: "Warm morning comfort bowl",
+    description: "Hearty rolled oats slow-simmered with diced tender apples and gentle Ceylon cinnamon, creating a warm, fiber-rich comfort bowl that keeps baby happily satisfied all morning.",
     ageGroup: "9-12 months",
     category: "Breakfast",
     prepTime: "10 minutes",
@@ -791,7 +791,7 @@ export const recipes: Recipe[] = [
   {
     id: "20",
     title: "Sweet Potato Hash Browns",
-    description: "Crispy veggie patties for breakfast",
+    description: "Golden, oven-baked sweet potato patties lightly seasoned with herbs, providing a delicious, easy-to-hold finger food packed with complex carbohydrates and Vitamin A.",
     ageGroup: "9-12 months",
     category: "Breakfast",
     prepTime: "25 minutes",
@@ -829,7 +829,7 @@ export const recipes: Recipe[] = [
   { 
     id: "21", 
     title: "Turkey & Veggie Meatballs", 
-    description: "Tender protein-rich balls", 
+    description: "Tender, moist mini meatballs made with lean ground turkey, grated zucchini, and mild herbs, designed to be easily gummed by older babies while delivering essential heme iron.", 
     ageGroup: "12-18 months", 
     category: "Lunch", 
     prepTime: "30 min", 
@@ -855,7 +855,7 @@ export const recipes: Recipe[] = [
   { 
     id: "22", 
     title: "Chicken & Brown Rice Bowl", 
-    description: "Complete protein meal", 
+    description: "A wholesome, balanced bowl of tender pulled chicken breast, soft brown rice, and steamed sweet vegetables, providing a complete protein and complex carbohydrate foundation.", 
     ageGroup: "12-18 months", 
     category: "Lunch", 
     prepTime: "25 min", 
@@ -881,7 +881,7 @@ export const recipes: Recipe[] = [
   { 
     id: "23", 
     title: "Mini Beef Sliders", 
-    description: "Iron-rich tiny burgers", 
+    description: "Miniature, soft iron-rich beef patties sized specifically for tiny toddler hands, providing vital zinc, B-vitamins, and highly bioavailable iron to prevent nutritional deficiencies.", 
     ageGroup: "12-18 months", 
     category: "Lunch", 
     prepTime: "20 min", 
@@ -907,7 +907,7 @@ export const recipes: Recipe[] = [
   { 
     id: "24", 
     title: "Salmon & Sweet Potato Cakes", 
-    description: "Omega-3 rich fish cakes", 
+    description: "Flaky wild salmon cakes blended with mashed sweet potato and fresh dill, providing an exceptional source of DHA omega-3 fatty acids for cognitive development and vision.", 
     ageGroup: "12-18 months", 
     category: "Lunch", 
     prepTime: "30 min", 
@@ -934,7 +934,7 @@ export const recipes: Recipe[] = [
   { 
     id: "25", 
     title: "Quinoa Veggie Medley", 
-    description: "Complete protein grain bowl", 
+    description: "A colorful, complete plant-protein grain bowl pairing fluffy cooked quinoa with tender diced veggies and olive oil, offering all nine essential amino acids in one meal.", 
     ageGroup: "12-18 months", 
     category: "Lunch", 
     prepTime: "20 min", 
@@ -963,7 +963,7 @@ export const recipes: Recipe[] = [
   { 
     id: "26", 
     title: "Mini Mac & Cheese Cups", 
-    description: "Creamy pasta favorites", 
+    description: "Creamy, comforting whole grain pasta cups baked with pureed butternut squash and mild cheddar cheese, offering a nutritious veggie-boosted twist on a family favorite.", 
     ageGroup: "12-18 months", 
     category: "Dinner", 
     prepTime: "25 min", 
@@ -989,7 +989,7 @@ export const recipes: Recipe[] = [
   { 
     id: "27", 
     title: "Chicken Veggie Pasta Stars", 
-    description: "Fun shapes with protein", 
+    description: "Playful mini pasta starlets tossed with tender minced chicken breast, sweet carrots, and peas in a delicate vegetable broth, making self-feeding fun and nutritious.", 
     ageGroup: "12-18 months", 
     category: "Dinner", 
     prepTime: "20 min", 
@@ -1015,7 +1015,7 @@ export const recipes: Recipe[] = [
   { 
     id: "28", 
     title: "Lentil & Vegetable Stew", 
-    description: "Hearty plant-based protein", 
+    description: "A hearty, gut-soothing plant-based stew featuring tender red lentils, carrots, and sweet potatoes slow-simmered in aromatic broth, providing plant iron and prebiotic fiber.", 
     ageGroup: "12-18 months", 
     category: "Dinner", 
     prepTime: "35 min", 
@@ -1045,7 +1045,7 @@ export const recipes: Recipe[] = [
   { 
     id: "29", 
     title: "Cheese & Broccoli Tots", 
-    description: "Hidden veggie nuggets", 
+    description: "Crispy on the outside, tender on the inside vegetable tots packed with steamed broccoli florets and melted cheddar, turning green vegetables into an irresistible finger snack.", 
     ageGroup: "12-18 months", 
     category: "Snack", 
     prepTime: "30 min", 
@@ -1129,7 +1129,7 @@ export const recipes: Recipe[] = [
   {
     id: "32", 
     title: "Cottage Cheese & Peach Bowl", 
-    description: "Protein-rich breakfast", 
+    description: "Creamy, protein-packed cottage cheese topped with juicy, ripe diced peaches, offering bone-building calcium and natural fruit sweetness in a no-cook morning bowl.", 
     ageGroup: "9-12 months", 
     category: "Breakfast", 
     prepTime: "5 min", 
@@ -1153,7 +1153,7 @@ export const recipes: Recipe[] = [
   { 
     id: "33", 
     title: "Peanut Butter Banana Bites", 
-    description: "Energy-packed snack", 
+    description: "Soft, no-bake energy bites made with creamy natural peanut butter, ripe mashed banana, and rolled oats, supporting early allergen exposure and delivering sustained energy.", 
     ageGroup: "12-18 months", 
     category: "Snack", 
     prepTime: "5 min", 
@@ -1176,7 +1176,7 @@ export const recipes: Recipe[] = [
   { 
     id: "34", 
     title: "Veggie Loaded Quesadilla", 
-    description: "Melted cheese and veggies", 
+    description: "Golden whole wheat tortilla wedges folded with melted mild Monterey Jack cheese, black beans, and finely grated zucchini, providing a fun handheld lunch rich in protein and fiber.", 
     ageGroup: "12-18 months", 
     category: "Lunch", 
     prepTime: "15 min", 
@@ -1202,7 +1202,7 @@ export const recipes: Recipe[] = [
   { 
     id: "35", 
     title: "Homemade Hummus", 
-    description: "Protein-rich dip", 
+    description: "Silky, homemade chickpea hummus infused with mild tahini, lemon juice, and extra virgin olive oil, offering an iron-rich dip perfect for spreading on soft pita or veggie spears.", 
     ageGroup: "12-18 months", 
     category: "Snack", 
     prepTime: "10 min", 
@@ -1228,7 +1228,7 @@ export const recipes: Recipe[] = [
   { 
     id: "36", 
     title: "Strawberry Chia Pudding", 
-    description: "Omega-3 rich dessert", 
+    description: "A luscious, antioxidant-loaded chia seed pudding soaked in coconut milk and pureed fresh strawberries, providing essential plant omega-3s and fiber for digestive health.", 
     ageGroup: "12-18 months", 
     category: "Snack", 
     prepTime: "5 min + 2 hrs", 
@@ -1253,7 +1253,7 @@ export const recipes: Recipe[] = [
   { 
     id: "37", 
     title: "Mini Meatloaf Muffins", 
-    description: "Individual portions", 
+    description: "Savory, tender mini meatloaves packed with ground beef, shredded carrots, and zucchini, perfectly portioned for toddler hands to practice self-feeding with fork or fingers.", 
     ageGroup: "12-18 months", 
     category: "Dinner", 
     prepTime: "35 min", 
@@ -1279,7 +1279,7 @@ export const recipes: Recipe[] = [
   { 
     id: "38", 
     title: "Cucumber & Cream Cheese Rolls", 
-    description: "Cool refreshing snack", 
+    description: "Cool, crisp cucumber ribbons rolled with smooth cream cheese and fresh herbs, offering a refreshing, hydrating finger food snack that soothes sore teething gums.", 
     ageGroup: "12-18 months", 
     category: "Snack", 
     prepTime: "10 min", 
@@ -1304,7 +1304,7 @@ export const recipes: Recipe[] = [
   { 
     id: "39", 
     title: "Tofu Scramble", 
-    description: "Plant-based protein breakfast", 
+    description: "Fluffy, turmeric-spiced crumbled tofu sauteed with tender vegetables, delivering a complete plant-based protein alternative to scrambled eggs rich in iron and calcium.", 
     ageGroup: "12-18 months", 
     category: "Breakfast", 
     prepTime: "10 min", 
@@ -1330,7 +1330,7 @@ export const recipes: Recipe[] = [
   { 
     id: "40", 
     title: "Watermelon Popsicles", 
-    description: "Hydrating frozen treat", 
+    description: "Refreshing, pure frozen watermelon popsicles with a touch of mint, delivering natural electrolytes, lycopene, and hydrating relief for teething gums on warm summer afternoons.", 
     ageGroup: "12-18 months", 
     category: "Snack", 
     prepTime: "5 min + freeze", 
