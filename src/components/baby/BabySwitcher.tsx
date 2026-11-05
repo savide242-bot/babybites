@@ -30,17 +30,17 @@ export const BabySwitcher: React.FC<{ variant?: "header" | "banner" | "minimal" 
         <DropdownMenuTrigger asChild>
           {variant === "header" ? (
             <button
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#EBE8DF] hover:border-[#CCE0D2] hover:bg-[#F4F8F4] transition-all text-gray-700 shadow-xs text-xs font-medium cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white dark:bg-stone-800 border border-[#EBE8DF] dark:border-stone-700 hover:border-[#CCE0D2] hover:bg-[#F4F8F4] dark:hover:bg-stone-700/60 transition-all text-gray-700 dark:text-stone-200 shadow-xs text-xs font-medium cursor-pointer shrink-0 max-w-[110px] sm:max-w-none"
               title="Switch active child profile"
             >
-              <span className="text-sm">{activeBaby.avatarEmoji || "👶"}</span>
-              <span className="font-semibold text-gray-800 max-w-[85px] truncate">
+              <span className="text-xs sm:text-sm">{activeBaby.avatarEmoji || "👶"}</span>
+              <span className="font-semibold text-gray-800 dark:text-stone-200 max-w-[42px] sm:max-w-[85px] truncate text-[11px] sm:text-xs">
                 {activeBaby.name}
               </span>
-              <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-[#EAF5EE] text-[#1E5E3A] font-medium">
+              <span className="text-[10px] sm:text-[11px] px-1 sm:px-1.5 py-0.2 rounded-full bg-[#EAF5EE] dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-400 font-medium shrink-0">
                 {activeMonths}m
               </span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 shrink-0" />
             </button>
           ) : variant === "banner" ? (
             <button className="w-full flex items-center justify-between p-3 rounded-2xl bg-white border border-[#EBE8DF] shadow-xs hover:border-[#1E5E3A]/40 transition-all text-left">

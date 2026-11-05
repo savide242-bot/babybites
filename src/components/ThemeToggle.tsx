@@ -43,7 +43,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
 
   if (!mounted) {
     return (
-      <div className={`w-9 h-9 rounded-full bg-white/50 dark:bg-stone-800/50 ${className}`} />
+      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/50 dark:bg-stone-800/50 shrink-0 ${className}`} />
     );
   }
 
@@ -103,7 +103,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
       >
         <div className="flex items-center gap-3">
           {isDark ? (
-            <Sun className="w-4 h-4 text-amber-400" />
+            <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
           ) : (
             <Moon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           )}
@@ -123,14 +123,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
       variant="ghost"
       size="icon"
       onClick={() => handleSetTheme(isDark ? "light" : "dark")}
-      className={`w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-all shadow-xs ${className}`}
+      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-all shadow-xs shrink-0 ${className}`}
       title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
       aria-label="Toggle Dark Mode"
     >
       {isDark ? (
         <Sun className="w-4 h-4 text-amber-400" />
       ) : (
-        <Moon className="w-4 h-4 text-gray-600" />
+        <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-stone-300" />
       )}
     </Button>
   );

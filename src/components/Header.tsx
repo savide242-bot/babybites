@@ -56,37 +56,38 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#FAF9F5]/90 dark:bg-[#121614]/90 backdrop-blur-md border-b border-[#EBE8DF] dark:border-stone-800 transition-colors">
-      <div className="w-full px-3 sm:px-4 lg:px-6 h-16 flex items-center justify-between">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
+      <div className="w-full px-2.5 sm:px-4 lg:px-6 h-14 sm:h-16 flex items-center justify-between gap-1">
+        {/* Brand Logo - Compact on mobile to prevent overlapping */}
+        <Link to="/" className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0">
           <img
             src={appLogo}
             alt="BabyBites"
-            className="w-10 h-10 rounded-full object-cover shadow-xs group-hover:scale-105 transition-transform"
+            className="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover shadow-xs group-hover:scale-105 transition-transform shrink-0"
           />
-          <span className="text-xl font-serif font-bold text-forest dark:text-emerald-400 tracking-tight">
+          <span className="text-[15px] sm:text-xl font-serif font-bold text-forest dark:text-emerald-400 tracking-tight whitespace-nowrap">
             BabyBites
           </span>
         </Link>
 
-        {/* Action Icons right side (Baby Switcher, Search, Community, Theme & Drawer Menu) */}
-        <div className="flex items-center gap-1.5">
+        {/* Action Icons right side (Baby Switcher, Search, Theme & Drawer Menu) */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 min-w-0">
           <BabySwitcher variant="header" />
 
           <Link
             to="/recipes"
-            className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-colors shadow-xs"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-colors shadow-xs shrink-0"
             title="Search recipes"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Link>
 
+          {/* Community is always in bottom nav on mobile; keep visible on sm+ */}
           <Link
             to="/community"
-            className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-colors shadow-xs"
+            className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-colors shadow-xs shrink-0"
             title="Parent Community"
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Link>
 
           {/* Quick Theme Toggle (Light / Dark) */}
@@ -98,9 +99,9 @@ export const Header = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 hover:bg-white dark:hover:bg-stone-800 hover:text-forest dark:hover:text-emerald-400 transition-colors shadow-xs"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 hover:bg-white dark:hover:bg-stone-800 hover:text-forest dark:hover:text-emerald-400 transition-colors shadow-xs shrink-0"
               >
-                <Menu className="w-4 h-4 text-gray-700 dark:text-stone-300" />
+                <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700 dark:text-stone-300" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80 max-w-[85vw] p-0 bg-[#FAF9F5] dark:bg-[#121614] border-l border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100">
