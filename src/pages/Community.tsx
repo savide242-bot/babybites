@@ -477,6 +477,13 @@ export const Community: React.FC = () => {
 
   const handleOpenMotherProfile = (authorName: string, isCurrentUser = false) => {
     const userPosts = posts.filter((p) => p.author_name === authorName);
+    let userPinnedBadges = ['pioneer_mother', 'recipes_10', 'master_planner'];
+    if (isCurrentUser) {
+      try {
+        const raw = localStorage.getItem("babybites_pinned_badges_v1");
+        if (raw) userPinnedBadges = JSON.parse(raw);
+      } catch {}
+    }
     const profileData: MotherProfileData = {
       id: isCurrentUser ? currentUserId : authorName.toLowerCase().replace(/\s+/g, "-"),
       name: authorName,
@@ -493,6 +500,8 @@ export const Community: React.FC = () => {
       followersCount: isCurrentUser ? 18 : 240,
       followingCount: isCurrentUser ? Object.keys(followedMoms).length : 110,
       posts: userPosts,
+      isVerifiedMother: true,
+      pinnedBadges: userPinnedBadges,
     };
     setProfileModalState({ open: true, profile: profileData });
   };
@@ -628,10 +637,12 @@ export const Community: React.FC = () => {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-stone-100 leading-tight hover:underline flex items-center gap-1">
                           {post.author_name}
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0095F6] fill-[#0095F6] text-white shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                         </h4>
-                        <span className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+                        <span className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                           {post.author_baby}
+                          <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block" />
+                          <span className="text-[9px] uppercase tracking-wider font-bold">Mãe Verificada</span>
                         </span>
                       </div>
                       <span className="text-[10px] text-gray-400 dark:text-stone-500">

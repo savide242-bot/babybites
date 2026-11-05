@@ -14,7 +14,32 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
 
   React.useEffect(() => {
     setMounted(true);
+    // Ensure document reflects persisted choice on mount
+    try {
+      const saved = localStorage.getItem("babybites-theme");
+      if (saved && saved !== theme) {
+        setTheme(saved);
+      }
+    } catch {
+      // Ignore
+    }
   }, []);
+
+  const handleSetTheme = (newTheme: string) => {
+    setTheme(newTheme);
+    try {
+      localStorage.setItem("babybites-theme", newTheme);
+      // Immediately adjust html class for instantaneous feedback
+      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (newTheme === "dark" || (newTheme === "system" && isSystemDark)) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch {
+      // Ignore
+    }
+  };
 
   if (!mounted) {
     return (
@@ -29,7 +54,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
       <div className={`grid grid-cols-3 p-1 rounded-2xl bg-stone-100 dark:bg-stone-800/80 border border-[#EBE8DF] dark:border-stone-700/60 ${className}`}>
         <button
           type="button"
-          onClick={() => setTheme("light")}
+          onClick={() => handleSetTheme("light")}
           className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all ${
             theme === "light"
               ? "bg-white text-forest shadow-xs font-bold"
@@ -42,7 +67,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
 
         <button
           type="button"
-          onClick={() => setTheme("dark")}
+          onClick={() => handleSetTheme("dark")}
           className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all ${
             theme === "dark"
               ? "bg-[#1E5E3A] text-white shadow-xs font-bold"
@@ -55,7 +80,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
 
         <button
           type="button"
-          onClick={() => setTheme("system")}
+          onClick={() => handleSetTheme("system")}
           className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold transition-all ${
             theme === "system"
               ? "bg-white dark:bg-stone-700 text-forest dark:text-stone-100 shadow-xs font-bold"
@@ -73,7 +98,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
     return (
       <button
         type="button"
-        onClick={() => setTheme(isDark ? "light" : "dark")}
+        onClick={() => handleSetTheme(isDark ? "light" : "dark")}
         className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all text-gray-700 dark:text-stone-300 hover:bg-white dark:hover:bg-stone-800 ${className}`}
       >
         <div className="flex items-center gap-3">
@@ -85,7 +110,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
           <span>Appearance: {isDark ? "Dark Mode" : "Light Mode"}</span>
         </div>
         <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40">
-          {isDark ? "ON 🌙" : "OFF ☀️"}
+          {isDark ? "DARK 🌙" : "LIGHT ☀️"}
         </span>
       </button>
     );
@@ -97,13 +122,13 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ variant = "icon", clas
       type="button"
       variant="ghost"
       size="icon"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={() => handleSetTheme(isDark ? "light" : "dark")}
       className={`w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-all shadow-xs ${className}`}
       title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
       aria-label="Toggle Dark Mode"
     >
       {isDark ? (
-        <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+        <Sun className="w-4 h-4 text-amber-400" />
       ) : (
         <Moon className="w-4 h-4 text-gray-600" />
       )}

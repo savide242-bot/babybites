@@ -18,7 +18,9 @@ import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useBabyProfiles, calculateMonthsFromBirthDate, getCategoryFromMonths } from "@/hooks/useBabyProfiles";
 import { AddBabyModal } from "@/components/baby/AddBabyModal";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, CheckCircle2, ExternalLink, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useGamification, BADGES } from "@/hooks/useGamification";
 
 interface ProfileData {
   mother_name: string | null;
@@ -47,6 +49,8 @@ const Profile = () => {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const { babies, activeBaby, selectBaby, deleteBaby } = useBabyProfiles();
   const [addBabyOpen, setAddBabyOpen] = useState(false);
+  const { pinnedBadges, badges } = useGamification();
+  const pinnedBadgesList = BADGES.filter(b => pinnedBadges.includes(b.id));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editForm, setEditForm] = useState({
     mother_name: "",
@@ -370,6 +374,12 @@ const Profile = () => {
               </div>
             )}
 
+            {/* Mãe Verificada Badge */}
+            <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shadow-xs">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-900" />
+              <span>Mãe Verificada • Verified Mother</span>
+            </div>
+
             {!isEditing && (
               <Button
                 variant="ghost"
@@ -463,6 +473,65 @@ const Profile = () => {
             ))}
           </div>
         </GlassCard>
+
+        {/* Showcased Badges / Medalhas em Destaque no Perfil */}
+        <Card className="border border-[#EBE8DF] dark:border-stone-800 shadow-sm bg-white dark:bg-stone-900 rounded-2xl overflow-hidden">
+          <CardHeader className="pb-3 bg-[#FAF9F5] dark:bg-stone-800/50 border-b border-[#EBE8DF] dark:border-stone-800">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-serif font-bold text-gray-900 dark:text-stone-100">
+                <Trophy className="h-5 w-5 text-amber-500" />
+                Medalhas em Destaque ({pinnedBadges.length})
+              </CardTitle>
+              <Link to="/achievements">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl border-[#CCE0D2] dark:border-stone-700 bg-white dark:bg-stone-800 text-[#1E5E3A] dark:text-emerald-400 hover:bg-[#EAF5EE] text-xs font-semibold gap-1.5"
+                >
+                  <span>Gerenciar Medalhas</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
+              Estas são as medalhas que escolheu exibir publicamente para outras mães da comunidade.
+            </p>
+          </CardHeader>
+          <CardContent className="p-4">
+            {pinnedBadgesList.length === 0 ? (
+              <div className="text-center py-6 text-sm text-gray-500 dark:text-stone-400">
+                <p>Nenhuma medalha selecionada para exibição pública.</p>
+                <Link to="/achievements">
+                  <Button size="sm" variant="link" className="text-[#1E5E3A] dark:text-emerald-400 text-xs mt-1">
+                    Escolher medalhas para exibir no perfil →
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {pinnedBadgesList.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-800/40"
+                  >
+                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${badge.gradient} flex items-center justify-center text-xl shadow-xs shrink-0`}>
+                      {badge.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-bold text-sm text-gray-900 dark:text-stone-100 truncate">{badge.name}</h4>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold border-none">
+                          {badge.tier}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-stone-400 line-clamp-1 mt-0.5">{badge.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Multi-Baby Profile Management Card */}
         <Card className="border border-[#EBE8DF] shadow-md bg-white rounded-2xl overflow-hidden">

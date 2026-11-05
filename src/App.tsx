@@ -161,7 +161,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <AppErrorBoundary>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="babybites-theme">
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
           <BabyProfileProvider>

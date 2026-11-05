@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Heart, MessageCircle, UserPlus, UserCheck, Send, 
-  Baby, Sparkles, Film, Image as ImageIcon, CheckCircle2, Edit3 
+  Baby, Sparkles, Film, Image as ImageIcon, CheckCircle2, Edit3,
+  Trophy, ExternalLink 
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { BADGES } from "@/hooks/useGamification";
 import { toast } from "sonner";
 
 export interface MotherProfileData {
@@ -20,6 +23,8 @@ export interface MotherProfileData {
   followingCount: number;
   isFollowing?: boolean;
   isCurrentUser?: boolean;
+  isVerifiedMother?: boolean;
+  pinnedBadges?: string[];
   posts: Array<{
     id: string;
     title: string;
@@ -51,6 +56,9 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
   const [babyName, setBabyName] = useState(profile?.babyName || "");
   const [babyAge, setBabyAge] = useState(profile?.babyAge || "");
   const [bio, setBio] = useState(profile?.bio || "");
+
+  const pinnedIds = profile?.pinnedBadges || ['pioneer_mother', 'first_recipe', 'master_planner'];
+  const showcasedBadges = BADGES.filter(b => pinnedIds.includes(b.id));
 
   if (!profile) return null;
 
@@ -210,9 +218,14 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
           ) : (
             <>
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif text-xl font-bold text-gray-900">{profile.name}</h3>
-                  <CheckCircle2 className="w-4 h-4 text-[#48B774]" />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-stone-100">{profile.name}</h3>
+                  {(profile.isVerifiedMother !== false) && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-[#1E5E3A] dark:text-emerald-300 text-[11px] font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Mãe Verificada</span>
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[#1E5E3A] font-semibold">
                   <Baby className="w-3.5 h-3.5" />
@@ -226,22 +239,60 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
               </div>
 
               {/* Stats Bar */}
-              <div className="flex items-center justify-around py-3 my-4 bg-[#FAF9F5] rounded-2xl border border-[#EBE8DF]">
+              <div className="flex items-center justify-around py-3 my-4 bg-[#FAF9F5] dark:bg-stone-800/60 rounded-2xl border border-[#EBE8DF] dark:border-stone-800">
                 <div className="text-center">
-                  <span className="block text-sm font-bold text-gray-900">{profile.posts.length}</span>
-                  <span className="text-[11px] text-gray-500 font-medium">Posts</span>
+                  <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.posts.length}</span>
+                  <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Posts</span>
                 </div>
-                <div className="h-6 w-[1px] bg-gray-200" />
+                <div className="h-6 w-[1px] bg-gray-200 dark:bg-stone-700" />
                 <div className="text-center">
-                  <span className="block text-sm font-bold text-gray-900">{profile.followersCount}</span>
-                  <span className="text-[11px] text-gray-500 font-medium">Followers</span>
+                  <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.followersCount}</span>
+                  <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Followers</span>
                 </div>
-                <div className="h-6 w-[1px] bg-gray-200" />
+                <div className="h-6 w-[1px] bg-gray-200 dark:bg-stone-700" />
                 <div className="text-center">
-                  <span className="block text-sm font-bold text-gray-900">{profile.followingCount}</span>
-                  <span className="text-[11px] text-gray-500 font-medium">Following</span>
+                  <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.followingCount}</span>
+                  <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Following</span>
                 </div>
               </div>
+
+              {/* Showcased Badges / Conquistas em Destaque */}
+              {showcasedBadges.length > 0 && (
+                <div className="mb-4 p-3 bg-[#FAF9F5] dark:bg-stone-900/60 rounded-2xl border border-[#EBE8DF] dark:border-stone-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 dark:text-stone-200">
+                      <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Medalhas em Destaque ({showcasedBadges.length})</span>
+                    </div>
+                    {profile.isCurrentUser && (
+                      <Link
+                        to="/achievements"
+                        onClick={onClose}
+                        className="text-[11px] text-[#1E5E3A] dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1"
+                      >
+                        <span>Gerenciar</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {showcasedBadges.map((badge) => (
+                      <div
+                        key={badge.id}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700/60 shadow-xs"
+                      >
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${badge.gradient} flex items-center justify-center text-sm shrink-0`}>
+                          {badge.icon}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-900 dark:text-stone-100 truncate">{badge.name}</p>
+                          <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">{badge.tier}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Mother's Posts Grid */}
               <div>

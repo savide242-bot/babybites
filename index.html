@@ -7,6 +7,21 @@
     <meta name="description" content="Discover 390+ pediatrician-approved baby food recipes, meal plans, and expert parenting advice for babies aged 6-24+ months. Make nutritious homemade baby food with confidence.">
     <meta name="author" content="BabyBites" />
     
+    <!-- Instant Theme Persistence: prevents flickering and keeps dark/light choice upon reload/re-entry -->
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('babybites-theme') || localStorage.getItem('theme');
+          var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'dark' || (stored === 'system' && systemDark) || (!stored && systemDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1E5E3A" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -32,6 +32,41 @@ import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { BabySwitcher } from "@/components/baby/BabySwitcher";
 import confetti from "canvas-confetti";
 
+
+// ============================================================================
+// BULLETPROOF MEAL PLAN PERSISTENCE (LocalStorage + Cloud Sync)
+// ============================================================================
+const STORAGE_KEY_PERSONALIZED = "babybites_persisted_personalized_plan_v4";
+const STORAGE_KEY_CUSTOM = "babybites_persisted_custom_plan_v4";
+
+const loadCachedPlan = (type: "personalized" | "custom"): MealPlan | null => {
+  try {
+    const raw = localStorage.getItem(type === "personalized" ? STORAGE_KEY_PERSONALIZED : STORAGE_KEY_CUSTOM);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load cached plan from localStorage:", e);
+  }
+  return null;
+};
+
+const persistPlanLocal = (type: "personalized" | "custom", plan: MealPlan) => {
+  try {
+    if (plan && Object.keys(plan).length > 0) {
+      localStorage.setItem(
+        type === "personalized" ? STORAGE_KEY_PERSONALIZED : STORAGE_KEY_CUSTOM,
+        JSON.stringify(plan)
+      );
+    }
+  } catch (e) {
+    console.warn("Failed to persist plan to localStorage:", e);
+  }
+};
+
 const MealPlanner = () => {
   // Baby profile context for multi-child support
   const { activeBaby, activeBabyAgeMonths, activeBabyAgeCategory } = useBabyProfiles();
@@ -107,62 +142,87 @@ const MealPlanner = () => {
     }
   };
 
-  // ========== LOAD PLANS SEPARATELY ==========
+  // ========== LOAD PLANS SEPARATELY WITH INSTANT LOCALSTORAGE RESTORE ==========
   const loadMealPlans = async (uid: string) => {
     const weekStart = getWeekStartDate();
     setCurrentWeekStart(weekStart);
-    
-    const { data, error } = await supabase
-      .from('meal_plans')
-      .select('*')
-      .eq('user_id', uid)
-      .eq('week_start_date', weekStart);
 
-    if (error) {
-      console.error('Error loading meal plans:', error);
-      return;
+    // 1. Instantly restore from localStorage (0ms loading delay, never wiped!)
+    const cachedPerso = loadCachedPlan("personalized");
+    const cachedCust = loadCachedPlan("custom");
+
+    if (cachedPerso && Object.keys(cachedPerso).length > 0) {
+      setPersonalizedPlan(cachedPerso);
+      setHasPersonalizedPlan(true);
+      setPersonalizedPlanAccepted(true);
+      setActiveTab("auto");
     }
 
-    if (data && data.length > 0) {
-      // Separate by plan_type
-      const persoPlan: MealPlan = {};
-      const custPlan: MealPlan = {};
-      
-      data.forEach((item: any) => {
-        const planType = item.plan_type || 'custom';
-        const target = planType === 'personalized' ? persoPlan : custPlan;
-        
-        if (!target[item.day_of_week]) {
-          target[item.day_of_week] = {};
+    if (cachedCust && Object.keys(cachedCust).length > 0) {
+      setCustomPlan(cachedCust);
+      setHasCustomPlan(true);
+    }
+
+    // 2. Sync with Supabase Cloud
+    try {
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', uid)
+        .eq('week_start_date', weekStart);
+
+      if (error) {
+        console.warn('Error loading meal plans from cloud:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Separate by plan_type
+        const persoPlan: MealPlan = {};
+        const custPlan: MealPlan = {};
+
+        data.forEach((item: any) => {
+          const planType = item.plan_type || 'custom';
+          const target = planType === 'personalized' ? persoPlan : custPlan;
+
+          if (!target[item.day_of_week]) {
+            target[item.day_of_week] = {};
+          }
+          target[item.day_of_week][item.meal_type] = {
+            recipeId: item.recipe_id,
+            prepared: item.prepared || false,
+            dbId: item.id,
+          };
+        });
+
+        if (Object.keys(persoPlan).length > 0) {
+          setPersonalizedPlan(persoPlan);
+          setHasPersonalizedPlan(true);
+          setPersonalizedPlanAccepted(true);
+          persistPlanLocal("personalized", persoPlan);
         }
-        target[item.day_of_week][item.meal_type] = {
-          recipeId: item.recipe_id,
-          prepared: item.prepared || false,
-          dbId: item.id,
-        };
-      });
 
-      if (Object.keys(persoPlan).length > 0) {
-        setPersonalizedPlan(persoPlan);
-        setHasPersonalizedPlan(true);
-        setPersonalizedPlanAccepted(true);
-      }
-      
-      if (Object.keys(custPlan).length > 0) {
-        setCustomPlan(custPlan);
-        setHasCustomPlan(true);
-      }
+        if (Object.keys(custPlan).length > 0) {
+          setCustomPlan(custPlan);
+          setHasCustomPlan(true);
+          persistPlanLocal("custom", custPlan);
+        }
 
-      // Default to personalized tab if they have one, else auto
-      setActiveTab(Object.keys(persoPlan).length > 0 ? "auto" : "manual");
-    } else {
-      // New user — no plans at all
-      setPersonalizedPlan({});
-      setCustomPlan({});
-      setHasPersonalizedPlan(false);
-      setHasCustomPlan(false);
-      setPersonalizedPlanAccepted(false);
-      setActiveTab("auto");
+        setActiveTab(Object.keys(persoPlan).length > 0 ? "auto" : "manual");
+      } else {
+        // Cloud has no records for the current week.
+        // DO NOT WIPE! If we have a local personalized plan, keep it and back it up to cloud!
+        if (cachedPerso && Object.keys(cachedPerso).length > 0) {
+          setPersonalizedPlan(cachedPerso);
+          setHasPersonalizedPlan(true);
+          setPersonalizedPlanAccepted(true);
+          setActiveTab("auto");
+          // Background upload for new week
+          autoSavePlanToCloud(uid, weekStart, cachedPerso);
+        }
+      }
+    } catch (err) {
+      console.warn("Exception in loadMealPlans:", err);
     }
   };
 
@@ -185,22 +245,69 @@ const MealPlanner = () => {
     setIsGenerating(true);
   };
 
+  
+  const autoSavePlanToCloud = async (uid: string, weekStart: string, plan: MealPlan) => {
+    try {
+      await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('user_id', uid)
+        .eq('week_start_date', weekStart)
+        .eq('plan_type', 'personalized');
+
+      const inserts: any[] = [];
+      Object.entries(plan).forEach(([day, meals]) => {
+        Object.entries(meals).forEach(([mealType, slot]) => {
+          if (slot.recipeId) {
+            inserts.push({
+              user_id: uid,
+              day_of_week: day,
+              meal_type: mealType,
+              recipe_id: slot.recipeId,
+              prepared: slot.prepared || false,
+              week_start_date: weekStart,
+              plan_type: 'personalized',
+            });
+          }
+        });
+      });
+
+      if (inserts.length > 0) {
+        await supabase.from('meal_plans').insert(inserts);
+      }
+    } catch (e) {
+      console.warn("Auto-save to cloud failed:", e);
+    }
+  };
+
   const onGenerationComplete = useCallback(() => {
     try {
       const newSeed = Date.now();
       const effectiveAge = activeBabyAgeMonths > 0 ? activeBabyAgeMonths : (babyAgeMonths || 6);
       const generated = generateAutoPlan(effectiveAge, dietaryPrefs, recentlyUsedRecipes, newSeed, allRecipes);
+      
+      // Update state
       setPersonalizedPlan(generated);
       setHasPersonalizedPlan(true);
-      setPersonalizedPlanAccepted(false);
+      setPersonalizedPlanAccepted(true); // Automatically accepted and active!
       setActiveTab("auto");
       setIsGenerating(false);
+
+      // PERSIST IMMEDIATELY TO LOCALSTORAGE
+      persistPlanLocal("personalized", generated);
+
+      // Auto-save in background to Supabase if logged in
+      if (userId) {
+        autoSavePlanToCloud(userId, currentWeekStart, generated);
+        updateShoppingListFromPlan(generated);
+      }
+
       try {
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
       } catch {
-        // Safe fallback if canvas is unsupported
+        // Safe fallback
       }
-      toast.success(`🎉 Weekly plan generated for ${activeBaby?.name || "your baby"}!`, {
+      toast.success(`🎉 Weekly plan generated and saved for ${activeBaby?.name || "your baby"}!`, {
         description: `Meals tailored for ${effectiveAge} months (${activeBabyAgeCategory}).`,
       });
     } catch (err: any) {
@@ -208,7 +315,40 @@ const MealPlanner = () => {
       setIsGenerating(false);
       toast.error(`Error generating plan: ${err.message || "Please try again"}`);
     }
-  }, [activeBabyAgeMonths, babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, allRecipes, activeBaby, activeBabyAgeCategory]);
+  }, [activeBabyAgeMonths, babyAgeMonths, dietaryPrefs, recentlyUsedRecipes, allRecipes, activeBaby, activeBabyAgeCategory, userId, currentWeekStart]);
+
+  
+  const togglePersonalizedPrepared = async (day: string, mealType: string) => {
+    const slot = personalizedPlan[day]?.[mealType];
+    if (!slot) return;
+    const newPrepared = !slot.prepared;
+
+    const updatedPlan: MealPlan = {
+      ...personalizedPlan,
+      [day]: {
+        ...personalizedPlan[day],
+        [mealType]: {
+          ...slot,
+          prepared: newPrepared,
+        },
+      },
+    };
+
+    setPersonalizedPlan(updatedPlan);
+    persistPlanLocal("personalized", updatedPlan);
+
+    if (slot.dbId) {
+      try {
+        await supabase.from('meal_plans').update({ prepared: newPrepared }).eq('id', slot.dbId);
+      } catch (e) {
+        console.warn("Cloud prepared toggle failed:", e);
+      }
+    } else if (userId) {
+      autoSavePlanToCloud(userId, currentWeekStart, updatedPlan);
+    }
+
+    toast.success(newPrepared ? "Meal marked as prepared! 👶🥣" : "Meal marked as not prepared");
+  };
 
   const regeneratePersonalizedPlan = () => {
     setIsGenerating(true);
@@ -863,7 +1003,7 @@ const MealPlanner = () => {
                         meals={personalizedPlan[day] || {}}
                         onAddMeal={() => {}}
                         onRemoveMeal={() => {}}
-                        onTogglePrepared={() => {}}
+                        onTogglePrepared={(mealType) => togglePersonalizedPrepared(day, mealType)}
                         onEditMeal={() => {}}
                         onCopyDay={() => {}}
                         onClearDay={() => {}}

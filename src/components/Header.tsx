@@ -14,7 +14,8 @@ import {
   LogOut, 
   ShieldCheck, 
   Repeat, 
-  Bookmark 
+  Bookmark,
+  Trophy 
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ export const Header = () => {
     { to: "/ingredient-swap", label: "Ingredient Swap", icon: Repeat },
     { to: "/community", label: "Parents Community", icon: MessageCircle },
     { to: "/favorites", label: "Saved Collections", icon: Bookmark },
+    { to: "/achievements", label: "Achievements & Medals", icon: Trophy },
     { to: "/growth", label: "Growth & Milestones", icon: TrendingUp },
     { to: "/settings", label: "Settings", icon: Settings },
   ];

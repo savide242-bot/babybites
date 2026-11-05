@@ -22,7 +22,7 @@ import { formatDistanceToNow, differenceInMonths } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Search, Filter, Bell, BellOff, RefreshCw, ChevronLeft, ChevronRight,
-  MoreHorizontal, Ban, Trash2, Shield, ShieldOff, Send, UserX, Baby, Eye, Clock, Globe
+  MoreHorizontal, Ban, Trash2, Shield, ShieldOff, Send, UserX, Baby, Eye, Clock, Globe, CheckCircle2
 } from 'lucide-react';
 
 interface UserProfile {
@@ -43,6 +43,7 @@ interface UserProfile {
   hasPush?: boolean;
   isAdmin?: boolean;
   recipeViewCount?: number;
+  is_verified?: boolean;
 }
 
 const ITEMS_PER_PAGE = 15;
@@ -72,18 +73,20 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const [profilesRes, sessionsRes, pushSubsRes, adminRolesRes, recipeViewsRes] = await Promise.all([
+      const [profilesRes, sessionsRes, pushSubsRes, adminRolesRes, recipeViewsRes, badgesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
         supabase.from('user_sessions').select('*'),
         supabase.from('push_subscriptions').select('user_id'),
         supabase.from('user_roles').select('user_id').eq('role', 'admin'),
         supabase.from('recipe_views').select('user_id'),
+        supabase.from('user_badges').select('user_id').eq('badge_id', 'verified_mother_badge'),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
 
       const pushUserIds = new Set(pushSubsRes.data?.map(p => p.user_id) || []);
       const adminUserIds = new Set(adminRolesRes.data?.map(r => r.user_id) || []);
+      const verifiedUserIds = new Set(badgesRes.data?.map(b => b.user_id) || []);
       
       // Count recipe views per user
       const viewCounts: Record<string, number> = {};
@@ -100,6 +103,7 @@ const UserManagement = () => {
           hasPush: pushUserIds.has(profile.id),
           isAdmin: adminUserIds.has(profile.id),
           recipeViewCount: viewCounts[profile.id] || 0,
+          is_verified: verifiedUserIds.has(profile.id) || !!(profile.baby_name && profile.mother_name),
         };
       }) || [];
 
@@ -167,6 +171,24 @@ const UserManagement = () => {
   };
   const handlePromote = async (userId: string) => { await executeAdminAction('promote_admin', userId); };
   const handleDemote = async (userId: string) => { await executeAdminAction('demote_admin', userId); };
+
+  const handleToggleVerified = async (targetUser: UserProfile) => {
+    setActionLoading(true);
+    try {
+      if (targetUser.is_verified) {
+        await supabase.from('user_badges').delete().eq('user_id', targetUser.id).eq('badge_id', 'verified_mother_badge');
+        toast({ title: 'Status Atualizado', description: 'Verificação de mãe removida.' });
+      } else {
+        await supabase.from('user_badges').insert({ user_id: targetUser.id, badge_id: 'verified_mother_badge' });
+        toast({ title: 'Status Atualizado', description: 'Mãe verificada com sucesso! ✨' });
+      }
+      await fetchUsers();
+    } catch (e: any) {
+      toast({ title: 'Erro', description: e.message || 'Falha ao atualizar verificação', variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleSendNotification = async () => {
     if (!selectedUser || !notifyTitle || !notifyBody) return;
@@ -300,6 +322,7 @@ const UserManagement = () => {
                             <div>
                               <div className="font-medium text-sm flex items-center gap-1.5">
                                 {user.full_name}
+                                {user.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 fill-emerald-100" title="Mãe Verificada" />}
                                 {user.isAdmin && <Shield className="h-3 w-3 text-purple-500" />}
                                 {user.is_banned && <Ban className="h-3 w-3 text-red-500" />}
                               </div>
@@ -362,6 +385,10 @@ const UserManagement = () => {
                               <DropdownMenuItem onClick={() => openUserDetail(user)}>
                                 <Eye className="h-4 w-4 mr-2" /> View Details
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleToggleVerified(user)}>
+                                <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
+                                {user.is_verified ? "Remover Verificação de Mãe" : "Verificar como Mãe Oficial"}
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               {user.is_banned ? (
                                 <DropdownMenuItem onClick={() => handleUnban(user.id)}><UserX className="h-4 w-4 mr-2" /> Unban</DropdownMenuItem>
@@ -418,6 +445,7 @@ const UserManagement = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedUser?.full_name}
+              {selectedUser?.is_verified && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 text-xs border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Mãe Verificada</Badge>}
               {selectedUser?.isAdmin && <Badge variant="outline" className="bg-purple-500/10 text-purple-600 text-xs"><Shield className="h-3 w-3 mr-1" />Admin</Badge>}
             </DialogTitle>
             <DialogDescription>User profile and activity details</DialogDescription>
