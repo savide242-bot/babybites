@@ -21,6 +21,7 @@ import { AddBabyModal } from "@/components/baby/AddBabyModal";
 import { Plus, Check, CheckCircle2, ExternalLink, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useGamification, BADGES } from "@/hooks/useGamification";
+import { openBadgeDetail } from "@/components/gamification/BadgeDetailModal";
 
 interface ProfileData {
   mother_name: string | null;
@@ -49,8 +50,8 @@ const Profile = () => {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const { babies, activeBaby, selectBaby, deleteBaby } = useBabyProfiles();
   const [addBabyOpen, setAddBabyOpen] = useState(false);
-  const { pinnedBadges, badges } = useGamification();
-  const pinnedBadgesList = BADGES.filter(b => pinnedBadges.includes(b.id));
+  const { pinnedBadges, badges, isAdminUser } = useGamification();
+  const pinnedBadgesList = isAdminUser ? BADGES : BADGES.filter(b => pinnedBadges.includes(b.id));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editForm, setEditForm] = useState({
     mother_name: "",
@@ -480,7 +481,7 @@ const Profile = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-serif font-bold text-gray-900 dark:text-stone-100">
                 <Trophy className="h-5 w-5 text-amber-500" />
-                Medalhas em Destaque ({pinnedBadges.length})
+                Featured Badges ({pinnedBadges.length})
               </CardTitle>
               <Link to="/achievements">
                 <Button
@@ -512,7 +513,9 @@ const Profile = () => {
                 {pinnedBadgesList.map((badge) => (
                   <div
                     key={badge.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-800/40"
+                    onClick={() => openBadgeDetail(badge)}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-800/40 cursor-pointer hover:scale-[1.02] hover:border-emerald-300 dark:hover:border-emerald-700 transition-all shadow-xs"
+                    title="Click to view criteria and details"
                   >
                     <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${badge.gradient} flex items-center justify-center text-xl shadow-xs shrink-0`}>
                       {badge.icon}

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BADGES } from "@/hooks/useGamification";
+import { openBadgeDetail } from "@/components/gamification/BadgeDetailModal";
 import { toast } from "sonner";
 
 export interface MotherProfileData {
@@ -25,6 +26,7 @@ export interface MotherProfileData {
   isCurrentUser?: boolean;
   isVerifiedMother?: boolean;
   pinnedBadges?: string[];
+  isAdmin?: boolean;
   posts: Array<{
     id: string;
     title: string;
@@ -57,7 +59,8 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
   const [babyAge, setBabyAge] = useState(profile?.babyAge || "");
   const [bio, setBio] = useState(profile?.bio || "");
 
-  const pinnedIds = profile?.pinnedBadges || ['pioneer_mother', 'first_recipe', 'master_planner'];
+  const isProfileAdmin = profile?.isAdmin || profile?.name?.toLowerCase().includes("admin") || profile?.pinnedBadges?.length === BADGES.length;
+  const pinnedIds = isProfileAdmin ? BADGES.map(b => b.id) : (profile?.pinnedBadges || ['pioneer_mother', 'first_recipe', 'master_planner']);
   const showcasedBadges = BADGES.filter(b => pinnedIds.includes(b.id));
 
   if (!profile) return null;
@@ -279,7 +282,9 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                     {showcasedBadges.map((badge) => (
                       <div
                         key={badge.id}
-                        className="flex items-center gap-2 p-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700/60 shadow-xs"
+                        onClick={() => openBadgeDetail(badge)}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200/60 dark:border-stone-700/60 shadow-xs cursor-pointer hover:border-emerald-400 dark:hover:border-emerald-600 hover:scale-[1.02] transition-all"
+                        title="Click to view criterion and details"
                       >
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${badge.gradient} flex items-center justify-center text-sm shrink-0`}>
                           {badge.icon}

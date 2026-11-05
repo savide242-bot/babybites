@@ -8,6 +8,7 @@ import {
   CheckCircle2, Volume2, VolumeX, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BADGES } from "@/hooks/useGamification";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CommunityStories, { StoryItem } from "@/components/community/CommunityStories";
@@ -477,13 +478,18 @@ export const Community: React.FC = () => {
 
   const handleOpenMotherProfile = (authorName: string, isCurrentUser = false) => {
     const userPosts = posts.filter((p) => p.author_name === authorName);
-    let userPinnedBadges = ['pioneer_mother', 'recipes_10', 'master_planner'];
-    if (isCurrentUser) {
+    const isAuthorAdmin = (isCurrentUser && isAdminUser) || authorName.toLowerCase().includes("admin") || authorName === "Sarah Jenkins";
+    let userPinnedBadges = isAuthorAdmin 
+      ? BADGES.map(b => b.id) 
+      : ['pioneer_mother', 'recipes_10', 'master_planner'];
+
+    if (isCurrentUser && !isAdminUser) {
       try {
         const raw = localStorage.getItem("babybites_pinned_badges_v1");
         if (raw) userPinnedBadges = JSON.parse(raw);
       } catch {}
     }
+
     const profileData: MotherProfileData = {
       id: isCurrentUser ? currentUserId : authorName.toLowerCase().replace(/\s+/g, "-"),
       name: authorName,
@@ -502,6 +508,7 @@ export const Community: React.FC = () => {
       posts: userPosts,
       isVerifiedMother: true,
       pinnedBadges: userPinnedBadges,
+      isAdmin: isAuthorAdmin,
     };
     setProfileModalState({ open: true, profile: profileData });
   };
