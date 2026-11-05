@@ -4,6 +4,7 @@ import { differenceInMonths } from "date-fns";
 import SolidsClubWelcomeBanner from "@/components/home/SolidsClubWelcomeBanner";
 import SolidsClubAgeSection from "@/components/home/SolidsClubAgeSection";
 import SolidsClubQuickTools from "@/components/home/SolidsClubQuickTools";
+import { StreakDisplay } from "@/components/gamification/StreakDisplay";
 
 // Import authentic 6-8 Months posters
 import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
@@ -228,6 +229,11 @@ export const Home = () => {
         babyName={babyName}
         babyAgeMonths={babyAgeMonths}
       />
+
+      {/* 2. Duolingo-style Streak & Freeze Incentive Banner */}
+      <div className="mt-4 mb-3">
+        <StreakDisplay variant="home-banner" />
+      </div>
 
       {/* 2. Parent Everyday Tools (Weekly Planner, Pantry, Freezer, Allergens) */}
       <SolidsClubQuickTools />

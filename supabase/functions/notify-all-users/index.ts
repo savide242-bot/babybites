@@ -18,7 +18,13 @@ interface RequestPayload {
   action_label?: string;
   action_url?: string;
   segment?: 'all' | 'active' | 'inactive';
+  targetUserId?: string;
 }
+
+const MASTER_SUPER_ADMINS = [
+  'octaviomoiane2007@gmail.com',
+  'savide242@gmail.com',
+];
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -46,16 +52,21 @@ Deno.serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Check if user is admin
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
+    // Check if user is master admin or has admin role
+    const userEmail = (user.email || '').toLowerCase().trim();
+    const isMaster = MASTER_SUPER_ADMINS.includes(userEmail);
 
-    if (roleError || !roleData) {
-      throw new Error('Unauthorized - admin role required');
+    if (!isMaster) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleError || !roleData) {
+        throw new Error('Unauthorized - admin role required');
+      }
     }
 
     console.log('✅ Admin verified:', user.id);
@@ -69,10 +80,14 @@ Deno.serve(async (req) => {
     const payload: RequestPayload = await req.json();
     console.log('📝 Notification payload:', { title: payload.title, segment: payload.segment || 'all' });
 
-    // Fetch push subscriptions based on segment
+    // Fetch push subscriptions based on segment or target user
     let query = supabase
       .from('push_subscriptions')
       .select('id, user_id, endpoint, p256dh, auth');
+
+    if (payload.targetUserId) {
+      query = query.eq('user_id', payload.targetUserId);
+    }
 
     // Apply segment filter if needed
     if (payload.segment === 'active') {

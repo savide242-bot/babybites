@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
-import { Sparkles, Trophy, CheckCircle2, Star, Bookmark, ArrowRight, ShieldCheck } from "lucide-react";
+import { Sparkles, Trophy, CheckCircle2, Star, Bookmark, ArrowRight, ShieldCheck, Snowflake } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Badge, BADGES } from "@/hooks/useGamification";
 
@@ -110,6 +110,14 @@ export const BadgeCelebrationModal: React.FC = () => {
               <div className="text-xs">
                 <span className="font-bold text-stone-900 dark:text-stone-100 block">Bonus Unlocked:</span>
                 <span className="text-emerald-700 dark:text-emerald-400 font-semibold">{badge.reward}</span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 pt-2 border-t border-stone-200/60 dark:border-stone-700/60">
+              <Snowflake className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <span className="font-bold text-cyan-800 dark:text-cyan-300 block">Streak Freeze Awarded:</span>
+                <span className="text-cyan-600 dark:text-cyan-400 font-medium">+1 Streak Freeze added to your vault (Max 3 slots)! Protects your streak if you miss a day.</span>
               </div>
             </div>
           </div>

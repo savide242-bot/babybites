@@ -27,6 +27,7 @@ import {
 import appLogo from "@/assets/logo.png";
 import { BabySwitcher } from "@/components/baby/BabySwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { StreakDisplay } from "@/components/gamification/StreakDisplay";
 
 export const Header = () => {
   const location = useLocation();
@@ -50,6 +51,7 @@ export const Header = () => {
     { to: "/community", label: "Parents Community", icon: MessageCircle },
     { to: "/favorites", label: "Saved Collections", icon: Bookmark },
     { to: "/achievements", label: "Achievements & Medals", icon: Trophy },
+    { to: "/leaderboard", label: "Weekly Leaderboard", icon: Trophy },
     { to: "/growth", label: "Growth & Milestones", icon: TrendingUp },
     { to: "/settings", label: "Settings", icon: Settings },
   ];
@@ -69,9 +71,10 @@ export const Header = () => {
           </span>
         </Link>
 
-        {/* Action Icons right side (Baby Switcher, Search, Theme & Drawer Menu) */}
+        {/* Action Icons right side (Baby Switcher, Streak, Search, Theme & Drawer Menu) */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 min-w-0">
           <BabySwitcher variant="header" />
+          <StreakDisplay variant="compact" />
 
           <Link
             to="/recipes"

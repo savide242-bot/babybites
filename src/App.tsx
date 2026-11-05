@@ -48,6 +48,7 @@ const Favorites = lazy(() => import("./pages/Favorites"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminRecipeImages = lazy(() => import("./pages/AdminRecipeImages"));
 const Achievements = lazy(() => import("./pages/Achievements"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const FoodDiary = lazy(() => import("./pages/FoodDiary"));
 const Community = lazy(() => import("./pages/Community"));
@@ -133,6 +134,7 @@ const AppContent = () => {
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/recipe-images" element={<AdminRecipeImages />} />
           <Route path="/achievements" element={<Achievements />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/food-diary" element={<FoodDiary />} />
           <Route path="/ios-push-setup" element={<IOSPushSetup />} />

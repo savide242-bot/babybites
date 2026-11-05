@@ -55,7 +55,7 @@ export const Achievements = () => {
   const handleShare = (title: string, icon: string) => {
     setShareData({
       type: 'badge',
-      title: `Conquista: ${title}`,
+      title: `Achievement: ${title}`,
       icon: icon
     });
     setShareOpen(true);
@@ -82,12 +82,20 @@ export const Achievements = () => {
           <Button asChild variant="ghost" size="sm" className="rounded-full gap-1.5 text-stone-600 dark:text-stone-300">
             <Link to="/profile">
               <ArrowLeft className="w-4 h-4" />
-              <span>Voltar ao Perfil</span>
+              <span>Back to Profile</span>
             </Link>
           </Button>
-          <UiBadge variant="outline" className="rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 px-3 py-1 font-bold">
-            🏆 {unlockedBadges.length} de {BADGES.length} Conquistadas
-          </UiBadge>
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="rounded-full gap-1.5 text-xs font-bold border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40">
+              <Link to="/leaderboard">
+                <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                <span>Leaderboard</span>
+              </Link>
+            </Button>
+            <UiBadge variant="outline" className="rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 px-3 py-1 font-bold">
+              🏆 {unlockedBadges.length} of {BADGES.length} Unlocked
+            </UiBadge>
+          </div>
         </div>
 
         {/* Hero Trophy Banner */}
@@ -96,13 +104,13 @@ export const Achievements = () => {
           <div className="flex items-start justify-between relative z-10">
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 text-xs font-bold uppercase tracking-wider mb-2">
-                <Sparkles className="w-3.5 h-3.5" /> Conquistas da Mãe
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Mother Achievements
               </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                Galeria de Medalhas
+                Medal Showcase
               </h1>
               <p className="text-emerald-100/90 text-sm mt-1 max-w-sm leading-relaxed">
-                Celebre cada passo do desenvolvimento do seu bebê. Você escolhe quais medalhas deseja exibir no seu perfil público!
+                Celebrate every milestone in your baby's growth journey. Choose which medals to showcase on your public profile!
               </p>
             </div>
             <div className="w-16 h-16 rounded-2xl bg-amber-400/20 border border-amber-300/30 backdrop-blur-md flex items-center justify-center text-3xl shadow-inner shrink-0">
@@ -112,8 +120,8 @@ export const Achievements = () => {
 
           {/* Quick Progress */}
           <div className="mt-5 pt-4 border-t border-white/15 flex items-center justify-between text-xs text-emerald-100 font-semibold">
-            <span>Progresso Total</span>
-            <span>{Math.round((unlockedBadges.length / BADGES.length) * 100)}% concluído</span>
+            <span>Total Progress</span>
+            <span>{Math.round((unlockedBadges.length / BADGES.length) * 100)}% completed</span>
           </div>
           <Progress 
             value={(unlockedBadges.length / BADGES.length) * 100} 
@@ -130,10 +138,10 @@ export const Achievements = () => {
               </div>
               <div>
                 <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-stone-100">
-                  Medalhas no seu Perfil Público ({featuredPinnedBadges.length}/4)
+                  Showcased on Public Profile ({featuredPinnedBadges.length}/4)
                 </h3>
                 <p className="text-[11px] text-stone-500 dark:text-stone-400">
-                  Visíveis para outras mães na comunidade quando visitam o seu perfil.
+                  Visible to fellow mothers in the community when they view your profile.
                 </p>
               </div>
             </div>
@@ -153,7 +161,7 @@ export const Achievements = () => {
                   <button
                     onClick={() => togglePinBadge(badge.id)}
                     className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-white dark:bg-stone-800 text-stone-400 hover:text-red-500 flex items-center justify-center shadow-xs"
-                    title="Remover do perfil público"
+                    title="Remove from public profile"
                   >
                     <PinOff className="w-3 h-3" />
                   </button>
@@ -164,7 +172,7 @@ export const Achievements = () => {
                     {badge.name}
                   </p>
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-                    ✓ No Perfil
+                    ✓ On Profile
                   </span>
                 </div>
               ))}
@@ -183,7 +191,7 @@ export const Achievements = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              Todas ({BADGES.length})
+              All ({BADGES.length})
             </button>
             <button
               onClick={() => setActiveFilter("unlocked")}
@@ -193,7 +201,7 @@ export const Achievements = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              Conquistadas ({unlockedBadges.length})
+              Unlocked ({unlockedBadges.length})
             </button>
             <button
               onClick={() => setActiveFilter("locked")}
@@ -203,7 +211,7 @@ export const Achievements = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              Lockeds ({lockedBadges.length})
+              Locked ({lockedBadges.length})
             </button>
           </div>
         </div>
@@ -303,7 +311,7 @@ export const Achievements = () => {
                         ) : (
                           <div className="flex items-center gap-1.5 text-[11px] text-stone-500 font-medium">
                             <Target className="w-3.5 h-3.5 text-stone-400" />
-                            <span>Meta: {badge.requirement}</span>
+                            <span>Requirement: {badge.requirement}</span>
                           </div>
                         )}
                       </div>

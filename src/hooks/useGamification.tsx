@@ -280,41 +280,111 @@ export const useGamification = () => {
 
   const loadGamificationData = async (uid: string, isAdmin: boolean = false) => {
     try {
-      // 1. Load streak
+      // 1. Load streak & compute daily check-in / streak freeze protection
       const { data: streakData } = await supabase
         .from('user_streaks')
         .select('*')
         .eq('user_id', uid)
         .maybeSingle();
 
+      const todayStr = new Date().toISOString().split('T')[0];
+
       if (streakData) {
+        let currentStreak = streakData.current_streak || 1;
+        let longestStreak = streakData.longest_streak || 1;
+        let totalPoints = streakData.total_points || 100;
+        let freezesAvailable = streakData.streak_freezes_available !== null && streakData.streak_freezes_available !== undefined
+          ? Number(streakData.streak_freezes_available)
+          : 1;
+        const lastDate = streakData.last_activity_date;
+        let streakChanged = false;
+
+        if (!lastDate) {
+          streakChanged = true;
+        } else if (lastDate !== todayStr) {
+          const lastTime = new Date(lastDate + 'T00:00:00').getTime();
+          const todayTime = new Date(todayStr + 'T00:00:00').getTime();
+          const diffDays = Math.round((todayTime - lastTime) / (1000 * 60 * 60 * 24));
+
+          if (diffDays === 1) {
+            // Consecutive daily check-in
+            currentStreak += 1;
+            if (currentStreak > longestStreak) longestStreak = currentStreak;
+            totalPoints += POINTS.checkin;
+            streakChanged = true;
+          } else if (diffDays > 1) {
+            const missedDays = diffDays - 1;
+            // Check if streak freezes can protect the streak (up to 3 max)
+            if (freezesAvailable >= missedDays && missedDays <= 3) {
+              freezesAvailable -= missedDays;
+              currentStreak += 1;
+              if (currentStreak > longestStreak) longestStreak = currentStreak;
+              totalPoints += POINTS.checkin;
+              streakChanged = true;
+              toast({
+                title: "❄️ Streak Freeze Activated!",
+                description: `Your ${currentStreak}-day streak was protected using ${missedDays} Streak Freeze${missedDays > 1 ? 's' : ''}!`,
+              });
+            } else {
+              currentStreak = 1;
+              streakChanged = true;
+              toast({
+                title: "🔥 Streak Restarted",
+                description: "You missed check-in without enough streak freezes. Starting day 1 today — keep going!",
+              });
+            }
+          }
+        }
+
+        if (streakChanged) {
+          try {
+            await supabase
+              .from('user_streaks')
+              .update({
+                current_streak: currentStreak,
+                longest_streak: longestStreak,
+                total_points: totalPoints,
+                streak_freezes_available: freezesAvailable,
+                last_activity_date: todayStr,
+              })
+              .eq('user_id', uid);
+          } catch (err) {
+            console.warn("Failed updating user streak in db:", err);
+          }
+        }
+
         setStreak({
-          current_streak: streakData.current_streak,
-          longest_streak: streakData.longest_streak,
-          total_points: streakData.total_points,
-          last_activity_date: streakData.last_activity_date,
-          streak_freezes_available: (streakData as any).streak_freezes_available || 1,
-          grace_period_eligible: (streakData as any).grace_period_eligible || false,
-          grace_period_days_missed: (streakData as any).grace_period_days_missed || 0,
+          current_streak: currentStreak,
+          longest_streak: longestStreak,
+          total_points: totalPoints,
+          last_activity_date: todayStr,
+          streak_freezes_available: freezesAvailable,
+          grace_period_eligible: false,
+          grace_period_days_missed: 0,
         });
       } else {
         const { data: newStreak } = await supabase
           .from('user_streaks')
-          .insert({ user_id: uid })
-          .select()
-          .single();
-
-        if (newStreak) {
-          setStreak({
+          .insert({
+            user_id: uid,
             current_streak: 1,
             longest_streak: 1,
             total_points: 100,
-            last_activity_date: new Date().toISOString().split('T')[0],
             streak_freezes_available: 1,
-            grace_period_eligible: false,
-            grace_period_days_missed: 0,
-          });
-        }
+            last_activity_date: todayStr,
+          })
+          .select()
+          .single();
+
+        setStreak({
+          current_streak: 1,
+          longest_streak: 1,
+          total_points: 100,
+          last_activity_date: todayStr,
+          streak_freezes_available: 1,
+          grace_period_eligible: false,
+          grace_period_days_missed: 0,
+        });
       }
 
       // 2. Load badges
@@ -461,14 +531,28 @@ export const useGamification = () => {
 
       setBadges(prev => [...prev, { badge_id: badgeId, earned_at: data?.earned_at || new Date().toISOString() }]);
 
-      // Add bonus reward points to streak
-      if (streak) {
+      // Add bonus reward points to streak and grant +1 Streak Freeze (up to max 3)
+      const currentFreezes = streak?.streak_freezes_available !== undefined ? streak.streak_freezes_available : 1;
+      const nextFreezes = Math.min(3, currentFreezes + 1);
+      const nextPoints = (streak?.total_points || 100) + POINTS.badge_earned;
+
+      try {
         await supabase
           .from('user_streaks')
-          .update({ total_points: streak.total_points + POINTS.badge_earned })
+          .update({
+            total_points: nextPoints,
+            streak_freezes_available: nextFreezes,
+          })
           .eq('user_id', userId);
-        setStreak(prev => prev ? { ...prev, total_points: prev.total_points + POINTS.badge_earned } : null);
+      } catch (err) {
+        console.warn("Failed updating streak reward in db:", err);
       }
+
+      setStreak(prev => prev ? {
+        ...prev,
+        total_points: nextPoints,
+        streak_freezes_available: nextFreezes,
+      } : null);
 
       // FIRE CELEBRATION MODAL WITH CONFETTI AND REWARD DETAILS!
       window.dispatchEvent(new CustomEvent('babybites_badge_unlocked', { detail: badgeObj }));
@@ -572,7 +656,21 @@ export const useGamification = () => {
     awardBadge,
     checkBadges,
     isAdminUser,
-    useStreakFreeze: () => {},
+    useStreakFreeze: async () => {
+      if (!streak || (streak.streak_freezes_available || 0) <= 0) {
+        toast({
+          title: "No Streak Freezes Available",
+          description: "Unlock more achievements to earn up to 3 streak freezes in your vault!",
+          variant: "destructive",
+        });
+        return false;
+      }
+      toast({
+        title: "❄️ Streak Freeze Active",
+        description: `You have ${streak.streak_freezes_available} freeze(s) in your vault. If you miss a day, your streak is automatically protected!`,
+      });
+      return true;
+    },
     recoverStreak: () => {},
   };
 };

@@ -180,11 +180,11 @@ const UserManagement = () => {
         toast({ title: 'Status Updated', description: 'Mother verification removed.' });
       } else {
         await supabase.from('user_badges').insert({ user_id: targetUser.id, badge_id: 'verified_mother_badge' });
-        toast({ title: 'Status Atualizado', description: 'Mother verified successfully! ✨' });
+        toast({ title: 'Status Updated', description: 'Mother verified successfully! ✨' });
       }
       await fetchUsers();
     } catch (e: any) {
-      toast({ title: 'Erro', description: e.message || 'Falha ao atualizar verificação', variant: 'destructive' });
+      toast({ title: 'Error', description: e.message || 'Failed to update verification status', variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
