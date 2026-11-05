@@ -642,7 +642,7 @@ export const Community: React.FC = () => {
                         <span className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                           {post.author_baby}
                           <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block" />
-                          <span className="text-[9px] uppercase tracking-wider font-bold">Mãe Verificada</span>
+                          <span className="text-[9px] uppercase tracking-wider font-bold">Verified Mom</span>
                         </span>
                       </div>
                       <span className="text-[10px] text-gray-400 dark:text-stone-500">

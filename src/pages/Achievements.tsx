@@ -141,7 +141,7 @@ export const Achievements = () => {
 
           {featuredPinnedBadges.length === 0 ? (
             <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900/50 border border-dashed border-stone-300 dark:border-stone-700 text-center text-xs text-stone-500">
-              Você ainda não fixou nenhuma medalha. Toque no botão <strong>"Exibir no Perfil"</strong> em qualquer conquista desbloqueada abaixo!
+              You haven't pinned any badges yet. Tap <strong>"Show on Profile"</strong> on any unlocked achievement below!
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
@@ -203,7 +203,7 @@ export const Achievements = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              Bloqueadas ({lockedBadges.length})
+              Lockeds ({lockedBadges.length})
             </button>
           </div>
         </div>
@@ -282,7 +282,7 @@ export const Achievements = () => {
                               }`}
                             >
                               <Pin className={`w-3.5 h-3.5 ${isPinned ? "fill-white" : ""}`} />
-                              <span>{isPinned ? "No Perfil ✓" : "Exibir no Perfil"}</span>
+                              <span>{isPinned ? "On Profile ✓" : "Show on Profile"}</span>
                             </Button>
 
                             {/* Share button */}

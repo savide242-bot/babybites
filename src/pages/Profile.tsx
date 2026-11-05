@@ -377,7 +377,7 @@ const Profile = () => {
             {/* Mãe Verificada Badge */}
             <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shadow-xs">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-900" />
-              <span>Mãe Verificada • Verified Mother</span>
+              <span>Verified Mother ✓</span>
             </div>
 
             {!isEditing && (
@@ -474,7 +474,7 @@ const Profile = () => {
           </div>
         </GlassCard>
 
-        {/* Showcased Badges / Medalhas em Destaque no Perfil */}
+        {/* Showcased Badges / Featured Badges no Perfil */}
         <Card className="border border-[#EBE8DF] dark:border-stone-800 shadow-sm bg-white dark:bg-stone-900 rounded-2xl overflow-hidden">
           <CardHeader className="pb-3 bg-[#FAF9F5] dark:bg-stone-800/50 border-b border-[#EBE8DF] dark:border-stone-800">
             <div className="flex items-center justify-between">
@@ -488,22 +488,22 @@ const Profile = () => {
                   variant="outline"
                   className="rounded-xl border-[#CCE0D2] dark:border-stone-700 bg-white dark:bg-stone-800 text-[#1E5E3A] dark:text-emerald-400 hover:bg-[#EAF5EE] text-xs font-semibold gap-1.5"
                 >
-                  <span>Gerenciar Medalhas</span>
+                  <span>Manage Badges</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </Button>
               </Link>
             </div>
             <p className="text-xs text-gray-500 dark:text-stone-400 mt-1">
-              Estas são as medalhas que escolheu exibir publicamente para outras mães da comunidade.
+              These are the badges you have chosen to showcase publicly to other parents in the community.
             </p>
           </CardHeader>
           <CardContent className="p-4">
             {pinnedBadgesList.length === 0 ? (
               <div className="text-center py-6 text-sm text-gray-500 dark:text-stone-400">
-                <p>Nenhuma medalha selecionada para exibição pública.</p>
+                <p>No badges selected for public showcase yet.</p>
                 <Link to="/achievements">
                   <Button size="sm" variant="link" className="text-[#1E5E3A] dark:text-emerald-400 text-xs mt-1">
-                    Escolher medalhas para exibir no perfil →
+                    Choose badges to showcase on profile →
                   </Button>
                 </Link>
               </div>

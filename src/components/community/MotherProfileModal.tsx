@@ -223,7 +223,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                   {(profile.isVerifiedMother !== false) && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-[#1E5E3A] dark:text-emerald-300 text-[11px] font-semibold">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                      <span>Mãe Verificada</span>
+                      <span>Verified Mother</span>
                     </span>
                   )}
                 </div>
@@ -262,7 +262,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 dark:text-stone-200">
                       <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Medalhas em Destaque ({showcasedBadges.length})</span>
+                      <span>Featured Badges ({showcasedBadges.length})</span>
                     </div>
                     {profile.isCurrentUser && (
                       <Link
@@ -270,7 +270,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                         onClick={onClose}
                         className="text-[11px] text-[#1E5E3A] dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1"
                       >
-                        <span>Gerenciar</span>
+                        <span>Manage</span>
                         <ExternalLink className="w-3 h-3" />
                       </Link>
                     )}

@@ -177,10 +177,10 @@ const UserManagement = () => {
     try {
       if (targetUser.is_verified) {
         await supabase.from('user_badges').delete().eq('user_id', targetUser.id).eq('badge_id', 'verified_mother_badge');
-        toast({ title: 'Status Atualizado', description: 'Verificação de mãe removida.' });
+        toast({ title: 'Status Updated', description: 'Mother verification removed.' });
       } else {
         await supabase.from('user_badges').insert({ user_id: targetUser.id, badge_id: 'verified_mother_badge' });
-        toast({ title: 'Status Atualizado', description: 'Mãe verificada com sucesso! ✨' });
+        toast({ title: 'Status Atualizado', description: 'Mother verified successfully! ✨' });
       }
       await fetchUsers();
     } catch (e: any) {
@@ -322,7 +322,7 @@ const UserManagement = () => {
                             <div>
                               <div className="font-medium text-sm flex items-center gap-1.5">
                                 {user.full_name}
-                                {user.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 fill-emerald-100" title="Mãe Verificada" />}
+                                {user.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 fill-emerald-100" title="Verified Mother" />}
                                 {user.isAdmin && <Shield className="h-3 w-3 text-purple-500" />}
                                 {user.is_banned && <Ban className="h-3 w-3 text-red-500" />}
                               </div>
@@ -387,7 +387,7 @@ const UserManagement = () => {
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleToggleVerified(user)}>
                                 <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
-                                {user.is_verified ? "Remover Verificação de Mãe" : "Verificar como Mãe Oficial"}
+                                {user.is_verified ? "Remove Mother Verification" : "Verify as Official Mother"}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               {user.is_banned ? (
@@ -445,7 +445,7 @@ const UserManagement = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedUser?.full_name}
-              {selectedUser?.is_verified && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 text-xs border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Mãe Verificada</Badge>}
+              {selectedUser?.is_verified && <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 text-xs border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Verified Mother</Badge>}
               {selectedUser?.isAdmin && <Badge variant="outline" className="bg-purple-500/10 text-purple-600 text-xs"><Shield className="h-3 w-3 mr-1" />Admin</Badge>}
             </DialogTitle>
             <DialogDescription>User profile and activity details</DialogDescription>
