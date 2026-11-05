@@ -29,30 +29,32 @@ import SmartInstallBanner from "@/components/SmartInstallBanner";
 import { BadgeCelebrationModal } from "@/components/gamification/BadgeCelebrationModal";
 import { BadgeDetailModal } from "@/components/gamification/BadgeDetailModal";
 
-// Lazy load heavy pages for better initial bundle size
+// Eagerly imported core navigation tabs for INSTANT tab switching without white screen delay
+import Recipes from "./pages/Recipes";
+import MealPlanner from "./pages/MealPlanner";
+import Community from "./pages/Community";
+import GrowthTracker from "./pages/GrowthTracker";
+import Profile from "./pages/Profile";
+import PantryHelper from "./pages/PantryHelper";
+import FoodAnalyzer from "./pages/FoodAnalyzer";
+import Favorites from "./pages/Favorites";
+import Achievements from "./pages/Achievements";
+import { Leaderboard } from "./pages/Leaderboard";
+
+// Lazy load secondary/admin routes
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const FirstDay = lazy(() => import("./pages/FirstDay"));
-const Recipes = lazy(() => import("./pages/Recipes"));
 const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
 const VideoRecipeDetail = lazy(() => import("./pages/VideoRecipeDetail"));
-const MealPlanner = lazy(() => import("./pages/MealPlanner"));
 const Advice = lazy(() => import("./pages/Advice"));
 const Bonus = lazy(() => import("./pages/Bonus"));
-const GrowthTracker = lazy(() => import("./pages/GrowthTracker"));
-const FoodAnalyzer = lazy(() => import("./pages/FoodAnalyzer"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Install = lazy(() => import("./pages/Install"));
 const ProgressReports = lazy(() => import("./pages/ProgressReports"));
 const ShoppingList = lazy(() => import("./pages/ShoppingList"));
-const Favorites = lazy(() => import("./pages/Favorites"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminRecipeImages = lazy(() => import("./pages/AdminRecipeImages"));
-const Achievements = lazy(() => import("./pages/Achievements"));
-const Leaderboard = lazy(() => import("./pages/Leaderboard"));
-const Profile = lazy(() => import("./pages/Profile"));
 const FoodDiary = lazy(() => import("./pages/FoodDiary"));
-const Community = lazy(() => import("./pages/Community"));
-const PantryHelper = lazy(() => import("./pages/PantryHelper"));
 const AllergenTracker = lazy(() => import("./pages/AllergenTracker"));
 const FreezerPrep = lazy(() => import("./pages/FreezerPrep"));
 const FoodsTried = lazy(() => import("./pages/FoodsTried"));
@@ -60,13 +62,10 @@ const IngredientSwap = lazy(() => import("./pages/IngredientSwap"));
 const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
 const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
 
-// Loading fallback for lazy loaded pages
+// Non-disruptive loading fallback for secondary lazy pages (preserves background, no white flash)
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="space-y-4 text-center">
-      <div className="w-12 h-12 border-4 border-[#1E5E3A]/30 border-t-[#1E5E3A] rounded-full animate-spin mx-auto" />
-      <Skeleton className="h-4 w-32 mx-auto" />
-    </div>
+  <div className="w-full min-h-[35vh] flex items-center justify-center p-8">
+    <div className="w-8 h-8 border-3 border-[#1E5E3A]/20 border-t-[#1E5E3A] rounded-full animate-spin" />
   </div>
 );
 

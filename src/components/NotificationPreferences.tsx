@@ -250,6 +250,9 @@ export function NotificationPreferences() {
   const handleSendMealReminderNow = async () => {
     setSendingMealReminder(true);
     try {
+      if (!isSubscribed && isSupported) {
+        try { await subscribe(); } catch (subErr) { console.warn('Test auto-subscribe:', subErr); }
+      }
       // 1. Immediately trigger real device notification via Service Worker
       if ('serviceWorker' in navigator && Notification.permission === 'granted') {
         try {
@@ -462,26 +465,29 @@ export function NotificationPreferences() {
         </div>
       </div>
 
-      {/* Timezone Selector */}
-      <div className="p-4 bg-muted/50 rounded-lg border border-border/50">
-        <div className="flex items-center gap-2 mb-3">
-          <Globe className="h-4 w-4 text-primary" />
-          <Label className="font-medium">Your Timezone</Label>
+      {/* Automatic Phone Clock Sync */}
+      <div className="p-4 bg-emerald-500/10 dark:bg-emerald-950/30 rounded-2xl border border-emerald-500/20 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <Label className="font-bold text-stone-900 dark:text-stone-100 text-sm block">
+                Phone Clock Auto-Sync
+              </Label>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Device Time: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Auto-synchronized</span>
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-600 text-white shadow-2xs">
+            Active
+          </span>
         </div>
-        <select
-          value={userTimezone}
-          onChange={(e) => handleTimezoneChange(e.target.value)}
-          disabled={!isEditing}
-          className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-50"
-        >
-          {COMMON_TIMEZONES.map((tz) => (
-            <option key={tz.value} value={tz.value}>
-              {tz.label}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-muted-foreground mt-2">
-          Notifications will be sent based on this timezone
+        <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed pt-1.5 border-t border-emerald-500/15">
+          No manual timezone selection needed. BabyBites reads your phone’s exact clock. Reminders are delivered right when your phone reaches your baby's scheduled meal time.
         </p>
       </div>
 

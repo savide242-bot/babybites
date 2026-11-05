@@ -52,9 +52,17 @@ export const useSessionTracking = () => {
       const now = new Date().toISOString();
 
       try {
-        // Auto-detect timezone
-        const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        supabase.from('profiles').update({ timezone: detectedTimezone }).eq('id', user.id).then(() => {});
+        // Auto-detect timezone without repeatedly overwriting
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('timezone')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!prof?.timezone) {
+          const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Maputo';
+          await supabase.from('profiles').update({ timezone: detectedTimezone }).eq('id', user.id);
+        }
 
         // Upsert session
         await supabase

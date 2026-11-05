@@ -144,7 +144,13 @@ Deno.serve(async (req) => {
     // 3) For each meal time, check if in window
     for (const mt of allMealTimes) {
       const profile = profileMap.get(mt.user_id);
-      const tz = profile?.timezone || 'UTC';
+      const subs = subsMap.get(mt.user_id);
+      // Determine local timezone: profile -> subscription device tz -> fallback to Africa/Maputo (UTC+2)
+      const tz = (profile?.timezone && profile.timezone !== 'UTC')
+        ? profile.timezone
+        : (subs?.[0]?.timezone && subs[0].timezone !== 'UTC')
+          ? subs[0].timezone
+          : 'Africa/Maputo';
       const babyName = profile?.baby_name || 'baby';
       const local = getUserLocalTime(now, tz);
       const localDate = getUserLocalDate(now, tz);
