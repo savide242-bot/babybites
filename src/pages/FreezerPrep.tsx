@@ -78,6 +78,8 @@ export const FreezerPrep: React.FC = () => {
   const [newMonths, setNewMonths] = useState(3);
   const [isAdding, setIsAdding] = useState(false);
   const [activeTab, setActiveTab] = useState<"stash" | "recipes" | "rules">("stash");
+  const [addMode, setAddMode] = useState<"app" | "custom">("app");
+  const [recipeSearch, setRecipeSearch] = useState("");
 
   useEffect(() => {
     try {
@@ -86,6 +88,21 @@ export const FreezerPrep: React.FC = () => {
       console.error(e);
     }
   }, [stash]);
+
+
+  const handleAddAppRecipe = (recipe: any) => {
+    const details = getFreezerDetails(recipe.title);
+    const newItem: StashItem = {
+      id: "stash-" + Date.now(),
+      foodName: recipe.title,
+      portions: 4,
+      frozenDate: new Date().toISOString().split("T")[0],
+      maxMonths: details.months,
+    };
+    setStash([newItem, ...stash]);
+    setIsAdding(false);
+    toast.success(`Added ${recipe.title} (4 portions) to your freezer! ❄️`);
+  };
 
   const handleAddStash = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +142,22 @@ export const FreezerPrep: React.FC = () => {
     toast.info("Portion removed from stash");
   };
 
+
+  // Auto-detect freeze duration and thawing tip
+  const getFreezerDetails = (name: string, customCategory?: string) => {
+    const lower = name.toLowerCase();
+    if (lower.includes("fish") || lower.includes("salmon") || lower.includes("chicken") || lower.includes("meat") || lower.includes("turkey") || lower.includes("beef") || lower.includes("lamb")) {
+      return { months: 2, days: 60, tag: "2 Months (Meat & Fish)", tip: "Thaw overnight in the refrigerator. Reheat until piping hot, then let cool to lukewarm." };
+    }
+    if (lower.includes("muffin") || lower.includes("tot") || lower.includes("finger") || lower.includes("pancake") || lower.includes("bite") || lower.includes("patty")) {
+      return { months: 2, days: 60, tag: "2 Months (Baked Finger Foods)", tip: "Pop directly into oven or toaster oven for 3-5 mins, or microwave gently." };
+    }
+    if (lower.includes("yogurt") || lower.includes("cheese") || lower.includes("dairy")) {
+      return { months: 1, days: 30, tag: "1 Month (Dairy-based)", tip: "Thaw in fridge. Mix well after thawing as natural separation may occur." };
+    }
+    return { months: 3, days: 90, tag: "3 Months (Fruit & Veggie Purees)", tip: "Warm gently in a water bath. Stir thoroughly to eliminate any hot spots before serving." };
+  };
+
   // Calculate expiry status
   const getExpiryInfo = (item: StashItem) => {
     const frozen = new Date(item.frozenDate);
@@ -154,9 +187,14 @@ export const FreezerPrep: React.FC = () => {
         text.includes("puree") ||
         text.includes("tots") ||
         text.includes("patties") ||
-        text.includes("soup")
+        text.includes("soup") ||
+        text.includes("mash") ||
+        text.includes("patties") ||
+        text.includes("lentil") ||
+        text.includes("broth") ||
+        text.includes("stew")
       );
-    }).slice(0, 18);
+    });
   }, []);
 
   return (
@@ -225,79 +263,161 @@ export const FreezerPrep: React.FC = () => {
             </Button>
           </div>
 
-          {/* Add Portion Form Card */}
+          {/* Add Portion Form - 2 a 2 Lado a Lado (App Recipes vs Custom Recipe) */}
           {isAdding && (
-            <form
-              onSubmit={handleAddStash}
-              className="bg-white rounded-[24px] border border-[#EBE8DF] p-4 shadow-sm space-y-3 animate-fade-in"
-            >
-              <span className="text-xs font-bold uppercase tracking-wider text-forest block">
-                Record New Freezer Batch
-              </span>
-
-              <div>
-                <label className="text-[11px] font-semibold text-gray-500 block mb-1">
-                  Recipe / Food Name
-                </label>
-                <Input
-                  value={newFoodName}
-                  onChange={(e) => setNewFoodName(e.target.value)}
-                  placeholder="e.g. Butternut Squash & Apple Mash"
-                  className="rounded-xl h-10 text-xs border-[#EBE8DF]"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white dark:bg-stone-900 rounded-[28px] border-2 border-emerald-500/30 p-4 sm:p-5 shadow-lg space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-500 block mb-1">
-                    Portions / Cubes
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={newPortions}
-                    onChange={(e) => setNewPortions(e.target.value)}
-                    className="rounded-xl h-10 text-xs border-[#EBE8DF]"
-                  />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                    Add Batch Portion
+                  </span>
+                  <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                    How would you like to add this portion?
+                  </h3>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-500 block mb-1">
-                    Storage Limit
-                  </label>
-                  <select
-                    value={newMonths}
-                    onChange={(e) => setNewMonths(parseInt(e.target.value, 10))}
-                    className="w-full h-10 rounded-xl border border-[#EBE8DF] px-3 bg-white text-xs text-gray-700"
-                  >
-                    <option value={3}>3 Months (Veg / Fruit Purees)</option>
-                    <option value={2}>2 Months (Meat / Fish / Muffins)</option>
-                    <option value={1}>1 Month (High Dairy Blends)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={() => setIsAdding(false)}
-                  className="flex-1 rounded-xl text-xs h-9"
+                  className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 text-stone-500 flex items-center justify-center cursor-pointer"
                 >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="flex-1 rounded-xl bg-[#48B774] hover:bg-[#3ca465] text-white text-xs h-9"
-                >
-                  Save to Stash ❄️
-                </Button>
+                  ✕
+                </button>
               </div>
-            </form>
+
+              {/* 2 a 2 Lado a Lado Toggle Buttons */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-stone-100 dark:bg-stone-800/80 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setAddMode("app")}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    addMode === "app"
+                      ? "bg-[#1E5E3A] text-white shadow-xs"
+                      : "text-stone-600 dark:text-stone-300 hover:text-stone-900"
+                  }`}
+                >
+                  <ChefHat className="w-3.5 h-3.5" />
+                  <span>From App Recipes</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAddMode("custom")}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    addMode === "custom"
+                      ? "bg-[#1E5E3A] text-white shadow-xs"
+                      : "text-stone-600 dark:text-stone-300 hover:text-stone-900"
+                  }`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Custom Homemade</span>
+                </button>
+              </div>
+
+              {/* LADO 1: CHOOSE FROM APP FREEZER-FRIENDLY RECIPES */}
+              {addMode === "app" && (
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Search freezer-friendly recipes (e.g. sweet potato, chicken, muffin)..."
+                    value={recipeSearch}
+                    onChange={(e) => setRecipeSearch(e.target.value)}
+                    className="rounded-xl h-10 text-xs border-stone-200 dark:border-stone-700"
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
+                    {freezerRecipes
+                      .filter((r) => r.title.toLowerCase().includes(recipeSearch.toLowerCase()))
+                      .slice(0, 16)
+                      .map((rec) => {
+                        const details = getFreezerDetails(rec.title);
+                        return (
+                          <div
+                            key={rec.id}
+                            className="p-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-800/40 hover:border-emerald-400 transition-all flex items-center justify-between gap-2.5"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <img
+                                src={rec.image}
+                                alt={rec.title}
+                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-stone-200 dark:border-stone-700"
+                              />
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-xs text-stone-900 dark:text-stone-100 truncate">
+                                  {rec.title}
+                                </h4>
+                                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold block">
+                                  ❄️ {details.tag}
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAddAppRecipe(rec)}
+                              className="h-8 rounded-xl bg-[#1E5E3A] hover:bg-[#16482c] text-white text-[11px] font-bold px-2.5 shrink-0 cursor-pointer"
+                            >
+                              + Stash (4x)
+                            </Button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* LADO 2: CUSTOM HOMEMADE RECIPE */}
+              {addMode === "custom" && (
+                <form onSubmit={handleAddStash} className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                      Homemade Food / Recipe Name
+                    </label>
+                    <Input
+                      value={newFoodName}
+                      onChange={(e) => setNewFoodName(e.target.value)}
+                      placeholder="e.g. Butternut Squash & Apple Mash"
+                      className="rounded-xl h-10 text-xs border-stone-200 dark:border-stone-700"
+                      autoFocus
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        Portions / Cubes
+                      </label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={newPortions}
+                        onChange={(e) => setNewPortions(e.target.value)}
+                        className="rounded-xl h-10 text-xs border-stone-200 dark:border-stone-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-stone-700 dark:text-stone-300 block mb-1">
+                        Storage Limit
+                      </label>
+                      <select
+                        value={newMonths}
+                        onChange={(e) => setNewMonths(parseInt(e.target.value, 10))}
+                        className="w-full h-10 rounded-xl border border-stone-200 dark:border-stone-700 px-3 bg-white dark:bg-stone-800 text-xs text-stone-800 dark:text-stone-200"
+                      >
+                        <option value={3}>3 Months (Veg / Fruit Purees)</option>
+                        <option value={2}>2 Months (Meat / Fish / Muffins)</option>
+                        <option value={1}>1 Month (High Dairy Blends)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full rounded-2xl bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-bold h-10 mt-1 cursor-pointer"
+                  >
+                    Save Custom Batch to Stash ❄️
+                  </Button>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Stash Items List */}

@@ -99,36 +99,38 @@ export const DayCard = ({
         </div>
       </div>
 
-      {/* Meals List */}
+      {/* Meals List - 2 a 2 Lado a Lado (2x2 Responsive Grid) */}
       {isExpanded && (
-        <div className="p-4 space-y-3 bg-[#FCFCFA]">
-          {mealTypes.map((mealType) => {
-            const slot = meals[mealType];
-            const recipe = slot ? getRecipe(slot.recipeId) : null;
+        <div className="p-3 sm:p-4 bg-[#FCFCFA] dark:bg-[#141916]/80">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+            {mealTypes.map((mealType) => {
+              const slot = meals[mealType];
+              const recipe = slot ? getRecipe(slot.recipeId) : null;
 
-            return (
-              <MealCard
-                key={mealType}
-                mealType={mealType}
-                recipe={
-                  recipe
-                    ? {
-                        id: recipe.id,
-                        title: recipe.title,
-                        prepTime: recipe.prepTime,
-                        image: recipe.image,
-                      }
-                    : null
-                }
-                prepared={slot?.prepared || false}
-                onAdd={() => onAddMeal(mealType)}
-                onRemove={() => onRemoveMeal(mealType)}
-                onEdit={() => onEditMeal(mealType)}
-                onTogglePrepared={() => onTogglePrepared(mealType)}
-                onRecipeClick={() => recipe && navigate(`/recipe/${recipe.id}`)}
-              />
-            );
-          })}
+              return (
+                <MealCard
+                  key={mealType}
+                  mealType={mealType}
+                  recipe={
+                    recipe
+                      ? {
+                          id: recipe.id,
+                          title: recipe.title,
+                          prepTime: recipe.prepTime,
+                          image: recipe.image,
+                        }
+                      : null
+                  }
+                  prepared={slot?.prepared || false}
+                  onAdd={() => onAddMeal(mealType)}
+                  onRemove={() => onRemoveMeal(mealType)}
+                  onEdit={() => onEditMeal(mealType)}
+                  onTogglePrepared={() => onTogglePrepared(mealType)}
+                  onRecipeClick={() => recipe && navigate(`/recipe/${recipe.id}`)}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

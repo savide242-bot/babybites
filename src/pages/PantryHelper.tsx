@@ -11,29 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-// Categorized pantry staples for quick, delightful exploration
-const STAPLE_CATEGORIES = [
-  {
-    name: "Fruits",
-    icon: "🍎",
-    items: ["Banana", "Apple", "Mango", "Pear", "Avocado", "Peach", "Blueberry", "Orange"]
-  },
-  {
-    name: "Veggies",
-    icon: "🥕",
-    items: ["Sweet Potato", "Carrot", "Broccoli", "Pumpkin", "Peas", "Spinach", "Butternut Squash", "Potato"]
-  },
-  {
-    name: "Grains",
-    icon: "🌾",
-    items: ["Oats", "Rice", "Quinoa", "Pasta"]
-  },
-  {
-    name: "Proteins",
-    icon: "🍗",
-    items: ["Chicken", "Salmon", "Egg", "Lentils", "Turkey", "Tofu", "Yogurt"]
-  }
-];
 
 export interface CustomGeneratedRecipe {
   id: string;
@@ -320,15 +297,6 @@ export const PantryHelper: React.FC = () => {
     setGeneratedRecipe(null);
   };
 
-  const addSuggestion = (name: string) => {
-    const lower = name.toLowerCase();
-    if (!activeIngredients.includes(lower)) {
-      setActiveIngredients((prev) => [...prev, lower]);
-      setGeneratedRecipe(null);
-      toast.success(`Added ${name} ✨`);
-    }
-  };
-
   const clearAll = () => {
     setActiveIngredients([]);
     setGeneratedRecipe(null);
@@ -446,13 +414,26 @@ export const PantryHelper: React.FC = () => {
           )}
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-serif font-extrabold text-[#1E5E3A] dark:text-emerald-400 tracking-tight flex items-center gap-2">
-          <ChefHat className="w-7 h-7 text-[#48B774] shrink-0" />
-          <span>Pantry Recipe Finder</span>
-        </h1>
-        <p className="text-xs sm:text-[13px] text-gray-600 dark:text-stone-400 mt-1.5 leading-relaxed">
-          Tell us what ingredients you have in your kitchen. Our smart culinary assistant pairs what truly combines well together to create safe, delicious meals for your baby.
-        </p>
+        <div className="rounded-[32px] bg-gradient-to-br from-[#1E5E3A] via-[#286E45] to-[#1E5E3A] p-6 text-white shadow-xl relative overflow-hidden mb-3">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Nourishing Kitchen Companion</span>
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-serif font-extrabold text-white tracking-tight leading-tight">
+                What's in your pantry today?
+              </h1>
+              <p className="text-xs sm:text-sm text-emerald-100/90 mt-2 max-w-lg leading-relaxed">
+                Type the ingredients you already have at home. We intelligently discover balanced, pediatrician-approved baby recipes using what you have.
+              </p>
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-3xl shadow-inner shrink-0">
+              🥑
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Tab Navigation: Saved vs Search */}
@@ -545,7 +526,7 @@ export const PantryHelper: React.FC = () => {
           <div className="bg-white dark:bg-stone-900 rounded-[24px] sm:rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 p-4 sm:p-5 shadow-[0_8px_30px_-6px_rgba(30,94,58,0.08)] mb-5 w-full min-w-0 overflow-hidden">
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="pantry-input" className="block text-xs font-bold uppercase tracking-wider text-[#1E5E3A] dark:text-emerald-400">
-                What ingredients do you have at home?
+                Ingredients You Have On Hand
               </label>
               {activeIngredients.length > 0 && (
                 <span className="text-[11px] font-semibold text-[#1E5E3A] dark:text-emerald-400 bg-[#EAF5EE] dark:bg-emerald-950/70 px-2 py-0.5 rounded-full">
@@ -561,7 +542,7 @@ export const PantryHelper: React.FC = () => {
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="e.g. oats, banana, mango, chicken, sweet potato..."
+                  placeholder="Type ingredients here (e.g. oats, banana, mango, sweet potato)..."
                   className="w-full min-w-0 h-12 sm:h-13 pl-4 pr-24 rounded-full border border-[#D5D0C3] dark:border-stone-700 bg-[#FAF9F5] dark:bg-stone-800/60 text-xs sm:text-sm text-gray-800 dark:text-stone-100 placeholder-gray-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-[#48B774] focus:bg-white dark:focus:bg-stone-800 transition-all shadow-inner"
                 />
                 <button
@@ -613,41 +594,7 @@ export const PantryHelper: React.FC = () => {
               </div>
             )}
 
-            {/* Quick Add Staples by Category */}
-            <div className="mt-4 pt-3.5 border-t border-[#F5F3EC] dark:border-stone-800 w-full min-w-0">
-              <span className="text-[10px] font-bold text-gray-400 dark:text-stone-500 uppercase tracking-wider block mb-2.5">
-                Quick-Tap Kitchen Staples:
-              </span>
-              <div className="space-y-2">
-                {STAPLE_CATEGORIES.map((cat) => (
-                  <div key={cat.name} className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-gray-500 dark:text-stone-400 mr-1 flex items-center gap-1">
-                      <span>{cat.icon}</span>
-                      <span className="hidden xs:inline">{cat.name}:</span>
-                    </span>
-                    {cat.items.map((item) => {
-                      const isAdded = activeIngredients.includes(item.toLowerCase());
-                      return (
-                        <button
-                          key={item}
-                          onClick={() => addSuggestion(item)}
-                          disabled={isAdded}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                            isAdded
-                              ? "bg-gray-100 dark:bg-stone-800 text-gray-400 dark:text-stone-500 cursor-default"
-                              : "bg-[#FAF9F5] dark:bg-stone-800/80 text-gray-700 dark:text-stone-200 border border-[#EBE8DF] dark:border-stone-700 hover:border-[#48B774] hover:text-[#1E5E3A] dark:hover:text-emerald-400 active:scale-95"
-                          }`}
-                        >
-                          {!isAdded && <Plus className="w-3 h-3 text-[#48B774]" />}
-                          <span>{item}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
             </div>
-          </div>
 
           {/* Age Filter Tabs */}
           <div className="mb-5 flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar w-full max-w-full min-w-0">
@@ -840,12 +787,14 @@ export const PantryHelper: React.FC = () => {
 
             {activeIngredients.length === 0 ? (
               <div className="p-8 text-center bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 shadow-xs">
-                <span className="text-4xl block mb-2">🥑</span>
-                <h3 className="font-serif font-bold text-gray-900 dark:text-stone-100 text-base">
-                  What's in your pantry today?
+                <div className="w-16 h-16 rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 flex items-center justify-center text-3xl mx-auto mb-3 shadow-xs">
+                  🥣
+                </div>
+                <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg">
+                  Ready to turn ingredients into baby smiles
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-stone-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                  Type your kitchen ingredients above (e.g. <em>oats, banana, avocado</em>) or tap the quick staples to discover matching dishes or generate a custom meal.
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                  Simply enter 2 or more ingredients above from your kitchen, and we'll instantly reveal wholesome meals you can cook right now.
                 </p>
               </div>
             ) : matchedRecipes.length === 0 ? (

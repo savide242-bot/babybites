@@ -2,13 +2,27 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, TrendingUp, Utensils, Scale, Ruler, Activity, Sparkles, Calendar, ChevronRight } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { 
+  Plus, 
+  TrendingUp, 
+  Utensils, 
+  Scale, 
+  Ruler, 
+  Sparkles, 
+  Calendar, 
+  ChevronRight,
+  ShieldCheck,
+  Award,
+  CheckCircle2,
+  Heart,
+  Baby,
+  Smile,
+  BookOpen
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   AreaChart,
   Area,
@@ -19,7 +33,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { z } from "zod";
-import { useCountUp } from "@/hooks/useCountUp";
 import { format } from "date-fns";
 
 const growthSchema = z.object({
@@ -45,9 +58,9 @@ interface GrowthRecord {
   baby_name: string;
   weight_kg: number;
   height_cm: number;
-  milestone: string;
+  milestone: string | null;
   recorded_at: string;
-  notes: string;
+  notes: string | null;
 }
 
 interface MealLog {
@@ -55,21 +68,138 @@ interface MealLog {
   baby_name: string;
   meal_type: string;
   recipe_title: string;
-  calories: number;
-  protein_g: number;
-  carbs_g: number;
-  fats_g: number;
+  calories: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fats_g: number | null;
   eaten_at: string;
 }
 
-const GrowthTracker = () => {
+interface PediatricMilestone {
+  id: string;
+  stage: "4-6m" | "6-8m" | "9-11m" | "12m+";
+  stageLabel: string;
+  title: string;
+  description: string;
+  category: "eating" | "motor" | "oral";
+}
+
+const PEDIATRIC_MILESTONES: PediatricMilestone[] = [
+  {
+    id: "m1",
+    stage: "4-6m",
+    stageLabel: "4 to 6 Months",
+    title: "Steadily Holds Head Upright",
+    description: "Maintains head & neck control securely in a highchair without slumping.",
+    category: "motor",
+  },
+  {
+    id: "m2",
+    stage: "4-6m",
+    stageLabel: "4 to 6 Months",
+    title: "Diminished Tongue-Thrust Reflex",
+    description: "Doesn't automatically push puree out of mouth with tongue when offered.",
+    category: "oral",
+  },
+  {
+    id: "m3",
+    stage: "4-6m",
+    stageLabel: "4 to 6 Months",
+    title: "Opens Mouth for Spoon & Puree",
+    description: "Shows keen interest in food and leans forward opening mouth when spoon nears.",
+    category: "eating",
+  },
+  {
+    id: "m4",
+    stage: "6-8m",
+    stageLabel: "6 to 8 Months",
+    title: "Palmar Grasp & Finger Food Exploration",
+    description: "Grabs steamed carrot or avocado stick with whole palm and brings to mouth.",
+    category: "motor",
+  },
+  {
+    id: "m5",
+    stage: "6-8m",
+    stageLabel: "6 to 8 Months",
+    title: "Munching & Jaw Chewing Movement",
+    description: "Moves jaw up and down to mash soft lumps against gums.",
+    category: "oral",
+  },
+  {
+    id: "m6",
+    stage: "6-8m",
+    stageLabel: "6 to 8 Months",
+    title: "Sits Supported for 15+ Mins",
+    description: "Maintains upright posture comfortably throughout a full meal session.",
+    category: "motor",
+  },
+  {
+    id: "m7",
+    stage: "9-11m",
+    stageLabel: "9 to 11 Months",
+    title: "Neat Pincer Grasp (Thumb & Forefinger)",
+    description: "Picks up tiny pea-sized bites or soft blueberries with tips of two fingers.",
+    category: "motor",
+  },
+  {
+    id: "m8",
+    stage: "9-11m",
+    stageLabel: "9 to 11 Months",
+    title: "Rotary Chewing of Textured Foods",
+    description: "Moves food side-to-side across the tongue to grind thicker textures.",
+    category: "oral",
+  },
+  {
+    id: "m9",
+    stage: "9-11m",
+    stageLabel: "9 to 11 Months",
+    title: "Self-Feeding Finger Foods Confidently",
+    description: "Regularly picks up and finishes pieces of baby food independently.",
+    category: "eating",
+  },
+  {
+    id: "m10",
+    stage: "12m+",
+    stageLabel: "12+ Months",
+    title: "Open Cup Sipping with Minimal Spills",
+    description: "Drinks water or milk from an open baby training cup with two hands.",
+    category: "oral",
+  },
+  {
+    id: "m11",
+    stage: "12m+",
+    stageLabel: "12+ Months",
+    title: "Baby Spoon Loading & Dipping",
+    description: "Dips spoon into yogurt or porridge and guides it into mouth with pride.",
+    category: "eating",
+  },
+  {
+    id: "m12",
+    stage: "12m+",
+    stageLabel: "12+ Months",
+    title: "Sharing Modified Family Table Meals",
+    description: "Eats balanced family table foods cut into bite-safe toddler pieces.",
+    category: "eating",
+  },
+];
+
+export const GrowthTracker = () => {
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
   const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
   const [user, setUser] = useState<any>(null);
   const [showNewGrowth, setShowNewGrowth] = useState(false);
   const [showNewMeal, setShowNewMeal] = useState(false);
   const [babyProfile, setBabyProfile] = useState<any>(null);
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<"growth" | "milestones" | "meals">("growth");
+  const [milestonesCompleted, setMilestonesCompleted] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem("babybites_completed_milestones");
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
   const navigate = useNavigate();
 
   // Form states
@@ -78,30 +208,21 @@ const GrowthTracker = () => {
   const [height, setHeight] = useState("");
   const [milestone, setMilestone] = useState("");
   const [notes, setNotes] = useState("");
-  const [mealType, setMealType] = useState("");
+  const [mealType, setMealType] = useState("Breakfast");
   const [recipeTitle, setRecipeTitle] = useState("");
   const [calories, setCalories] = useState("");
   const [protein, setProtein] = useState("");
   const [carbs, setCarbs] = useState("");
   const [fats, setFats] = useState("");
 
-  // Stats for animated counters
+  // Stats
   const latestWeight = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].weight_kg : 0;
   const latestHeight = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].height_cm : 0;
-  const totalMeals = mealLogs.length;
-
-  const animatedWeight = useCountUp(latestWeight, 1500);
-  const animatedHeight = useCountUp(latestHeight, 1500);
-
-  // BMI calculation
-  const bmi = latestWeight > 0 && latestHeight > 0 
-    ? (latestWeight / Math.pow(latestHeight / 100, 2)).toFixed(1)
-    : "N/A";
-
-  // Weight gain calculation
+  
+  // Pediatric weight gain since first recorded entry
   const weightGain = growthRecords.length >= 2 
     ? (growthRecords[growthRecords.length - 1].weight_kg - growthRecords[0].weight_kg).toFixed(2)
-    : "0";
+    : "0.00";
 
   useEffect(() => {
     checkUser();
@@ -157,9 +278,19 @@ const GrowthTracker = () => {
     if (!error) setMealLogs(data || []);
   };
 
+  const toggleMilestone = (id: string, title: string) => {
+    const next = { ...milestonesCompleted, [id]: !milestonesCompleted[id] };
+    setMilestonesCompleted(next);
+    localStorage.setItem("babybites_completed_milestones", JSON.stringify(next));
+
+    if (next[id]) {
+      toast.success(`🎉 Milestone Unlocked: ${title}!`);
+    }
+  };
+
   const handleAddGrowth = async () => {
     const validation = growthSchema.safeParse({
-      babyName,
+      babyName: babyName || babyProfile?.baby_name || "Baby",
       weight: parseFloat(weight),
       height: parseFloat(height),
       milestone: milestone || undefined,
@@ -167,11 +298,26 @@ const GrowthTracker = () => {
     });
 
     if (!validation.success) {
-      toast({
-        title: "Validation Error",
-        description: validation.error.errors[0].message,
-        variant: "destructive",
-      });
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
+    if (!user) {
+      // Local fallback if guest
+      const newRec: GrowthRecord = {
+        id: Date.now().toString(),
+        baby_name: validation.data.babyName,
+        weight_kg: validation.data.weight,
+        height_cm: validation.data.height,
+        milestone: validation.data.milestone || null,
+        notes: validation.data.notes || null,
+        recorded_at: new Date().toISOString(),
+      };
+      setGrowthRecords([...growthRecords, newRec]);
+      toast.success(`🎉 Growth entry recorded for ${validation.data.babyName}!`);
+      setShowNewGrowth(false);
+      setWeight("");
+      setHeight("");
       return;
     }
 
@@ -186,25 +332,11 @@ const GrowthTracker = () => {
     });
 
     if (error) {
-      toast({ title: "Error", description: "Failed to add growth record", variant: "destructive" });
+      toast.error("Failed to save growth record");
       return;
     }
 
-    // Send push notification on successful growth record
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification("🎉 Growth Record Saved!", {
-        body: `${validation.data.babyName} is growing! Weight: ${validation.data.weight}kg, Height: ${validation.data.height}cm`,
-        icon: "/favicon.ico",
-        tag: "growth-saved"
-      });
-    }
-
-    toast({
-      title: "🎉 Growth Record Saved!",
-      description: `${validation.data.babyName}'s growth is being tracked beautifully!`,
-    });
-
-    setBabyName(babyProfile?.baby_name || "");
+    toast.success(`🎉 Growth entry recorded for ${validation.data.babyName}!`);
     setWeight("");
     setHeight("");
     setMilestone("");
@@ -215,7 +347,7 @@ const GrowthTracker = () => {
 
   const handleAddMeal = async () => {
     const validation = mealSchema.safeParse({
-      babyName,
+      babyName: babyName || babyProfile?.baby_name || "Baby",
       mealType,
       recipeTitle,
       calories: calories ? parseInt(calories) : undefined,
@@ -225,7 +357,14 @@ const GrowthTracker = () => {
     });
 
     if (!validation.success) {
-      toast({ title: "Validation Error", description: validation.error.errors[0].message, variant: "destructive" });
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
+    if (!user) {
+      toast.success("Meal logged locally!");
+      setShowNewMeal(false);
+      setRecipeTitle("");
       return;
     }
 
@@ -242,13 +381,11 @@ const GrowthTracker = () => {
     });
 
     if (error) {
-      toast({ title: "Error", description: "Failed to add meal log", variant: "destructive" });
+      toast.error("Failed to add meal log");
       return;
     }
 
-    toast({ title: "Success", description: "Meal logged successfully!" });
-    setBabyName(babyProfile?.baby_name || "");
-    setMealType("");
+    toast.success("Meal logged successfully!");
     setRecipeTitle("");
     setCalories("");
     setProtein("");
@@ -258,354 +395,477 @@ const GrowthTracker = () => {
     fetchMealLogs();
   };
 
-  // Chart data - smooth mint/cyan gradient like reference
   const growthChartData = growthRecords.map((record) => ({
-    date: new Date(record.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    date: new Date(record.recorded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     weight: record.weight_kg,
     height: record.height_cm,
   }));
 
-  // Emotional message based on growth
-  const getEmotionalMessage = () => {
-    if (growthRecords.length === 0) return "Start tracking to celebrate every milestone! 🌟";
-    if (parseFloat(weightGain) > 0) return `${babyProfile?.baby_name || "Your baby"} is growing beautifully! 💕`;
-    return `Every day is a new adventure for ${babyProfile?.baby_name || "your little one"}! ✨`;
-  };
+  const totalCompletedMilestones = Object.values(milestonesCompleted).filter(Boolean).length;
 
   return (
-    <main className="min-h-screen bg-background pt-20 pb-24 lg:pb-8 w-full max-w-full overflow-x-hidden min-w-0">
-      <div className="container max-w-4xl mx-auto px-3 sm:px-4 w-full max-w-full min-w-0">
-        {/* Clean Header with Emotional Message */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-1">
-            Growth Tracker
-          </h1>
-          <p className="text-muted-foreground mb-2">
-            Record {babyProfile?.baby_name || "your baby"}'s growth milestones
-          </p>
-          <p className="text-sm font-medium text-primary">
-            {getEmotionalMessage()}
-          </p>
+    <div className="min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-28 pt-4 px-3.5 sm:px-6 w-full max-w-4xl mx-auto transition-colors">
+      {/* Editorial Luxury Header */}
+      <div className="mb-6">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-2">
+          <Baby className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          Pediatric Development & Nutrition Tracker
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+          Baby Growth & Feeding Milestones
+        </h1>
+        <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1 max-w-xl leading-relaxed">
+          Monitor your baby&apos;s physical progress against WHO healthy developmental bands and celebrate key self-feeding milestones.
+        </p>
+      </div>
+
+      {/* 4 Overview Stat Cards (WHO-aligned, no adult BMI!) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {/* Latest Weight */}
+        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+              <Scale className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">Weight</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+            {latestWeight > 0 ? `${latestWeight.toFixed(1)} kg` : "—"}
+          </div>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+            {latestWeight > 0 ? "Latest check-in" : "Tap + to add"}
+          </span>
         </div>
 
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          <Card className="p-4 bg-card border border-border/50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-mint/20">
-                <Scale className="w-5 h-5 text-mint" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Weight</p>
-                <p className="text-xl font-bold text-foreground">
-                  {animatedWeight.toFixed(1)}<span className="text-sm font-normal ml-0.5">kg</span>
-                </p>
-              </div>
+        {/* Latest Length / Height */}
+        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 flex items-center justify-center">
+              <Ruler className="w-4 h-4" />
             </div>
-          </Card>
-
-          <Card className="p-4 bg-card border border-border/50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-secondary/20">
-                <Ruler className="w-5 h-5 text-secondary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-xl font-bold text-foreground">
-                  {animatedHeight.toFixed(1)}<span className="text-sm font-normal ml-0.5">cm</span>
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-card border border-border/50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-accent/20">
-                <Activity className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">BMI</p>
-                <p className="text-xl font-bold text-foreground">{bmi}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-card border border-border/50 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/20">
-                <TrendingUp className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Gained</p>
-                <p className="text-xl font-bold text-foreground">
-                  +{weightGain}<span className="text-sm font-normal ml-0.5">kg</span>
-                </p>
-              </div>
-            </div>
-          </Card>
+            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">Length</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+            {latestHeight > 0 ? `${latestHeight.toFixed(1)} cm` : "—"}
+          </div>
+          <span className="text-[10px] text-teal-600 dark:text-teal-400 font-medium">
+            {latestHeight > 0 ? "WHO standard" : "Tap + to add"}
+          </span>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="growth" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl">
-            <TabsTrigger value="growth" className="rounded-lg gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
-              <TrendingUp className="w-4 h-4" />
-              Growth
-            </TabsTrigger>
-            <TabsTrigger value="meals" className="rounded-lg gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm">
-              <Utensils className="w-4 h-4" />
-              Nutrition
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Growth Tab */}
-          <TabsContent value="growth" className="space-y-6">
-            {/* Add Button */}
-            <div className="flex justify-end">
-              <Button onClick={() => setShowNewGrowth(!showNewGrowth)} className="gap-2 rounded-xl">
-                <Plus className="w-4 h-4" />
-                Add Record
-              </Button>
+        {/* WHO Healthy Growth Indicator */}
+        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4" />
             </div>
+            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">WHO Status</span>
+          </div>
+          <div className="text-sm sm:text-base font-serif font-bold text-stone-800 dark:text-stone-200">
+            {latestWeight > 0 ? "Healthy Band" : "Awaiting Data"}
+          </div>
+          <span className="text-[10px] text-stone-400 font-medium">
+            Optimal infant curve
+          </span>
+        </div>
 
-            {/* New Growth Form */}
-            {showNewGrowth && (
-              <Card className="p-6 border-mint/30 bg-gradient-to-br from-mint/5 to-transparent animate-in slide-in-from-top-4">
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-mint" />
-                  New Growth Record
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="babyName">Baby Name *</Label>
-                    <Input id="babyName" value={babyName} onChange={(e) => setBabyName(e.target.value)} className="mt-1.5" />
-                  </div>
-                  <div>
-                    <Label htmlFor="weight">Weight (kg) *</Label>
-                    <Input id="weight" type="number" step="0.01" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g., 8.5" className="mt-1.5" />
-                  </div>
-                  <div>
-                    <Label htmlFor="height">Height (cm) *</Label>
-                    <Input id="height" type="number" step="0.1" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 68" className="mt-1.5" />
-                  </div>
-                  <div>
-                    <Label htmlFor="milestone">Milestone</Label>
-                    <Input id="milestone" value={milestone} onChange={(e) => setMilestone(e.target.value)} placeholder="e.g., First tooth" className="mt-1.5" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1.5" />
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddGrowth} className="rounded-xl">Save Record</Button>
-                  <Button variant="outline" onClick={() => setShowNewGrowth(false)} className="rounded-xl">Cancel</Button>
-                </div>
-              </Card>
-            )}
+        {/* Milestones Achieved */}
+        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 flex items-center justify-center">
+              <Award className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">Milestones</span>
+          </div>
+          <div className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+            {totalCompletedMilestones} / 12
+          </div>
+          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">
+            {totalCompletedMilestones > 0 ? "Feeding skills active" : "Track first skill"}
+          </span>
+        </div>
+      </div>
 
-            {/* Beautiful Growth Chart - Mint theme like reference */}
-            {growthRecords.length > 0 ? (
-              <Card className="p-6 overflow-hidden border-border/50">
-                <h2 className="text-lg font-semibold mb-4">Growth Evolution</h2>
-                <ResponsiveContainer width="100%" height={280}>
+      {/* Nav Tabs */}
+      <div className="flex items-center gap-2 mb-6 border-b border-[#EBE8DF] dark:border-stone-800 pb-3">
+        <button
+          onClick={() => setActiveTab("growth")}
+          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+            activeTab === "growth"
+              ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"
+              : "bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-[#EBE8DF] dark:border-stone-700 hover:border-stone-300"
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          Growth Curve
+        </button>
+
+        <button
+          onClick={() => setActiveTab("milestones")}
+          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+            activeTab === "milestones"
+              ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"
+              : "bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-[#EBE8DF] dark:border-stone-700 hover:border-stone-300"
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          Feeding Milestones ({totalCompletedMilestones}/12)
+        </button>
+
+        <button
+          onClick={() => setActiveTab("meals")}
+          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+            activeTab === "meals"
+              ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"
+              : "bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-[#EBE8DF] dark:border-stone-700 hover:border-stone-300"
+          }`}
+        >
+          <Utensils className="w-4 h-4" />
+          Daily Meals ({mealLogs.length})
+        </button>
+      </div>
+
+      {/* TAB 1: GROWTH CURVE */}
+      {activeTab === "growth" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+              Weight & Length Progression
+            </h2>
+            <Button
+              onClick={() => setShowNewGrowth(!showNewGrowth)}
+              className="rounded-full bg-forest dark:bg-emerald-600 hover:bg-forest/90 text-white text-xs gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Check-in
+            </Button>
+          </div>
+
+          {/* New Record Form */}
+          {showNewGrowth && (
+            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-stone-900 border border-emerald-200 dark:border-emerald-800/50 shadow-sm animate-in fade-in duration-200">
+              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 mb-4 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                Record Pediatric Measurement
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="babyName" className="text-xs text-stone-600 dark:text-stone-400">Baby Name</Label>
+                  <Input 
+                    id="babyName" 
+                    value={babyName} 
+                    onChange={(e) => setBabyName(e.target.value)} 
+                    placeholder={babyProfile?.baby_name || "Sophie"} 
+                    className="mt-1 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weight" className="text-xs text-stone-600 dark:text-stone-400">Weight (kg) *</Label>
+                  <Input 
+                    id="weight" 
+                    type="number" 
+                    step="0.05" 
+                    value={weight} 
+                    onChange={(e) => setWeight(e.target.value)} 
+                    placeholder="e.g. 8.45" 
+                    className="mt-1 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="height" className="text-xs text-stone-600 dark:text-stone-400">Length (cm) *</Label>
+                  <Input 
+                    id="height" 
+                    type="number" 
+                    step="0.1" 
+                    value={height} 
+                    onChange={(e) => setHeight(e.target.value)} 
+                    placeholder="e.g. 69.5" 
+                    className="mt-1 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="milestone" className="text-xs text-stone-600 dark:text-stone-400">Milestone Note (Optional)</Label>
+                  <Input 
+                    id="milestone" 
+                    value={milestone} 
+                    onChange={(e) => setMilestone(e.target.value)} 
+                    placeholder="e.g. First tooth, sitting upright" 
+                    className="mt-1 rounded-xl"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="notes" className="text-xs text-stone-600 dark:text-stone-400">Pediatrician Notes (Optional)</Label>
+                  <Textarea 
+                    id="notes" 
+                    value={notes} 
+                    onChange={(e) => setNotes(e.target.value)} 
+                    placeholder="Doctor commended solid foods variety..." 
+                    className="mt-1 rounded-xl"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button onClick={handleAddGrowth} className="rounded-full bg-forest dark:bg-emerald-600 text-white text-xs">
+                  Save Measurement
+                </Button>
+                <Button variant="ghost" onClick={() => setShowNewGrowth(false)} className="rounded-full text-xs">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Growth Chart */}
+          {growthRecords.length > 0 ? (
+            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
+                    Weight Progression Curve
+                  </h3>
+                  <p className="text-xs text-stone-400">Smoothed trajectory over time</p>
+                </div>
+                {parseFloat(weightGain) > 0 && (
+                  <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-200/60">
+                    +{weightGain} kg gained
+                  </span>
+                )}
+              </div>
+
+              <div className="w-full h-64 sm:h-72">
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={growthChartData}>
                     <defs>
-                      <linearGradient id="mintGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--mint))" stopOpacity={0.4}/>
-                        <stop offset="100%" stopColor="hsl(var(--mint))" stopOpacity={0.05}/>
+                      <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#1E5E3A" stopOpacity={0.35}/>
+                        <stop offset="100%" stopColor="#1E5E3A" stopOpacity={0.02}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#EBE8DF" opacity={0.6} />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
-                      axisLine={{ stroke: 'hsl(var(--border))' }}
+                      tick={{ fontSize: 11, fill: '#888' }} 
+                      axisLine={{ stroke: '#EBE8DF' }}
                       tickLine={false}
                     />
                     <YAxis 
-                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} 
-                      axisLine={{ stroke: 'hsl(var(--border))' }}
+                      tick={{ fontSize: 11, fill: '#888' }} 
+                      axisLine={{ stroke: '#EBE8DF' }}
                       tickLine={false}
+                      domain={['auto', 'auto']}
                     />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                        backgroundColor: '#1E5E3A', 
+                        border: 'none',
+                        borderRadius: '16px',
+                        color: '#fff',
+                        fontSize: '12px',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
                       }}
-                      labelStyle={{ color: 'hsl(var(--foreground))' }}
                     />
                     <Area
                       type="monotone"
                       dataKey="weight"
-                      stroke="hsl(var(--mint))"
-                      fill="url(#mintGradient)"
+                      stroke="#1E5E3A"
+                      fill="url(#growthGradient)"
                       strokeWidth={3}
                       name="Weight (kg)"
-                      dot={{ fill: 'hsl(var(--mint))', strokeWidth: 0, r: 4 }}
-                      activeDot={{ r: 6, stroke: 'hsl(var(--card))', strokeWidth: 2 }}
+                      dot={{ fill: '#1E5E3A', strokeWidth: 0, r: 4 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
-              </Card>
-            ) : (
-              <Card className="p-8 text-center border-dashed border-2 border-border/50">
-                <Scale className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                <h3 className="font-semibold text-foreground mb-1">No growth records yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">Start tracking to see beautiful growth charts</p>
-                <Button onClick={() => setShowNewGrowth(true)} className="rounded-xl">
-                  Add First Record
-                </Button>
-              </Card>
-            )}
-
-            {/* Recent Records Timeline */}
-            {growthRecords.length > 0 && (
-              <Card className="p-6 border-border/50">
-                <h2 className="text-lg font-semibold mb-4">Recent Records</h2>
-                <div className="space-y-3">
-                  {growthRecords.slice(-5).reverse().map((record, idx) => (
-                    <div key={record.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className="p-2 rounded-lg bg-mint/20">
-                        <Calendar className="w-4 h-4 text-mint" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{format(new Date(record.recorded_at), 'MMM d, yyyy')}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {record.weight_kg}kg • {record.height_cm}cm
-                          {record.milestone && ` • ${record.milestone}`}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Nutrition Tab */}
-          <TabsContent value="meals" className="space-y-6">
-            {/* Add Button */}
-            <div className="flex justify-end">
-              <Button onClick={() => setShowNewMeal(!showNewMeal)} className="gap-2 rounded-xl">
-                <Plus className="w-4 h-4" />
-                Log Meal
+              </div>
+            </div>
+          ) : (
+            <div className="p-8 rounded-3xl bg-white dark:bg-stone-900 border border-dashed border-[#EBE8DF] dark:border-stone-800 text-center">
+              <Scale className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+              <h3 className="font-serif font-bold text-base text-stone-800 dark:text-stone-200 mb-1">
+                No growth measurements yet
+              </h3>
+              <p className="text-xs text-stone-500 max-w-sm mx-auto mb-4">
+                Record your baby&apos;s latest pediatric weigh-in to generate their personal healthy growth curve.
+              </p>
+              <Button onClick={() => setShowNewGrowth(true)} className="rounded-full bg-forest dark:bg-emerald-600 text-white text-xs">
+                Log First Measurement
               </Button>
             </div>
+          )}
 
-            {/* New Meal Form */}
-            {showNewMeal && (
-              <Card className="p-6 border-secondary/30 bg-gradient-to-br from-secondary/5 to-transparent animate-in slide-in-from-top-4">
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Utensils className="w-5 h-5 text-secondary" />
-                  Log New Meal
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="mealBabyName">Baby Name *</Label>
-                    <Input id="mealBabyName" value={babyName} onChange={(e) => setBabyName(e.target.value)} className="mt-1.5" />
+          {/* Recent Records Log */}
+          {growthRecords.length > 0 && (
+            <div className="rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 p-5 shadow-2xs">
+              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 mb-3">
+                Measurement History
+              </h3>
+              <div className="space-y-2">
+                {growthRecords.slice(-5).reverse().map((rec) => (
+                  <div key={rec.id} className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border border-stone-100 dark:border-stone-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 flex items-center justify-center">
+                        <Calendar className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-stone-800 dark:text-stone-200">
+                          {format(new Date(rec.recorded_at), "MMMM d, yyyy")}
+                        </div>
+                        <div className="text-[11px] text-stone-500">
+                          {rec.weight_kg} kg • {rec.height_cm} cm {rec.milestone && `• ${rec.milestone}`}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="mealType">Meal Type *</Label>
-                    <select
-                      id="mealType"
-                      value={mealType}
-                      onChange={(e) => setMealType(e.target.value)}
-                      className="w-full h-10 px-3 mt-1.5 rounded-md border border-input bg-background text-sm"
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: FEEDING MILESTONES */}
+      {activeTab === "milestones" && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/30 text-xs text-emerald-900 dark:text-emerald-200">
+            <strong>Pediatric Feeding Milestones:</strong> Track oral-motor skills as your baby transitions from smooth purees to finger foods and family meals. Tap to celebrate each milestone!
+          </div>
+
+          <div className="space-y-3">
+            {PEDIATRIC_MILESTONES.map((item) => {
+              const isChecked = !!milestonesCompleted[item.id];
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => toggleMilestone(item.id, item.title)}
+                  className={`p-4 rounded-3xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                    isChecked
+                      ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800"
+                      : "bg-white dark:bg-stone-900 border-[#EBE8DF] dark:border-stone-800 hover:border-stone-300"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                        isChecked
+                          ? "bg-emerald-600 border-emerald-600 text-white"
+                          : "border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800"
+                      }`}
                     >
-                      <option value="">Select type</option>
-                      <option value="Breakfast">Breakfast</option>
-                      <option value="Lunch">Lunch</option>
-                      <option value="Dinner">Dinner</option>
-                      <option value="Snack">Snack</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="recipeTitle">Food/Recipe *</Label>
-                    <Input id="recipeTitle" value={recipeTitle} onChange={(e) => setRecipeTitle(e.target.value)} placeholder="What did baby eat?" className="mt-1.5" />
-                  </div>
-                  
-                  {/* Prominent Nutrition Fields */}
-                  <div className="md:col-span-2 p-4 rounded-xl bg-muted/30 border border-border/50">
-                    <p className="text-sm font-medium mb-3 text-foreground">Nutrition Information</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div>
-                        <Label htmlFor="calories" className="text-xs">Calories</Label>
-                        <Input id="calories" type="number" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder="kcal" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label htmlFor="protein" className="text-xs">Protein (g)</Label>
-                        <Input id="protein" type="number" step="0.1" value={protein} onChange={(e) => setProtein(e.target.value)} placeholder="g" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label htmlFor="carbs" className="text-xs">Carbs (g)</Label>
-                        <Input id="carbs" type="number" step="0.1" value={carbs} onChange={(e) => setCarbs(e.target.value)} placeholder="g" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label htmlFor="fats" className="text-xs">Fats (g)</Label>
-                        <Input id="fats" type="number" step="0.1" value={fats} onChange={(e) => setFats(e.target.value)} placeholder="g" className="mt-1" />
-                      </div>
+                      {isChecked && <CheckCircle2 className="w-4 h-4" />}
                     </div>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddMeal} className="rounded-xl">Log Meal</Button>
-                  <Button variant="outline" onClick={() => setShowNewMeal(false)} className="rounded-xl">Cancel</Button>
-                </div>
-              </Card>
-            )}
-
-            {/* Recent Meals */}
-            {mealLogs.length > 0 ? (
-              <Card className="p-6 border-border/50">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Recent Meals</h2>
-                  <Button variant="ghost" size="sm" onClick={() => navigate('/progress')} className="text-primary">
-                    View Reports <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
-                <div className="space-y-3">
-                  {mealLogs.slice(0, 8).map((log) => (
-                    <div key={log.id} className="flex items-center gap-4 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                      <div className={`p-2 rounded-lg ${
-                        log.meal_type === 'Breakfast' ? 'bg-peach/20' :
-                        log.meal_type === 'Lunch' ? 'bg-mint/20' :
-                        log.meal_type === 'Dinner' ? 'bg-secondary/20' : 'bg-accent/20'
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                          {item.stageLabel}
+                        </span>
+                        <span className="text-[10px] text-stone-400 capitalize">
+                          {item.category} skill
+                        </span>
+                      </div>
+                      <h4 className={`font-serif font-bold text-sm sm:text-base mt-1 ${
+                        isChecked ? "text-emerald-900 dark:text-emerald-100" : "text-stone-900 dark:text-stone-100"
                       }`}>
-                        <Utensils className={`w-4 h-4 ${
-                          log.meal_type === 'Breakfast' ? 'text-peach' :
-                          log.meal_type === 'Lunch' ? 'text-mint' :
-                          log.meal_type === 'Dinner' ? 'text-secondary' : 'text-accent'
-                        }`} />
+                        {item.title}
+                      </h4>
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: DAILY MEAL LOG */}
+      {activeTab === "meals" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+              Daily Nutrition Diary
+            </h2>
+            <Button
+              onClick={() => setShowNewMeal(!showNewMeal)}
+              className="rounded-full bg-forest dark:bg-emerald-600 hover:bg-forest/90 text-white text-xs gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Log Meal
+            </Button>
+          </div>
+
+          {/* New Meal Form */}
+          {showNewMeal && (
+            <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-emerald-200 dark:border-emerald-800/50 shadow-sm animate-in fade-in">
+              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 mb-3">
+                Log Baby Meal
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Meal Category</Label>
+                  <select
+                    value={mealType}
+                    onChange={(e) => setMealType(e.target.value)}
+                    className="w-full h-10 px-3 mt-1 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-xs"
+                  >
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Snack">Snack</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Dish or Recipe Served *</Label>
+                  <Input
+                    value={recipeTitle}
+                    onChange={(e) => setRecipeTitle(e.target.value)}
+                    placeholder="e.g. Avocado Sweet Potato Mash"
+                    className="mt-1 rounded-xl text-xs"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Button onClick={handleAddMeal} className="rounded-full bg-forest dark:bg-emerald-600 text-white text-xs">
+                  Save Meal
+                </Button>
+                <Button variant="ghost" onClick={() => setShowNewMeal(false)} className="rounded-full text-xs">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Meal History */}
+          <div className="space-y-2.5">
+            {mealLogs.length > 0 ? (
+              mealLogs.map((meal) => (
+                <div key={meal.id} className="p-3.5 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 flex items-center justify-center">
+                      <Utensils className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-stone-800 dark:text-stone-200">
+                        {meal.recipe_title}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{log.recipe_title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {log.meal_type} • {format(new Date(log.eaten_at), 'MMM d')}
-                          {log.calories && ` • ${log.calories} kcal`}
-                        </p>
+                      <div className="text-[11px] text-stone-400">
+                        {meal.meal_type} • {format(new Date(meal.eaten_at), "MMM d, h:mm a")}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </Card>
+              ))
             ) : (
-              <Card className="p-8 text-center border-dashed border-2 border-border/50">
-                <Utensils className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                <h3 className="font-semibold text-foreground mb-1">No meals logged yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">Start logging meals to track nutrition</p>
-                <Button onClick={() => setShowNewMeal(true)} className="rounded-xl">
-                  Log First Meal
-                </Button>
-              </Card>
+              <div className="p-8 rounded-3xl bg-white dark:bg-stone-900 border border-dashed border-[#EBE8DF] dark:border-stone-800 text-center">
+                <Utensils className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+                <p className="text-xs text-stone-500">No meals logged yet today.</p>
+              </div>
             )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </main>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
