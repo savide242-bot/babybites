@@ -25,9 +25,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import appLogo from "@/assets/logo.png";
-import { BabySwitcher } from "@/components/baby/BabySwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { StreakDisplay } from "@/components/gamification/StreakDisplay";
 
 export const Header = () => {
   const location = useLocation();
@@ -71,26 +69,14 @@ export const Header = () => {
           </span>
         </Link>
 
-        {/* Action Icons right side (Baby Switcher, Streak, Search, Theme & Drawer Menu) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 min-w-0">
-          <BabySwitcher variant="header" />
-          <StreakDisplay variant="compact" />
-
+        {/* Clean, uncrowded right action icons */}
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             to="/recipes"
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-colors shadow-xs shrink-0"
+            className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-emerald-500/40 transition-colors shadow-2xs"
             title="Search recipes"
           >
-            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </Link>
-
-          {/* Community is always in bottom nav on mobile; keep visible on sm+ */}
-          <Link
-            to="/community"
-            className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 items-center justify-center text-gray-600 dark:text-stone-300 hover:text-forest dark:hover:text-emerald-400 hover:border-[#CCE0D2] dark:hover:border-emerald-600/50 transition-colors shadow-xs shrink-0"
-            title="Parent Community"
-          >
-            <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Search className="w-4 h-4" />
           </Link>
 
           {/* Quick Theme Toggle (Light / Dark) */}
@@ -102,9 +88,10 @@ export const Header = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 hover:bg-white dark:hover:bg-stone-800 hover:text-forest dark:hover:text-emerald-400 transition-colors shadow-xs shrink-0"
+                className="w-9 h-9 rounded-full bg-white dark:bg-stone-800/90 border border-[#EBE8DF] dark:border-stone-700/60 hover:bg-white dark:hover:bg-stone-800 hover:text-forest dark:hover:text-emerald-400 transition-colors shadow-2xs"
+                title="Menu"
               >
-                <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700 dark:text-stone-300" />
+                <Menu className="w-4 h-4 text-stone-700 dark:text-stone-300" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80 max-w-[85vw] p-0 bg-[#FAF9F5] dark:bg-[#121614] border-l border-[#EBE8DF] dark:border-stone-800 text-stone-900 dark:text-stone-100">

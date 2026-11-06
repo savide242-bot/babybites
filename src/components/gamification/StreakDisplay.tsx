@@ -33,25 +33,25 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ variant = "compact
       <>
         <div 
           onClick={() => setModalOpen(true)}
-          className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-orange-200/80 dark:border-orange-800/50 shadow-xs cursor-pointer hover:border-orange-300 transition-all group"
+          className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-emerald-500/5 border border-amber-500/20 dark:border-amber-500/30 shadow-xs cursor-pointer hover:border-amber-500/40 transition-all group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-2xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
-                🔥
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                <Flame className="w-6 h-6 fill-white text-white drop-shadow-xs" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-sm sm:text-base">
-                    {currentStreak} Day{currentStreak > 1 ? "s" : ""} Streak!
+                    {currentStreak} Day{currentStreak > 1 ? "s" : ""} Feeding Streak
                   </h4>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800">
-                    <Snowflake className="w-3 h-3 text-cyan-500" />
+                  <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                    <Snowflake className="w-3 h-3 text-sky-500" />
                     <span>{freezesAvailable} Freezes</span>
                   </span>
                 </div>
                 <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-                  Keep logging daily meals to climb the Weekly Leaderboard!
+                  Consistent healthy feeding habits for your baby • Tap to view streak vault
                 </p>
               </div>
             </div>
@@ -62,7 +62,7 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ variant = "compact
               className="hidden xs:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-bold text-stone-800 dark:text-stone-200 hover:text-emerald-600 transition-colors shrink-0 shadow-2xs"
             >
               <Trophy className="w-3.5 h-3.5 text-amber-500" />
-              <span>Ranking</span>
+              <span>Leaderboard</span>
               <ArrowRight className="w-3 h-3 text-stone-400" />
             </Link>
           </div>
@@ -138,8 +138,8 @@ const StreakModal: React.FC<StreakModalProps> = ({
           <div className="absolute top-2 left-4 text-2xl opacity-30">✨</div>
           <div className="absolute top-4 right-4 text-xl opacity-30">🔥</div>
 
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl shadow-xl border border-white/40 mb-2 animate-pulse">
-            🔥
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xl border border-white/40 mb-2">
+            <Flame className="w-10 h-10 text-white fill-white animate-pulse" />
           </div>
 
           <h2 className="font-serif text-3xl font-extrabold tracking-tight text-white mt-1">
