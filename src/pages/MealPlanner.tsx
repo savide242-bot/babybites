@@ -768,51 +768,55 @@ const MealPlanner = () => {
         babyAgeMonths={activeBabyAgeMonths || babyAgeMonths || 6}
       />
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary via-accent to-secondary p-6 text-primary-foreground">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                <ChefHat className="h-8 w-8" />
-                Meal Planner
-              </h1>
-              <p className="text-primary-foreground/80 mt-1">
-                {`Nutritious weekly meal plan for ${activeBaby?.name || "your baby"} (${activeBabyAgeMonths || babyAgeMonths || 6} months • ${activeBabyAgeCategory})`}
-              </p>
+      {/* Sleek, Compact Editorial Header (Mobile-Optimized) */}
+      <div className="px-3.5 sm:px-6 pt-3 pb-2 w-full max-w-6xl mx-auto">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60">
+                <ChefHat className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                <span>Weekly Plan</span>
+              </span>
+              <span className="text-[11px] text-stone-500 dark:text-stone-400 font-medium truncate">
+                • {activeBaby?.name || "Baby"} ({activeBabyAgeMonths || babyAgeMonths || 6}m)
+              </span>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate("/shopping")}
-              className="bg-background/20 hover:bg-background/30 border-0"
-            >
-              <ShoppingCart className="h-4 w-4 mr-1" />
-              Shopping List
-            </Button>
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight leading-tight">
+              Weekly Meal Planner
+            </h1>
           </div>
 
-          {!isTooYoungForSolids && stats.totalMeals > 0 && (
-            <div className="flex flex-wrap gap-3 mt-4 text-sm">
-              <Badge className="bg-background/20 text-primary-foreground border-0">
-                <Utensils className="h-3 w-3 mr-1" />
-                {stats.totalMeals} meals
-              </Badge>
-              <Badge className="bg-background/20 text-primary-foreground border-0">
-                🔥 {stats.totalCalories} cal/week
-              </Badge>
-              <Badge className="bg-background/20 text-primary-foreground border-0">
-                🥩 {stats.totalProtein}g protein
-              </Badge>
-              <Badge className="bg-background/20 text-primary-foreground border-0">
-                ⏱️ ~{Math.round(stats.totalPrepTime / 60)}h prep
-              </Badge>
-            </div>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/shopping")}
+            className="rounded-full h-8 px-3 text-xs bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-stone-700 shadow-2xs shrink-0 flex items-center gap-1.5"
+          >
+            <ShoppingCart className="h-3.5 w-3.5 text-[#48B774]" />
+            <span className="font-semibold">Shopping List</span>
+          </Button>
         </div>
+
+        {/* Micro Nutrition & Prep Stat Pills in a single clean row */}
+        {!isTooYoungForSolids && stats.totalMeals > 0 && (
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-2 overflow-x-auto scrollbar-none pb-0.5 text-[10px] sm:text-[11px]">
+            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
+              🍽️ {stats.totalMeals} meals
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
+              🔥 {stats.totalCalories} cal/wk
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
+              🥩 {stats.totalProtein}g protein
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
+              ⏱️ ~{Math.round(stats.totalPrepTime / 60)}h prep
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 w-full max-w-full min-w-0 pt-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 w-full max-w-full min-w-0 pt-2">
         {/* Active Child Profile Switcher Banner */}
         <div className="mb-6">
           <BabySwitcher variant="banner" />
@@ -899,101 +903,75 @@ const MealPlanner = () => {
             {/* Plan generated — show it */}
             {hasPersonalizedPlan && (
               <>
-                {/* Accepted Banner */}
-                {personalizedPlanAccepted && (
-                  <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-mint/20 via-secondary/10 to-mint/20 border border-mint/30">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-mint/30">
-                        <Check className="h-5 w-5 text-mint" />
+                {/* Unified Sleek Plan Control & Status Bar (Compact, Luxury, Fully Responsive) */}
+                <div className="mb-4 p-3 sm:p-3.5 rounded-2xl bg-white/90 dark:bg-stone-900/90 border border-emerald-200/80 dark:border-emerald-800/50 shadow-2xs flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      {personalizedPlanAccepted ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Sparkles className="w-4 h-4 text-emerald-600" />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs sm:text-sm font-serif font-bold text-stone-900 dark:text-stone-100 truncate">
+                          {personalizedPlanAccepted ? "Your Active Meal Plan" : "Suggested Weekly Plan"}
+                        </span>
+                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 shrink-0">
+                          {personalizedPlanAccepted ? "Active ✓" : "Review"}
+                        </span>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground mb-0.5">
-                          ✨ Plan Accepted & Active
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Your personalized meal plan is saved. Shopping list is ready!
-                        </p>
-                      </div>
-                      <Button 
-                        onClick={() => navigate("/shopping")}
-                        size="sm"
-                        className="gap-2 bg-mint hover:bg-mint/90"
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                        View List
-                      </Button>
+                      <p className="text-[10px] sm:text-[11px] text-stone-500 dark:text-stone-400 truncate mt-0.5">
+                        {personalizedPlanAccepted
+                          ? "Nutritionally balanced & synced to your groceries"
+                          : `Optimized for ${activeBabyAgeMonths || babyAgeMonths || 6}-month-old`}
+                      </p>
                     </div>
                   </div>
-                )}
 
-                {/* Not yet accepted */}
-                {!personalizedPlanAccepted && (
-                  <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-full bg-primary/20">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">
-                          Personalized Plan for Your {activeBabyAgeMonths || babyAgeMonths || 6}-Month-Old
-                        </h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          Review the plan below, then accept to save it and generate your shopping list!
-                        </p>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {personalizedPlanAccepted ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={regeneratePersonalizedPlan}
+                          className="h-8 px-2 sm:px-2.5 text-xs text-stone-600 dark:text-stone-300 hover:text-stone-900 rounded-xl"
+                          title="Generate a new varied plan"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5 sm:mr-1" />
+                          <span className="hidden sm:inline">Shuffle</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate("/shopping")}
+                          className="h-8 px-3 rounded-full bg-forest dark:bg-emerald-600 hover:bg-forest/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                        >
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <span className="whitespace-nowrap">Shopping List</span>
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={regeneratePersonalizedPlan}
+                          className="h-8 px-2.5 text-xs rounded-full border-stone-300"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5 sm:mr-1" />
+                          <span className="hidden sm:inline">Shuffle</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={acceptPersonalizedPlan}
+                          disabled={isSaving}
+                          className="h-8 px-3.5 rounded-full bg-forest dark:bg-emerald-600 hover:bg-forest/90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Accept Plan</span>
+                        </Button>
+                      </>
+                    )}
                   </div>
-                )}
-
-                {/* Action buttons */}
-                <Card className={`mb-6 border-2 ${personalizedPlanAccepted ? 'border-mint/30 bg-gradient-to-r from-mint/5 to-secondary/5' : 'border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5'}`}>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      <div>
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                          {personalizedPlanAccepted ? (
-                            <Check className="h-5 w-5 text-mint" />
-                          ) : (
-                            <Wand2 className="h-5 w-5 text-primary" />
-                          )}
-                          {personalizedPlanAccepted ? 'Your Active Meal Plan' : 'Suggested Meal Plan'}
-                        </h2>
-                        <p className="text-muted-foreground mt-1">
-                          Optimized for {activeBabyAgeMonths || babyAgeMonths || 6}-month-old • Nutritionally balanced
-                        </p>
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        {personalizedPlanAccepted ? (
-                          <>
-                            <Button disabled className="gap-2 bg-mint/80 cursor-default">
-                              <Check className="h-4 w-4" />
-                              Plan Saved
-                            </Button>
-                            <Button 
-                              onClick={regeneratePersonalizedPlan} 
-                              variant="outline" 
-                              className="gap-2"
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                              Generate New Plan
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button onClick={acceptPersonalizedPlan} className="gap-2" disabled={isSaving}>
-                              <Check className="h-4 w-4" />
-                              Accept & Save
-                            </Button>
-                            <Button onClick={regeneratePersonalizedPlan} variant="outline" className="gap-2">
-                              <RefreshCw className="h-4 w-4" />
-                              Try Another
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
 
                 {/* Day cards (read-only for personalized) */}
                 <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start">

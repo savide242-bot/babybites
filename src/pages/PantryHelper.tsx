@@ -624,7 +624,7 @@ export const PantryHelper: React.FC = () => {
                     Craft a Custom Recipe With Your Ingredients?
                   </h3>
                   <p className="text-xs text-white/90 mt-1 max-w-md leading-relaxed">
-                    Our chef AI selects the 2–4 ingredients that truly pair harmoniously together, leaving incompatible ones out for other meals.
+                    Our pediatric kitchen selects the 2–4 ingredients that truly pair harmoniously together, leaving incompatible ones out for other meals.
                   </p>
                 </div>
                 <Button

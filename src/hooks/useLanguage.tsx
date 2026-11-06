@@ -117,7 +117,7 @@ const translations: Record<string, string> = {
   // Meal Planner
   'planner.title': 'Weekly Meal Planner',
   'planner.subtitle': 'Plan your baby\'s meals for the week',
-  'planner.suggestions': 'AI Suggestions',
+  'planner.suggestions': 'Personalized Plan',
   'planner.custom': 'Custom Plan',
   'planner.generateSuggestions': 'Generate 7-Day Plan',
   'planner.breakfast': 'Breakfast',
