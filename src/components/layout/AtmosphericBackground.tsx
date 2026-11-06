@@ -1,5 +1,5 @@
 import React from "react";
-import pantryHeroBanner from "@/assets/pantry-hero-banner.webp";
+import appBgBaby from "@/assets/app-bg-baby.jpg";
 
 export const AtmosphericBackground: React.FC = () => {
   return (
@@ -7,15 +7,15 @@ export const AtmosphericBackground: React.FC = () => {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" 
       aria-hidden="true"
     >
-      {/* Blurred warm photographic base */}
+      {/* Real Baby Portrait Background Wallpaper */}
       <img
-        src={pantryHeroBanner}
+        src={appBgBaby}
         alt=""
-        className="w-full h-full object-cover filter blur-[44px] scale-110 opacity-35 dark:opacity-15 transform-gpu"
+        className="w-full h-full object-cover object-top sm:object-center opacity-70 dark:opacity-20 filter blur-[1.5px] scale-105 transform-gpu transition-opacity duration-300"
         loading="eager"
       />
-      {/* Luxury frosted veil for flawless contrast and readability */}
-      <div className="absolute inset-0 bg-[#FAF9F5]/80 dark:bg-[#121614]/90 backdrop-blur-xs" />
+      {/* Soft translucent tint ensuring crisp typography and card contrast */}
+      <div className="absolute inset-0 bg-[#FAF9F5]/45 dark:bg-[#121614]/85 pointer-events-none" />
     </div>
   );
 };
