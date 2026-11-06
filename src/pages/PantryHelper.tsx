@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import pantryHeroBanner from "@/assets/pantry-hero-banner.webp";
 
 
 export interface CustomGeneratedRecipe {
@@ -414,25 +415,14 @@ export const PantryHelper: React.FC = () => {
           )}
         </div>
 
-        <div className="rounded-[32px] bg-gradient-to-br from-[#1E5E3A] via-[#286E45] to-[#1E5E3A] p-6 text-white shadow-xl relative overflow-hidden mb-3">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex items-start justify-between gap-4">
-            <div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Nourishing Kitchen Companion</span>
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-serif font-extrabold text-white tracking-tight leading-tight">
-                What's in your pantry today?
-              </h1>
-              <p className="text-xs sm:text-sm text-emerald-100/90 mt-2 max-w-lg leading-relaxed">
-                Type the ingredients you already have at home. We intelligently discover balanced, pediatrician-approved baby recipes using what you have.
-              </p>
-            </div>
-            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-3xl shadow-inner shrink-0">
-              🥑
-            </div>
-          </div>
+        {/* High-End Responsive Photographic Hero Banner */}
+        <div className="rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-md border border-[#EBE8DF] dark:border-stone-800 mb-4 bg-white dark:bg-stone-900 transition-all">
+          <img
+            src={pantryHeroBanner}
+            alt="What's in your pantry today? Nourishing Kitchen Companion"
+            className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[32px] hover:scale-[1.005] transition-transform duration-300"
+            loading="eager"
+          />
         </div>
       </div>
 
