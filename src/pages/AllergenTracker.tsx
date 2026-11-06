@@ -16,6 +16,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 export interface AllergenItem {
   id: string;
@@ -205,7 +206,9 @@ export const AllergenTracker: React.FC = () => {
   const percentage = Math.round((toleratedCount / 9) * 100);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-28 pt-4 px-3.5 sm:px-6 w-full max-w-3xl mx-auto transition-colors">
+    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-28 pt-4 px-3.5 sm:px-6 w-full max-w-3xl mx-auto transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
       {/* Editorial Luxury Header */}
       <div className="mb-6">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-2">
@@ -522,6 +525,7 @@ export const AllergenTracker: React.FC = () => {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

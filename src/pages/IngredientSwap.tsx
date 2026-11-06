@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 interface Substitute {
   title: string;
@@ -304,7 +305,9 @@ export const IngredientSwap: React.FC = () => {
   }, [searchQuery, selectedIngredient]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-5 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
+    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3.5 sm:px-5 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
       {/* Luxury Hero Banner */}
       <div className="rounded-[32px] bg-gradient-to-br from-[#1E5E3A] via-[#246B42] to-[#1E5E3A] p-6 text-white shadow-xl relative overflow-hidden mb-5">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
@@ -416,6 +419,7 @@ export const IngredientSwap: React.FC = () => {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

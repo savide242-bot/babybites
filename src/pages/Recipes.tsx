@@ -8,6 +8,7 @@ import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { useFavorites } from "@/hooks/useFavorites";
 import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 // 6-8 Months Category Posters
 import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
@@ -487,7 +488,9 @@ export const Recipes = () => {
   }, [selectedAge, selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
+    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0 transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
       {/* Title & PDF Export */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -787,6 +790,7 @@ export const Recipes = () => {
           <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#48B774]" />
         </div>
       )}
+      </div>
     </div>
   );
 };

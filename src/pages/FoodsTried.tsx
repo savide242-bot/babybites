@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 export interface FoodItem {
   id: string;
@@ -246,7 +247,9 @@ export const FoodsTried: React.FC = () => {
   }, [foods]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
       {/* Header */}
       <div className="mb-5 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
@@ -612,6 +615,7 @@ export const FoodsTried: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

@@ -31,6 +31,7 @@ import { useBabyProfiles } from "@/hooks/useBabyProfiles";
 import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { BabySwitcher } from "@/components/baby/BabySwitcher";
 import confetti from "canvas-confetti";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 
 // ============================================================================
@@ -757,7 +758,9 @@ const MealPlanner = () => {
   if (isLoading) return <MealPlanSkeleton />;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 w-full max-w-full overflow-x-hidden min-w-0">
+    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 w-full max-w-full overflow-x-hidden min-w-0 transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
       {/* Plan Generating Overlay */}
       <PlanGeneratingOverlay
         isVisible={isGenerating}
@@ -1185,6 +1188,7 @@ const MealPlanner = () => {
         completedMeals={stats.preparedMeals}
         weekNumber={Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}
       />
+      </div>
     </div>
   );
 };

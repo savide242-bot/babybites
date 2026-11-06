@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { recipes } from "@/data/recipes";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 interface StashItem {
   id: string;
@@ -198,7 +199,9 @@ export const FreezerPrep: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3.5 sm:px-4 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
       {/* Header */}
       <div className="mb-5 w-full min-w-0">
         <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
@@ -592,6 +595,7 @@ export const FreezerPrep: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

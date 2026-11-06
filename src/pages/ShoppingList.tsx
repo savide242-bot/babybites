@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { syncShoppingListFromMealPlans } from "@/utils/shoppingListSync";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
 interface ShoppingItem {
   id: string;
@@ -290,8 +291,10 @@ const ShoppingList = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAF9F5] text-stone-900 pt-20 pb-20 selection:bg-[#1E5E3A]/20 w-full max-w-full overflow-x-hidden min-w-0">
-      <div className="container max-w-3xl mx-auto px-3 sm:px-4 w-full max-w-full min-w-0">
+    <main className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 text-stone-900 dark:text-stone-100 pt-20 pb-20 selection:bg-[#1E5E3A]/20 w-full max-w-full overflow-x-hidden min-w-0 transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10">
+        <div className="container max-w-3xl mx-auto px-3 sm:px-4 w-full max-w-full min-w-0">
         
         {/* Header */}
         <div className="mb-6 pt-4">
@@ -579,6 +582,7 @@ const ShoppingList = () => {
           </p>
         </div>
 
+      </div>
       </div>
     </main>
   );
