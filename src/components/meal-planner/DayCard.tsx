@@ -99,10 +99,10 @@ export const DayCard = ({
         </div>
       </div>
 
-      {/* Meals List - 2 a 2 Lado a Lado (2x2 Responsive Grid) */}
+      {/* Meals List - 2 a 2 Lado a Lado (Always 2-Column Side by Side on Mobile & Desktop) */}
       {isExpanded && (
-        <div className="p-3 sm:p-4 bg-[#FCFCFA] dark:bg-[#141916]/80">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+        <div className="p-2.5 sm:p-4 bg-[#FCFCFA] dark:bg-[#141916]/80">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {mealTypes.map((mealType) => {
               const slot = meals[mealType];
               const recipe = slot ? getRecipe(slot.recipeId) : null;
