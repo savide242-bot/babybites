@@ -19,7 +19,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
   isOpen,
   onClose,
   onStoryCreated,
-  currentUserAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+  currentUserAvatar = "",
   currentUserName = "Loving Mom",
 }) => {
   // Step 1 = Gallery Selector, Step 2 = Story Editor

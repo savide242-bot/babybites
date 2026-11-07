@@ -65,6 +65,37 @@ const ADMIN_EMAILS = [
   "nutri@babybites.app",
 ];
 
+// Helper to render authentic initials badge or real user photo, completely blocking any internet/Unsplash images
+export const renderAuthorAvatar = (name: string, avatarUrl?: string, className = "w-full h-full") => {
+  const isFakeInternet = !avatarUrl || avatarUrl.includes("unsplash.com") || avatarUrl.includes("images.unsplash");
+  if (!isFakeInternet && avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        className={`${className} rounded-full object-cover`}
+        onError={(e) => {
+          e.currentTarget.style.display = "none";
+        }}
+      />
+    );
+  }
+  const cleanName = (name || "Mom")
+    .replace(/^(Mom of|You \(Mom\)|You)\s*/i, "")
+    .trim() || name || "M";
+  const initials = cleanName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() || "")
+    .join("");
+
+  return (
+    <div className={`${className} rounded-full bg-gradient-to-tr from-[#1E5E3A] to-[#34A853] text-white font-extrabold flex items-center justify-center select-none shadow-xs border border-white dark:border-stone-900`}>
+      <span className="text-[11px] font-bold tracking-tight">{initials || "M"}</span>
+    </div>
+  );
+};
+
 // No mock posts by default - clean real community feed
 const SAMPLE_COMMUNITY_POSTS: Post[] = [];
 
@@ -74,11 +105,29 @@ const FOLLOWS_STORAGE_KEY = "babybites_followed_moms_v3";
 export const Community: React.FC = () => {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>("guest");
-  const [currentUserName, setCurrentUserName] = useState<string>("Loving Mom");
-  const [currentUserBaby, setCurrentUserBaby] = useState<string>("Mom of Baby");
-  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>(
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
-  );
+  const [currentUserName, setCurrentUserName] = useState<string>(() => {
+    try {
+      return localStorage.getItem("babybites_mother_name") || "You (Mom)";
+    } catch {
+      return "You (Mom)";
+    }
+  });
+  const [currentUserBaby, setCurrentUserBaby] = useState<string>(() => {
+    try {
+      const baby = localStorage.getItem("babybites_baby_name");
+      return baby ? `Mom of ${baby}` : "Mom of Baby";
+    } catch {
+      return "Mom of Baby";
+    }
+  });
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>(() => {
+    try {
+      const av = localStorage.getItem("babybites_mother_avatar") || "";
+      return av.includes("unsplash.com") ? "" : av;
+    } catch {
+      return "";
+    }
+  });
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -162,7 +211,7 @@ export const Community: React.FC = () => {
           if (profile?.baby_name) {
             setCurrentUserBaby(`Mom of ${profile.baby_name}`);
           }
-          if (profile?.avatar_url) {
+          if (profile?.avatar_url && !profile.avatar_url.includes("unsplash.com")) {
             setCurrentUserAvatar(profile.avatar_url);
           }
         }
@@ -231,35 +280,77 @@ export const Community: React.FC = () => {
         console.error("IndexedDB read error:", e);
       }
 
-      const mappedSupabase: Post[] = (!error && data) ? data.map((p: any) => ({
-        id: p.id,
-        user_id: p.user_id,
-        title: p.title,
-        content: p.content,
-        image_urls: p.image_urls || (p.video_url ? [p.video_url] : null),
-        media_type: p.media_type || (p.video_url ? "video" : "image"),
-        video_url: p.video_url,
-        video_thumbnail: p.video_thumbnail,
-        likes_count: p.likes_count || 0,
-        comments_count: p.comments_count || 0,
-        created_at: p.created_at,
-        author_name: p.author_name || "Community Mom",
-        author_baby: p.author_baby || "Baby • 8m",
-        author_avatar: p.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-        user_has_liked: false,
-        age_tag: p.age_tag || "6-8 Months",
-      })) : [];
+      // Fetch author profiles for all post user_ids
+      const userIds = (!error && data) ? [...new Set(data.map((p: any) => p.user_id).filter(Boolean))] : [];
+      let profilesMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        try {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, mother_name, full_name, baby_name, avatar_url")
+            .in("id", userIds);
+          if (profs) {
+            profs.forEach((pr: any) => {
+              profilesMap[pr.id] = pr;
+            });
+          }
+        } catch (profErr) {
+          console.warn("Profiles fetch notice:", profErr);
+        }
+      }
 
+      const mappedSupabase: Post[] = (!error && data) ? data.map((p: any) => {
+        const isMine = (currentUserId && currentUserId !== "guest" && p.user_id === currentUserId) || p.author_name === currentUserName;
+        const prof = profilesMap[p.user_id];
+        
+        let authorName = isMine 
+          ? currentUserName 
+          : (prof?.mother_name || prof?.full_name || p.author_name || "Loving Mom");
+        let authorBaby = isMine 
+          ? currentUserBaby 
+          : (prof?.baby_name ? `Mom of ${prof.baby_name}` : (p.author_baby || "Mom of Baby"));
+        let authorAvatar = isMine 
+          ? currentUserAvatar 
+          : (prof?.avatar_url || p.author_avatar || "");
+
+        // Purge any internet unsplash urls
+        if (authorAvatar.includes("unsplash.com")) authorAvatar = "";
+
+        return {
+          id: p.id,
+          user_id: p.user_id,
+          title: p.title,
+          content: p.content,
+          image_urls: p.image_urls || (p.video_url ? [p.video_url] : null),
+          media_type: p.media_type || (p.video_url ? "video" : "image"),
+          video_url: p.video_url,
+          video_thumbnail: p.video_thumbnail,
+          likes_count: p.likes_count || 0,
+          comments_count: p.comments_count || 0,
+          created_at: p.created_at,
+          author_name: authorName,
+          author_baby: authorBaby,
+          author_avatar: authorAvatar,
+          user_has_liked: false,
+          age_tag: p.age_tag || "6-8 Months",
+        };
+      }) : [];
+
+      // Priority order: mappedSupabase first, then local and IndexedDB posts so author details saved on device take precedence
       const initialPool = [
+        ...mappedSupabase,
         ...localPosts,
         ...indexedDBPosts,
-        ...mappedSupabase,
-        ...SAMPLE_COMMUNITY_POSTS,
       ];
 
-      // Filter out deleted posts (Requirement 1)
+      // Filter out deleted posts and clean any unsplash avatar
       const deduplicated = Array.from(new Map(initialPool.map((p) => [p.id, p])).values())
-        .filter((p) => !deletedIds.includes(p.id));
+        .filter((p) => !deletedIds.includes(p.id))
+        .map((p) => ({
+          ...p,
+          author_avatar: (p.author_avatar && !p.author_avatar.includes("unsplash.com")) ? p.author_avatar : "",
+          author_name: (p.user_id === currentUserId || p.author_name === "Community Mom") ? currentUserName : p.author_name,
+        }));
 
       setPosts(deduplicated);
     } catch (err) {
@@ -462,9 +553,7 @@ export const Community: React.FC = () => {
       babyAge: isSelf ? "" : (isEmily ? "10 months" : "8 months"),
       avatar: isSelf
         ? currentUserAvatar
-        : isEmily
-        ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"
-        : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+        : (isEmily ? "" : (authorName === currentUserName ? currentUserAvatar : "")),
       bio: isSelf
         ? (storedBio ? storedBio.slice(0, 50) : "Loving mom on BabyBites! 🥑✨")
         : (isEmily ? "Mom of Sophie • Pediatric Nutritionist & BLW guide!" : "Loving mother exploring the magic of weaning!"),
@@ -489,7 +578,7 @@ export const Community: React.FC = () => {
   return (
     <div className="relative z-10 max-w-xl mx-auto px-3 sm:px-4 py-4 pb-24 text-stone-900 dark:text-stone-100 min-h-screen">
       {/* 1. Authentic Instagram-Style Top Bar */}
-      <div className="flex items-center justify-between pb-3 mb-3 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md px-3.5 sm:px-4 py-3 rounded-2xl border border-[#EBE8DF] dark:border-stone-800 shadow-xs">
+      <div className="flex items-center justify-between pb-3 mb-3 bg-white dark:bg-stone-900 px-3.5 sm:px-4 py-3 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
         <div className="flex items-center gap-2">
           <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#1E5E3A] dark:text-emerald-400 tracking-tight flex items-center gap-1.5 cursor-pointer">
             <span>BabyGram</span>
@@ -536,13 +625,9 @@ export const Community: React.FC = () => {
           <button
             onClick={() => handleOpenMotherProfile("You (Mom)", true)}
             title="My Profile"
-            className="w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847] shadow-xs hover:scale-105 transition-transform"
+            className="w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-[#1E5E3A] via-[#48B774] to-[#F3A847] shadow-xs hover:scale-105 transition-transform overflow-hidden flex items-center justify-center"
           >
-            <img
-              src={currentUserAvatar}
-              alt="My Profile"
-              className="w-full h-full rounded-full object-cover border border-white dark:border-stone-900"
-            />
+            {renderAuthorAvatar(currentUserName, currentUserAvatar, "w-full h-full text-xs")}
           </button>
         </div>
       </div>
@@ -612,12 +697,8 @@ export const Community: React.FC = () => {
                     onClick={() => handleOpenMotherProfile(post.author_name, isOwnPost)}
                   >
                     {/* Avatar with authentic Instagram gradient ring */}
-                    <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#F59E0B] via-[#E1306C] to-[#833AB4] shrink-0">
-                      <img
-                        src={post.author_avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"}
-                        alt={post.author_name}
-                        className="w-full h-full rounded-full object-cover border-2 border-white dark:border-stone-900"
-                      />
+                    <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#F59E0B] via-[#E1306C] to-[#833AB4] shrink-0 overflow-hidden flex items-center justify-center">
+                      {renderAuthorAvatar(post.author_name, post.author_avatar, "w-full h-full")}
                     </div>
 
                     <div>

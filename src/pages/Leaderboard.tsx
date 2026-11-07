@@ -90,7 +90,7 @@ export const Leaderboard: React.FC = () => {
           id: "user-emily-harter",
           name: "Emily Harter",
           baby_name: "Sophie • 10m",
-          avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+          avatar_url: "",
           weekly_points: 1250,
           streak: 21,
           isAdmin: true,
@@ -109,12 +109,14 @@ export const Leaderboard: React.FC = () => {
             if (session?.user?.id && p.id === session.user.id) return;
             if (displayName.toLowerCase().includes("emily")) return;
 
+            const cleanAvatar = (p.avatar_url && !p.avatar_url.includes("unsplash.com")) ? p.avatar_url : "";
+
             realUsers.push({
               rank: idx + 3,
               id: p.id,
               name: displayName,
               baby_name: p.baby_name ? `${p.baby_name} • 8m` : "Baby • 8m",
-              avatar_url: p.avatar_url || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+              avatar_url: cleanAvatar,
               weekly_points: Math.max(300, 750 - idx * 50),
               streak: Math.max(2, 9 - idx),
               isAdmin: false,
@@ -167,9 +169,7 @@ export const Leaderboard: React.FC = () => {
       name: user.name,
       babyName: user.baby_name.split("•")[0]?.trim() || (isEmily ? "Sophie" : "Baby"),
       babyAge: user.baby_name.split("•")[1]?.trim() || (isEmily ? "10 months" : "8 months"),
-      avatar: user.avatar_url || (isEmily 
-        ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" 
-        : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"),
+      avatar: (user.avatar_url && !user.avatar_url.includes("unsplash.com")) ? user.avatar_url : "",
       bio: isEmily 
         ? "Mom of Sophie • Pediatric Nutritionist & BLW guide passionate about healthy eating!"
         : "Active mother exploring healthy baby weaning on BabyBites!",

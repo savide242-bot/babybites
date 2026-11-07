@@ -113,12 +113,27 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
           {/* Avatar & Follow button row */}
           <div className="flex items-end justify-between mb-3">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full p-1 bg-white shadow-md">
-                <img
-                  src={profile.avatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"}
-                  alt={profile.name}
-                  className="w-full h-full rounded-full object-cover"
-                />
+              <div className="w-20 h-20 rounded-full p-1 bg-white shadow-md flex items-center justify-center overflow-hidden">
+                {profile.avatar && !profile.avatar.includes("unsplash.com") ? (
+                  <img
+                    src={profile.avatar}
+                    alt={profile.name}
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-gradient-to-tr from-[#1E5E3A] to-[#34A853] text-white font-extrabold flex items-center justify-center select-none text-xl shadow-xs">
+                    <span>
+                      {(profile.name || "M")
+                        .replace(/^(Mom of|You \(Mom\)|You)\s*/i, "")
+                        .trim()
+                        .slice(0, 2)
+                        .toUpperCase() || "M"}
+                    </span>
+                  </div>
+                )}
               </div>
               <span className="absolute bottom-1 right-1 w-5 h-5 bg-[#1E5E3A] text-white rounded-full flex items-center justify-center text-[10px] border-2 border-white">
                 👶

@@ -97,7 +97,7 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
     const text = (textToSend || inputText).trim();
     if (!text || !activeMomName) return;
 
-    const myAvatar = currentUserAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80";
+    const myAvatar = (currentUserAvatar && !currentUserAvatar.includes("unsplash.com")) ? currentUserAvatar : "";
 
     const newMessage: DMMessage = {
       id: "msg-" + Date.now(),
@@ -130,7 +130,7 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
           id: "reply-" + Date.now(),
           sender_id: activeMomName,
           sender_name: activeMomName,
-          sender_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+          sender_avatar: "",
           recipient_id: "me",
           recipient_name: "You",
           content: randomReply,
@@ -184,9 +184,8 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
                 conversationNames.map((momName) => {
                   const thread = messagesByMom[momName] || [];
                   const lastMsg = thread[thread.length - 1];
-                  const avatar =
-                    thread.find((m) => m.sender_name === momName)?.sender_avatar ||
-                    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80";
+                  const rawAvatar = thread.find((m) => m.sender_name === momName)?.sender_avatar;
+                  const avatar = (rawAvatar && !rawAvatar.includes("unsplash.com")) ? rawAvatar : "";
 
                   return (
                     <div
@@ -195,11 +194,17 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
                       className="p-3.5 hover:bg-stone-50 cursor-pointer flex items-center justify-between transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <img
-                          src={avatar}
-                          alt={momName}
-                          className="w-12 h-12 rounded-full object-cover border border-stone-200 shrink-0"
-                        />
+                        <div className="w-12 h-12 rounded-full overflow-hidden border border-stone-200 shrink-0 flex items-center justify-center bg-gradient-to-tr from-[#1E5E3A] to-[#34A853] text-white font-bold text-sm">
+                          {avatar ? (
+                            <img
+                              src={avatar}
+                              alt={momName}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span>{momName.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
                         <div className="min-w-0">
                           <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
                             {momName}
@@ -241,15 +246,20 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
                   <ArrowLeft className="w-5 h-5 text-gray-700" />
                 </button>
 
-                <div className="w-9 h-9 rounded-full overflow-hidden border border-stone-200">
-                  <img
-                    src={
-                      activeMessages.find((m) => m.sender_name === activeMomName)?.sender_avatar ||
-                      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"
-                    }
-                    alt={activeMomName || "Mom"}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-stone-200 shrink-0 flex items-center justify-center bg-gradient-to-tr from-[#1E5E3A] to-[#34A853] text-white font-bold text-xs">
+                  {(() => {
+                    const activeRawAvatar = activeMessages.find((m) => m.sender_name === activeMomName)?.sender_avatar;
+                    const cleanAvatar = (activeRawAvatar && !activeRawAvatar.includes("unsplash.com")) ? activeRawAvatar : "";
+                    return cleanAvatar ? (
+                      <img
+                        src={cleanAvatar}
+                        alt={activeMomName || "Mom"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{(activeMomName || "M").slice(0, 2).toUpperCase()}</span>
+                    );
+                  })()}
                 </div>
 
                 <div>

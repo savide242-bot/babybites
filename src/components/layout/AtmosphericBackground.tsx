@@ -8,12 +8,13 @@ export const AtmosphericBackground: React.FC = () => {
   const { settings } = useVisualTheme();
 
   // Explicit user requirement: Do not apply wallpaper background on Home, Pantry Helper, and Community tabs
-  if (
+  const isExcluded = 
     location.pathname === '/' || 
     location.pathname === '/home' || 
-    location.pathname === '/pantry' ||
-    location.pathname === '/community'
-  ) {
+    location.pathname.startsWith('/pantry') ||
+    location.pathname.startsWith('/community');
+
+  if (isExcluded) {
     return null;
   }
 

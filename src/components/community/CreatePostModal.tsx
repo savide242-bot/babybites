@@ -40,7 +40,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
     id: "guest",
     name: "Loving Mom",
     baby: "Mom of Baby",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    avatar: "",
   },
 }) => {
   // Step 1: Media selector, Step 2: Post Details
@@ -152,9 +152,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       const newPostObj = {
         id: newPostId,
         user_id: session?.user?.id || currentUser.id,
-        author_name: currentUser.name,
+        author_name: currentUser.name || "Loving Mom",
         author_baby: currentUser.baby || "Mom of Baby",
-        author_avatar: currentUser.avatar,
+        author_avatar: (currentUser.avatar && !currentUser.avatar.includes("unsplash.com")) ? currentUser.avatar : "",
         title: finalTitle,
         content: caption || selectedItemTitle || "Sharing our latest weaning milestone with the community! ✨",
         media_type: selectedMediaType,
