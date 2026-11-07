@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, memo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Clock, Heart, Download, Loader2, ArrowLeft } from "lucide-react";
+import { Search, Clock, Heart, Download, Loader2, ArrowLeft, ChefHat, X, ArrowRight, Trash2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes as staticRecipes, getMealCategory, Recipe } from "@/data/recipes";
 import { useAppRecipes } from "@/hooks/useAppRecipes";
@@ -9,6 +9,12 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
+import { 
+  CustomGeneratedRecipe, 
+  getNutritionalBenefitsTable, 
+  SAVED_RECIPES_STORAGE_KEY 
+} from "@/pages/PantryHelper";
+import customRecipeBgBaby from "@/assets/custom-recipe-bg-baby.webp";
 
 // 6-8 Months Category Posters (Horizontal Banners)
 import posterBreakfast68 from "@/assets/category-banners/breakfast-6-8m.webp";
@@ -197,6 +203,47 @@ export const Recipes = () => {
   const [isExporting, setIsExporting] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // Saved Custom Recipes state & synchronization
+  const [showCustomRecipes, setShowCustomRecipes] = useState(false);
+  const [openedCustomRecipeId, setOpenedCustomRecipeId] = useState<string | null>(null);
+  const [savedCustomRecipes, setSavedCustomRecipes] = useState<CustomGeneratedRecipe[]>(() => {
+    try {
+      const data = localStorage.getItem(SAVED_RECIPES_STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const data = localStorage.getItem(SAVED_RECIPES_STORAGE_KEY);
+        setSavedCustomRecipes(data ? JSON.parse(data) : []);
+      } catch {
+        setSavedCustomRecipes([]);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  const handleDeleteCustomRecipe = (id: string) => {
+    const updated = savedCustomRecipes.filter((r) => r.id !== id);
+    setSavedCustomRecipes(updated);
+    try {
+      localStorage.setItem(SAVED_RECIPES_STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+    } catch (e) {
+      console.error(e);
+    }
+    if (openedCustomRecipeId === id) {
+      setOpenedCustomRecipeId(null);
+    }
+    toast.success("Receita personalizada removida.");
+  };
+
   // Sync URL parameters on load
   useEffect(() => {
     const ageParam = searchParams.get("age");
@@ -383,7 +430,7 @@ export const Recipes = () => {
       
       {/* 1. When navigated from Home: Clean header with Back arrow, NO redundant filter pills or search clutter */}
       {isFromHome ? (
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white dark:bg-stone-800 border border-[#EBE8DF] dark:border-stone-700 text-xs font-semibold text-forest dark:text-emerald-400 hover:bg-[#F3F6F3] shadow-2xs transition-all"
@@ -392,21 +439,43 @@ export const Recipes = () => {
             <span>Back to Home</span>
           </Link>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportEbook}
-            disabled={isExporting}
-            className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
-          >
-            {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-            <span>PDF Guide</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowCustomRecipes(!showCustomRecipes);
+                setOpenedCustomRecipeId(null);
+              }}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-2xs cursor-pointer ${
+                showCustomRecipes
+                  ? "bg-[#1E5E3A] text-white border border-[#1E5E3A]"
+                  : "bg-[#FFF9EE] hover:bg-[#FCEFD9] dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-[#F3C98B] dark:border-amber-800 text-[#B45309] dark:text-amber-300"
+              }`}
+            >
+              <ChefHat className="w-3.5 h-3.5 text-[#E89234]" />
+              <span>Receitas Personalizadas</span>
+              {savedCustomRecipes.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-[#E89234] text-white text-[10px] font-bold">
+                  {savedCustomRecipes.length}
+                </span>
+              )}
+            </button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportEbook}
+              disabled={isExporting}
+              className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
+            >
+              {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+              <span>PDF Guide</span>
+            </Button>
+          </div>
         </div>
       ) : (
         /* Standard Header when browsing Recipes generally */
         <>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
               <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
                 Recipe Collection
@@ -419,16 +488,38 @@ export const Recipes = () => {
               </p>
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportEbook}
-              disabled={isExporting}
-              className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
-            >
-              {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-              <span>PDF Guide</span>
-            </Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => {
+                  setShowCustomRecipes(!showCustomRecipes);
+                  setOpenedCustomRecipeId(null);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-2xs cursor-pointer ${
+                  showCustomRecipes
+                    ? "bg-[#1E5E3A] text-white border border-[#1E5E3A]"
+                    : "bg-[#FFF9EE] hover:bg-[#FCEFD9] dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-[#F3C98B] dark:border-amber-800 text-[#B45309] dark:text-amber-300"
+                }`}
+              >
+                <ChefHat className="w-3.5 h-3.5 text-[#E89234]" />
+                <span>Receitas Personalizadas</span>
+                {savedCustomRecipes.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-[#E89234] text-white text-[10px] font-bold">
+                    {savedCustomRecipes.length}
+                  </span>
+                )}
+              </button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportEbook}
+                disabled={isExporting}
+                className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
+              >
+                {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                <span>PDF Guide</span>
+              </Button>
+            </div>
           </div>
 
           {/* Search Input */}
@@ -480,6 +571,238 @@ export const Recipes = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* RECEITAS PERSONALIZADAS SECTION */}
+      {showCustomRecipes && (
+        <div className="mb-6 p-4 sm:p-5 rounded-[24px] bg-[#FAF8F5] dark:bg-stone-900 border border-[#E2DDCF] dark:border-stone-800 shadow-sm animate-fade-in font-sans">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-stone-200/80 dark:border-stone-800">
+            <div className="flex items-center gap-2">
+              <ChefHat className="w-4 h-4 text-[#E89234]" />
+              <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-stone-100">
+                Receitas Personalizadas ({savedCustomRecipes.length})
+              </h3>
+            </div>
+            <button
+              onClick={() => {
+                setShowCustomRecipes(false);
+                setOpenedCustomRecipeId(null);
+              }}
+              className="p-1 rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors cursor-pointer"
+              title="Fechar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {savedCustomRecipes.length === 0 ? (
+            <div className="text-center py-6 px-3">
+              <p className="text-xs text-stone-600 dark:text-stone-300 mb-2 font-medium">
+                Você ainda não salvou nenhuma receita personalizada.
+              </p>
+              <p className="text-[11px] text-stone-400 max-w-sm mx-auto mb-3">
+                Crie receitas exclusivas na aba Despensa com os ingredientes que você tem em casa e toque em "Save to Recipe Book" para encontrá-las aqui!
+              </p>
+              <Link
+                to="/pantry"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1E5E3A] text-white text-xs font-bold hover:bg-[#16482c] transition-all"
+              >
+                <span>Ir para Despensa (Pantry Helper)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          ) : openedCustomRecipeId === null ? (
+            /* CLOSED NUMBERED LIST FORMAT (1-, 2-, ...) - As explicitly requested */
+            <div className="space-y-2">
+              <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">
+                Toque em uma receita para abrir seus ingredientes e modo de preparo:
+              </p>
+              {savedCustomRecipes.map((rec, idx) => (
+                <div
+                  key={rec.id}
+                  onClick={() => setOpenedCustomRecipeId(rec.id)}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-white hover:bg-emerald-50/50 dark:bg-stone-850 dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700 shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="w-7 h-7 rounded-full bg-[#1E5E3A] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 group-hover:text-[#1E5E3A] dark:group-hover:text-emerald-400 transition-colors truncate">
+                        {idx + 1}- {rec.title}
+                      </h4>
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate mt-0.5">
+                        {rec.category || "Receita Personalizada"} • {rec.ageGroup}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCustomRecipe(rec.id);
+                      }}
+                      className="p-1.5 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
+                      title="Excluir receita"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs font-semibold text-[#1E5E3A] dark:text-emerald-400 hidden sm:inline">
+                      Abrir receita →
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-stone-400 group-hover:text-[#1E5E3A] group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* OPENED RECIPE */
+            (() => {
+              const rec = savedCustomRecipes.find((r) => r.id === openedCustomRecipeId) || savedCustomRecipes[0];
+              if (!rec) return null;
+              const nutBenefits = getNutritionalBenefitsTable(rec);
+
+              return (
+                <div className="space-y-3 animate-fade-in font-sans">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setOpenedCustomRecipeId(null)}
+                      className="rounded-full text-xs h-8 gap-1.5 border-stone-300 dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 bg-white dark:bg-stone-850 shadow-2xs cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Voltar para a lista</span>
+                    </Button>
+
+                    <button
+                      onClick={() => handleDeleteCustomRecipe(rec.id)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-300 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Excluir</span>
+                    </button>
+                  </div>
+
+                  <div className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100">
+                    {/* Baby background image */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
+                      <img
+                        src={customRecipeBgBaby}
+                        alt=""
+                        className="w-full h-full object-cover object-center opacity-25 dark:opacity-15 pointer-events-none"
+                      />
+                    </div>
+
+                    <div className="relative z-10">
+                      {/* Category & Badge */}
+                      <div className="flex items-center justify-between gap-3 pb-3 mb-2 border-b border-stone-200/70 dark:border-stone-800">
+                        <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#1E5E3A] dark:text-emerald-400">
+                          {rec.category || "Receita Personalizada"} • {rec.ageGroup}
+                        </span>
+                        <span className="text-[11px] text-stone-400">Receita Salva</span>
+                      </div>
+
+                      {/* Centered Modern Sans-Serif Title */}
+                      <h3 className="text-xl sm:text-2xl font-bold text-center text-[#262626] dark:text-stone-100 mb-5 font-sans tracking-tight">
+                        {rec.title}
+                      </h3>
+
+                      {/* Solid Orange Bar: INGREDIENTS */}
+                      <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
+                        INGREDIENTS
+                      </div>
+                      <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
+                        <ul className="space-y-2 px-0.5">
+                          {rec.ingredients.map((ing, i) => (
+                            <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
+                              <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
+                              <span>{ing}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Solid Blue Bar: INSTRUCTIONS */}
+                      <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
+                        INSTRUCTIONS
+                      </div>
+                      <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
+                        <ol className="space-y-3 px-0.5">
+                          {rec.instructions.map((step, idx) => (
+                            <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
+                              <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
+                                {idx + 1}.
+                              </span>
+                              <span className="flex-1">{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      {/* Solid Green Bar: NUTRITIONAL BENEFITS */}
+                      <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                        NUTRITIONAL BENEFITS
+                      </div>
+                      <div className="overflow-x-auto mb-6 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/95 dark:bg-stone-900/90 shadow-2xs">
+                        <table className="w-full text-left text-xs sm:text-sm font-sans">
+                          <thead>
+                            <tr className="bg-emerald-50/70 dark:bg-emerald-950/50 text-[#1E5E3A] dark:text-emerald-300 border-b border-emerald-100 dark:border-emerald-900/40">
+                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Key Nutrient</th>
+                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Primary Source</th>
+                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Pediatric Benefit</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                            {nutBenefits.map((row, idx) => (
+                              <tr key={idx} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-colors">
+                                <td className="py-2.5 px-3 sm:px-4 font-semibold text-stone-800 dark:text-stone-200 text-xs sm:text-sm whitespace-nowrap">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span className="text-[#48B774] font-bold">✓</span>
+                                    <span>{row.nutrient}</span>
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-400 font-medium text-xs sm:text-sm">
+                                  {row.source}
+                                </td>
+                                <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-snug">
+                                  {row.benefit}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Precision Note Callout Box */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans mb-4">
+                        <span className="font-bold text-[#C06014] dark:text-amber-400 not-italic mr-1.5 font-sans">
+                          Precision Note:
+                        </span>
+                        <span className="italic leading-relaxed">
+                          {rec.safetyTip}
+                        </span>
+                      </div>
+
+                      {/* Bottom close button */}
+                      <div className="text-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setOpenedCustomRecipeId(null)}
+                          className="rounded-full text-xs px-6 h-9 border-[#EBE8DF] text-[#1E5E3A] hover:bg-gray-50 cursor-pointer"
+                        >
+                          Fechar e voltar à lista
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
+          )}
+        </div>
       )}
 
       {/* Featured Category Artwork Banner - Full Illustrated Graphic Card (Exact to User Screenshot) */}

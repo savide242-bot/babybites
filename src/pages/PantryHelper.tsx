@@ -34,7 +34,7 @@ export interface CustomGeneratedRecipe {
   createdAt: string;
 }
 
-const SAVED_RECIPES_STORAGE_KEY = "babybites_saved_custom_recipes_v1";
+export const SAVED_RECIPES_STORAGE_KEY = "babybites_saved_custom_recipes_v1";
 
 // Ingredient profiles for harmonious culinary clustering
 const INGREDIENT_PROFILES: Record<string, string[]> = {
@@ -381,6 +381,7 @@ export const PantryHelper: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Saved Recipes collection
+  const [openedSavedRecipeId, setOpenedSavedRecipeId] = useState<string | null>(null);
   const [savedRecipes, setSavedRecipes] = useState<CustomGeneratedRecipe[]>(() => {
     try {
       const saved = localStorage.getItem(SAVED_RECIPES_STORAGE_KEY);
@@ -393,6 +394,7 @@ export const PantryHelper: React.FC = () => {
   useEffect(() => {
     try {
       localStorage.setItem(SAVED_RECIPES_STORAGE_KEY, JSON.stringify(savedRecipes));
+      window.dispatchEvent(new Event("storage"));
     } catch (e) {
       console.error(e);
     }
@@ -516,6 +518,9 @@ export const PantryHelper: React.FC = () => {
 
   const handleDeleteSavedRecipe = (id: string) => {
     setSavedRecipes(prev => prev.filter(r => r.id !== id));
+    if (openedSavedRecipeId === id) {
+      setOpenedSavedRecipeId(null);
+    }
     toast.success("Recipe removed from saved collection.");
   };
 
@@ -581,15 +586,81 @@ export const PantryHelper: React.FC = () => {
                 When custom recipes are formulated with your pantry ingredients, tap "Save to Recipe Book" to preserve them here in your personal collection.
               </p>
             </div>
+          ) : openedSavedRecipeId === null ? (
+            /* CLOSED NUMBERED LIST FORMAT (1-, 2-, ...) - Does not stretch page down */
+            <div className="space-y-2.5 font-sans animate-fade-in">
+              <p className="text-xs text-stone-500 dark:text-stone-400 mb-1 px-1">
+                Toque no nome de qualquer receita para visualizá-la completa:
+              </p>
+              {savedRecipes.map((rec, idx) => (
+                <div
+                  key={rec.id}
+                  onClick={() => setOpenedSavedRecipeId(rec.id)}
+                  className="flex items-center justify-between p-3.5 sm:p-4 rounded-[20px] bg-white hover:bg-emerald-50/40 dark:bg-stone-900 dark:hover:bg-stone-850 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="w-8 h-8 rounded-full bg-[#1E5E3A] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 group-hover:text-[#1E5E3A] dark:group-hover:text-emerald-400 transition-colors truncate">
+                        {idx + 1}- {rec.title}
+                      </h4>
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate mt-0.5">
+                        {rec.category || "Custom Recipe"} • {rec.ageGroup}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSavedRecipe(rec.id);
+                      }}
+                      className="p-1.5 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
+                      title="Delete recipe"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <span className="text-xs font-semibold text-[#1E5E3A] dark:text-emerald-400 hidden sm:inline">
+                      Abrir receita →
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-stone-400 group-hover:text-[#1E5E3A] group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="space-y-6 font-sans">
-              {savedRecipes.map((rec) => {
-                const nutBenefits = getNutritionalBenefitsTable(rec);
-                return (
-                  <div
-                    key={rec.id}
-                    className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100"
-                  >
+            /* OPENED SINGLE RECIPE CARD */
+            (() => {
+              const rec = savedRecipes.find((r) => r.id === openedSavedRecipeId) || savedRecipes[0];
+              if (!rec) return null;
+              const nutBenefits = getNutritionalBenefitsTable(rec);
+
+              return (
+                <div className="space-y-4 font-sans animate-fade-in">
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setOpenedSavedRecipeId(null)}
+                      className="rounded-full text-xs h-8 gap-1.5 border-[#EBE8DF] dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 bg-white dark:bg-stone-900 shadow-2xs cursor-pointer"
+                    >
+                      <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                      <span>Voltar para a lista</span>
+                    </Button>
+
+                    <button
+                      onClick={() => handleDeleteSavedRecipe(rec.id)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-300 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Excluir</span>
+                    </button>
+                  </div>
+
+                  <div className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100">
                     {/* Baby background image - crisp and clearly visible without milky fog */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
                       <img
@@ -600,18 +671,14 @@ export const PantryHelper: React.FC = () => {
                     </div>
 
                     <div className="relative z-10">
-                      {/* Top Bar with Category & Delete */}
+                      {/* Top Bar with Category */}
                       <div className="flex items-center justify-between gap-3 pb-3 mb-2 border-b border-stone-200/70 dark:border-stone-800">
                         <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#1E5E3A] dark:text-emerald-400">
                           {rec.category || "Custom Recipe"} • {rec.ageGroup}
                         </span>
-                        <button
-                          onClick={() => handleDeleteSavedRecipe(rec.id)}
-                          className="p-1.5 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
-                          title="Delete recipe"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <span className="text-[11px] text-stone-400">
+                          Receita salva
+                        </span>
                       </div>
 
                       {/* Centered Modern Sans-Serif Title */}
@@ -686,7 +753,7 @@ export const PantryHelper: React.FC = () => {
                       </div>
 
                       {/* Precision Note Callout Box */}
-                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans">
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans mb-4">
                         <span className="font-bold text-[#C06014] dark:text-amber-400 not-italic mr-1.5 font-sans">
                           Precision Note:
                         </span>
@@ -694,11 +761,23 @@ export const PantryHelper: React.FC = () => {
                           {rec.safetyTip}
                         </span>
                       </div>
+
+                      {/* Bottom close button */}
+                      <div className="text-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setOpenedSavedRecipeId(null)}
+                          className="rounded-full text-xs px-6 h-9 border-[#EBE8DF] text-[#1E5E3A] hover:bg-gray-50"
+                        >
+                          Fechar e voltar à lista
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })()
           )}
         </div>
       ) : (
