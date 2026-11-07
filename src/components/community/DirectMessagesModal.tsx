@@ -118,7 +118,7 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
     setInputText("");
 
     // Friendly auto-reply in demo mode
-    if (isAdminUser && (activeMomName === "Sarah Jenkins" || activeMomName === "Emily Rodriguez")) {
+    if (isAdminUser && activeMomName.toLowerCase().includes("emily")) {
       setTimeout(() => {
         const replies = [
           "Thanks for sharing! I will make that for my baby tomorrow ❤️",

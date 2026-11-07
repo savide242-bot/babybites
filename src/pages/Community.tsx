@@ -422,7 +422,8 @@ export const Community: React.FC = () => {
   const handleOpenMotherProfile = (authorName: string, isCurrentUser = false) => {
     const isSelf = isCurrentUser || authorName === currentUserName || authorName === "You" || authorName === "You (Mom)" || authorName === "Loving Mom";
     const userPosts = posts.filter((p) => p.author_name === authorName);
-    const isAuthorAdmin = (isSelf && isAdminUser) || authorName.toLowerCase().includes("admin") || authorName === "Sarah Jenkins";
+    const isEmily = authorName.toLowerCase().includes("emily") || authorName.toLowerCase().includes("harter");
+    const isAuthorAdmin = (isSelf && isAdminUser) || authorName.toLowerCase().includes("admin") || isEmily;
     let userPinnedBadges = isAuthorAdmin 
       ? BADGES.map(b => b.id) 
       : ['pioneer_mother', 'recipes_10', 'master_planner'];
@@ -434,8 +435,7 @@ export const Community: React.FC = () => {
       } catch {}
     }
 
-    // Strict rule: Emily has 500 followers. Every other mother starts with 0 followers!
-    const isEmily = authorName.toLowerCase().includes("emily");
+    // Strict rule: Emily Harter (Mom of Sophie) has 500 followers. Every other mother starts with 0 followers!
     const followers = isEmily ? 500 : 0;
     const following = isEmily ? 12 : (isSelf ? Object.keys(followedMoms).length : 0);
 
@@ -447,18 +447,18 @@ export const Community: React.FC = () => {
     }
 
     const profileData: MotherProfileData = {
-      id: isSelf ? currentUserId : authorName.toLowerCase().replace(/\s+/g, "-"),
-      name: isSelf ? currentUserName : authorName,
-      babyName: isSelf ? currentUserBaby : authorName === "Sarah Jenkins" ? "Noah" : "Maya",
-      babyAge: authorName === "Sarah Jenkins" ? "7 months" : "11 months",
+      id: isSelf ? currentUserId : (isEmily ? "emily-harter" : authorName.toLowerCase().replace(/\s+/g, "-")),
+      name: isSelf ? currentUserName : (isEmily ? "Emily Harter" : authorName),
+      babyName: isSelf ? currentUserBaby : (isEmily ? "Sophie" : "Baby"),
+      babyAge: isSelf ? "" : (isEmily ? "10 months" : "8 months"),
       avatar: isSelf
         ? currentUserAvatar
-        : authorName === "Sarah Jenkins"
+        : isEmily
         ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"
         : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
       bio: isSelf
         ? (storedBio ? storedBio.slice(0, 50) : "Loving mom on BabyBites! 🥑✨")
-        : (isEmily ? "Mom loving baby-led weaning & healthy finger foods." : "Loving mother exploring the magic of weaning!"),
+        : (isEmily ? "Mom of Sophie • Pediatric Nutritionist & BLW guide!" : "Loving mother exploring the magic of weaning!"),
       followersCount: followers,
       followingCount: following,
       posts: userPosts.map(p => ({
@@ -478,9 +478,9 @@ export const Community: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto px-3 sm:px-4 py-4 pb-24 text-stone-900 dark:text-stone-100 min-h-screen">
+    <div className="relative z-10 max-w-xl mx-auto px-3 sm:px-4 py-4 pb-24 text-stone-900 dark:text-stone-100 min-h-screen">
       {/* 1. Authentic Instagram-Style Top Bar */}
-      <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-[#EBE8DF]/80 dark:border-stone-800/80">
+      <div className="flex items-center justify-between pb-3 mb-3 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md px-3.5 sm:px-4 py-3 rounded-2xl border border-[#EBE8DF] dark:border-stone-800 shadow-xs">
         <div className="flex items-center gap-2">
           <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-[#1E5E3A] dark:text-emerald-400 tracking-tight flex items-center gap-1.5 cursor-pointer">
             <span>BabyGram</span>
@@ -554,19 +554,19 @@ export const Community: React.FC = () => {
             <span>Loading community feed...</span>
           </div>
         ) : posts.length === 0 ? (
-          <div className="rounded-[28px] bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800 p-10 text-center space-y-3">
+          <div className="rounded-[28px] bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 p-8 sm:p-10 text-center space-y-4 shadow-md">
             <div className="w-16 h-16 rounded-full bg-[#EAF5EF] dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center mx-auto shadow-xs">
               <Sparkles className="w-8 h-8 stroke-[1.5]" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-stone-100">
+            <h3 className="font-serif text-2xl font-black text-stone-900 dark:text-stone-100 tracking-tight">
               Welcome to Moms' Community!
             </h3>
-            <p className="text-xs text-gray-500 dark:text-stone-400 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-sm mx-auto leading-relaxed font-medium">
               No posts have been shared yet. Be the very first mother to post a baby weaning photo, video, or recipe milestone!
             </p>
             <Button
               onClick={() => setIsNewPostOpen(true)}
-              className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs px-6 py-2.5 font-semibold"
+              className="rounded-full bg-[#1E5E3A] hover:bg-[#16472c] text-white text-xs px-7 py-3 font-bold shadow-md hover:scale-105 transition-transform"
             >
               Share First Post 🥑
             </Button>
@@ -823,12 +823,16 @@ export const Community: React.FC = () => {
                   </button>
                 </div>
 
-                {/* 4. Instagram Likes Count */}
-                <div className="px-4 pb-1">
-                  <span className="text-xs font-bold text-gray-900 dark:text-stone-100">
-                    Liked by <span className="hover:underline cursor-pointer">sarah_jenkins</span> and {post.likes_count} others
-                  </span>
-                </div>
+                {/* 4. Likes Count - Only shown when actual likes exist, zero fake names */}
+                {post.likes_count > 0 && (
+                  <div className="px-4 pb-1">
+                    <span className="text-xs font-bold text-gray-900 dark:text-stone-100">
+                      {post.likes_count === 1
+                        ? (post.user_has_liked ? "1 like (liked by you)" : "1 like")
+                        : `${post.likes_count} likes`}
+                    </span>
+                  </div>
+                )}
 
                 {/* 5. Instagram Caption */}
                 <div className="px-4 pb-2">

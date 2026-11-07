@@ -252,7 +252,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
 
               {/* Stats Bar */}
               {(() => {
-                const isEmily = profile.name.toLowerCase().includes("emily");
+                const isEmily = profile.name.toLowerCase().includes("emily") || profile.name.toLowerCase().includes("harter");
                 const followersCount = isEmily ? 500 : (profile.isCurrentUser ? 0 : 0);
                 const followingCount = isEmily ? 12 : (profile.isCurrentUser ? (profile.followingCount || 0) : 0);
                 return (

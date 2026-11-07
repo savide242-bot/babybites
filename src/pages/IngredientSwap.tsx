@@ -334,240 +334,290 @@ export const IngredientSwap: React.FC = () => {
   }, [searchQuery, selectedIngredient]);
 
   return (
-    <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3.5 sm:px-5 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
+    <div className="relative min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-5 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
       <AtmosphericBackground />
       <div className="relative z-10">
-      {/* High-End Responsive Photographic Hero Banner */}
-      <div className="rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-md border border-[#EBE8DF] dark:border-stone-800 mb-5 bg-white dark:bg-stone-900 transition-all">
-        <img
-          src={ingredientSwapBanner}
-          alt="Smart Nutrition Assistant - Ingredient Swap"
-          className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[32px]"
-          loading="eager"
-        />
-      </div>
-
-      {/* TWO-STEP INTUITIVE SWAP FORMULATOR */}
-      <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-stone-200/80 dark:border-stone-800 p-4 sm:p-6 shadow-sm mb-6 space-y-5">
-        
-        {/* Step 1: Ingredient to swap (Mandatory) */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#1E5E3A] dark:text-emerald-400">
-              1. Which ingredient do you want to replace?
-            </label>
-            <span className="text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full">
-              Required
-            </span>
-          </div>
-
-          <div className="relative flex items-center">
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Type an ingredient (e.g., egg, cow's milk, wheat flour, butter, peanut butter)..."
-              className="w-full h-12 pl-11 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
-            />
-            <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Quick Tap Suggestion Chips */}
-          <div className="flex flex-wrap gap-1.5 mt-2.5">
-            {QUICK_SUGGESTIONS.map((sug, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setSearchQuery(sug.query);
-                }}
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                  searchQuery.toLowerCase() === sug.query.toLowerCase()
-                    ? "bg-[#1E5E3A] text-white shadow-2xs font-bold"
-                    : "bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-[#1E5E3A]"
-                }`}
-              >
-                {sug.label}
-              </button>
-            ))}
-          </div>
+        {/* Photographic Hero Banner */}
+        <div className="rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-sm border border-[#EBE8DF] dark:border-stone-800 mb-5 bg-white dark:bg-stone-900 transition-all">
+          <img
+            src={ingredientSwapBanner}
+            alt="Smart Nutrition Assistant - Ingredient Swap"
+            className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[32px]"
+            loading="eager"
+          />
         </div>
 
-        {/* Step 2: Recipe to swap in (Optional) */}
-        <div className="pt-3 border-t border-stone-100 dark:border-stone-800">
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-              2. Which recipe do you want to substitute in? (Optional)
-            </label>
-            <span className="text-[10px] font-medium text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">
-              Optional
-            </span>
-          </div>
-
-          {selectedRecipe ? (
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
-              <div className="flex items-center gap-3 min-w-0">
-                <img
-                  src={selectedRecipe.image}
-                  alt={selectedRecipe.title}
-                  className="w-11 h-11 rounded-xl object-cover shrink-0 border border-emerald-200"
-                />
-                <div className="min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">
-                    Selected App Recipe:
-                  </span>
-                  <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
-                    {selectedRecipe.title}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedRecipe(null)}
-                className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
-                title="Remove recipe"
-              >
-                <X className="w-4 h-4" />
-              </button>
+        {/* SWAP SEARCH & FORMULATOR CARD */}
+        <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 p-5 sm:p-6 shadow-sm mb-6 space-y-5">
+          {/* Section Heading */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-[#EAF5EF] dark:bg-emerald-950/80 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center shrink-0">
+              <Repeat className="w-4 h-4" />
             </div>
-          ) : (
-            <div className="relative">
-              <div className="relative flex items-center">
-                <Input
-                  value={recipeSearch}
-                  onFocus={() => setShowRecipeDropdown(true)}
-                  onChange={(e) => {
-                    setRecipeSearch(e.target.value);
-                    setShowRecipeDropdown(true);
-                  }}
-                  placeholder="Select or search a recipe from the app (e.g., pancake, muffin, bowl)..."
-                  className="w-full h-11 pl-10 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
-                />
-                <Utensils className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 pointer-events-none" />
-              </div>
-
-              {/* Autocomplete Dropdown */}
-              {showRecipeDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 p-2 bg-white dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-700 shadow-lg z-30 max-h-56 overflow-y-auto">
-                  <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-stone-100 dark:border-stone-800 text-[11px] font-bold text-stone-500">
-                    <span>BabyBites Recipes ({filteredRecipes.length}):</span>
-                    <button
-                      onClick={() => setShowRecipeDropdown(false)}
-                      className="text-stone-400 hover:text-stone-600"
-                    >
-                      Close ✕
-                    </button>
-                  </div>
-                  {filteredRecipes.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedRecipe(r);
-                        setShowRecipeDropdown(false);
-                        setRecipeSearch("");
-                      }}
-                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-stone-800 text-left transition-colors cursor-pointer group"
-                    >
-                      <img
-                        src={r.image}
-                        alt={r.title}
-                        className="w-9 h-9 rounded-lg object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <span className="font-bold text-xs text-stone-900 dark:text-stone-100 group-hover:text-[#1E5E3A] block truncate">
-                          {r.title}
-                        </span>
-                        <span className="text-[10px] text-stone-500 truncate block">
-                          {r.ageGroup} • {r.prepTime}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Selected Ingredient Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2.5">
-          <span className="text-3xl">{activeProfile.emoji}</span>
-          <div>
-            <h2 className="font-serif font-bold text-lg sm:text-xl text-stone-900 dark:text-stone-100">
-              Pediatric Substitutes for {activeProfile.ingredient}
-            </h2>
-            <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-              {selectedRecipe ? `Culinary adaptation for: ${selectedRecipe.title}` : `Category: ${activeProfile.category}`}
-            </span>
-          </div>
-        </div>
-        <span className="text-[11px] font-bold text-stone-400">
-          3 Safe Alternatives
-        </span>
-      </div>
-
-      {/* 3 Substitute Cards */}
-      <div className="space-y-3.5">
-        {activeProfile.substitutes.map((sub, idx) => (
-          <div
-            key={idx}
-            className="rounded-[26px] bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 p-5 shadow-sm space-y-3 relative overflow-hidden group hover:border-emerald-400/60 transition-all"
-          >
-            {/* Badge pill */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${
-                sub.type === "nutritional"
-                  ? "bg-emerald-50 dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                  : sub.type === "culinary"
-                  ? "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800"
-                  : "bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-800"
-              }`}>
-                ★ {sub.title}
-              </span>
-
-              <span className="text-xs font-bold text-stone-800 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">
-                Ratio: {sub.ratio}
-              </span>
-            </div>
-
-            {/* Replacement Title */}
             <div>
               <h3 className="font-serif font-extrabold text-base sm:text-lg text-stone-900 dark:text-stone-100">
-                {sub.replacement}
+                Find Safe Baby Substitutes
               </h3>
-              <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed mt-1">
-                <strong>Texture Impact:</strong> {sub.textureImpact}
+              <p className="text-xs text-stone-500 dark:text-stone-400">
+                Swap allergens or missing ingredients with pediatric-approved alternatives.
               </p>
             </div>
+          </div>
 
-            {/* Best For Tag */}
-            <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200/60 dark:border-stone-700/60 text-xs">
-              <span className="font-bold text-stone-900 dark:text-stone-100 block mb-0.5">
-                Best Used For:
+          {/* Field 1: Ingredient to swap */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#1E5E3A] dark:text-emerald-400 flex items-center gap-1.5">
+                <span>1. Ingredient to Replace</span>
+              </label>
+              <span className="text-[10px] font-semibold bg-[#EAF5EF] dark:bg-emerald-950/80 text-[#1E5E3A] dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-[#CCE0D2] dark:border-emerald-800/60">
+                Required
               </span>
-              <span className="text-stone-600 dark:text-stone-300">{sub.bestFor}</span>
             </div>
 
-            {/* Safety & Pediatric Guidance */}
-            <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 text-xs flex items-start gap-2 text-emerald-900 dark:text-emerald-200">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <strong className="block text-[11px] uppercase tracking-wider text-emerald-800 dark:text-emerald-300 mb-0.5">Pediatric Note:</strong>
-                <span className="leading-relaxed">{sub.safetyNote}</span>
-              </div>
+            <div className="relative flex items-center">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Type an ingredient (e.g., egg, cow's milk, butter, peanut butter)..."
+                className="w-full h-12 pl-11 pr-9 rounded-2xl border-stone-200 dark:border-stone-700 bg-[#FAF9F5] dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
+              />
+              <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Quick Tap Suggestion Chips */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {QUICK_SUGGESTIONS.map((sug, i) => {
+                const isSelected = searchQuery.toLowerCase() === sug.query.toLowerCase();
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSearchQuery(sug.query)}
+                    className={`text-[11px] font-semibold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#1E5E3A] text-white shadow-xs font-bold"
+                        : "bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-[#1E5E3A]"
+                    }`}
+                  >
+                    {sug.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Field 2: Recipe to swap in (Optional) */}
+          <div className="pt-4 border-t border-stone-100 dark:border-stone-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <span>2. In Which Recipe?</span>
+              </label>
+              <span className="text-[10px] font-medium text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-0.5 rounded-full">
+                Optional
+              </span>
+            </div>
+
+            {selectedRecipe ? (
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={selectedRecipe.image}
+                    alt={selectedRecipe.title}
+                    className="w-12 h-12 rounded-xl object-cover shrink-0 border border-emerald-200 dark:border-emerald-700"
+                  />
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">
+                      Selected Recipe:
+                    </span>
+                    <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
+                      {selectedRecipe.title}
+                    </p>
+                    <span className="text-[10px] text-stone-500 dark:text-stone-400">
+                      {selectedRecipe.ageGroup} • {selectedRecipe.prepTime}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRecipe(null)}
+                  className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
+                  title="Remove recipe"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="relative flex items-center">
+                  <Input
+                    value={recipeSearch}
+                    onFocus={() => setShowRecipeDropdown(true)}
+                    onChange={(e) => {
+                      setRecipeSearch(e.target.value);
+                      setShowRecipeDropdown(true);
+                    }}
+                    placeholder="Search or pick an app recipe (e.g., pancake, muffin, bowl)..."
+                    className="w-full h-11 pl-10 pr-4 rounded-2xl border-stone-200 dark:border-stone-700 bg-[#FAF9F5] dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
+                  />
+                  <Utensils className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 pointer-events-none" />
+                </div>
+
+                {/* Autocomplete Dropdown */}
+                {showRecipeDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 p-2 bg-white dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-700 shadow-xl z-30 max-h-56 overflow-y-auto">
+                    <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-stone-100 dark:border-stone-800 text-[11px] font-bold text-stone-500">
+                      <span>BabyBites Recipes ({filteredRecipes.length}):</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowRecipeDropdown(false)}
+                        className="text-stone-400 hover:text-stone-600 text-xs"
+                      >
+                        Close ✕
+                      </button>
+                    </div>
+                    {filteredRecipes.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRecipe(r);
+                          setShowRecipeDropdown(false);
+                          setRecipeSearch("");
+                        }}
+                        className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-stone-800 text-left transition-colors cursor-pointer group"
+                      >
+                        <img
+                          src={r.image}
+                          alt={r.title}
+                          className="w-9 h-9 rounded-lg object-cover shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <span className="font-bold text-xs text-stone-900 dark:text-stone-100 group-hover:text-[#1E5E3A] block truncate">
+                            {r.title}
+                          </span>
+                          <span className="text-[10px] text-stone-500 truncate block">
+                            {r.ageGroup} • {r.prepTime}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Selected Ingredient Header */}
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 flex items-center justify-center text-2xl shadow-xs">
+              {activeProfile.emoji}
+            </div>
+            <div>
+              <h2 className="font-serif font-black text-lg sm:text-xl text-stone-900 dark:text-stone-100 tracking-tight">
+                Substitutes for {activeProfile.ingredient}
+              </h2>
+              <span className="text-xs text-[#1E5E3A] dark:text-emerald-400 font-semibold">
+                {selectedRecipe ? `Tailored for: ${selectedRecipe.title}` : `Category: ${activeProfile.category}`}
+              </span>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-stone-500 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">
+            3 Safe Options
+          </span>
+        </div>
+
+        {/* 3 Beautiful Substitute Cards */}
+        <div className="space-y-4">
+          {activeProfile.substitutes.map((sub, idx) => {
+            const isNutritional = sub.type === "nutritional";
+            const isCulinary = sub.type === "culinary";
+
+            const badgeBg = isNutritional
+              ? "bg-[#EAF5EF] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 border-[#CCE0D2] dark:border-emerald-800/60"
+              : isCulinary
+              ? "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60"
+              : "bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border-sky-200 dark:border-sky-800/60";
+
+            return (
+              <div
+                key={idx}
+                className="rounded-[26px] bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all space-y-3.5"
+              >
+                {/* Header row: Badge + Ratio */}
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border ${badgeBg}`}>
+                    ★ {sub.title}
+                  </span>
+
+                  <span className="text-xs font-bold text-stone-800 dark:text-stone-200 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full border border-stone-200/60 dark:border-stone-700/60">
+                    Ratio: {sub.ratio}
+                  </span>
+                </div>
+
+                {/* Substitute Name */}
+                <div>
+                  <h3 className="font-serif font-extrabold text-base sm:text-lg text-stone-900 dark:text-stone-100 leading-snug">
+                    {sub.replacement}
+                  </h3>
+                </div>
+
+                {/* 3 Clear Detail Rows */}
+                <div className="space-y-2 text-xs">
+                  {/* Texture & Results */}
+                  <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
+                    <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-stone-900 dark:text-stone-100 block mb-0.5 font-bold">
+                        Texture & Impact:
+                      </strong>
+                      <span className="text-stone-600 dark:text-stone-300 leading-relaxed">
+                        {sub.textureImpact}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Best Used For */}
+                  <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
+                    <ChefHat className="w-4 h-4 text-[#1E5E3A] dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-stone-900 dark:text-stone-100 block mb-0.5 font-bold">
+                        Best For:
+                      </strong>
+                      <span className="text-stone-600 dark:text-stone-300 leading-relaxed">
+                        {sub.bestFor}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pediatric Guidance Note */}
+                  <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-200">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-emerald-900 dark:text-emerald-300 block mb-0.5 font-bold">
+                        Pediatric Safety Note:
+                      </strong>
+                      <span className="leading-relaxed">
+                        {sub.safetyNote}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
