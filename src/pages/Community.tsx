@@ -64,65 +64,8 @@ const ADMIN_EMAILS = [
   "nutri@babybites.app",
 ];
 
-// Rich Sample Feed for initial experience
-const SAMPLE_COMMUNITY_POSTS: Post[] = [
-  {
-    id: "sample-1",
-    user_id: "admin-sarah",
-    title: "BLW Sweet Potato Fries Success! 🍠",
-    content: "Noah (7 months) managed to grab and chew these roasted sweet potato fingers with zero fuss today! Steamed for 6 minutes then lightly baked with a drop of olive oil. Such a proud BLW milestone! ❤️✨",
-    media_type: "image",
-    image_urls: [
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=80",
-    ],
-    hashtags: ["#BLWJourney", "#SweetPotato", "#7MonthsOld", "#FingerFoods"],
-    likes_count: 42,
-    comments_count: 7,
-    created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
-    author_name: "Sarah Jenkins",
-    author_baby: "Mom of Noah • 7m",
-    author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-    user_has_liked: false,
-    age_tag: "6-8 Months",
-  },
-  {
-    id: "sample-2",
-    user_id: "admin-emily",
-    title: "Freezer Prep: 18 Lentil Veggie Cakes 🥦✨",
-    content: "Sunday batch-cooking done! Made 18 soft red lentil patties with grated zucchini and carrots for Maya. Freeze flat on baking parchment, then store in silicone bags for quick midweek baby dinners.",
-    media_type: "video",
-    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    video_thumbnail: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=1200&q=80",
-    hashtags: ["#FreezerPrep", "#MealPrepSunday", "#VeggieBites"],
-    likes_count: 89,
-    comments_count: 14,
-    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-    author_name: "Emily Rodriguez",
-    author_baby: "Mom of Maya • 11m",
-    author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
-    user_has_liked: false,
-    age_tag: "9-11 Months",
-  },
-  {
-    id: "sample-3",
-    user_id: "admin-clara",
-    title: "Avocado & Banana Breakfast Mash 🥑🍌",
-    content: "A gentle classic morning texture for Leo! He loves dipping his spoon or using his fingers. No sugar, no dairy, just pure rich healthy fats for growing babies.",
-    media_type: "image",
-    image_urls: [
-      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80",
-    ],
-    hashtags: ["#HealthyFats", "#AvocadoLove", "#BreakfastMilestone"],
-    likes_count: 56,
-    comments_count: 5,
-    created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-    author_name: "Clara Santos",
-    author_baby: "Mom of Leo • 9m",
-    author_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    user_has_liked: false,
-    age_tag: "6-8 Months",
-  },
-];
+// No mock posts by default - clean real community feed
+const SAMPLE_COMMUNITY_POSTS: Post[] = [];
 
 const COMMENTS_STORAGE_KEY = "babybites_community_comments_v3";
 const FOLLOWS_STORAGE_KEY = "babybites_followed_moms_v3";
@@ -642,14 +585,12 @@ export const Community: React.FC = () => {
 
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-stone-100 leading-tight hover:underline flex items-center gap-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-stone-100 leading-tight hover:underline flex items-center gap-1.5">
                           {post.author_name}
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-sky-500 fill-sky-500 text-white shrink-0" />
                         </h4>
                         <span className="text-[10px] bg-[#EAF5EF] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                           {post.author_baby}
-                          <span className="w-1 h-1 rounded-full bg-emerald-500 inline-block" />
-                          <span className="text-[9px] uppercase tracking-wider font-bold">Verified Mom</span>
                         </span>
                       </div>
                       <span className="text-[10px] text-gray-400 dark:text-stone-500">

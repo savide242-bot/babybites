@@ -224,10 +224,7 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-stone-100">{profile.name}</h3>
                   {(profile.isVerifiedMother !== false) && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-[#1E5E3A] dark:text-emerald-300 text-[11px] font-semibold">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                      <span>Verified Mother</span>
-                    </span>
+                    <CheckCircle2 className="w-4 h-4 text-sky-500 fill-sky-500 text-white shrink-0" />
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5 text-xs text-[#1E5E3A] font-semibold">

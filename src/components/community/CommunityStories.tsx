@@ -15,50 +15,9 @@ export interface StoryItem {
   time_ago: string;
 }
 
-const SAMPLE_STORIES: StoryItem[] = [
-  {
-    id: "story-1",
-    author_name: "Sarah Jenkins",
-    baby_name: "Noah",
-    baby_age: "7m",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
-    caption: "Golden sweet potato patties ready for lunch! Noah ate two all by himself 🍠✨",
-    time_ago: "2h ago",
-  },
-  {
-    id: "story-2",
-    author_name: "Emily Rodriguez",
-    baby_name: "Maya",
-    baby_age: "11m",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80",
-    caption: "Batch of peanut butter & banana oat biscuits ready for the freezer! 🍌✨",
-    time_ago: "4h ago",
-  },
-  {
-    id: "story-3",
-    author_name: "Clara Santos",
-    baby_name: "Leo",
-    baby_age: "9m",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=800&q=80",
-    caption: "First avocado & steamed carrot morning bowl! He loves exploring textures 🥑🥕",
-    time_ago: "6h ago",
-  },
-  {
-    id: "story-4",
-    author_name: "Jessica Miller",
-    baby_name: "Oliver",
-    baby_age: "14m",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
-    story_image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80",
-    caption: "Mini blueberry oat pancake stacks for Sunday breakfast! 🥞🫐",
-    time_ago: "8h ago",
-  },
-];
+const SAMPLE_STORIES: StoryItem[] = [];
 
-const STORIES_STORAGE_KEY = "babybites_community_stories_v1";
+const STORIES_STORAGE_KEY = "babybites_community_stories_v2";
 
 interface CommunityStoriesProps {
   onAddStoryClick: () => void;
@@ -82,9 +41,9 @@ export const CommunityStories: React.FC<CommunityStoriesProps> = ({
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-      return SAMPLE_STORIES;
+      return [];
     } catch {
-      return SAMPLE_STORIES;
+      return [];
     }
   });
 

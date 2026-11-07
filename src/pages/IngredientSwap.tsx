@@ -11,12 +11,16 @@ import {
   Scale,
   Heart,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  BookOpen,
+  X,
+  Utensils
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 import ingredientSwapBanner from "@/assets/ingredient-swap-banner.webp";
+import { recipes as allAppRecipes, Recipe } from "@/data/recipes";
 
 interface Substitute {
   title: string;
@@ -287,6 +291,30 @@ function generateCustomSwap(query: string): SwapProfile {
 export const IngredientSwap: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIngredient, setSelectedIngredient] = useState<SwapProfile>(SWAP_DATABASE[0]);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [recipeSearch, setRecipeSearch] = useState("");
+  const [showRecipeDropdown, setShowRecipeDropdown] = useState(false);
+
+  // Quick swap ingredient suggestions
+  const QUICK_SUGGESTIONS = [
+    { label: "🥚 Ovo", query: "Egg" },
+    { label: "🥛 Leite de Vaca", query: "Cow's Milk" },
+    { label: "🌾 Trigo / Glúten", query: "Wheat Flour" },
+    { label: "🧈 Manteiga", query: "Butter" },
+    { label: "🥜 Amendoim", query: "Peanut Butter" },
+    { label: "🥣 Iogurte", query: "Yogurt" },
+    { label: "🍯 Açúcar / Mel", query: "Sugar" },
+    { label: "🍌 Banana", query: "Banana" },
+  ];
+
+  // Filter recipes from app matching search
+  const filteredRecipes = useMemo(() => {
+    if (!recipeSearch.trim()) return allAppRecipes.slice(0, 10);
+    const q = recipeSearch.toLowerCase().trim();
+    return allAppRecipes.filter(
+      (r) => r.title.toLowerCase().includes(q) || (r.ingredients || []).some((i) => i.toLowerCase().includes(q))
+    ).slice(0, 12);
+  }, [recipeSearch]);
 
   // Handle active selection or dynamic smart search
   const activeProfile = useMemo(() => {
@@ -319,23 +347,154 @@ export const IngredientSwap: React.FC = () => {
         />
       </div>
 
-      {/* Modern Search Input Bar */}
-      <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-stone-200/80 dark:border-stone-800 p-4 sm:p-5 shadow-sm mb-6">
-        <label className="block text-xs font-bold uppercase tracking-wider text-[#1E5E3A] dark:text-emerald-400 mb-2">
-          Which ingredient would you like to swap?
-        </label>
-        <div className="relative flex items-center">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Type any ingredient (e.g. egg, cow's milk, butter, peanut butter, wheat)..."
-            className="w-full h-12 pl-11 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
-          />
-          <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
+      {/* TWO-STEP INTUITIVE SWAP FORMULATOR */}
+      <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-stone-200/80 dark:border-stone-800 p-4 sm:p-6 shadow-sm mb-6 space-y-5">
+        
+        {/* Step 1: Ingredient to swap (Mandatory) */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#1E5E3A] dark:text-emerald-400">
+              1. Qual ingrediente você quer trocar / substituir?
+            </label>
+            <span className="text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full">
+              Obrigatório
+            </span>
+          </div>
+
+          <div className="relative flex items-center">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Digite o ingrediente (ex: ovo, leite, farinha de trigo, manteiga, banana)..."
+              className="w-full h-12 pl-11 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
+            />
+            <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Quick Tap Suggestion Chips */}
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
+            {QUICK_SUGGESTIONS.map((sug, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  setSearchQuery(sug.query);
+                }}
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                  searchQuery.toLowerCase() === sug.query.toLowerCase()
+                    ? "bg-[#1E5E3A] text-white shadow-2xs font-bold"
+                    : "bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-[#1E5E3A]"
+                }`}
+              >
+                {sug.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-2 px-1">
-          💡 Our culinary system automatically determines the safest nutritional, texture, and hypoallergenic replacements for your baby.
-        </p>
+
+        {/* Step 2: Recipe to swap in (Optional) */}
+        <div className="pt-3 border-t border-stone-100 dark:border-stone-800">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+              2. Em qual receita você quer substituir? (Opcional)
+            </label>
+            <span className="text-[10px] font-medium text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">
+              Opcional
+            </span>
+          </div>
+
+          {selectedRecipe ? (
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src={selectedRecipe.image}
+                  alt={selectedRecipe.title}
+                  className="w-11 h-11 rounded-xl object-cover shrink-0 border border-emerald-200"
+                />
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">
+                    Receita Selecionada do App:
+                  </span>
+                  <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
+                    {selectedRecipe.title}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedRecipe(null)}
+                className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
+                title="Remover receita"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="relative flex items-center">
+                <Input
+                  value={recipeSearch}
+                  onFocus={() => setShowRecipeDropdown(true)}
+                  onChange={(e) => {
+                    setRecipeSearch(e.target.value);
+                    setShowRecipeDropdown(true);
+                  }}
+                  placeholder="Selecione ou busque uma receita do app (ex: panqueca, muffin, bolo)..."
+                  className="w-full h-11 pl-10 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
+                />
+                <Utensils className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 pointer-events-none" />
+              </div>
+
+              {/* Autocomplete Dropdown */}
+              {showRecipeDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1.5 p-2 bg-white dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-700 shadow-lg z-30 max-h-56 overflow-y-auto">
+                  <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-stone-100 dark:border-stone-800 text-[11px] font-bold text-stone-500">
+                    <span>Receitas do BabyBites ({filteredRecipes.length}):</span>
+                    <button
+                      onClick={() => setShowRecipeDropdown(false)}
+                      className="text-stone-400 hover:text-stone-600"
+                    >
+                      Fechar ✕
+                    </button>
+                  </div>
+                  {filteredRecipes.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedRecipe(r);
+                        setShowRecipeDropdown(false);
+                        setRecipeSearch("");
+                      }}
+                      className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-stone-800 text-left transition-colors cursor-pointer group"
+                    >
+                      <img
+                        src={r.image}
+                        alt={r.title}
+                        className="w-9 h-9 rounded-lg object-cover shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-bold text-xs text-stone-900 dark:text-stone-100 group-hover:text-[#1E5E3A] block truncate">
+                          {r.title}
+                        </span>
+                        <span className="text-[10px] text-stone-500 truncate block">
+                          {r.ageGroup} • {r.prepTime}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Selected Ingredient Header */}
@@ -344,15 +503,15 @@ export const IngredientSwap: React.FC = () => {
           <span className="text-3xl">{activeProfile.emoji}</span>
           <div>
             <h2 className="font-serif font-bold text-lg sm:text-xl text-stone-900 dark:text-stone-100">
-              Substitutes for {activeProfile.ingredient}
+              Substitutos para {activeProfile.ingredient}
             </h2>
             <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-              Category: {activeProfile.category}
+              {selectedRecipe ? `Adaptação culinária para: ${selectedRecipe.title}` : `Categoria: ${activeProfile.category}`}
             </span>
           </div>
         </div>
         <span className="text-[11px] font-bold text-stone-400">
-          3 Safe Options
+          3 Opções Seguras
         </span>
       </div>
 

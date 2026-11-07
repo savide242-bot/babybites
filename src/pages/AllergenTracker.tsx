@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
+import allergen3DayRuleBanner from "@/assets/allergen-3day-rule-banner.webp";
 
 export interface AllergenItem {
   id: string;
@@ -291,54 +292,14 @@ export const AllergenTracker: React.FC = () => {
         </div>
       </div>
 
-      {/* Pediatric 3-Day Rule Guide (Collapsible/Visual) */}
-      <div className="rounded-3xl bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-5 sm:p-6 mb-6 shadow-md relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center shrink-0 border border-white/15">
-            <Sparkles className="w-5 h-5 text-emerald-300" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-serif font-bold text-base sm:text-lg text-emerald-100">
-              The Pediatric 3-Day Exposure Rule
-            </h3>
-            <p className="text-xs text-emerald-100/80 leading-relaxed">
-              Introduce 1 single allergen at a time in the morning. Follow this structured 3-day ladder before moving to the next:
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4 pt-3 border-t border-white/10">
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-5 rounded-full bg-emerald-400 text-stone-900 text-[10px] font-bold flex items-center justify-center">1</span>
-              <span className="text-xs font-semibold text-emerald-200">Day 1: Micro-Taste</span>
-            </div>
-            <p className="text-[11px] text-emerald-100/70">
-              Offer 1/4 teaspoon mixed in familiar puree. Watch for 2 hours.
-            </p>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-5 rounded-full bg-emerald-400 text-stone-900 text-[10px] font-bold flex items-center justify-center">2</span>
-              <span className="text-xs font-semibold text-emerald-200">Day 2: Half Portion</span>
-            </div>
-            <p className="text-[11px] text-emerald-100/70">
-              Offer 1/2 teaspoon. If no hives or swelling, continue normally.
-            </p>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-5 rounded-full bg-emerald-400 text-stone-900 text-[10px] font-bold flex items-center justify-center">3</span>
-              <span className="text-xs font-semibold text-emerald-200">Day 3: Standard Meal</span>
-            </div>
-            <p className="text-[11px] text-emerald-100/70">
-              Offer 1-2 teaspoons. Mark as Tolerated and keep in weekly rotation!
-            </p>
-          </div>
-        </div>
+      {/* Pediatric 3-Day Rule Guide (High-Res Visual Banner) */}
+      <div className="mb-6 rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-sm border border-[#EBE8DF] dark:border-stone-800 bg-white dark:bg-stone-900 transition-all">
+        <img
+          src={allergen3DayRuleBanner}
+          alt="The Pediatric 3-Day Exposure Rule - Gentle, Step-by-Step Introduction"
+          className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[32px]"
+          loading="eager"
+        />
       </div>
 
       {/* Filter Tabs */}
