@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { BabyProfileProvider } from "@/contexts/BabyProfileContext";
 import { useEffect, useRef, Suspense, lazy } from "react";
-import { updateLastVisit } from "@/hooks/useNotifications";
+import { useNotifications, updateLastVisit } from "@/hooks/useNotifications";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
@@ -80,8 +80,9 @@ const AppContent = () => {
   // Check if current route should be fullscreen (no header/bottom nav)
   const isFullscreenRoute = FULLSCREEN_ROUTES.includes(location.pathname);
 
-  // Activate PWA install detection and welcome notifications
+  // Activate PWA install detection and notifications
   usePWAInstall();
+  useNotifications();
   useServiceWorkerUpdate();
   useSessionTracking();
   useBanCheck();

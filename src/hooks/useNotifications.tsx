@@ -1,5 +1,53 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface ScheduledMealNotification {
+  meal_type: string;
+  hour: number;
+  minute: number;
+  title: string;
+  body: string;
+}
+
+const DEFAULT_SCHEDULE: ScheduledMealNotification[] = [
+  { meal_type: 'breakfast', hour: 8, minute: 0, title: '🍎 Breakfast Time!', body: "Start your baby's day with a wholesome and nutritious breakfast." },
+  { meal_type: 'lunch', hour: 12, minute: 0, title: '🥦 Lunch Time!', body: "Time for a delicious, healthy lunch meal for your little one." },
+  { meal_type: 'snack', hour: 15, minute: 30, title: '🥑 Afternoon Snack!', body: "A light, healthy snack keeps energy steady and introduces variety." },
+  { meal_type: 'dinner', hour: 18, minute: 30, title: '🥣 Dinner Time!', body: "Finish the day with a gentle, soothing dinner." },
+];
+
+export const showSystemNotification = async (title: string, options: NotificationOptions = {}) => {
+  const defaultOptions: NotificationOptions = {
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200] as any,
+    ...options,
+  };
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && reg.showNotification) {
+        await reg.showNotification(title, defaultOptions);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Service worker notification fallback:', e);
+    }
+  }
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification(title, defaultOptions);
+      return true;
+    } catch (e) {
+      console.warn('Standard Notification constructor error:', e);
+    }
+  }
+
+  return false;
+};
 
 export const useNotifications = () => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -8,6 +56,50 @@ export const useNotifications = () => {
     if ('Notification' in window) {
       setPermission(Notification.permission);
     }
+  }, []);
+
+  const triggerTestNotification = useCallback(async () => {
+    if (!('Notification' in window)) {
+      toast({
+        title: "Notifications Not Supported",
+        description: "Your browser does not support Web Notifications.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    let currentPerm = Notification.permission;
+    if (currentPerm !== 'granted') {
+      try {
+        currentPerm = await Notification.requestPermission();
+        setPermission(currentPerm);
+      } catch (err) {
+        console.warn('Permission request error:', err);
+      }
+    }
+
+    if (currentPerm !== 'granted') {
+      toast({
+        title: "Permission Required",
+        description: "Please allow notifications in your browser or device settings.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    const success = await showSystemNotification('🥑 BabyBites • Test Notification', {
+      body: "Notifications are working perfectly on your device! You'll receive your scheduled meal reminders.",
+      tag: 'babybites-test-' + Date.now(),
+    });
+
+    if (success) {
+      toast({
+        title: "✅ Notification Delivered!",
+        description: "Check your screen or status bar for the notification.",
+      });
+    }
+
+    return success;
   }, []);
 
   const requestPermission = async () => {
@@ -21,6 +113,7 @@ export const useNotifications = () => {
     }
 
     if (Notification.permission === 'granted') {
+      await triggerTestNotification();
       return true;
     }
 
@@ -31,16 +124,10 @@ export const useNotifications = () => {
       if (result === 'granted') {
         toast({
           title: "Notifications Enabled! 🔔",
-          description: "You'll receive meal reminders throughout the day.",
+          description: "You will receive meal reminders throughout the day.",
         });
         
-        // Send immediate test notification
-        new Notification('🎉 Notifications Activated!', {
-          body: 'You will now receive meal time reminders for your baby. Stay on track! 🍎',
-          icon: '/icon-192x192.png',
-          badge: '/icon-192x192.png'
-        });
-        
+        await triggerTestNotification();
         return true;
       } else {
         toast({
@@ -56,57 +143,41 @@ export const useNotifications = () => {
     }
   };
 
-  const setupNotifications = async () => {
-    try {
-      // Save last visit timestamp
-      await updateLastVisit();
-      
-      // Schedule daily meal reminders
-      scheduleDailyReminders();
-    } catch (error) {
-      console.error('Error setting up notifications:', error);
-    }
-  };
+  // Local recurring scheduler for active sessions
+  useEffect(() => {
+    if (permission !== 'granted') return;
 
-  const scheduleDailyReminders = () => {
-    const scheduleNotification = (hour: number, minute: number, title: string, message: string) => {
+    let notifiedMeals: Record<string, string> = {}; // mealKey: dateString
+
+    const checkMealTimes = () => {
       const now = new Date();
-      const scheduledTime = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        hour,
-        minute,
-        0
-      );
-      
-      // If time already passed today, schedule for tomorrow
-      if (scheduledTime < now) {
-        scheduledTime.setDate(scheduledTime.getDate() + 1);
-      }
-      
-      const delay = scheduledTime.getTime() - now.getTime();
-      
-      setTimeout(() => {
-        if (Notification.permission === 'granted') {
-          new Notification(title, {
-            body: message,
-            icon: '/icon-192x192.png',
-            tag: 'babybites-meal-reminder'
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const todayStr = now.toISOString().slice(0, 10);
+
+      DEFAULT_SCHEDULE.forEach((meal) => {
+        const mealKey = `${meal.meal_type}-${todayStr}`;
+        if (notifiedMeals[mealKey]) return;
+
+        // Trigger if within matching hour and minute
+        if (currentHour === meal.hour && currentMinute === meal.minute) {
+          notifiedMeals[mealKey] = todayStr;
+          showSystemNotification(meal.title, {
+            body: meal.body,
+            tag: `babybites-meal-${meal.meal_type}`,
+            data: { url: '/meal-planner' },
           });
         }
-        // Re-schedule for next day
-        scheduleDailyReminders();
-      }, delay);
+      });
     };
 
-    // Schedule meal reminders
-    scheduleNotification(8, 0, 'BabyBites Reminder', 'Good morning! Breakfast time 🍎');
-    scheduleNotification(12, 30, 'Meal Time!', 'Lunch time for baby! 🥗');
-    scheduleNotification(18, 0, 'Evening Meal', 'Dinner time! 🍽️');
-  };
+    // Check immediately and every 30 seconds
+    checkMealTimes();
+    const interval = setInterval(checkMealTimes, 30000);
+    return () => clearInterval(interval);
+  }, [permission]);
 
-  return { permission, requestPermission };
+  return { permission, requestPermission, triggerTestNotification };
 };
 
 // Helper function to update last visit

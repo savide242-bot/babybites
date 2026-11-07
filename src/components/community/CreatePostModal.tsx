@@ -327,17 +327,17 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {/* Media Thumbnail + Caption Input */}
               <div className="flex gap-3">
                 {selectedMediaUrl && (
-                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-900 border border-stone-800 shrink-0">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-900 border border-stone-800 shrink-0 flex items-center justify-center">
                     {selectedMediaType === "video" ? (
                       <video
                         src={selectedMediaUrl}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     ) : (
                       <img
                         src={selectedMediaUrl}
                         alt="Media Preview"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     )}
                   </div>

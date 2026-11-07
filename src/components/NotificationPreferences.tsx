@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { showSystemNotification } from '@/hooks/useNotifications';
 import { Clock, Save, Globe, Bell, Loader2, AlertCircle, CheckCircle2, Send, Zap } from 'lucide-react';
 
 interface MealTimePref {
@@ -253,29 +254,25 @@ export function NotificationPreferences() {
       if (!isSubscribed && isSupported) {
         try { await subscribe(); } catch (subErr) { console.warn('Test auto-subscribe:', subErr); }
       }
-      // 1. Immediately trigger real device notification via Service Worker
-      if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        try {
-          const reg = await navigator.serviceWorker.ready;
-          await reg.showNotification('🥑 BabyBites • Meal Reminder', {
-            body: "It's time for lunch! Nutritious meal ready for your baby.",
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            vibrate: [200, 100, 200],
-            data: { url: '/meal-planner' },
-          });
-          toast({
-            title: "✅ Meal Reminder Delivered!",
-            description: "Check your screen for the push notification.",
-          });
-        } catch (swErr) {
-          console.warn('Direct SW notification notice:', swErr);
-        }
+      
+      // 1. Immediately trigger real device notification
+      const delivered = await showSystemNotification('🥑 BabyBites • Meal Reminder', {
+        body: "It's time for lunch! Nutritious meal ready for your baby.",
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        vibrate: [200, 100, 200] as any,
+        data: { url: '/meal-planner' },
+      });
+
+      if (delivered) {
+        toast({
+          title: "✅ Meal Reminder Delivered!",
+          description: "Check your screen or notification bar.",
+        });
       }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Also call send-meal-reminder edge function if available
         try {
           await supabase.functions.invoke('send-meal-reminder', {
             body: { user_id: user.id, meal_type: 'lunch', title: '🍽️ Test Meal Reminder', body: 'This is a test notification to verify delivery!' },

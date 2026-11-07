@@ -25,70 +25,30 @@ interface DirectMessagesModalProps {
   onClose: () => void;
   targetMom?: MotherProfileData | null;
   isAdminUser?: boolean;
+  currentUserAvatar?: string;
+  currentUserName?: string;
 }
 
 const STORAGE_KEY = "babybites_direct_messages_v1";
 
-const SAMPLE_DEMO_CHATS: Record<string, DMMessage[]> = {
-  "Sarah Jenkins": [
-    {
-      id: "m-1",
-      sender_id: "sarah",
-      sender_name: "Sarah Jenkins",
-      sender_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-      recipient_id: "me",
-      recipient_name: "You",
-      content: "Hi! I saw your baby is around 7 months too. Have you tried the pumpkin oat puree from the app?",
-      created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-    },
-    {
-      id: "m-2",
-      sender_id: "me",
-      sender_name: "You",
-      sender_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-      recipient_id: "sarah",
-      recipient_name: "Sarah Jenkins",
-      content: "Hello Sarah! Yes, he loved it! First time he ate without making funny faces haha 🥰",
-      created_at: new Date(Date.now() - 3600000 * 1).toISOString(),
-    },
-    {
-      id: "m-3",
-      sender_id: "sarah",
-      sender_name: "Sarah Jenkins",
-      sender_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-      recipient_id: "me",
-      recipient_name: "You",
-      content: "That's wonderful! This milestone stage is so precious. Feel free to message anytime if you want to swap recipe ideas!",
-      created_at: new Date(Date.now() - 1800000).toISOString(),
-    },
-  ],
-  "Emily Rodriguez": [
-    {
-      id: "m-4",
-      sender_id: "emily",
-      sender_name: "Emily Rodriguez",
-      sender_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
-      recipient_id: "me",
-      recipient_name: "You",
-      content: "Hey mama! Those banana oat biscuits I shared keep fresh for up to 5 days in an airtight jar! Super convenient.",
-      created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-    },
-  ],
-};
+// Clean real inbox with no fake mock messages
+const SAMPLE_DEMO_CHATS: Record<string, DMMessage[]> = {};
 
 export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
   isOpen,
   onClose,
   targetMom,
   isAdminUser = false,
+  currentUserAvatar,
+  currentUserName = "You",
 }) => {
   const [messagesByMom, setMessagesByMom] = useState<Record<string, DMMessage[]>>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) return JSON.parse(saved);
-      return isAdminUser ? SAMPLE_DEMO_CHATS : {};
+      return {};
     } catch {
-      return isAdminUser ? SAMPLE_DEMO_CHATS : {};
+      return {};
     }
   });
 
@@ -137,11 +97,13 @@ export const DirectMessagesModal: React.FC<DirectMessagesModalProps> = ({
     const text = (textToSend || inputText).trim();
     if (!text || !activeMomName) return;
 
+    const myAvatar = currentUserAvatar || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80";
+
     const newMessage: DMMessage = {
       id: "msg-" + Date.now(),
       sender_id: "me",
-      sender_name: "You",
-      sender_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      sender_name: currentUserName || "You",
+      sender_avatar: myAvatar,
       recipient_id: activeMomName,
       recipient_name: activeMomName,
       content: text,

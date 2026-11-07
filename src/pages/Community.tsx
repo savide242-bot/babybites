@@ -420,38 +420,59 @@ export const Community: React.FC = () => {
   };
 
   const handleOpenMotherProfile = (authorName: string, isCurrentUser = false) => {
+    const isSelf = isCurrentUser || authorName === currentUserName || authorName === "You" || authorName === "You (Mom)" || authorName === "Loving Mom";
     const userPosts = posts.filter((p) => p.author_name === authorName);
-    const isAuthorAdmin = (isCurrentUser && isAdminUser) || authorName.toLowerCase().includes("admin") || authorName === "Sarah Jenkins";
+    const isAuthorAdmin = (isSelf && isAdminUser) || authorName.toLowerCase().includes("admin") || authorName === "Sarah Jenkins";
     let userPinnedBadges = isAuthorAdmin 
       ? BADGES.map(b => b.id) 
       : ['pioneer_mother', 'recipes_10', 'master_planner'];
 
-    if (isCurrentUser && !isAdminUser) {
+    if (isSelf && !isAdminUser) {
       try {
         const raw = localStorage.getItem("babybites_pinned_badges_v1");
         if (raw) userPinnedBadges = JSON.parse(raw);
       } catch {}
     }
 
+    // Strict rule: Emily has 500 followers. Every other mother starts with 0 followers!
+    const isEmily = authorName.toLowerCase().includes("emily");
+    const followers = isEmily ? 500 : 0;
+    const following = isEmily ? 12 : (isSelf ? Object.keys(followedMoms).length : 0);
+
+    let storedBio = "";
+    if (isSelf) {
+      try {
+        storedBio = localStorage.getItem("babybites_mother_bio_v1") || "";
+      } catch {}
+    }
+
     const profileData: MotherProfileData = {
-      id: isCurrentUser ? currentUserId : authorName.toLowerCase().replace(/\s+/g, "-"),
-      name: authorName,
-      babyName: isCurrentUser ? currentUserBaby : authorName === "Sarah Jenkins" ? "Noah" : "Maya",
+      id: isSelf ? currentUserId : authorName.toLowerCase().replace(/\s+/g, "-"),
+      name: isSelf ? currentUserName : authorName,
+      babyName: isSelf ? currentUserBaby : authorName === "Sarah Jenkins" ? "Noah" : "Maya",
       babyAge: authorName === "Sarah Jenkins" ? "7 months" : "11 months",
-      avatar: isCurrentUser
+      avatar: isSelf
         ? currentUserAvatar
         : authorName === "Sarah Jenkins"
         ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"
         : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
-      bio: isCurrentUser
-        ? "Loving mother exploring the magic of weaning and healthy eating on BabyBites! 🥑✨"
-        : "Mom passionate about baby-led weaning, finger food snacks, and nutrient-dense purées.",
-      followersCount: isCurrentUser ? 18 : 240,
-      followingCount: isCurrentUser ? Object.keys(followedMoms).length : 110,
-      posts: userPosts,
+      bio: isSelf
+        ? (storedBio ? storedBio.slice(0, 50) : "Loving mom on BabyBites! 🥑✨")
+        : (isEmily ? "Mom loving baby-led weaning & healthy finger foods." : "Loving mother exploring the magic of weaning!"),
+      followersCount: followers,
+      followingCount: following,
+      posts: userPosts.map(p => ({
+        id: p.id,
+        title: p.title,
+        mediaUrl: (p.image_urls && p.image_urls[0]) || p.video_url || "",
+        mediaType: p.media_type,
+        likesCount: p.likes_count,
+      })),
       isVerifiedMother: true,
       pinnedBadges: userPinnedBadges,
       isAdmin: isAuthorAdmin,
+      isCurrentUser: isSelf,
+      isFollowing: isSelf ? false : !!followedMoms[authorName],
     };
     setProfileModalState({ open: true, profile: profileData });
   };
@@ -561,7 +582,14 @@ export const Community: React.FC = () => {
             const mediaSrc = (post.image_urls && post.image_urls[0]) || post.video_url || null;
             const isFollowing = !!followedMoms[post.author_name || ""];
             const isHeartPopping = !!heartPops[post.id];
-            const canDelete = isAdminUser || post.user_id === currentUserId || post.author_name === currentUserName;
+            const isOwnPost = Boolean(
+              (currentUserId && currentUserId !== "guest" && post.user_id === currentUserId) ||
+              post.author_name === currentUserName ||
+              post.author_name === "You" ||
+              post.author_name === "You (Mom)" ||
+              post.author_name === "Loving Mom"
+            );
+            const canDelete = isAdminUser || isOwnPost;
 
             return (
               <article
@@ -572,7 +600,7 @@ export const Community: React.FC = () => {
                 <div className="p-3 sm:p-4 flex items-center justify-between">
                   <div
                     className="flex items-center gap-3 cursor-pointer"
-                    onClick={() => handleOpenMotherProfile(post.author_name)}
+                    onClick={() => handleOpenMotherProfile(post.author_name, isOwnPost)}
                   >
                     {/* Avatar with authentic Instagram gradient ring */}
                     <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#F59E0B] via-[#E1306C] to-[#833AB4] shrink-0">
@@ -605,23 +633,25 @@ export const Community: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    {/* Follow Button */}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleToggleFollow(post.author_name || "")}
-                      className={`rounded-full h-7 px-2.5 text-[11px] font-semibold transition-all ${
-                        isFollowing
-                          ? "bg-gray-100 dark:bg-stone-800 text-gray-600 dark:text-stone-300 hover:bg-gray-200"
-                          : "bg-[#EAF5EF] dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 hover:bg-[#d6ecde]"
-                      }`}
-                    >
-                      {isFollowing ? (
-                        <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> Following</span>
-                      ) : (
-                        <span className="flex items-center gap-1"><UserPlus className="w-3 h-3" /> Follow</span>
-                      )}
-                    </Button>
+                    {/* Follow Button - Never allow following oneself */}
+                    {!isOwnPost && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleToggleFollow(post.author_name || "")}
+                        className={`rounded-full h-7 px-2.5 text-[11px] font-semibold transition-all ${
+                          isFollowing
+                            ? "bg-gray-100 dark:bg-stone-800 text-gray-600 dark:text-stone-300 hover:bg-gray-200"
+                            : "bg-[#EAF5EF] dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 hover:bg-[#d6ecde]"
+                        }`}
+                      >
+                        {isFollowing ? (
+                          <span className="flex items-center gap-1"><UserCheck className="w-3 h-3" /> Following</span>
+                        ) : (
+                          <span className="flex items-center gap-1"><UserPlus className="w-3 h-3" /> Follow</span>
+                        )}
+                      </Button>
+                    )}
 
                     {/* 3-dots Menu with Delete & Report */}
                     <DropdownMenu>
@@ -812,20 +842,6 @@ export const Community: React.FC = () => {
                     </span>
                     {post.content}
                   </p>
-
-                  {/* Hashtags */}
-                  {post.hashtags && post.hashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {post.hashtags.map((h, i) => (
-                        <span
-                          key={i}
-                          className="text-[11px] font-semibold text-[#00376B] dark:text-[#3897f0] hover:underline cursor-pointer"
-                        >
-                          {h}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* 6. Expandable Comments Section */}
@@ -900,6 +916,19 @@ export const Community: React.FC = () => {
           setTargetDMMom(mom);
           setIsDMOpen(true);
         }}
+        onUpdateProfile={(updated) => {
+          if (updated.name) setCurrentUserName(updated.name);
+          if (updated.babyName) setCurrentUserBaby(`Mom of ${updated.babyName}`);
+          if (profileModalState.profile) {
+            setProfileModalState({
+              open: true,
+              profile: {
+                ...profileModalState.profile,
+                ...updated,
+              },
+            });
+          }
+        }}
       />
 
       {/* Direct Messages (DM) Modal */}
@@ -908,6 +937,8 @@ export const Community: React.FC = () => {
         onClose={() => setIsDMOpen(false)}
         targetMom={targetDMMom}
         isAdminUser={isAdminUser}
+        currentUserAvatar={currentUserAvatar}
+        currentUserName={currentUserName}
       />
 
       {/* Requirement 5: Create Story Modal (Instagram 2-step flow: Image 1 & Image 2) */}

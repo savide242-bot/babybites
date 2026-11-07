@@ -66,12 +66,16 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
   if (!profile) return null;
 
   const handleSaveEdit = () => {
+    const trimmedBio = bio.slice(0, 50);
+    try {
+      localStorage.setItem("babybites_mother_bio_v1", trimmedBio);
+    } catch {}
     if (onUpdateProfile) {
       onUpdateProfile({
         name,
         babyName,
         babyAge,
-        bio,
+        bio: trimmedBio,
       });
     }
     setIsEditing(false);
@@ -192,11 +196,19 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-gray-600 block mb-1">Bio / Story</label>
-                <Textarea
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[11px] font-semibold text-gray-600 dark:text-stone-300 block">
+                    Bio (Max 50 characters)
+                  </label>
+                  <span className={`text-[10px] font-semibold ${bio.length >= 50 ? "text-amber-600" : "text-gray-400"}`}>
+                    {bio.length}/50
+                  </span>
+                </div>
+                <Input
                   value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={2}
+                  maxLength={50}
+                  onChange={(e) => setBio(e.target.value.slice(0, 50))}
+                  placeholder="Short bio (e.g. Mom of two, loving BLW!)"
                   className="rounded-xl border-[#E3DFD3] text-sm"
                 />
               </div>
@@ -233,28 +245,35 @@ export const MotherProfileModal: React.FC<MotherProfileModalProps> = ({
                     Mom of {profile.babyName} • {profile.babyAge}
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                  {profile.bio || "Dedicated mom exploring healthy baby weaning and sharing wholesome meal ideas with the BabyBites community! 🥑🥣"}
+                <p className="text-xs text-gray-600 dark:text-stone-300 mt-2 leading-relaxed">
+                  {profile.bio ? profile.bio.slice(0, 50) : "Dedicated mom on BabyBites! 🥑🥣"}
                 </p>
               </div>
 
               {/* Stats Bar */}
-              <div className="flex items-center justify-around py-3 my-4 bg-[#FAF9F5] dark:bg-stone-800/60 rounded-2xl border border-[#EBE8DF] dark:border-stone-800">
-                <div className="text-center">
-                  <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.posts.length}</span>
-                  <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Posts</span>
-                </div>
-                <div className="h-6 w-[1px] bg-gray-200 dark:bg-stone-700" />
-                <div className="text-center">
-                  <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.followersCount}</span>
-                  <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Followers</span>
-                </div>
-                <div className="h-6 w-[1px] bg-gray-200 dark:bg-stone-700" />
-                <div className="text-center">
-                  <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.followingCount}</span>
-                  <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Following</span>
-                </div>
-              </div>
+              {(() => {
+                const isEmily = profile.name.toLowerCase().includes("emily");
+                const followersCount = isEmily ? 500 : (profile.isCurrentUser ? 0 : 0);
+                const followingCount = isEmily ? 12 : (profile.isCurrentUser ? (profile.followingCount || 0) : 0);
+                return (
+                  <div className="flex items-center justify-around py-3 my-4 bg-[#FAF9F5] dark:bg-stone-800/60 rounded-2xl border border-[#EBE8DF] dark:border-stone-800">
+                    <div className="text-center">
+                      <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{profile.posts.length}</span>
+                      <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Posts</span>
+                    </div>
+                    <div className="h-6 w-[1px] bg-gray-200 dark:bg-stone-700" />
+                    <div className="text-center">
+                      <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{followersCount}</span>
+                      <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Followers</span>
+                    </div>
+                    <div className="h-6 w-[1px] bg-gray-200 dark:bg-stone-700" />
+                    <div className="text-center">
+                      <span className="block text-sm font-bold text-gray-900 dark:text-stone-100">{followingCount}</span>
+                      <span className="text-[11px] text-gray-500 dark:text-stone-400 font-medium">Following</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Showcased Badges / Conquistas em Destaque */}
               {showcasedBadges.length > 0 && (
