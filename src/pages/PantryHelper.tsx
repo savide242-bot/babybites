@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import pantryHeroBanner from "@/assets/pantry-hero-banner.webp";
 import pantryEmptyBanner from "@/assets/pantry-empty-banner.webp";
 import appBgBaby from "@/assets/app-bg-baby.jpg";
+import customRecipeBgBaby from "@/assets/custom-recipe-bg-baby.webp";
 
 
 export interface CustomGeneratedRecipe {
@@ -587,14 +588,17 @@ export const PantryHelper: React.FC = () => {
                 return (
                   <div
                     key={rec.id}
-                    className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100"
+                    className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white/95 dark:bg-[#161a18]/95 border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100"
                   >
-                    {/* Subtle blurred background */}
-                    <img
-                      src={appBgBaby}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover filter blur-[8px] opacity-10 dark:opacity-5 pointer-events-none"
-                    />
+                    {/* Baby background image with 35% opacity as requested */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
+                      <img
+                        src={customRecipeBgBaby}
+                        alt=""
+                        className="w-full h-full object-cover object-center filter blur-[1px] opacity-35 dark:opacity-20 scale-105 pointer-events-none"
+                      />
+                      <div className="absolute inset-0 bg-white/55 dark:bg-black/55 pointer-events-none" />
+                    </div>
 
                     <div className="relative z-10">
                       {/* Top Bar with Category & Delete */}
@@ -826,15 +830,16 @@ export const PantryHelper: React.FC = () => {
 
           {/* DISPLAY GENERATED RECIPE CARD - MODERN CRISP COLOR-BANDED LAYOUT */}
           {generatedRecipe && (
-            <div className="mb-8 relative overflow-hidden rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.1)] p-5 sm:p-8 font-sans text-stone-900 dark:text-stone-100 animate-fade-in">
+            <div className="mb-8 relative overflow-hidden rounded-[24px] sm:rounded-[30px] bg-white/95 dark:bg-[#161a18]/95 border border-[#EBE3D5] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.1)] p-5 sm:p-8 font-sans text-stone-900 dark:text-stone-100 animate-fade-in">
               
-              {/* Subtle baby background texture as requested */}
+              {/* Baby background image with 35% opacity as requested */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
                 <img
-                  src={appBgBaby}
+                  src={customRecipeBgBaby}
                   alt=""
-                  className="w-full h-full object-cover object-center filter blur-[10px] opacity-[0.06] dark:opacity-[0.03] scale-105 pointer-events-none"
+                  className="w-full h-full object-cover object-center filter blur-[1px] opacity-35 dark:opacity-20 scale-105 pointer-events-none"
                 />
+                <div className="absolute inset-0 bg-white/55 dark:bg-black/55 pointer-events-none" />
               </div>
 
               <div className="relative z-10">
