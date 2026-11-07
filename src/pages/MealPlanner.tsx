@@ -768,59 +768,66 @@ const MealPlanner = () => {
         babyAgeMonths={activeBabyAgeMonths || babyAgeMonths || 6}
       />
 
-      {/* Sleek, Compact Editorial Header (Mobile-Optimized) */}
+      {/* Unified Elegant Header Card (Clean, Scandinavian, Pediatric Design) */}
       <div className="px-3.5 sm:px-6 pt-3 pb-2 w-full max-w-6xl mx-auto">
-        <div className="flex items-center justify-between gap-2.5">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60">
-                <ChefHat className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                <span>Weekly Plan</span>
-              </span>
-              <span className="text-[11px] text-stone-500 dark:text-stone-400 font-medium truncate">
-                • {activeBaby?.name || "Baby"} ({activeBabyAgeMonths || babyAgeMonths || 6}m)
-              </span>
+        <div className="rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 p-4 sm:p-5 shadow-xs">
+          {/* Top Row: Title, Child Switcher Pill, Shopping List Button */}
+          <div className="flex items-center justify-between gap-3 mb-2.5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-[#EAF5EE] dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 border border-[#CCE0D2] dark:border-emerald-800/40">
+                  <ChefHat className="w-3 h-3 text-[#1E5E3A] dark:text-emerald-400" />
+                  <span>Meal Planner</span>
+                </span>
+                {/* Child Switcher Pill integrated seamlessly */}
+                <BabySwitcher variant="header" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-serif font-black text-stone-900 dark:text-stone-100 tracking-tight">
+                Weekly Meal Planner
+              </h1>
             </div>
-            <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight leading-tight">
-              Weekly Meal Planner
-            </h1>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/shopping")}
+              className="rounded-full h-9 px-3.5 text-xs bg-white dark:bg-stone-800 border-[#EBE8DF] dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 hover:bg-[#EAF5EE] dark:hover:bg-stone-700 shadow-xs shrink-0 flex items-center gap-1.5 transition-transform hover:scale-105"
+            >
+              <ShoppingCart className="h-4 w-4 text-[#48B774]" />
+              <span className="font-bold">Shopping List</span>
+            </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/shopping")}
-            className="rounded-full h-8 px-3 text-xs bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-stone-700 shadow-2xs shrink-0 flex items-center gap-1.5"
-          >
-            <ShoppingCart className="h-3.5 w-3.5 text-[#48B774]" />
-            <span className="font-semibold">Shopping List</span>
-          </Button>
+          {/* Bottom Summary Strip: Clean & Relevant Pediatric Meal Stats */}
+          {!isTooYoungForSolids && stats.totalMeals > 0 && (
+            <div className="pt-2.5 border-t border-[#F5F3EC] dark:border-stone-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 font-semibold text-stone-700 dark:text-stone-300 bg-[#FAF9F5] dark:bg-stone-800/90 px-2.5 py-1 rounded-xl border border-[#EBE8DF] dark:border-stone-700/60">
+                  🍽️ <strong className="text-stone-900 dark:text-stone-100">{stats.totalMeals} Meals</strong>
+                  <span className="text-stone-400 dark:text-stone-500">• 4 daily</span>
+                </span>
+                <span className="inline-flex items-center gap-1 font-semibold text-stone-700 dark:text-stone-300 bg-[#FAF9F5] dark:bg-stone-800/90 px-2.5 py-1 rounded-xl border border-[#EBE8DF] dark:border-stone-700/60">
+                  ⏱️ <strong className="text-stone-900 dark:text-stone-100">~15–20m</strong>
+                  <span className="text-stone-400 dark:text-stone-500">avg prep</span>
+                </span>
+                <span className="inline-flex items-center gap-1 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 px-2.5 py-1 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40">
+                  🥑 <span className="font-bold">Pediatric BLW & Purees</span>
+                </span>
+              </div>
+
+              {/* Prepared Progress Counter */}
+              <div className="flex items-center gap-1.5 font-semibold text-stone-600 dark:text-stone-400 text-[11px] sm:text-xs">
+                <span>Progress:</span>
+                <span className="font-bold text-[#1E5E3A] dark:text-emerald-400 bg-[#EAF5EE] dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-[#CCE0D2] dark:border-emerald-800/40">
+                  {stats.preparedMeals} / {stats.totalMeals} prepared
+                </span>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Micro Nutrition & Prep Stat Pills in a single clean row */}
-        {!isTooYoungForSolids && stats.totalMeals > 0 && (
-          <div className="flex items-center gap-1.5 sm:gap-2 mt-2 overflow-x-auto scrollbar-none pb-0.5 text-[10px] sm:text-[11px]">
-            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
-              🍽️ {stats.totalMeals} meals
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
-              🔥 {stats.totalCalories} cal/wk
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
-              🥩 {stats.totalProtein}g protein
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-white/80 dark:bg-stone-800/80 border border-stone-200/70 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 whitespace-nowrap shadow-2xs">
-              ⏱️ ~{Math.round(stats.totalPrepTime / 60)}h prep
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="max-w-6xl mx-auto px-3 sm:px-6 w-full max-w-full min-w-0 pt-2">
-        {/* Active Child Profile Switcher Banner */}
-        <div className="mb-6">
-          <BabySwitcher variant="banner" />
-        </div>
         {/* Too Young Warning */}
         {isTooYoungForSolids && (
           <Card className="mb-6 border-2 border-amber-400/50 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
