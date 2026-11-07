@@ -482,32 +482,15 @@ export const Recipes = () => {
         </>
       )}
 
-      {/* Featured Category Artwork Banner - Horizontal Clean Illustrated Format (Exact to Image 2) */}
+      {/* Featured Category Artwork Banner - Full Illustrated Graphic Card (Exact to User Screenshot) */}
       {bannerInfo && (
-        <div className="mb-5 rounded-[24px] overflow-hidden bg-[#FAF8F2] dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-sm p-3.5 sm:p-4">
-          <div className="flex flex-row items-center gap-3.5 sm:gap-5">
-            {/* Illustrative Food Plate on left */}
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shrink-0 bg-white dark:bg-stone-800 shadow-2xs border border-[#EBE8DF]/60">
-              <img
-                src={bannerInfo.image}
-                alt={bannerInfo.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Illustrative Category Info on right (as in user reference image) */}
-            <div className="flex-1 min-w-0">
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60 mb-1">
-                💛 {selectedAge !== "All Ages" ? selectedAge : "All Ages"}
-              </span>
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-forest dark:text-emerald-400 tracking-tight leading-tight">
-                {bannerInfo.title}
-              </h1>
-              <p className="text-[11px] sm:text-xs text-gray-600 dark:text-stone-300 mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
-                {bannerInfo.subtitle}
-              </p>
-            </div>
-          </div>
+        <div className="mb-5 rounded-[24px] sm:rounded-[28px] overflow-hidden shadow-sm border border-[#EBE8DF] dark:border-stone-800 bg-white dark:bg-stone-900 transition-all">
+          <img
+            src={bannerInfo.image}
+            alt={bannerInfo.title}
+            className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[28px]"
+            loading="eager"
+          />
         </div>
       )}
 
