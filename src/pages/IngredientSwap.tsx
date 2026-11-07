@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
+import ingredientSwapBanner from "@/assets/ingredient-swap-banner.webp";
 
 interface Substitute {
   title: string;
@@ -308,26 +309,14 @@ export const IngredientSwap: React.FC = () => {
     <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3.5 sm:px-5 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
       <AtmosphericBackground />
       <div className="relative z-10">
-      {/* Luxury Hero Banner */}
-      <div className="rounded-[32px] bg-gradient-to-br from-[#1E5E3A] via-[#246B42] to-[#1E5E3A] p-6 text-white shadow-xl relative overflow-hidden mb-5">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex items-start justify-between gap-4">
-          <div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Smart Nutrition Assistant</span>
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-serif font-extrabold text-white tracking-tight leading-tight">
-              Ingredient Swap
-            </h1>
-            <p className="text-xs sm:text-sm text-emerald-100/90 mt-2 max-w-md leading-relaxed">
-              Missing an ingredient or avoiding an allergen? Type what you want to replace, and discover pediatric-approved alternatives with exact culinary ratios.
-            </p>
-          </div>
-          <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-3xl shadow-inner shrink-0">
-            🔄
-          </div>
-        </div>
+      {/* High-End Responsive Photographic Hero Banner */}
+      <div className="rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-md border border-[#EBE8DF] dark:border-stone-800 mb-5 bg-white dark:bg-stone-900 transition-all">
+        <img
+          src={ingredientSwapBanner}
+          alt="Smart Nutrition Assistant - Ingredient Swap"
+          className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[32px]"
+          loading="eager"
+        />
       </div>
 
       {/* Modern Search Input Bar */}
