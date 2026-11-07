@@ -20,7 +20,8 @@ import ReportPostModal from "@/components/community/ReportPostModal";
 import { 
   getDeletedPostIds, 
   deletePostGlobally, 
-  COMMUNITY_LOCAL_POSTS_KEY 
+  COMMUNITY_LOCAL_POSTS_KEY,
+  getAllIndexedDBPosts 
 } from "@/services/communityService";
 
 export interface Post {
@@ -96,6 +97,7 @@ export const Community: React.FC = () => {
   // Interactions state
   const [heartPops, setHeartPops] = useState<Record<string, boolean>>({});
   const [mutedVideos, setMutedVideos] = useState<Record<string, boolean>>({});
+  const [expandedCaptions, setExpandedCaptions] = useState<Record<string, boolean>>({});
   const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem("babygram_saved_posts_v1");
@@ -213,13 +215,20 @@ export const Community: React.FC = () => {
         .order("created_at", { ascending: false })
         .limit(40);
 
-      // Locally saved posts
+      // Locally saved posts (from localStorage and IndexedDB)
       let localPosts: Post[] = [];
       try {
         const saved = localStorage.getItem(COMMUNITY_LOCAL_POSTS_KEY);
         if (saved) localPosts = JSON.parse(saved);
       } catch (e) {
         console.error(e);
+      }
+
+      let indexedDBPosts: Post[] = [];
+      try {
+        indexedDBPosts = await getAllIndexedDBPosts();
+      } catch (e) {
+        console.error("IndexedDB read error:", e);
       }
 
       const mappedSupabase: Post[] = (!error && data) ? data.map((p: any) => ({
@@ -231,7 +240,6 @@ export const Community: React.FC = () => {
         media_type: p.media_type || (p.video_url ? "video" : "image"),
         video_url: p.video_url,
         video_thumbnail: p.video_thumbnail,
-        hashtags: p.hashtags || ["#BabyWeaning"],
         likes_count: p.likes_count || 0,
         comments_count: p.comments_count || 0,
         created_at: p.created_at,
@@ -244,6 +252,7 @@ export const Community: React.FC = () => {
 
       const initialPool = [
         ...localPosts,
+        ...indexedDBPosts,
         ...mappedSupabase,
         ...SAMPLE_COMMUNITY_POSTS,
       ];
@@ -834,7 +843,7 @@ export const Community: React.FC = () => {
                   </div>
                 )}
 
-                {/* 5. Instagram Caption */}
+                {/* 5. Instagram Caption with "more" / "less" expansion */}
                 <div className="px-4 pb-2">
                   <p className="text-xs text-gray-800 dark:text-stone-200 leading-relaxed">
                     <span
@@ -844,7 +853,31 @@ export const Community: React.FC = () => {
                       {post.author_name}
                       <CheckCircle2 className="w-3 h-3 text-[#0095F6] fill-[#0095F6] text-white" />
                     </span>
-                    {post.content}
+                    {post.content.length > 120 && !expandedCaptions[post.id] ? (
+                      <>
+                        <span>{post.content.slice(0, 120).trim()}... </span>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedCaptions((prev) => ({ ...prev, [post.id]: true }))}
+                          className="font-bold text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 cursor-pointer text-[11px] inline ml-0.5"
+                        >
+                          more
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span>{post.content} </span>
+                        {post.content.length > 120 && (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedCaptions((prev) => ({ ...prev, [post.id]: false }))}
+                            className="text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 font-medium cursor-pointer text-[10px] inline ml-1"
+                          >
+                            less
+                          </button>
+                        )}
+                      </>
+                    )}
                   </p>
                 </div>
 

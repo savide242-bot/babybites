@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { COMMUNITY_LOCAL_POSTS_KEY } from "@/services/communityService";
+import { COMMUNITY_LOCAL_POSTS_KEY, savePostToIndexedDB } from "@/services/communityService";
+import { compressImageToWebP } from "@/utils/imageCompressor";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -47,6 +48,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [selectedMediaUrl, setSelectedMediaUrl] = useState<string | null>(null);
   const [selectedMediaType, setSelectedMediaType] = useState<"image" | "video">("image");
   const [selectedItemTitle, setSelectedItemTitle] = useState<string>("");
+  const [compressedWebPFile, setCompressedWebPFile] = useState<File | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
   // Details fields
   const [caption, setCaption] = useState("");
@@ -57,7 +60,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDeviceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDeviceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -65,11 +68,33 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
     setSelectedMediaType(isVid ? "video" : "image");
     setSelectedItemTitle(file.name);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setSelectedMediaUrl(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (isVid) {
+      setCompressedWebPFile(null);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSelectedMediaUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setIsCompressing(true);
+      try {
+        const result = await compressImageToWebP(file);
+        setCompressedWebPFile(result.file);
+        setSelectedMediaUrl(result.dataUrl);
+        const originalKb = Math.round(result.originalSizeBytes / 1024);
+        const newKb = Math.round(result.compressedSizeBytes / 1024);
+        toast.success(`Photo optimized to WebP (${originalKb} KB → ${newKb} KB)! ⚡`);
+      } catch (err) {
+        console.warn("WebP compression notice:", err);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setSelectedMediaUrl(event.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        setIsCompressing(false);
+      }
+    }
   };
 
   const handleShare = async () => {
@@ -84,6 +109,45 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       
       const newPostId = "post-" + Date.now();
       const finalTitle = caption.slice(0, 40) || selectedItemTitle || "BabyBites Moment";
+      let finalImageUrl = selectedMediaUrl;
+
+      // 1. If we have a compressed WebP file, upload to Supabase Storage
+      if (compressedWebPFile && selectedMediaType === "image") {
+        try {
+          const fileName = `post-${Date.now()}.webp`;
+          const filePath = `posts/${fileName}`;
+
+          let uploadRes = await supabase.storage
+            .from("community_media")
+            .upload(filePath, compressedWebPFile, {
+              contentType: "image/webp",
+              cacheControl: "3600",
+              upsert: true,
+            });
+
+          if (uploadRes.error) {
+            uploadRes = await supabase.storage
+              .from("avatars")
+              .upload(filePath, compressedWebPFile, {
+                contentType: "image/webp",
+                cacheControl: "3600",
+                upsert: true,
+              });
+          }
+
+          if (!uploadRes.error && uploadRes.data?.path) {
+            const bucketName = uploadRes.data.fullPath ? uploadRes.data.fullPath.split("/")[0] : "community_media";
+            const { data: urlData } = supabase.storage
+              .from(bucketName)
+              .getPublicUrl(uploadRes.data.path);
+            if (urlData?.publicUrl) {
+              finalImageUrl = urlData.publicUrl;
+            }
+          }
+        } catch (uploadErr) {
+          console.warn("Storage upload notice:", uploadErr);
+        }
+      }
       
       const newPostObj = {
         id: newPostId,
@@ -94,49 +158,54 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         title: finalTitle,
         content: caption || selectedItemTitle || "Sharing our latest weaning milestone with the community! ✨",
         media_type: selectedMediaType,
-        media_url: selectedMediaUrl || undefined,
-        image_urls: selectedMediaUrl && selectedMediaType === "image" ? [selectedMediaUrl] : [],
-        video_url: selectedMediaUrl && selectedMediaType === "video" ? selectedMediaUrl : undefined,
-        topic: "🥦 BLW & Weaning",
-        age_tag: "6-8 Months",
-        location: location || undefined,
-        audio_track: audioTrack || undefined,
-        likes_count: 1,
+        media_url: finalImageUrl || undefined,
+        image_urls: finalImageUrl && selectedMediaType === "image" ? [finalImageUrl] : [],
+        video_url: finalImageUrl && selectedMediaType === "video" ? finalImageUrl : undefined,
+        likes_count: 0,
         comments_count: 0,
-        views_count: 1,
+        views_count: 0,
         created_at: new Date().toISOString(),
-        verified: true,
       };
 
-      // 1. Save in Supabase
-      if (session?.user) {
-        try {
-          await supabase.from("forum_posts").insert({
-            user_id: session.user.id,
-            author_name: currentUser.name,
-            author_baby: currentUser.baby,
-            title: finalTitle,
-            content: newPostObj.content,
-            topic: "BLW & Weaning",
-            image_urls: newPostObj.image_urls,
-            video_url: newPostObj.video_url || null,
-            status: "published",
-          });
-        } catch (err) {
-          console.warn("Could not save to Supabase directly, persisting locally:", err);
+      // 2. Save in Supabase forum_posts (strict schema compliant)
+      try {
+        const postInsertPayload: any = {
+          title: finalTitle,
+          content: newPostObj.content,
+          image_urls: newPostObj.image_urls,
+          likes_count: 0,
+          comments_count: 0,
+        };
+        if (session?.user?.id) {
+          postInsertPayload.user_id = session.user.id;
         }
+
+        const { data: insertedPost } = await supabase
+          .from("forum_posts")
+          .insert(postInsertPayload)
+          .select()
+          .maybeSingle();
+
+        if (insertedPost?.id) {
+          newPostObj.id = insertedPost.id;
+        }
+      } catch (dbErr) {
+        console.warn("Supabase insert notice:", dbErr);
       }
 
-      // 2. Persist in local storage
+      // 3. Persist in IndexedDB (Unlimited quota, permanent)
+      await savePostToIndexedDB(newPostObj);
+
+      // 4. Persist in localStorage as secondary fast cache
       try {
         const saved = localStorage.getItem(COMMUNITY_LOCAL_POSTS_KEY);
         const existing = saved ? JSON.parse(saved) : [];
         localStorage.setItem(
           COMMUNITY_LOCAL_POSTS_KEY,
-          JSON.stringify([newPostObj, ...existing])
+          JSON.stringify([newPostObj, ...existing].slice(0, 30))
         );
       } catch (e) {
-        console.error(e);
+        console.warn("LocalStorage save notice:", e);
       }
 
       onPostCreated(newPostObj);
@@ -145,6 +214,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       // Reset
       setStep("media");
       setSelectedMediaUrl(null);
+      setCompressedWebPFile(null);
       setCaption("");
       setLocation(null);
       onClose();

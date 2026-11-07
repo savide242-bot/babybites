@@ -21,6 +21,69 @@ export const COMMUNITY_DELETED_POSTS_KEY = "babybites_community_deleted_ids_v1";
 export const COMMUNITY_REPORTS_KEY = "babybites_community_reports_v1";
 export const COMMUNITY_VIEWED_STORIES_KEY = "babybites_viewed_stories_v1";
 
+const DB_NAME = "babybites_community_db_v1";
+const STORE_NAME = "community_posts";
+
+// Initialize or open IndexedDB for robust post storage with zero quota issues
+const openCommunityDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB not available"));
+      return;
+    }
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+export const savePostToIndexedDB = async (post: any): Promise<void> => {
+  try {
+    const db = await openCommunityDB();
+    const tx = db.transaction([STORE_NAME], "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.put(post);
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.warn("Could not save to IndexedDB:", e);
+  }
+};
+
+export const getAllIndexedDBPosts = async (): Promise<any[]> => {
+  try {
+    const db = await openCommunityDB();
+    const tx = db.transaction([STORE_NAME], "readonly");
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+    return new Promise((resolve) => {
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => resolve([]);
+    });
+  } catch {
+    return [];
+  }
+};
+
+export const deletePostFromIndexedDB = async (postId: string): Promise<void> => {
+  try {
+    const db = await openCommunityDB();
+    const tx = db.transaction([STORE_NAME], "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    store.delete(postId);
+  } catch (e) {
+    console.warn("Could not delete from IndexedDB:", e);
+  }
+};
+
 // 1. Deleted Post Management
 export const getDeletedPostIds = (): string[] => {
   try {
@@ -46,7 +109,8 @@ export const deletePostGlobally = async (postId: string): Promise<boolean> => {
       localStorage.setItem(COMMUNITY_DELETED_POSTS_KEY, JSON.stringify(updatedDeleted));
     }
 
-    // 2. Remove from local posts cache
+    // 2. Remove from local posts cache (localStorage and IndexedDB)
+    await deletePostFromIndexedDB(postId);
     try {
       const localSaved = localStorage.getItem(COMMUNITY_LOCAL_POSTS_KEY);
       if (localSaved) {
