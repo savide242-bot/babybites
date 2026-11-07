@@ -10,29 +10,29 @@ import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 
-// 6-8 Months Category Posters
-import posterBreakfast68 from "@/assets/categories/breakfast-6-8m.webp";
-import posterLunchDinner68 from "@/assets/categories/lunch-dinner-6-8m.webp";
-import posterSnacks68 from "@/assets/categories/snacks-6-8m.webp";
-import posterDesserts68 from "@/assets/categories/desserts-smoothies-6-8m.webp";
+// 6-8 Months Category Posters (Horizontal Banners)
+import posterBreakfast68 from "@/assets/category-banners/breakfast-6-8m.webp";
+import posterLunchDinner68 from "@/assets/category-banners/lunch-dinner-6-8m.webp";
+import posterSnacks68 from "@/assets/category-banners/snacks-6-8m.webp";
+import posterDesserts68 from "@/assets/category-banners/desserts-smoothies-6-8m.webp";
 
-// 9-11 Months Category Posters
-import posterBreakfast911 from "@/assets/categories/breakfast-9-11m.webp";
-import posterLunchDinner911 from "@/assets/categories/lunch-dinner-9-11m.webp";
-import posterSnacks911 from "@/assets/categories/snacks-9-11m.webp";
-import posterDesserts911 from "@/assets/categories/desserts-smoothies-9-11m.webp";
+// 9-11 Months Category Posters (Horizontal Banners)
+import posterBreakfast911 from "@/assets/category-banners/breakfast-9-11m.webp";
+import posterLunchDinner911 from "@/assets/category-banners/lunch-dinner-9-11m.webp";
+import posterSnacks911 from "@/assets/category-banners/snacks-9-11m.webp";
+import posterDesserts911 from "@/assets/category-banners/desserts-smoothies-9-11m.webp";
 
-// 12-23 Months Category Posters
-import posterBreakfast1223 from "@/assets/categories/breakfast-12-23m.webp";
-import posterLunchDinner1223 from "@/assets/categories/lunch-dinner-12-23m.webp";
-import posterSnacks1223 from "@/assets/categories/snacks-12-23m.jpg";
-import posterDesserts1223 from "@/assets/categories/desserts-smoothies-12-23m.webp";
+// 12-23 Months Category Posters (Horizontal Banners)
+import posterBreakfast1223 from "@/assets/category-banners/breakfast-12-23m.webp";
+import posterLunchDinner1223 from "@/assets/category-banners/lunch-dinner-12-23m.webp";
+import posterSnacks1223 from "@/assets/category-banners/snacks-12-23m.jpg";
+import posterDesserts1223 from "@/assets/category-banners/desserts-smoothies-12-23m.webp";
 
-// 24+ Months Category Posters
-import posterBreakfast24 from "@/assets/categories/breakfast-24m.webp";
-import posterLunchDinner24 from "@/assets/categories/lunch-dinner-24m.webp";
-import posterSnacks24 from "@/assets/categories/snacks-24m.webp";
-import posterDesserts24 from "@/assets/categories/desserts-smoothies-24m.webp";
+// 24+ Months Category Posters (Horizontal Banners)
+import posterBreakfast24 from "@/assets/category-banners/breakfast-24m.webp";
+import posterLunchDinner24 from "@/assets/category-banners/lunch-dinner-24m.webp";
+import posterSnacks24 from "@/assets/category-banners/snacks-24m.webp";
+import posterDesserts24 from "@/assets/category-banners/desserts-smoothies-24m.webp";
 
 const BATCH_SIZE = 24;
 
