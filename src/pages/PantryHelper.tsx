@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import pantryHeroBanner from "@/assets/pantry-hero-banner.webp";
+import pantryEmptyBanner from "@/assets/pantry-empty-banner.webp";
 
 
 export interface CustomGeneratedRecipe {
@@ -776,16 +777,13 @@ export const PantryHelper: React.FC = () => {
             </div>
 
             {activeIngredients.length === 0 ? (
-              <div className="p-8 text-center bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 shadow-xs">
-                <div className="w-16 h-16 rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 flex items-center justify-center text-3xl mx-auto mb-3 shadow-xs">
-                  🥣
-                </div>
-                <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg">
-                  Ready to turn ingredients into baby smiles
-                </h3>
-                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
-                  Simply enter 2 or more ingredients above from your kitchen, and we'll instantly reveal wholesome meals you can cook right now.
-                </p>
+              <div className="rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-xs border border-[#EBE8DF] dark:border-stone-800 bg-white dark:bg-stone-900 transition-all">
+                <img
+                  src={pantryEmptyBanner}
+                  alt="Ready to turn ingredients into baby smiles"
+                  className="w-full h-auto object-cover block rounded-[24px] sm:rounded-[32px]"
+                  loading="lazy"
+                />
               </div>
             ) : matchedRecipes.length === 0 ? (
               <div className="p-8 text-center bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 shadow-xs">
