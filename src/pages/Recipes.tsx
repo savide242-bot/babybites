@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, memo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Clock, Heart, Download, Loader2 } from "lucide-react";
+import { Search, Clock, Heart, Download, Loader2, ArrowLeft } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { recipes as staticRecipes, getMealCategory, Recipe } from "@/data/recipes";
 import { useAppRecipes } from "@/hooks/useAppRecipes";
@@ -74,7 +74,7 @@ const matchesTargetAge = (recipeAge: string, targetAge: string): boolean => {
   return rec === target;
 };
 
-// Recipe Card in Botanical The Solids Club Style
+// Recipe Card in Luxury Square Minimalist Editorial Style (Matches User Reference Image)
 const RecipeCard = memo(({
   recipe,
   isFav,
@@ -84,65 +84,41 @@ const RecipeCard = memo(({
   isFav: boolean;
   onToggleFavorite: (id: string) => void;
 }) => {
-  const mealCat = getMealCategory(recipe);
-
   return (
-    <div className="rounded-[24px] bg-white border border-[#EBE8DF] shadow-[0_4px_16px_-4px_rgba(30,94,58,0.06)] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group">
-      <Link to={`/recipe/${recipe.id}`} className="block relative">
-        <div className="aspect-[4/3] w-full overflow-hidden bg-[#FAF9F5] relative">
-          <img
-            src={recipe.image}
-            alt={recipe.title}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+    <div className="rounded-[20px] sm:rounded-[24px] overflow-hidden bg-stone-900 shadow-sm relative group aspect-square border border-[#EBE8DF]/40 dark:border-stone-800 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+      <Link to={`/recipe/${recipe.id}`} className="block w-full h-full relative">
+        <img
+          src={recipe.image}
+          alt={recipe.title}
+          loading="lazy"
+          decoding="async"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
-          <button
-            aria-label="Save recipe"
-            className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all ${
-              isFav
-                ? "bg-white text-red-500 shadow-md"
-                : "bg-white/80 text-gray-500 hover:bg-white hover:text-red-500 shadow-sm"
-            }`}
-            onClick={(e) => {
-              e.preventDefault();
-              onToggleFavorite(recipe.id);
-            }}
-          >
-            <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
-          </button>
-
-          <div className="absolute bottom-2.5 left-2.5">
-            <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold tracking-wide">
-              {mealCat}
-            </span>
-          </div>
-        </div>
-
-        <div className="p-3.5 pb-2">
-          <div className="flex items-center gap-1.5 text-[11px] text-[#48B774] font-medium mb-1">
-            <span>💚</span>
-            <span>{recipe.ageGroup}</span>
-          </div>
-          <h3 className="font-serif font-bold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-forest transition-colors">
+        {/* Dark gradient overlay at bottom for crystal clear legibility (as in reference image) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent flex flex-col justify-end p-2.5 sm:p-3.5">
+          <h3 className="font-serif font-bold text-white text-xs sm:text-sm leading-snug line-clamp-2 drop-shadow-sm group-hover:text-emerald-200 transition-colors">
             {recipe.title}
           </h3>
-          <p className="text-[11px] text-gray-500 line-clamp-2 mt-1 leading-relaxed">
-            {recipe.description}
-          </p>
         </div>
-      </Link>
 
-      <div className="px-3.5 pb-3 pt-1 border-t border-[#F3F1EB] flex items-center justify-between text-[11px] text-gray-400">
-        <div className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{recipe.prepTime}</span>
-        </div>
-        <span className="font-medium text-gray-600">
-          {recipe.ingredients.length} ingr.
-        </span>
-      </div>
+        {/* Favorite heart button top right */}
+        <button
+          aria-label="Save recipe"
+          className={`absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-10 ${
+            isFav
+              ? "bg-white text-red-500 shadow-md"
+              : "bg-black/35 text-white hover:bg-white hover:text-red-500 shadow-sm"
+          }`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleFavorite(recipe.id);
+          }}
+        >
+          <Heart className={`w-3.5 h-3.5 ${isFav ? "fill-current" : ""}`} />
+        </button>
+      </Link>
     </div>
   );
 });
@@ -319,272 +295,215 @@ export const Recipes = () => {
   };
 
   // Dedicated Category Artwork Banner for all ages (6-8m, 9-11m, 12-23m, 24+m)
+  // Strictly illustrative category descriptions (no individual recipe descriptions)
   const bannerInfo = useMemo(() => {
+    const getDesc = (cat: string) => {
+      if (cat === "Breakfast") return "Discover easy, healthy breakfast recipes for your little one, made with real ingredients and big love.";
+      if (cat === "Lunch" || cat === "Lunch & Dinner") return "Discover easy, nourishing midday recipes for your little one, made with wholesome ingredients and big love.";
+      if (cat === "Dinner") return "Discover comforting, soothing evening recipes for your little one, made with gentle ingredients and big love.";
+      if (cat === "Snack") return "Discover quick, wholesome snack ideas for your little one, crafted for tiny fingers and big nutrition.";
+      if (cat === "Dessert") return "Discover naturally sweet, gentle treats and smoothies for your little one, packed with vitamins and pure joy.";
+      return "Discover easy, pediatrician-approved recipes for your little one, made with real ingredients and big love.";
+    };
+
     if (selectedAge === "6-8 Months") {
-      if (selectedCategory === "Breakfast") {
-        return {
-          image: posterBreakfast68,
-          title: "Breakfast: Little Morning Moments",
-          subtitle: "Gentle iron-rich oats, soft fruit mashes, and wholesome first morning meals.",
-          tag: "6–8 MONTHS • BREAKFAST",
-        };
-      }
-      if (selectedCategory === "Lunch" || selectedCategory === "Lunch & Dinner") {
-        return {
-          image: posterLunchDinner68,
-          title: "Lunch: Wholesome Midday Moments",
-          subtitle: "Gentle vegetable mashes, mild lentil bowls, and tender poultry lunch purees.",
-          tag: "6–8 MONTHS • LUNCH",
-        };
-      }
-      if (selectedCategory === "Dinner") {
-        return {
-          image: posterLunchDinner68,
-          title: "Dinner: Nourishing Evening Warmth",
-          subtitle: "Cozy root vegetable purees, comforting baby stews, and warming nighttime bowls.",
-          tag: "6–8 MONTHS • DINNER",
-        };
-      }
-      if (selectedCategory === "Snack") {
-        return {
-          image: posterSnacks68,
-          title: "Snacks: Tiny Bites, Happy Days",
-          subtitle: "Easy-to-grasp soft finger foods, steamed florets, and refreshing fruit teethers.",
-          tag: "6–8 MONTHS • SNACKS",
-        };
-      }
-      if (selectedCategory === "Dessert") {
-        return {
-          image: posterDesserts68,
-          title: "Desserts & Smoothies: Soft & Wholesome",
-          subtitle: "Smooth whole milk yogurt swirls, ripe berry purees, and gentle smoothies.",
-          tag: "6–8 MONTHS • DESSERTS & SMOOTHIES",
-        };
-      }
+      let img = posterBreakfast68;
+      if (selectedCategory === "Lunch" || selectedCategory === "Dinner" || selectedCategory === "Lunch & Dinner") img = posterLunchDinner68;
+      if (selectedCategory === "Snack") img = posterSnacks68;
+      if (selectedCategory === "Dessert") img = posterDesserts68;
+
+      return {
+        image: img,
+        title: selectedCategory !== "All Categories" ? selectedCategory : "6–8 Months Collection",
+        subtitle: getDesc(selectedCategory),
+        tag: `6–8 MONTHS • ${selectedCategory.toUpperCase()}`,
+      };
     }
 
     if (selectedAge === "9-11 Months") {
-      if (selectedCategory === "Breakfast") {
-        return {
-          image: posterBreakfast911,
-          title: "Breakfast: Little Morning Moments",
-          subtitle: "Fluffy banana pancakes, soft scrambled eggs, and diced avocado toast fingers.",
-          tag: "9–11 MONTHS • BREAKFAST",
-        };
-      }
-      if (selectedCategory === "Lunch" || selectedCategory === "Lunch & Dinner") {
-        return {
-          image: posterLunchDinner911,
-          title: "Lunch: Nourishing Midday Meals",
-          subtitle: "Soft chicken and sweet pea bowls, tender patties, and wholesome veggie quinoa lunches.",
-          tag: "9–11 MONTHS • LUNCH",
-        };
-      }
-      if (selectedCategory === "Dinner") {
-        return {
-          image: posterLunchDinner911,
-          title: "Dinner: Warm & Comforting Dinners",
-          subtitle: "Mild vegetable curries, soft stewed fish with mash, and cozy evening baby pastas.",
-          tag: "9–11 MONTHS • DINNER",
-        };
-      }
-      if (selectedCategory === "Snack") {
-        return {
-          image: posterSnacks911,
-          title: "Snacks: Tiny Bites, Happy Days",
-          subtitle: "Oat & banana fritters, steamed carrot sticks, broccoli trees with natural dip.",
-          tag: "9–11 MONTHS • SNACKS",
-        };
-      }
-      if (selectedCategory === "Dessert") {
-        return {
-          image: posterDesserts911,
-          title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
-          subtitle: "Berry nicecream cups, spiced warm apple compote, and mango chia puddings.",
-          tag: "9–11 MONTHS • DESSERTS & SMOOTHIES",
-        };
-      }
+      let img = posterBreakfast911;
+      if (selectedCategory === "Lunch" || selectedCategory === "Dinner" || selectedCategory === "Lunch & Dinner") img = posterLunchDinner911;
+      if (selectedCategory === "Snack") img = posterSnacks911;
+      if (selectedCategory === "Dessert") img = posterDesserts911;
+
+      return {
+        image: img,
+        title: selectedCategory !== "All Categories" ? selectedCategory : "9–11 Months Collection",
+        subtitle: getDesc(selectedCategory),
+        tag: `9–11 MONTHS • ${selectedCategory.toUpperCase()}`,
+      };
     }
 
     if (selectedAge === "12-23 Months") {
-      if (selectedCategory === "Breakfast") {
-        return {
-          image: posterBreakfast1223,
-          title: "Breakfast: Little Morning Moments",
-          subtitle: "Golden oat pancakes, scrambled eggs, fresh banana coins and juicy strawberries.",
-          tag: "12–23 MONTHS • BREAKFAST",
-        };
-      }
-      if (selectedCategory === "Lunch" || selectedCategory === "Lunch & Dinner") {
-        return {
-          image: posterLunchDinner1223,
-          title: "Lunch: Vibrant Toddler Lunches",
-          subtitle: "Avocado quesadillas, chicken brown rice bowls, and wholesome veggie fritters.",
-          tag: "12–23 MONTHS • LUNCH",
-        };
-      }
-      if (selectedCategory === "Dinner") {
-        return {
-          image: posterLunchDinner1223,
-          title: "Dinner: Hearty Family-Style Dinners",
-          subtitle: "Mini pasta wheels with mild sauce, soft beef shepherd's pie, and creamy vegetable risottos.",
-          tag: "12–23 MONTHS • DINNER",
-        };
-      }
-      if (selectedCategory === "Snack") {
-        return {
-          image: posterSnacks1223,
-          title: "Snacks: Tiny Bites, Happy Days",
-          subtitle: "Wholesome baked oat muffins, crisp cucumber fingers, apple wedges and creamy dip.",
-          tag: "12–23 MONTHS • SNACKS",
-        };
-      }
-      if (selectedCategory === "Dessert") {
-        return {
-          image: posterDesserts1223,
-          title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
-          subtitle: "Thick berry smoothie cup, tropical mango yogurt bowl, and caramelized cinnamon apples.",
-          tag: "12–23 MONTHS • DESSERTS & SMOOTHIES",
-        };
-      }
+      let img = posterBreakfast1223;
+      if (selectedCategory === "Lunch" || selectedCategory === "Dinner" || selectedCategory === "Lunch & Dinner") img = posterLunchDinner1223;
+      if (selectedCategory === "Snack") img = posterSnacks1223;
+      if (selectedCategory === "Dessert") img = posterDesserts1223;
+
+      return {
+        image: img,
+        title: selectedCategory !== "All Categories" ? selectedCategory : "12–23 Months Collection",
+        subtitle: getDesc(selectedCategory),
+        tag: `12–23 MONTHS • ${selectedCategory.toUpperCase()}`,
+      };
     }
 
     if (selectedAge === "24+ Months") {
-      if (selectedCategory === "Breakfast") {
-        return {
-          image: posterBreakfast24,
-          title: "Breakfast: Little Morning Moments",
-          subtitle: "Fluffy cinnamon oat pancakes, scrambled eggs, Greek yogurt dip and sliced fruit.",
-          tag: "24+ MONTHS • BREAKFAST",
-        };
-      }
-      if (selectedCategory === "Lunch & Dinner") {
-        return {
-          image: posterLunchDinner24,
-          title: "Lunch & Dinner: Nourishing Moments",
-          subtitle: "Campanelle pasta bowls with chicken breast, roasted squash, garden peas and avocado.",
-          tag: "24+ MONTHS • LUNCH & DINNER",
-        };
-      }
-      if (selectedCategory === "Snack") {
-        return {
-          image: posterSnacks24,
-          title: "Snacks: Tiny Bites, Happy Days",
-          subtitle: "Oat bran muffins, cheddar cubes, crunchy cucumber and crisp red apples with yogurt dip.",
-          tag: "24+ MONTHS • SNACKS",
-        };
-      }
-      if (selectedCategory === "Dessert") {
-        return {
-          image: posterDesserts24,
-          title: "Desserts & Smoothies: Sweet, Soft & Wholesome",
-          subtitle: "Thick fruit smoothie cup, mango yogurt swirl bowl, stewed cinnamon apples and peach slices.",
-          tag: "24+ MONTHS • DESSERTS & SMOOTHIES",
-        };
-      }
+      let img = posterBreakfast24;
+      if (selectedCategory === "Lunch & Dinner" || selectedCategory === "Lunch" || selectedCategory === "Dinner") img = posterLunchDinner24;
+      if (selectedCategory === "Snack") img = posterSnacks24;
+      if (selectedCategory === "Dessert") img = posterDesserts24;
+
+      return {
+        image: img,
+        title: selectedCategory !== "All Categories" ? selectedCategory : "24+ Months Collection",
+        subtitle: getDesc(selectedCategory),
+        tag: `24+ MONTHS • ${selectedCategory.toUpperCase()}`,
+      };
+    }
+
+    if (selectedCategory !== "All Categories") {
+      return {
+        image: posterBreakfast68,
+        title: selectedCategory,
+        subtitle: getDesc(selectedCategory),
+        tag: selectedCategory.toUpperCase(),
+      };
     }
 
     return null;
   }, [selectedAge, selectedCategory]);
 
+  const isFromHome = Boolean(searchParams.get("age") || searchParams.get("category") || searchParams.get("meal"));
+
   return (
     <div className="relative min-h-screen bg-[#FAF9F5]/70 dark:bg-[#121614]/80 pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0 transition-colors">
       <AtmosphericBackground />
       <div className="relative z-10">
-      {/* Title & PDF Export */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
-            Recipe Collection
-          </span>
-          <h1 className="text-3xl font-serif font-bold text-forest mt-0.5">
-            Baby Food Library
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Showing {filteredRecipes.length} recipes approved for babies
-          </p>
+      
+      {/* 1. When navigated from Home: Clean header with Back arrow, NO redundant filter pills or search clutter */}
+      {isFromHome ? (
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white dark:bg-stone-800 border border-[#EBE8DF] dark:border-stone-700 text-xs font-semibold text-forest dark:text-emerald-400 hover:bg-[#F3F6F3] shadow-2xs transition-all"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Home</span>
+          </Link>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportEbook}
+            disabled={isExporting}
+            className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
+          >
+            {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+            <span>PDF Guide</span>
+          </Button>
         </div>
+      ) : (
+        /* Standard Header when browsing Recipes generally */
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <span className="text-xs font-semibold tracking-wider uppercase text-[#48B774]">
+                Recipe Collection
+              </span>
+              <h1 className="text-3xl font-serif font-bold text-forest mt-0.5">
+                Baby Food Library
+              </h1>
+              <p className="text-xs text-gray-500 mt-1">
+                Showing {filteredRecipes.length} recipes approved for babies
+              </p>
+            </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExportEbook}
-          disabled={isExporting}
-          className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
-        >
-          {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-          <span>PDF Guide</span>
-        </Button>
-      </div>
-
-      {/* Search Input */}
-      <div className="relative mb-4">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          placeholder="Search recipes, avocado, oats, bananas..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 rounded-full h-11 border-[#E3DFD3] bg-white text-sm shadow-xs focus-visible:ring-[#48B774]"
-        />
-      </div>
-
-      {/* 1. Category Filter Pills */}
-      <div className="mb-3 w-full max-w-full min-w-0 overflow-hidden">
-        <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar w-full max-w-full min-w-0">
-          {OFFICIAL_CATEGORY_OPTIONS.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
-                selectedCategory === cat.id
-                  ? "bg-forest text-white shadow-xs"
-                  : "bg-white text-gray-600 border border-[#EBE8DF] hover:bg-gray-50"
-              }`}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportEbook}
+              disabled={isExporting}
+              className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
             >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      </div>
+              {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+              <span>PDF Guide</span>
+            </Button>
+          </div>
 
-      {/* 2. Age Filter Pills */}
-      <div className="mb-5 w-full max-w-full min-w-0 overflow-hidden">
-        <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar w-full max-w-full min-w-0">
-          {OFFICIAL_AGE_OPTIONS.map((age) => (
-            <button
-              key={age.id}
-              onClick={() => setSelectedAge(age.id)}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
-                selectedAge === age.id
-                  ? "bg-[#48B774] text-white shadow-xs font-semibold"
-                  : "bg-white text-gray-500 border border-[#EBE8DF] hover:bg-gray-50"
-              }`}
-            >
-              {age.label}
-            </button>
-          ))}
-        </div>
-      </div>
+          {/* Search Input */}
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search recipes, avocado, oats, bananas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-full h-11 border-[#E3DFD3] bg-white text-sm shadow-xs focus-visible:ring-[#48B774]"
+            />
+          </div>
 
-      {/* Featured Category Artwork Banner (All 4 Age Groups) */}
+          {/* 1. Category Filter Pills */}
+          <div className="mb-3 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar w-full max-w-full min-w-0">
+              {OFFICIAL_CATEGORY_OPTIONS.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                    selectedCategory === cat.id
+                      ? "bg-forest text-white shadow-xs"
+                      : "bg-white text-gray-600 border border-[#EBE8DF] hover:bg-gray-50"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. Age Filter Pills */}
+          <div className="mb-5 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar w-full max-w-full min-w-0">
+              {OFFICIAL_AGE_OPTIONS.map((age) => (
+                <button
+                  key={age.id}
+                  onClick={() => setSelectedAge(age.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                    selectedAge === age.id
+                      ? "bg-[#48B774] text-white shadow-xs font-semibold"
+                      : "bg-white text-gray-500 border border-[#EBE8DF] hover:bg-gray-50"
+                  }`}
+                >
+                  {age.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Featured Category Artwork Banner - Horizontal Clean Illustrated Format (Exact to Image 2) */}
       {bannerInfo && (
-        <div className="mb-6 rounded-[24px] overflow-hidden bg-white border border-[#EBE8DF] shadow-[0_8px_24px_-6px_rgba(30,94,58,0.08)]">
-          <div className="flex flex-col sm:flex-row">
-            <div className="sm:w-2/5 aspect-[4/3] sm:aspect-[3/4] max-h-56 sm:max-h-none overflow-hidden bg-[#FAF9F5]">
+        <div className="mb-5 rounded-[24px] overflow-hidden bg-[#FAF8F2] dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-sm p-3.5 sm:p-4">
+          <div className="flex flex-row items-center gap-3.5 sm:gap-5">
+            {/* Illustrative Food Plate on left */}
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shrink-0 bg-white dark:bg-stone-800 shadow-2xs border border-[#EBE8DF]/60">
               <img
                 src={bannerInfo.image}
                 alt={bannerInfo.title}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="p-4 sm:p-5 flex flex-col justify-center sm:w-3/5">
-              <span className="text-[11px] font-bold tracking-wider uppercase text-[#48B774]">
-                {bannerInfo.tag}
+
+            {/* Illustrative Category Info on right (as in user reference image) */}
+            <div className="flex-1 min-w-0">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60 mb-1">
+                💛 {selectedAge !== "All Ages" ? selectedAge : "All Ages"}
               </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-forest mt-1 leading-snug">
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-forest dark:text-emerald-400 tracking-tight leading-tight">
                 {bannerInfo.title}
-              </h2>
-              <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+              </h1>
+              <p className="text-[11px] sm:text-xs text-gray-600 dark:text-stone-300 mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {bannerInfo.subtitle}
               </p>
             </div>
@@ -592,8 +511,18 @@ export const Recipes = () => {
         </div>
       )}
 
-      {/* Quick 4-Category Carousel for 6-8 Months */}
-      {selectedAge === "6-8 Months" && selectedCategory === "All Categories" && (
+      {/* Age Category Header */}
+      <div className="mb-3 px-1 flex items-center justify-between">
+        <h2 className="text-lg sm:text-xl font-serif font-bold text-forest dark:text-emerald-400">
+          {selectedAge !== "All Ages" ? selectedAge : "All Recipes"}
+        </h2>
+        <span className="text-xs text-gray-500 font-medium">
+          {filteredRecipes.length} recipes
+        </span>
+      </div>
+
+      {/* Quick 4-Category Carousel for 6-8 Months (Only shown when browsing general library) */}
+      {!isFromHome && selectedAge === "6-8 Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
@@ -633,7 +562,7 @@ export const Recipes = () => {
       )}
 
       {/* Quick 4-Category Carousel for 9-11 Months */}
-      {selectedAge === "9-11 Months" && selectedCategory === "All Categories" && (
+      {!isFromHome && selectedAge === "9-11 Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
@@ -673,7 +602,7 @@ export const Recipes = () => {
       )}
 
       {/* Quick 4-Category Carousel for 12-23 Months */}
-      {selectedAge === "12-23 Months" && selectedCategory === "All Categories" && (
+      {!isFromHome && selectedAge === "12-23 Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
@@ -713,7 +642,7 @@ export const Recipes = () => {
       )}
 
       {/* Quick 4-Category Carousel for 24+ Months */}
-      {selectedAge === "24+ Months" && selectedCategory === "All Categories" && (
+      {!isFromHome && selectedAge === "24+ Months" && selectedCategory === "All Categories" && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2 px-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-forest">
