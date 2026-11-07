@@ -7,8 +7,8 @@ export const AtmosphericBackground: React.FC = () => {
   const location = useLocation();
   const { settings } = useVisualTheme();
 
-  // Explicit user requirement: Do not apply wallpaper background on Pantry Helper tab
-  if (location.pathname === '/pantry') {
+  // Explicit user requirement: Do not apply wallpaper background on Home and Pantry Helper tabs
+  if (location.pathname === '/' || location.pathname === '/home' || location.pathname === '/pantry') {
     return null;
   }
 
