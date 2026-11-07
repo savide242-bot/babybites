@@ -47,7 +47,6 @@ import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { recipes as staticRecipes, Recipe } from "@/data/recipes";
 import { getRecipeDietaryTags } from "@/data/recipeDietaryTags";
 import { DIETARY_OPTIONS } from "@/hooks/useDietaryPreferences";
-import { exportRecipePDF } from "@/utils/recipePDFExport";
 import SmartCombinationWarning from "@/components/SmartCombinationWarning";
 
 const RecipeDetail = () => {
@@ -261,31 +260,6 @@ const RecipeDetail = () => {
     toast.success("Added to Meal Plan!", {
       description: `${recipe.title} has been queued in your weekly schedule.`,
     });
-  };
-
-  const handleExportPDF = () => {
-    try {
-      exportRecipePDF(recipe);
-      toast.success("Downloading PDF Guide!", {
-        description: `${recipe.title} is ready for offline kitchen cooking.`,
-      });
-    } catch {
-      toast.error("Export Failed", { description: "Could not generate PDF at this moment." });
-    }
-  };
-
-  const handleShareWhatsApp = () => {
-    let message = `🍽️ *${recipe.title}*\n\n📌 Category: ${recipe.category} | Age: ${recipe.ageGroup}\n⏱️ Prep Time: ${recipe.prepTime} | 👥 Servings: ${recipe.servings}\n\n${recipe.description}\n\n*Ingredients:*\n`;
-    recipe.ingredients.forEach((ing) => {
-      message += `• ${ing}\n`;
-    });
-    message += `\n*Instructions:*\n`;
-    recipe.instructions.forEach((inst, i) => {
-      message += `${i + 1}. ${inst}\n`;
-    });
-    message += `\n📱 Shared lovingly from BabyBites App`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
-    toast.success("Opening WhatsApp", { description: "Recipe message is prepared to share!" });
   };
 
   const nutritionCards = [
@@ -615,24 +589,6 @@ const RecipeDetail = () => {
               {/* Floating Action Icons */}
               <div className="flex items-center gap-2">
                 <Button
-                  onClick={handleShareWhatsApp}
-                  size="icon"
-                  variant="secondary"
-                  className="rounded-full bg-white/80 dark:bg-black/60 hover:bg-white dark:hover:bg-black/80 backdrop-blur-md text-stone-900 dark:text-stone-100 shadow-md border border-white/20 h-10 w-10 transition-transform active:scale-95"
-                  title="Share Recipe"
-                >
-                  <Share2 className="h-4 w-4 text-[#1E5E3A] dark:text-emerald-400" />
-                </Button>
-                <Button
-                  onClick={handleExportPDF}
-                  size="icon"
-                  variant="secondary"
-                  className="rounded-full bg-white/80 dark:bg-black/60 hover:bg-white dark:hover:bg-black/80 backdrop-blur-md text-stone-900 dark:text-stone-100 shadow-md border border-white/20 h-10 w-10 transition-transform active:scale-95"
-                  title="Save PDF"
-                >
-                  <FileDown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                </Button>
-                <Button
                   onClick={() => toggleFavorite(recipe.id)}
                   size="icon"
                   variant="secondary"
@@ -789,39 +745,18 @@ const RecipeDetail = () => {
             Enter Interactive Cook Mode
           </Button>
 
-          {/* Secondary Quick Action Row */}
-          <div className="grid grid-cols-3 gap-2.5">
-            <Button
-              onClick={handleAddToPlanner}
-              variant="outline"
-              className="rounded-2xl py-4 h-auto bg-white dark:bg-[#161c18] border-black/[0.06] dark:border-white/[0.08] hover:bg-[#1E5E3A]/5 hover:border-[#1E5E3A]/30 flex flex-col items-center gap-1.5 shadow-sm transition-all"
-            >
-              <Calendar className="h-4 w-4 text-[#1E5E3A] dark:text-emerald-400" />
-              <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
-                Add to Plan
-              </span>
-            </Button>
-            <Button
-              onClick={handleShareWhatsApp}
-              variant="outline"
-              className="rounded-2xl py-4 h-auto bg-white dark:bg-[#161c18] border-black/[0.06] dark:border-white/[0.08] hover:bg-emerald-500/5 hover:border-emerald-500/30 flex flex-col items-center gap-1.5 shadow-sm transition-all"
-            >
-              <Share2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
-                Share Recipe
-              </span>
-            </Button>
-            <Button
-              onClick={handleExportPDF}
-              variant="outline"
-              className="rounded-2xl py-4 h-auto bg-white dark:bg-[#161c18] border-black/[0.06] dark:border-white/[0.08] hover:bg-amber-500/5 hover:border-amber-500/30 flex flex-col items-center gap-1.5 shadow-sm transition-all"
-            >
-              <FileDown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
-                Save PDF
-              </span>
-            </Button>
-          </div>
+          {/* Add to Weekly Planner Button */}
+          <Button
+            onClick={handleAddToPlanner}
+            variant="outline"
+            size="lg"
+            className="w-full rounded-2xl py-5 h-auto bg-white dark:bg-[#161c18] border-black/[0.08] dark:border-white/[0.08] hover:bg-[#1E5E3A]/5 hover:border-[#1E5E3A]/30 flex items-center justify-center gap-2 shadow-xs transition-all"
+          >
+            <Calendar className="h-4 w-4 text-[#1E5E3A] dark:text-emerald-400" />
+            <span className="text-sm font-semibold text-stone-700 dark:text-stone-200">
+              Add to Weekly Meal Plan
+            </span>
+          </Button>
         </div>
 
         {/* ========================================================== */}

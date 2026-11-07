@@ -6,7 +6,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { recipes as staticRecipes, getMealCategory, Recipe } from "@/data/recipes";
 import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { useFavorites } from "@/hooks/useFavorites";
-import { exportRecipeEbook } from "@/utils/recipeEbookExport";
 import { toast } from "sonner";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 import { 
@@ -200,7 +199,6 @@ export const Recipes = () => {
   const [selectedAge, setSelectedAge] = useState<string>("All Ages");
   const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-  const [isExporting, setIsExporting] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Saved Custom Recipes state & synchronization
@@ -329,17 +327,6 @@ export const Recipes = () => {
     return () => observer.disconnect();
   }, [hasMore, filteredRecipes.length]);
 
-  const handleExportEbook = async () => {
-    setIsExporting(true);
-    try {
-      await exportRecipeEbook(filteredRecipes);
-      toast.success("eBook exported successfully!");
-    } catch {
-      toast.error("Could not export PDF. Please try again.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   // Dedicated Category Artwork Banner for all ages (6-8m, 9-11m, 12-23m, 24+m)
   // Strictly illustrative category descriptions (no individual recipe descriptions)
@@ -452,24 +439,13 @@ export const Recipes = () => {
               }`}
             >
               <ChefHat className="w-3.5 h-3.5 text-[#E89234]" />
-              <span>Receitas Personalizadas</span>
+              <span>Custom Recipes</span>
               {savedCustomRecipes.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-[#E89234] text-white text-[10px] font-bold">
                   {savedCustomRecipes.length}
                 </span>
               )}
             </button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportEbook}
-              disabled={isExporting}
-              className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
-            >
-              {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-              <span>PDF Guide</span>
-            </Button>
           </div>
         </div>
       ) : (
@@ -501,24 +477,13 @@ export const Recipes = () => {
                 }`}
               >
                 <ChefHat className="w-3.5 h-3.5 text-[#E89234]" />
-                <span>Receitas Personalizadas</span>
+                <span>Custom Recipes</span>
                 {savedCustomRecipes.length > 0 && (
                   <span className="px-1.5 py-0.2 rounded-full bg-[#E89234] text-white text-[10px] font-bold">
                     {savedCustomRecipes.length}
                   </span>
                 )}
               </button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportEbook}
-                disabled={isExporting}
-                className="rounded-full gap-1.5 border-[#EBE8DF] bg-white text-xs text-forest hover:bg-gray-50"
-              >
-                {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-                <span>PDF Guide</span>
-              </Button>
             </div>
           </div>
 
@@ -580,7 +545,7 @@ export const Recipes = () => {
             <div className="flex items-center gap-2">
               <ChefHat className="w-4 h-4 text-[#E89234]" />
               <h3 className="font-bold text-sm sm:text-base text-stone-900 dark:text-stone-100">
-                Receitas Personalizadas ({savedCustomRecipes.length})
+                Custom Recipes ({savedCustomRecipes.length})
               </h3>
             </div>
             <button
@@ -589,7 +554,7 @@ export const Recipes = () => {
                 setOpenedCustomRecipeId(null);
               }}
               className="p-1 rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors cursor-pointer"
-              title="Fechar"
+              title="Close"
             >
               <X className="w-4 h-4" />
             </button>
@@ -598,16 +563,16 @@ export const Recipes = () => {
           {savedCustomRecipes.length === 0 ? (
             <div className="text-center py-6 px-3">
               <p className="text-xs text-stone-600 dark:text-stone-300 mb-2 font-medium">
-                Você ainda não salvou nenhuma receita personalizada.
+                You haven't saved any custom recipes yet.
               </p>
               <p className="text-[11px] text-stone-400 max-w-sm mx-auto mb-3">
-                Crie receitas exclusivas na aba Despensa com os ingredientes que você tem em casa e toque em "Save to Recipe Book" para encontrá-las aqui!
+                Create custom recipes in Pantry Helper with the ingredients you have at home, then tap "Save to Recipe Book" to see them here!
               </p>
               <Link
                 to="/pantry"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1E5E3A] text-white text-xs font-bold hover:bg-[#16482c] transition-all"
               >
-                <span>Ir para Despensa (Pantry Helper)</span>
+                <span>Go to Pantry Helper</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -615,7 +580,7 @@ export const Recipes = () => {
             /* CLOSED NUMBERED LIST FORMAT (1-, 2-, ...) - As explicitly requested */
             <div className="space-y-2">
               <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">
-                Toque em uma receita para abrir seus ingredientes e modo de preparo:
+                Tap on a recipe to view its ingredients and preparation steps:
               </p>
               {savedCustomRecipes.map((rec, idx) => (
                 <div
@@ -632,7 +597,7 @@ export const Recipes = () => {
                         {idx + 1}- {rec.title}
                       </h4>
                       <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate mt-0.5">
-                        {rec.category || "Receita Personalizada"} • {rec.ageGroup}
+                        {rec.category || "Custom Recipe"} • {rec.ageGroup}
                       </p>
                     </div>
                   </div>
@@ -644,12 +609,12 @@ export const Recipes = () => {
                         handleDeleteCustomRecipe(rec.id);
                       }}
                       className="p-1.5 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
-                      title="Excluir receita"
+                      title="Delete recipe"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <span className="text-xs font-semibold text-[#1E5E3A] dark:text-emerald-400 hidden sm:inline">
-                      Abrir receita →
+                      Open recipe →
                     </span>
                     <ArrowRight className="w-4 h-4 text-stone-400 group-hover:text-[#1E5E3A] group-hover:translate-x-0.5 transition-all" />
                   </div>
@@ -673,7 +638,7 @@ export const Recipes = () => {
                       className="rounded-full text-xs h-8 gap-1.5 border-stone-300 dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 bg-white dark:bg-stone-850 shadow-2xs cursor-pointer"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Voltar para a lista</span>
+                      <span>Back to list</span>
                     </Button>
 
                     <button
@@ -681,7 +646,7 @@ export const Recipes = () => {
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-300 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Excluir</span>
+                      <span>Delete</span>
                     </button>
                   </div>
 
@@ -699,9 +664,9 @@ export const Recipes = () => {
                       {/* Category & Badge */}
                       <div className="flex items-center justify-between gap-3 pb-3 mb-2 border-b border-stone-200/70 dark:border-stone-800">
                         <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#1E5E3A] dark:text-emerald-400">
-                          {rec.category || "Receita Personalizada"} • {rec.ageGroup}
+                          {rec.category || "Custom Recipe"} • {rec.ageGroup}
                         </span>
-                        <span className="text-[11px] text-stone-400">Receita Salva</span>
+                        <span className="text-[11px] text-stone-400">Saved Recipe</span>
                       </div>
 
                       {/* Centered Modern Sans-Serif Title */}
@@ -793,7 +758,7 @@ export const Recipes = () => {
                           onClick={() => setOpenedCustomRecipeId(null)}
                           className="rounded-full text-xs px-6 h-9 border-[#EBE8DF] text-[#1E5E3A] hover:bg-gray-50 cursor-pointer"
                         >
-                          Fechar e voltar à lista
+                          Close and return to list
                         </Button>
                       </div>
                     </div>
