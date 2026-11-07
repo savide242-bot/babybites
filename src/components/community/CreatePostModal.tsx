@@ -3,9 +3,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  X, ArrowLeft, ArrowRight, Music, Camera, ChevronDown, Check,
-  Volume2, Sliders, Type, Layers, Sparkles, MapPin, Tag, BarChart2,
-  HelpCircle, Film, Image as ImageIcon, Plus, CheckCircle2, Upload, Smartphone
+  X, ArrowLeft, ArrowRight, Camera, 
+  MapPin, Image as ImageIcon, Smartphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,11 +23,12 @@ interface CreatePostModalProps {
 }
 
 const SUGGESTED_LOCATIONS = [
-  "Matola",
-  "Maputo-Moçambique-Africa",
-  "Maputo",
-  "Polana Cimento",
-  "Costa do Sol",
+  "Home Kitchen",
+  "Nursery",
+  "High Chair Corner",
+  "Family Dining Table",
+  "Garden Picnic",
+  "Grandma's House",
 ];
 
 export const CreatePostModal: React.FC<CreatePostModalProps> = ({
@@ -51,7 +51,6 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   // Details fields
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState<string | null>(null);
-  const [taggedPeople, setTaggedPeople] = useState<string[]>([]);
   const [audioTrack, setAudioTrack] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,7 +74,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
   const handleShare = async () => {
     if (!selectedMediaUrl && !caption.trim()) {
-      toast.error("Por favor, selecione uma foto/vídeo ou escreva uma mensagem.");
+      toast.error("Please select a photo/video or write a caption.");
       return;
     }
 
@@ -84,7 +83,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       const { data: { session } } = await supabase.auth.getSession();
       
       const newPostId = "post-" + Date.now();
-      const finalTitle = caption.slice(0, 40) || selectedItemTitle || "Momento BabyBites";
+      const finalTitle = caption.slice(0, 40) || selectedItemTitle || "BabyBites Moment";
       
       const newPostObj = {
         id: newPostId,
@@ -93,7 +92,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         author_baby: currentUser.baby || "Mom of Baby",
         author_avatar: currentUser.avatar,
         title: finalTitle,
-        content: caption || selectedItemTitle || "Compartilhando uma nova conquista alimentar com vocês! ✨",
+        content: caption || selectedItemTitle || "Sharing our latest weaning milestone with the community! ✨",
         media_type: selectedMediaType,
         media_url: selectedMediaUrl || undefined,
         image_urls: selectedMediaUrl && selectedMediaType === "image" ? [selectedMediaUrl] : [],
@@ -141,7 +140,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       }
 
       onPostCreated(newPostObj);
-      toast.success("Publicado com sucesso na Comunidade! 🎉");
+      toast.success("Post shared with the BabyBites Community! 🎉");
       
       // Reset
       setStep("media");
@@ -151,7 +150,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       onClose();
     } catch (e) {
       console.error(e);
-      toast.error("Não foi possível publicar.");
+      toast.error("Could not publish post.");
     } finally {
       setIsSubmitting(false);
     }
@@ -198,7 +197,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               </button>
 
               <h3 className="text-sm font-bold text-white tracking-wide">
-                Nova Publicação
+                New Post
               </h3>
 
               <div className="w-9" />
@@ -233,14 +232,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       className="px-4 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs font-semibold text-white flex items-center gap-1.5 transition-colors"
                     >
                       <ImageIcon className="w-4 h-4 text-sky-400" />
-                      <span>Trocar Arquivo</span>
+                      <span>Choose Different File</span>
                     </button>
                     <button
                       onClick={() => cameraInputRef.current?.click()}
                       className="px-4 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs font-semibold text-white flex items-center gap-1.5 transition-colors"
                     >
                       <Camera className="w-4 h-4 text-emerald-400" />
-                      <span>Tirar Outra</span>
+                      <span>Retake with Camera</span>
                     </button>
                   </div>
                 </div>
@@ -253,10 +252,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
                   <div className="space-y-1.5">
                     <h4 className="text-lg font-bold text-white">
-                      Selecione do seu Telefone
+                      Select from Your Phone
                     </h4>
                     <p className="text-xs text-stone-400 leading-relaxed">
-                      Escolha uma foto ou vídeo direto da galeria do seu dispositivo para compartilhar com outras mães.
+                      Choose a photo or video directly from your device gallery to share with other moms.
                     </p>
                   </div>
 
@@ -266,7 +265,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       className="w-full rounded-2xl bg-gradient-to-r from-[#1E5E3A] to-[#2e7d32] hover:from-[#184e30] hover:to-[#256d29] text-white font-bold h-12 flex items-center justify-center gap-2.5 shadow-lg active:scale-98 transition-all"
                     >
                       <ImageIcon className="w-5 h-5" />
-                      <span>Abrir Galeria do Telefone</span>
+                      <span>Open Phone Gallery</span>
                     </Button>
 
                     <Button
@@ -275,7 +274,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       className="w-full rounded-2xl border-stone-700 bg-stone-900 hover:bg-stone-800 text-stone-200 font-semibold h-12 flex items-center justify-center gap-2.5 active:scale-98 transition-all"
                     >
                       <Camera className="w-5 h-5 text-emerald-400" />
-                      <span>Tirar Foto ou Gravar Vídeo</span>
+                      <span>Take Photo or Record Video</span>
                     </Button>
                   </div>
                 </div>
@@ -285,7 +284,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             {/* Bottom Bar */}
             <div className="shrink-0 px-4 py-3 bg-stone-950 border-t border-stone-900 flex items-center justify-between">
               <span className="text-xs text-stone-400">
-                {selectedMediaUrl ? "Mídia selecionada" : "Selecione uma mídia"}
+                {selectedMediaUrl ? "Media selected" : "Select a photo or video"}
               </span>
 
               <Button
@@ -299,7 +298,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 disabled={!selectedMediaUrl}
                 className="rounded-full bg-[#0095F6] hover:bg-[#1877F2] disabled:bg-stone-800 disabled:text-stone-500 text-white font-bold text-sm px-6 h-10 shadow-lg flex items-center gap-1.5 transition-transform active:scale-95"
               >
-                <span>Avançar</span>
+                <span>Next</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </Button>
             </div>
@@ -318,7 +317,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 <ArrowLeft className="w-5 h-5 text-white" />
               </button>
               <h2 className="text-base font-bold text-white tracking-wide">
-                Nova Publicação
+                New Post
               </h2>
               <div className="w-9" />
             </div>
@@ -345,7 +344,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 )}
                 <div className="flex-1">
                   <Textarea
-                    placeholder="Escreva uma legenda... conte como foi essa refeição ou compartilhe a dica!"
+                    placeholder="Write a caption... share how this meal went or give baby tips!"
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                     className="w-full bg-transparent border-0 text-white placeholder:text-stone-500 resize-none text-sm p-0 focus-visible:ring-0 min-h-[72px]"
@@ -357,7 +356,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <div className="pt-2 border-t border-stone-900">
                 <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-stone-300">
                   <MapPin className="w-4 h-4 text-emerald-400" />
-                  <span>Adicionar Localização</span>
+                  <span>Add Location</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {SUGGESTED_LOCATIONS.map((loc) => {
@@ -387,7 +386,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 onClick={() => setStep("media")}
                 className="text-xs text-stone-400 hover:text-white"
               >
-                Voltar à foto
+                Back to photo
               </button>
 
               <Button
@@ -395,7 +394,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 disabled={isSubmitting}
                 className="rounded-full bg-[#0095F6] hover:bg-[#1877F2] text-white font-bold text-sm px-7 h-11 shadow-lg flex items-center gap-1.5 active:scale-95 transition-transform"
               >
-                {isSubmitting ? "Publicando..." : "Compartilhar"}
+                {isSubmitting ? "Publishing..." : "Share Post"}
               </Button>
             </div>
           </div>

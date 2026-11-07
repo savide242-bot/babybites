@@ -7,8 +7,8 @@ import {
   ShoppingCart, Download, Share2, Trash2, 
   Apple, Carrot, Beef, Wheat, Milk, Package,
   ChefHat, Sparkles, Check, Home, Plus, ChevronDown, 
-  ChevronUp, RefreshCw, CheckCircle2, Search, Filter,
-  Layers, ShoppingBag, Store
+  ChevronUp, CheckCircle2, Search, Filter,
+  ShoppingBag, Store
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +27,7 @@ interface ShoppingItem {
 
 const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; badge: string; bg: string; border: string } } = {
   'Vegetables': { 
-    label: 'Legumes & Verduras', 
+    label: 'Vegetables & Greens', 
     icon: Carrot, 
     color: 'text-emerald-700 dark:text-emerald-300', 
     badge: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', 
@@ -35,7 +35,7 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
     border: 'border-emerald-100 dark:border-emerald-900/40' 
   },
   'Fruits': { 
-    label: 'Frutas Frescas', 
+    label: 'Fresh Fruits', 
     icon: Apple, 
     color: 'text-rose-700 dark:text-rose-300', 
     badge: 'bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800', 
@@ -43,7 +43,7 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
     border: 'border-rose-100 dark:border-rose-900/40' 
   },
   'Proteins': { 
-    label: 'Carnes & Proteínas', 
+    label: 'Proteins & Meats', 
     icon: Beef, 
     color: 'text-amber-700 dark:text-amber-300', 
     badge: 'bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800', 
@@ -51,7 +51,7 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
     border: 'border-amber-100 dark:border-amber-900/40' 
   },
   'Cereals & Grains': { 
-    label: 'Grãos & Cereais', 
+    label: 'Grains & Cereals', 
     icon: Wheat, 
     color: 'text-yellow-700 dark:text-yellow-300', 
     badge: 'bg-yellow-50 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800', 
@@ -59,7 +59,7 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
     border: 'border-yellow-100 dark:border-yellow-900/40' 
   },
   'Dairy': { 
-    label: 'Laticínios & Ovos', 
+    label: 'Dairy & Eggs', 
     icon: Milk, 
     color: 'text-sky-700 dark:text-sky-300', 
     badge: 'bg-sky-50 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-200 dark:border-sky-800', 
@@ -67,7 +67,7 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
     border: 'border-sky-100 dark:border-sky-900/40' 
   },
   'Pantry Essentials': { 
-    label: 'Despensa & Temperos', 
+    label: 'Pantry & Spices', 
     icon: Package, 
     color: 'text-purple-700 dark:text-purple-300', 
     badge: 'bg-purple-50 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800', 
@@ -75,7 +75,7 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
     border: 'border-purple-100 dark:border-purple-900/40' 
   },
   'Other': { 
-    label: 'Outros Itens', 
+    label: 'Other Items', 
     icon: ShoppingBag, 
     color: 'text-stone-700 dark:text-stone-300', 
     badge: 'bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700', 
@@ -85,14 +85,14 @@ const CATEGORY_MAP: { [key: string]: { label: string; icon: any; color: string; 
 };
 
 const QUICK_SUGGESTIONS = [
-  { name: "Abacate", category: "Fruits" },
-  { name: "Banana Prata", category: "Fruits" },
-  { name: "Batata Doce", category: "Vegetables" },
-  { name: "Cenoura", category: "Vegetables" },
-  { name: "Brócolis", category: "Vegetables" },
-  { name: "Ovos Caipiras", category: "Dairy" },
-  { name: "Aveia em Flocos", category: "Cereals & Grains" },
-  { name: "Azeite de Oliva", category: "Pantry Essentials" },
+  { name: "Avocado", category: "Fruits" },
+  { name: "Banana", category: "Fruits" },
+  { name: "Sweet Potato", category: "Vegetables" },
+  { name: "Carrots", category: "Vegetables" },
+  { name: "Broccoli", category: "Vegetables" },
+  { name: "Eggs", category: "Dairy" },
+  { name: "Rolled Oats", category: "Cereals & Grains" },
+  { name: "Olive Oil", category: "Pantry Essentials" },
 ];
 
 const LOCAL_STORAGE_KEY = 'babybites_shopping_list_v4';
@@ -105,7 +105,7 @@ export const ShoppingList: React.FC = () => {
   const [newItemText, setNewItemText] = useState("");
   const [newCategory, setNewCategory] = useState("Vegetables");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "collected" | "pantry">("all");
+  const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "collected">("all");
   const [showPantrySection, setShowPantrySection] = useState(false);
 
   useEffect(() => {
@@ -191,10 +191,10 @@ export const ShoppingList: React.FC = () => {
       if (item.id === id) {
         const nextState = !item.inPantry;
         toast({
-          title: nextState ? "Marcado como 'Já Tenho em Casa'!" : "Retornado à lista de compras",
+          title: nextState ? "Marked as In Pantry!" : "Moved back to Shopping List",
           description: nextState 
-            ? `Você já tem ${item.ingredient} na despensa e não precisará comprar.`
-            : `${item.ingredient} adicionado de volta à lista de compras.`
+            ? `You already have ${item.ingredient} at home. Excluded from your supermarket trip.`
+            : `${item.ingredient} added back to supermarket shopping list.`
         });
         return { ...item, inPantry: nextState, checked: false };
       }
@@ -215,14 +215,14 @@ export const ShoppingList: React.FC = () => {
       category: customCat || newCategory,
       checked: false,
       inPantry: false,
-      fromRecipe: "Adicionado manualmente"
+      fromRecipe: "Added manually"
     };
 
     const updated = [newItem, ...items];
     setItems(updated);
     saveLocal(updated);
     setNewItemText("");
-    toast({ title: "Item adicionado!", description: `${textToAdd} entrou na sua lista.` });
+    toast({ title: "Item added!", description: `${textToAdd} added to your shopping list.` });
   };
 
   const removeItem = async (id: string) => {
@@ -232,7 +232,7 @@ export const ShoppingList: React.FC = () => {
     if (userId) {
       await supabase.from('shopping_list_items').delete().eq('id', id);
     }
-    toast({ title: "Item removido" });
+    toast({ title: "Item removed" });
   };
 
   const clearCheckedItems = async () => {
@@ -246,7 +246,7 @@ export const ShoppingList: React.FC = () => {
     if (userId) {
       await supabase.from('shopping_list_items').delete().in('id', checkedIds);
     }
-    toast({ title: "Itens comprados limpos com sucesso!" });
+    toast({ title: "Purchased items cleared successfully!" });
   };
 
   // Active supermarket items vs items already at home
@@ -285,14 +285,14 @@ export const ShoppingList: React.FC = () => {
     const neededUnchecked = activeShoppingItems.filter(i => !i.checked);
     
     if (neededUnchecked.length === 0 && pantryItems.length === 0) {
-      toast({ title: "Tudo pronto!", description: "Todos os itens de supermercado já foram marcados." });
+      toast({ title: "All set!", description: "All grocery items have already been checked." });
       return;
     }
     
-    let content = `🛒 BabyBites - Lista de Compras do Bebê\n`;
-    content += `Data: ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}\n\n`;
+    let content = `🛒 BabyBites - Baby's Grocery & Shopping List\n`;
+    content += `Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}\n\n`;
     
-    content += `--- ITENS PARA COMPRAR NO SUPERMERCADO (${neededUnchecked.length}) ---\n`;
+    content += `--- NEEDED SUPERMARKET GROCERIES (${neededUnchecked.length}) ---\n`;
     const categories = [...new Set(neededUnchecked.map(i => i.category))];
     categories.forEach(category => {
       const config = CATEGORY_MAP[category] || CATEGORY_MAP['Other'];
@@ -304,7 +304,7 @@ export const ShoppingList: React.FC = () => {
     });
 
     if (pantryItems.length > 0) {
-      content += `\n--- JÁ TENHO EM CASA (NÃO PRECISA COMPRAR) (${pantryItems.length}) ---\n`;
+      content += `\n--- ALREADY IN PANTRY (DO NOT BUY) (${pantryItems.length}) ---\n`;
       pantryItems.forEach(item => {
         content += ` ✔ ${item.ingredient}\n`;
       });
@@ -314,25 +314,25 @@ export const ShoppingList: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `babybites-compras-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `babybites-groceries-${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    toast({ title: "Lista Exportada!", description: "Arquivo salvo no seu aparelho." });
+    toast({ title: "List Exported!", description: "Checklist file saved to your device." });
   };
 
   const handleShareWhatsApp = () => {
     const neededUnchecked = activeShoppingItems.filter(i => !i.checked);
     
     if (neededUnchecked.length === 0 && pantryItems.length === 0) {
-      toast({ title: "Lista vazia", description: "Adicione itens antes de compartilhar." });
+      toast({ title: "List empty", description: "Add items before sharing." });
       return;
     }
     
-    let message = `🛒 *BabyBites - Lista de Compras do Bebê*\n`;
-    message += `📅 ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}\n\n`;
+    let message = `🛒 *BabyBites - Baby's Grocery List*\n`;
+    message += `📅 ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}\n\n`;
     
     const categories = [...new Set(neededUnchecked.map(i => i.category))];
     categories.forEach(cat => {
@@ -348,10 +348,10 @@ export const ShoppingList: React.FC = () => {
     });
 
     if (pantryItems.length > 0) {
-      message += `*(Já tenho em casa: ${pantryItems.length} ingredientes dispensados)*\n\n`;
+      message += `*(Already at Home / In Pantry: ${pantryItems.length} items verified)*\n\n`;
     }
     
-    message += `👶 Gerado pelo BabyBites`;
+    message += `👶 Compiled with BabyBites`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -379,17 +379,17 @@ export const ShoppingList: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1E5E3A]/10 dark:bg-emerald-950/80 text-[#1E5E3A] dark:text-emerald-400 text-xs font-bold uppercase tracking-wider border border-[#1E5E3A]/15 dark:border-emerald-800/40">
                   <Store className="w-3.5 h-3.5" />
-                  Supermercado
+                  Supermarket
                 </span>
                 <span className="text-xs text-stone-500 font-serif italic">
-                  • Sincronizado com o Cardápio
+                  • Meal Plan Auto-Sync
                 </span>
               </div>
               <h1 className="font-serif text-3xl sm:text-4xl font-extrabold text-[#1E5E3A] dark:text-emerald-400 tracking-tight">
-                Lista de Compras
+                Shopping & Pantry
               </h1>
               <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 max-w-lg">
-                Ingredientes organizados por corredor de supermercado, sem comprar o que você já tem na despensa.
+                Supermarket ingredients organized by aisle, excluding what you already have in your kitchen pantry.
               </p>
             </div>
 
@@ -402,7 +402,7 @@ export const ShoppingList: React.FC = () => {
                 className="h-10 rounded-full px-4 border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:bg-stone-100 shadow-xs text-xs font-semibold"
               >
                 <Download className="w-3.5 h-3.5 mr-1.5" />
-                Exportar
+                Export
               </Button>
               <Button
                 onClick={handleShareWhatsApp}
@@ -425,16 +425,16 @@ export const ShoppingList: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-serif text-sm font-bold text-stone-900 dark:text-stone-100">
-                  Progresso das Compras
+                  Supermarket Progress
                 </h3>
                 <span className="text-[11px] text-stone-500">
-                  {completedCount} de {totalNeededCount} itens no carrinho
+                  {completedCount} of {totalNeededCount} items in cart
                 </span>
               </div>
             </div>
 
             <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#1E5E3A] text-white shadow-xs">
-              {progress}% Concluído
+              {progress}% Completed
             </span>
           </div>
 
@@ -444,15 +444,15 @@ export const ShoppingList: React.FC = () => {
           <div className="grid grid-cols-3 gap-2.5 mt-4 pt-4 border-t border-stone-100 dark:border-stone-800/80 text-center">
             <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
               <span className="block text-lg font-extrabold text-amber-700 dark:text-amber-400">{pendingCount}</span>
-              <span className="text-[10px] uppercase font-bold text-amber-800/70 dark:text-amber-300">A Comprar</span>
+              <span className="text-[10px] uppercase font-bold text-amber-800/70 dark:text-amber-300">To Buy</span>
             </div>
             <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
               <span className="block text-lg font-extrabold text-emerald-700 dark:text-emerald-400">{completedCount}</span>
-              <span className="text-[10px] uppercase font-bold text-emerald-800/70 dark:text-emerald-300">No Carrinho</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-800/70 dark:text-emerald-300">In Cart</span>
             </div>
             <div className="p-2.5 rounded-2xl bg-sky-500/10 border border-sky-500/20">
               <span className="block text-lg font-extrabold text-sky-700 dark:text-sky-400">{pantryItems.length}</span>
-              <span className="text-[10px] uppercase font-bold text-sky-800/70 dark:text-sky-300">Na Despensa</span>
+              <span className="text-[10px] uppercase font-bold text-sky-800/70 dark:text-sky-300">In Pantry</span>
             </div>
           </div>
 
@@ -462,7 +462,7 @@ export const ShoppingList: React.FC = () => {
                 onClick={clearCheckedItems}
                 className="text-xs text-stone-500 hover:text-rose-600 dark:hover:text-rose-400 underline font-medium transition-colors"
               >
-                Limpar itens já comprados
+                Clear checked items
               </button>
             </div>
           )}
@@ -473,7 +473,7 @@ export const ShoppingList: React.FC = () => {
           <form onSubmit={(e) => handleAddItem(e)} className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
               <Input
-                placeholder="Adicionar ingrediente (ex: Espinafre, Chia, Abacate)..."
+                placeholder="Add ingredient (e.g. Spinach, Chia Seeds, Avocado)..."
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
                 className="h-12 bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 rounded-2xl text-xs sm:text-sm pl-4 pr-10 focus-visible:ring-[#1E5E3A]"
@@ -495,7 +495,7 @@ export const ShoppingList: React.FC = () => {
               className="h-12 px-6 rounded-2xl bg-[#1E5E3A] hover:bg-[#16472c] text-white font-bold text-xs shrink-0 shadow-md transition-transform active:scale-95"
             >
               <Plus className="w-4 h-4 mr-1.5 stroke-[2.5]" />
-              Adicionar
+              Add
             </Button>
           </form>
 
@@ -503,7 +503,7 @@ export const ShoppingList: React.FC = () => {
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-3 mt-1">
             <span className="text-[11px] text-stone-400 font-medium shrink-0 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-amber-500" />
-              Sugestões:
+              Quick Add:
             </span>
             {QUICK_SUGGESTIONS.map((sug) => (
               <button
@@ -524,7 +524,7 @@ export const ShoppingList: React.FC = () => {
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar ingrediente..."
+              placeholder="Search ingredient..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-10 pl-9 rounded-full bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-xs"
@@ -541,7 +541,7 @@ export const ShoppingList: React.FC = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              Todos ({totalNeededCount})
+              All ({totalNeededCount})
             </button>
             <button
               onClick={() => setActiveFilter("pending")}
@@ -551,7 +551,7 @@ export const ShoppingList: React.FC = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              Pendentes ({pendingCount})
+              To Buy ({pendingCount})
             </button>
             <button
               onClick={() => setActiveFilter("collected")}
@@ -561,7 +561,7 @@ export const ShoppingList: React.FC = () => {
                   : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
               }`}
             >
-              No Carrinho ({completedCount})
+              In Cart ({completedCount})
             </button>
           </div>
         </div>
@@ -574,15 +574,15 @@ export const ShoppingList: React.FC = () => {
                 <Check className="w-7 h-7 stroke-[2.5]" />
               </div>
               <h3 className="font-serif text-lg font-bold text-stone-900 dark:text-stone-100">
-                Tudo Pronto para as Compras!
+                All Set for Grocery Shopping!
               </h3>
               <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
-                Nenhum ingrediente pendente. Adicione refeições no seu planejador semanal ou digite itens avulsos acima para gerar sua lista de mercado.
+                No pending grocery items left. Add meals to your weekly planner or type custom ingredients above to generate your market checklist.
               </p>
             </div>
           ) : Object.keys(activeByCategory).length === 0 ? (
             <div className="bg-white dark:bg-stone-900 rounded-3xl p-8 text-center border border-stone-200 dark:border-stone-800 text-xs text-stone-500">
-              Nenhum ingrediente encontrado para o filtro selecionado.
+              No ingredients found matching the selected filter.
             </div>
           ) : (
             Object.entries(activeByCategory).map(([category, catItems]) => {
@@ -607,14 +607,14 @@ export const ShoppingList: React.FC = () => {
                           {config.label}
                         </h3>
                         <span className="text-[11px] text-stone-500">
-                          {checkedInCat} de {catItems.length} no carrinho
+                          {checkedInCat} of {catItems.length} in cart
                         </span>
                       </div>
                     </div>
 
                     {allDone && (
                       <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full flex items-center gap-1 shadow-xs">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" /> Concluído
+                        <Check className="w-3.5 h-3.5 stroke-[3]" /> Completed
                       </span>
                     )}
                   </div>
@@ -666,17 +666,17 @@ export const ShoppingList: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => togglePantry(item.id)}
-                              title="Já tenho em casa (não preciso comprar)"
+                              title="I have this in my pantry (don't need to buy)"
                               className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-emerald-50 text-stone-600 hover:text-[#1E5E3A] dark:bg-stone-800 dark:hover:bg-emerald-950/60 dark:text-stone-300 dark:hover:text-emerald-300 border border-stone-200/80 dark:border-stone-700/80 flex items-center gap-1 transition-colors"
                             >
                               <Home className="w-3 h-3 text-[#1E5E3A]" />
-                              <span className="hidden sm:inline">Tenho em casa</span>
+                              <span className="hidden sm:inline">Already at home</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => removeItem(item.id)}
-                              title="Remover"
+                              title="Remove"
                               className="w-7 h-7 rounded-xl flex items-center justify-center text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -704,13 +704,13 @@ export const ShoppingList: React.FC = () => {
               </div>
               <div className="text-left">
                 <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-sm flex items-center gap-2">
-                  <span>Já Tenho em Casa / Despensa</span>
+                  <span>Already in Kitchen Pantry</span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                    {pantryItems.length} dispensados
+                    {pantryItems.length} in stock
                   </span>
                 </h3>
                 <p className="text-[11px] text-stone-500">
-                  Itens marcados que não precisam ser comprados no supermercado.
+                  Ingredients verified at home that do not need to be purchased.
                 </p>
               </div>
             </div>
@@ -724,7 +724,7 @@ export const ShoppingList: React.FC = () => {
             <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 space-y-2">
               {pantryItems.length === 0 ? (
                 <p className="text-xs text-stone-400 italic text-center py-4">
-                  Nenhum ingrediente marcado como existente na despensa ainda.
+                  No ingredients marked as already in pantry yet.
                 </p>
               ) : (
                 pantryItems.map((item) => (
@@ -743,7 +743,7 @@ export const ShoppingList: React.FC = () => {
                       onClick={() => togglePantry(item.id)}
                       className="text-[11px] font-semibold text-[#1E5E3A] dark:text-emerald-400 hover:underline px-2 py-1"
                     >
-                      Mover para Compras
+                      Move to Shopping
                     </button>
                   </div>
                 ))

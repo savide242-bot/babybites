@@ -297,13 +297,13 @@ export const IngredientSwap: React.FC = () => {
 
   // Quick swap ingredient suggestions
   const QUICK_SUGGESTIONS = [
-    { label: "🥚 Ovo", query: "Egg" },
-    { label: "🥛 Leite de Vaca", query: "Cow's Milk" },
-    { label: "🌾 Trigo / Glúten", query: "Wheat Flour" },
-    { label: "🧈 Manteiga", query: "Butter" },
-    { label: "🥜 Amendoim", query: "Peanut Butter" },
-    { label: "🥣 Iogurte", query: "Yogurt" },
-    { label: "🍯 Açúcar / Mel", query: "Sugar" },
+    { label: "🥚 Egg", query: "Egg" },
+    { label: "🥛 Cow's Milk", query: "Cow's Milk" },
+    { label: "🌾 Wheat / Gluten", query: "Wheat Flour" },
+    { label: "🧈 Butter", query: "Butter" },
+    { label: "🥜 Peanut Butter", query: "Peanut Butter" },
+    { label: "🥣 Plain Yogurt", query: "Yogurt" },
+    { label: "🍯 Sugar / Honey", query: "Sugar" },
     { label: "🍌 Banana", query: "Banana" },
   ];
 
@@ -354,10 +354,10 @@ export const IngredientSwap: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-[#1E5E3A] dark:text-emerald-400">
-              1. Qual ingrediente você quer trocar / substituir?
+              1. Which ingredient do you want to replace?
             </label>
             <span className="text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 px-2 py-0.5 rounded-full">
-              Obrigatório
+              Required
             </span>
           </div>
 
@@ -365,7 +365,7 @@ export const IngredientSwap: React.FC = () => {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Digite o ingrediente (ex: ovo, leite, farinha de trigo, manteiga, banana)..."
+              placeholder="Type an ingredient (e.g., egg, cow's milk, wheat flour, butter, peanut butter)..."
               className="w-full h-12 pl-11 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
             />
             <Search className="w-4 h-4 text-stone-400 absolute left-4 pointer-events-none" />
@@ -404,10 +404,10 @@ export const IngredientSwap: React.FC = () => {
         <div className="pt-3 border-t border-stone-100 dark:border-stone-800">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-              2. Em qual receita você quer substituir? (Opcional)
+              2. Which recipe do you want to substitute in? (Optional)
             </label>
             <span className="text-[10px] font-medium text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">
-              Opcional
+              Optional
             </span>
           </div>
 
@@ -421,7 +421,7 @@ export const IngredientSwap: React.FC = () => {
                 />
                 <div className="min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block">
-                    Receita Selecionada do App:
+                    Selected App Recipe:
                   </span>
                   <p className="font-bold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
                     {selectedRecipe.title}
@@ -431,7 +431,7 @@ export const IngredientSwap: React.FC = () => {
               <button
                 onClick={() => setSelectedRecipe(null)}
                 className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
-                title="Remover receita"
+                title="Remove recipe"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -446,7 +446,7 @@ export const IngredientSwap: React.FC = () => {
                     setRecipeSearch(e.target.value);
                     setShowRecipeDropdown(true);
                   }}
-                  placeholder="Selecione ou busque uma receita do app (ex: panqueca, muffin, bolo)..."
+                  placeholder="Select or search a recipe from the app (e.g., pancake, muffin, bowl)..."
                   className="w-full h-11 pl-10 pr-4 rounded-full border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 text-xs sm:text-sm focus:bg-white dark:focus:bg-stone-800"
                 />
                 <Utensils className="w-3.5 h-3.5 text-stone-400 absolute left-3.5 pointer-events-none" />
@@ -456,12 +456,12 @@ export const IngredientSwap: React.FC = () => {
               {showRecipeDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-1.5 p-2 bg-white dark:bg-stone-850 rounded-2xl border border-stone-200 dark:border-stone-700 shadow-lg z-30 max-h-56 overflow-y-auto">
                   <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-stone-100 dark:border-stone-800 text-[11px] font-bold text-stone-500">
-                    <span>Receitas do BabyBites ({filteredRecipes.length}):</span>
+                    <span>BabyBites Recipes ({filteredRecipes.length}):</span>
                     <button
                       onClick={() => setShowRecipeDropdown(false)}
                       className="text-stone-400 hover:text-stone-600"
                     >
-                      Fechar ✕
+                      Close ✕
                     </button>
                   </div>
                   {filteredRecipes.map((r) => (
@@ -503,15 +503,15 @@ export const IngredientSwap: React.FC = () => {
           <span className="text-3xl">{activeProfile.emoji}</span>
           <div>
             <h2 className="font-serif font-bold text-lg sm:text-xl text-stone-900 dark:text-stone-100">
-              Substitutos para {activeProfile.ingredient}
+              Pediatric Substitutes for {activeProfile.ingredient}
             </h2>
             <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-              {selectedRecipe ? `Adaptação culinária para: ${selectedRecipe.title}` : `Categoria: ${activeProfile.category}`}
+              {selectedRecipe ? `Culinary adaptation for: ${selectedRecipe.title}` : `Category: ${activeProfile.category}`}
             </span>
           </div>
         </div>
         <span className="text-[11px] font-bold text-stone-400">
-          3 Opções Seguras
+          3 Safe Alternatives
         </span>
       </div>
 

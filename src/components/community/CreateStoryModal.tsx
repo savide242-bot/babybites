@@ -2,9 +2,7 @@ import React, { useState, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { 
-  Camera, Settings, ChevronDown, Check, Music, Sparkles, 
-  Smile, Type, Users, X, ArrowRight, Play, Film, Star,
-  Compass, Layers, Image as ImageIcon, Smartphone
+  Camera, X, ArrowRight, Image as ImageIcon, Smartphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { StoryItem } from "./CommunityStories";
@@ -50,7 +48,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
 
   const handlePublishStory = () => {
     if (!selectedMediaUrl) {
-      toast.error("Selecione uma foto ou vídeo para o story.");
+      toast.error("Please select a photo or video for your story.");
       return;
     }
 
@@ -62,12 +60,12 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
       avatar: currentUserAvatar,
       story_image: selectedMediaUrl,
       media_type: selectedMediaType,
-      caption: caption || "Momento de hoje! 🥑",
-      time_ago: "Agora",
+      caption: caption || "Baby moment today! 🥑",
+      time_ago: "Just now",
     };
 
     onStoryCreated(newStory);
-    toast.success("Story compartilhado com sucesso! ✨");
+    toast.success("Story shared with the community! ✨");
     setSelectedMediaUrl(null);
     setCaption("");
     setStep("gallery");
@@ -112,7 +110,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
               >
                 <X className="w-5 h-5 text-white" />
               </button>
-              <h3 className="text-sm font-bold text-white">Criar Story</h3>
+              <h3 className="text-sm font-bold text-white">Create Story</h3>
               <div className="w-9" />
             </div>
 
@@ -124,10 +122,10 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
 
               <div className="space-y-1.5">
                 <h4 className="text-lg font-bold text-white">
-                  Selecione da sua Galeria
+                  Select from Your Phone
                 </h4>
                 <p className="text-xs text-stone-400 leading-relaxed">
-                  Adicione uma foto ou vídeo recente do seu bebê para publicar no Story de 24 horas.
+                  Add a recent photo or video of your baby to share on your 24-hour story.
                 </p>
               </div>
 
@@ -137,7 +135,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
                   className="w-full rounded-2xl bg-gradient-to-r from-[#1E5E3A] to-[#2e7d32] hover:from-[#184e30] text-white font-bold h-12 flex items-center justify-center gap-2.5 shadow-lg active:scale-98 transition-all"
                 >
                   <ImageIcon className="w-5 h-5" />
-                  <span>Galeria do Telefone</span>
+                  <span>Phone Gallery</span>
                 </Button>
 
                 <Button
@@ -146,7 +144,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
                   className="w-full rounded-2xl border-stone-700 bg-stone-900 hover:bg-stone-800 text-stone-200 font-semibold h-12 flex items-center justify-center gap-2.5 active:scale-98 transition-all"
                 >
                   <Camera className="w-5 h-5 text-emerald-400" />
-                  <span>Tirar com a Câmera</span>
+                  <span>Take with Camera</span>
                 </Button>
               </div>
             </div>
@@ -185,7 +183,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
               </button>
 
               <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/60 border border-white/20 text-white">
-                Pré-visualização
+                Preview
               </span>
 
               <div className="w-9" />
@@ -195,7 +193,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
             <div className="relative z-20 p-4 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col gap-3">
               <input
                 type="text"
-                placeholder="Adicione uma legenda rápida (opcional)..."
+                placeholder="Add a quick caption (optional)..."
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 className="w-full bg-black/60 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder:text-stone-400 focus:outline-none focus:border-white/50"
@@ -206,14 +204,14 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({
                   onClick={() => setStep("gallery")}
                   className="text-xs text-stone-300 hover:text-white"
                 >
-                  Trocar foto
+                  Change file
                 </button>
 
                 <Button
                   onClick={handlePublishStory}
                   className="rounded-full bg-gradient-to-r from-[#1E5E3A] to-[#2e7d32] text-white font-bold text-xs px-6 h-10 shadow-lg flex items-center gap-1.5"
                 >
-                  <span>Publicar Story</span>
+                  <span>Share Story</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
