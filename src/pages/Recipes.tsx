@@ -25,7 +25,7 @@ import posterDesserts911 from "@/assets/categories/desserts-smoothies-9-11m.webp
 // 12-23 Months Category Posters
 import posterBreakfast1223 from "@/assets/categories/breakfast-12-23m.webp";
 import posterLunchDinner1223 from "@/assets/categories/lunch-dinner-12-23m.webp";
-import posterSnacks1223 from "@/assets/categories/snacks-12-23m.webp";
+import posterSnacks1223 from "@/assets/categories/snacks-12-23m.jpg";
 import posterDesserts1223 from "@/assets/categories/desserts-smoothies-12-23m.webp";
 
 // 24+ Months Category Posters
