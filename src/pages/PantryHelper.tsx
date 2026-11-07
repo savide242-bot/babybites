@@ -161,6 +161,131 @@ function selectHarmoniousIngredients(ingredients: string[], variationIndex: numb
 }
 
 // Intelligent Culinary Generation Engine tailored for infant & toddler nutrition
+export interface NutritionalBenefitRow {
+  nutrient: string;
+  source: string;
+  benefit: string;
+}
+
+export function getNutritionalBenefitsTable(recipe: CustomGeneratedRecipe): NutritionalBenefitRow[] {
+  const rows: NutritionalBenefitRow[] = [];
+  const text = (recipe.title + " " + recipe.ingredients.join(" ") + " " + recipe.selectedIngredients.join(" ")).toLowerCase();
+
+  if (text.includes("salmon") || text.includes("fish") || text.includes("tuna") || text.includes("cod")) {
+    rows.push({
+      nutrient: "Rich in omega-3s & high-quality protein",
+      source: "Fresh salmon / fish",
+      benefit: "Supports cognitive brain development and retina visual acuity"
+    });
+  }
+
+  if (text.includes("sweet potato") || text.includes("potato") || text.includes("carrot") || text.includes("squash") || text.includes("pumpkin")) {
+    rows.push({
+      nutrient: "Vitamin A & complex carbs for energy",
+      source: "Mashed sweet potato / root veggies",
+      benefit: "Strengthens immune defenses, eye vision, and cellular energy"
+    });
+  }
+
+  if (text.includes("egg") || text.includes("yolk")) {
+    rows.push({
+      nutrient: "Choline & bioavailable iron",
+      source: "Whole egg / yolk",
+      benefit: "Powers memory neural pathways and red blood cell production"
+    });
+  }
+
+  if (text.includes("oat") || text.includes("oatmeal") || text.includes("quinoa") || text.includes("rice") || text.includes("bread") || text.includes("grain")) {
+    rows.push({
+      nutrient: "Iron and fiber from whole-grain binder",
+      source: "Breadcrumbs / whole oats",
+      benefit: "Nourishes gut microbiome and provides steady infant stamina"
+    });
+  }
+
+  if (text.includes("banana") || text.includes("apple") || text.includes("pear") || text.includes("berry") || text.includes("berries") || text.includes("mango") || text.includes("peach")) {
+    rows.push({
+      nutrient: "Vitamin C & natural potassium",
+      source: "Fresh gentle fruit",
+      benefit: "Enhances iron absorption, cellular hydration, and gentle digestion"
+    });
+  }
+
+  if (text.includes("spinach") || text.includes("broccoli") || text.includes("pea") || text.includes("zucchini") || text.includes("kale") || text.includes("green")) {
+    rows.push({
+      nutrient: "Folate, calcium & vital phytonutrients",
+      source: "Tender green vegetables",
+      benefit: "Supports bone mineral density and healthy infant growth"
+    });
+  }
+
+  if (text.includes("avocado") || text.includes("oil") || text.includes("butter")) {
+    rows.push({
+      nutrient: "Healthy monounsaturated fatty acids",
+      source: "Cold-pressed oil / avocado",
+      benefit: "Supplies essential dense fats required for rapid infant brain wiring"
+    });
+  }
+
+  if (text.includes("yogurt") || text.includes("ricotta") || text.includes("cheese") || text.includes("cottage")) {
+    rows.push({
+      nutrient: "Calcium & live active cultures",
+      source: "Whole milk yogurt / dairy",
+      benefit: "Builds strong teeth and enamel while cultivating healthy gut bacteria"
+    });
+  }
+
+  if (text.includes("chicken") || text.includes("turkey") || text.includes("beef") || text.includes("lentil") || text.includes("bean")) {
+    rows.push({
+      nutrient: "Heme iron & zinc for motor skills",
+      source: "Poultry / legumes",
+      benefit: "Essential for physical motor milestones and strong immune function"
+    });
+  }
+
+  // Ensure 3 clear rows
+  if (rows.length === 0) {
+    rows.push(
+      {
+        nutrient: "Essential micronutrients & minerals",
+        source: "Fresh wholesome ingredients",
+        benefit: "Powers pediatric cellular growth and vital organ development"
+      },
+      {
+        nutrient: "Natural dietary fiber",
+        source: "Pure plant-based foods",
+        benefit: "Gentle on delicate tummies and encourages healthy microbiome flora"
+      },
+      {
+        nutrient: "Clean infant energy",
+        source: "Balanced macronutrients",
+        benefit: "Provides calm, lasting energy without unnecessary refined additives"
+      }
+    );
+  } else if (rows.length === 1) {
+    rows.push(
+      {
+        nutrient: "Natural dietary fiber",
+        source: "Whole food base",
+        benefit: "Gentle on delicate tummies and encourages smooth infant digestion"
+      },
+      {
+        nutrient: "Essential micronutrients",
+        source: "Fresh ingredients",
+        benefit: "Supports active daytime play and sound restorative sleep"
+      }
+    );
+  } else if (rows.length === 2) {
+    rows.push({
+      nutrient: "Digestive prebiotics & moisture",
+      source: "Natural plant moisture",
+      benefit: "Ensures easy hydration and soft, comfortable bowel movements"
+    });
+  }
+
+  return rows.slice(0, 4);
+}
+
 function generateCustomRecipe(
   allIngredients: string[], 
   targetAge: string,
@@ -456,74 +581,116 @@ export const PantryHelper: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="space-y-5 font-['Times_New_Roman',_Times,_Baskerville,_Georgia,_serif]">
-              {savedRecipes.map((rec) => (
-                <div
-                  key={rec.id}
-                  className="p-6 rounded-[28px] bg-[#FAF8F5] dark:bg-[#141816] border border-[#E2DDCF] dark:border-stone-800 shadow-sm relative overflow-hidden text-stone-900 dark:text-stone-100"
-                >
-                  {/* Subtle blurred background */}
-                  <img
-                    src={appBgBaby}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover filter blur-[8px] opacity-10 dark:opacity-5 pointer-events-none"
-                  />
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between gap-3 border-b border-stone-300/80 dark:border-stone-700/80 pb-3 mb-3">
-                      <div>
-                        <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#1E5E3A] dark:text-emerald-400 block mb-0.5">
-                          {rec.category || "Custom Formulation"} • {rec.ageGroup}
+            <div className="space-y-6 font-sans">
+              {savedRecipes.map((rec) => {
+                const nutBenefits = getNutritionalBenefitsTable(rec);
+                return (
+                  <div
+                    key={rec.id}
+                    className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100"
+                  >
+                    {/* Subtle blurred background */}
+                    <img
+                      src={appBgBaby}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover filter blur-[8px] opacity-10 dark:opacity-5 pointer-events-none"
+                    />
+
+                    <div className="relative z-10">
+                      {/* Top Bar with Category & Delete */}
+                      <div className="flex items-center justify-between gap-3 pb-3 mb-2 border-b border-stone-200/70 dark:border-stone-800">
+                        <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#1E5E3A] dark:text-emerald-400">
+                          {rec.category || "Custom Recipe"} • {rec.ageGroup}
                         </span>
-                        <h3 className="text-xl sm:text-2xl font-normal italic tracking-tight text-stone-900 dark:text-stone-100">
-                          {rec.title}
-                        </h3>
+                        <button
+                          onClick={() => handleDeleteSavedRecipe(rec.id)}
+                          className="p-1.5 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
+                          title="Delete recipe"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleDeleteSavedRecipe(rec.id)}
-                        className="p-2 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
-                        title="Delete recipe"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
 
-                    <p className="text-xs text-stone-600 dark:text-stone-300 mb-4 leading-relaxed font-sans">{rec.description}</p>
+                      {/* Centered Modern Sans-Serif Title */}
+                      <h3 className="text-xl sm:text-2xl font-bold text-center text-[#262626] dark:text-stone-100 mb-5 font-sans tracking-tight">
+                        {rec.title}
+                      </h3>
 
-                    <div className="bg-white/80 dark:bg-stone-800/50 p-3.5 rounded-xl border border-stone-200/80 dark:border-stone-800 mb-3">
-                      <span className="text-xs uppercase tracking-wider font-bold text-stone-800 dark:text-stone-200 block mb-2 font-serif">
-                        Ingredients:
-                      </span>
-                      <ul className="text-xs text-stone-700 dark:text-stone-300 space-y-1 font-sans">
+                      {/* Solid Orange Bar: INGREDIENTS */}
+                      <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                        INGREDIENTS
+                      </div>
+                      <ul className="space-y-2 mb-6 px-1">
                         {rec.ingredients.map((ing, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="text-emerald-700 dark:text-emerald-400 font-bold">•</span>
+                          <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
+                            <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
                             <span>{ing}</span>
                           </li>
                         ))}
                       </ul>
-                    </div>
 
-                    <div className="space-y-2 mb-3">
-                      <span className="text-xs uppercase tracking-wider font-bold text-stone-800 dark:text-stone-200 block font-serif">
-                        Preparation Method:
-                      </span>
-                      {rec.instructions.map((step, idx) => (
-                        <div key={idx} className="flex gap-2.5 text-xs text-stone-700 dark:text-stone-300 font-sans p-2 rounded-lg bg-white/50 dark:bg-stone-800/30 border border-stone-200/50">
-                          <span className="font-serif font-bold text-[#1E5E3A] dark:text-emerald-400 shrink-0">
-                            {["I", "II", "III", "IV", "V", "VI"][idx] || `${idx + 1}.`}
-                          </span>
-                          <span className="leading-relaxed">{step}</span>
-                        </div>
-                      ))}
-                    </div>
+                      {/* Solid Blue Bar: INSTRUCTIONS */}
+                      <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                        INSTRUCTIONS
+                      </div>
+                      <ol className="space-y-3 mb-6 px-1">
+                        {rec.instructions.map((step, idx) => (
+                          <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
+                            <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
+                              {idx + 1}.
+                            </span>
+                            <span className="flex-1">{step}</span>
+                          </li>
+                        ))}
+                      </ol>
 
-                    <div className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 font-sans">
-                      <ShieldCheck className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
-                      <span><strong>Pediatric Guidance:</strong> {rec.safetyTip}</span>
+                      {/* Solid Green Bar: NUTRITIONAL BENEFITS */}
+                      <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                        NUTRITIONAL BENEFITS
+                      </div>
+                      <div className="overflow-x-auto mb-6 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/95 dark:bg-stone-900/90 shadow-2xs">
+                        <table className="w-full text-left text-xs sm:text-sm font-sans">
+                          <thead>
+                            <tr className="bg-emerald-50/70 dark:bg-emerald-950/50 text-[#1E5E3A] dark:text-emerald-300 border-b border-emerald-100 dark:border-emerald-900/40">
+                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Key Nutrient</th>
+                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Primary Source</th>
+                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Pediatric Benefit</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                            {nutBenefits.map((row, idx) => (
+                              <tr key={idx} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-colors">
+                                <td className="py-2.5 px-3 sm:px-4 font-semibold text-stone-800 dark:text-stone-200 text-xs sm:text-sm whitespace-nowrap">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span className="text-[#48B774] font-bold">✓</span>
+                                    <span>{row.nutrient}</span>
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-400 font-medium text-xs sm:text-sm">
+                                  {row.source}
+                                </td>
+                                <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-snug">
+                                  {row.benefit}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Precision Note Callout Box */}
+                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans">
+                        <span className="font-bold text-[#C06014] dark:text-amber-400 not-italic mr-1.5 font-sans">
+                          Precision Note:
+                        </span>
+                        <span className="italic leading-relaxed">
+                          {rec.safetyTip}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -630,25 +797,25 @@ export const PantryHelper: React.FC = () => {
             ))}
           </div>
 
-          {/* GENERATE CUSTOM RECIPE CTA - HIGH-END EDITORIAL REDESIGN */}
+          {/* GENERATE CUSTOM RECIPE CTA - HIGH-END PROFESSIONAL CLEAN DESIGN */}
           {activeIngredients.length > 0 && (
-            <div className="mb-6 p-5 sm:p-6 rounded-[24px] bg-[#FAF8F5] dark:bg-stone-900 border border-[#E2DDCF] dark:border-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden font-['Times_New_Roman',_Times,_Baskerville,_Georgia,_serif]">
+            <div className="mb-6 p-5 sm:p-6 rounded-[24px] bg-[#FAF8F5] dark:bg-stone-900 border border-[#E2DDCF] dark:border-stone-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] relative overflow-hidden font-sans">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex-1">
-                  <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold text-[#1E5E3A] dark:text-emerald-400 block mb-1">
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-bold text-[#1E5E3A] dark:text-emerald-400 block mb-1">
                     Pediatric Culinary Formulation • Stage-Balanced
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-normal italic tracking-tight text-stone-900 dark:text-stone-100">
-                    Compose an Artisanal Recipe With Your Ingredients
+                  <h3 className="text-lg sm:text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+                    Compose a Custom Recipe With Your Ingredients
                   </h3>
-                  <p className="text-xs text-stone-600 dark:text-stone-300 mt-1.5 max-w-lg leading-relaxed font-sans">
+                  <p className="text-xs text-stone-600 dark:text-stone-300 mt-1 max-w-lg leading-relaxed font-sans">
                     Our pediatric kitchen carefully selects 2–4 harmoniously balanced ingredients from your pantry, omitting any incompatible ones for gentle digestion.
                   </p>
                 </div>
                 <Button
                   onClick={() => handleTriggerGenerate(0)}
                   disabled={isGenerating}
-                  className="rounded-full bg-[#1E5E3A] hover:bg-[#15462a] text-white font-['Times_New_Roman',_Times,_serif] uppercase tracking-wider text-xs px-6 h-11 shadow-sm shrink-0 flex items-center gap-2 cursor-pointer transition-all duration-200 hover:shadow-md"
+                  className="rounded-full bg-[#1E5E3A] hover:bg-[#15462a] text-white font-bold uppercase tracking-wider text-xs px-6 h-11 shadow-sm shrink-0 flex items-center gap-2 cursor-pointer transition-all duration-200 hover:shadow-md"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
                   <span>{isGenerating ? "Composing..." : "Compose Custom Recipe"}</span>
@@ -657,141 +824,116 @@ export const PantryHelper: React.FC = () => {
             </div>
           )}
 
-          {/* DISPLAY GENERATED RECIPE CARD - AUTHENTIC LUXURY E-BOOK PAGE FORMAT */}
+          {/* DISPLAY GENERATED RECIPE CARD - MODERN CRISP COLOR-BANDED LAYOUT */}
           {generatedRecipe && (
-            <div className="mb-8 relative overflow-hidden rounded-[28px] sm:rounded-[36px] bg-[#FAF9F5] dark:bg-[#131715] border border-[#E3DDD1] dark:border-stone-800 shadow-[0_16px_50px_-12px_rgba(30,94,58,0.12)] p-6 sm:p-9 font-['Times_New_Roman',_Times,_Baskerville,_Georgia,_serif] text-stone-900 dark:text-stone-100 animate-fade-in">
+            <div className="mb-8 relative overflow-hidden rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.1)] p-5 sm:p-8 font-sans text-stone-900 dark:text-stone-100 animate-fade-in">
               
-              {/* Blurred Baby Background Image (As explicitly requested by user) */}
+              {/* Subtle baby background texture as requested */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
                 <img
                   src={appBgBaby}
                   alt=""
-                  className="w-full h-full object-cover object-center filter blur-[6px] opacity-20 dark:opacity-10 scale-105 transform-gpu transition-opacity"
+                  className="w-full h-full object-cover object-center filter blur-[10px] opacity-[0.06] dark:opacity-[0.03] scale-105 pointer-events-none"
                 />
-                {/* Soft editorial paper gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#FAF9F5]/92 via-[#FAF9F5]/96 to-[#FAF9F5] dark:from-[#131715]/92 dark:via-[#131715]/96 dark:to-[#131715]" />
               </div>
 
-              {/* Folio / Header */}
-              <div className="relative z-10 flex items-center justify-between border-b border-stone-300/80 dark:border-stone-700/80 pb-2.5 mb-5 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-stone-500 dark:text-stone-400">
-                <span>BabyBites Culinary Compendium</span>
-                <span>Custom Edition • {generatedRecipe.ageGroup}</span>
-              </div>
-
-              {/* Title & Introduction */}
-              <div className="relative z-10 mb-5">
-                <span className="inline-block text-[10px] uppercase tracking-[0.2em] font-semibold text-[#1E5E3A] dark:text-emerald-400 mb-1">
-                  Formulated for Infant Digestion
-                </span>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-normal italic tracking-tight text-stone-900 dark:text-stone-50 leading-tight">
+              <div className="relative z-10">
+                {/* Centered Modern Sans-Serif Title (Salmon & Sweet Potato Mini Cakes style) */}
+                <h2 className="text-xl sm:text-2xl font-bold text-center text-[#262626] dark:text-stone-100 mb-6 font-sans tracking-tight">
                   {generatedRecipe.title}
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mt-2 leading-relaxed font-sans max-w-xl">
-                  {generatedRecipe.description}
-                </p>
-              </div>
 
-              {/* Editorial Metadata Ribbon (Prep, Cook, Yield) */}
-              <div className="relative z-10 grid grid-cols-3 gap-2 py-3 px-4 rounded-xl bg-white/70 dark:bg-stone-800/60 backdrop-blur-xs border border-stone-200/80 dark:border-stone-700/80 mb-6 text-center">
-                <div>
-                  <span className="block text-[9px] uppercase tracking-widest text-stone-400 font-sans font-semibold">Prep Time</span>
-                  <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">{generatedRecipe.prepTime}</span>
+                {/* SOLID ORANGE BAR: INGREDIENTS */}
+                <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                  INGREDIENTS
                 </div>
-                <div className="border-x border-stone-200/80 dark:border-stone-700/80">
-                  <span className="block text-[9px] uppercase tracking-widest text-stone-400 font-sans font-semibold">Cook Time</span>
-                  <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">{generatedRecipe.cookTime}</span>
-                </div>
-                <div>
-                  <span className="block text-[9px] uppercase tracking-widest text-stone-400 font-sans font-semibold">Portions</span>
-                  <span className="text-xs sm:text-sm font-bold text-stone-800 dark:text-stone-200">{generatedRecipe.servings}</span>
-                </div>
-              </div>
-
-              {/* Intelligent Flavor & Pediatric Pairing */}
-              <div className="relative z-10 p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 mb-6 text-xs text-stone-700 dark:text-stone-300">
-                <div className="flex items-center gap-1.5 text-[#1E5E3A] dark:text-emerald-300 font-bold uppercase tracking-wider text-[10px] mb-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>Harmonious Clinical Pairing Analysis:</span>
-                </div>
-                <p className="leading-relaxed font-sans">{generatedRecipe.pairingExplanation}</p>
-                {generatedRecipe.unusedIngredients.length > 0 && (
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1.5 italic font-sans">
-                    Excluded pantry items: {generatedRecipe.unusedIngredients.join(", ")} — intentionally reserved to keep flavor clean and gentle on baby’s palate.
-                  </p>
-                )}
-              </div>
-
-              {/* Ingredients Section */}
-              <div className="relative z-10 mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <h4 className="text-xs uppercase tracking-[0.2em] font-bold text-stone-800 dark:text-stone-200">
-                    Ingredients
-                  </h4>
-                  <div className="flex-1 h-px bg-stone-300/80 dark:bg-stone-700/80" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <ul className="space-y-2 mb-6 px-1">
                   {generatedRecipe.ingredients.map((ing, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-stone-800 dark:text-stone-200 p-2.5 rounded-xl bg-white/70 dark:bg-stone-800/50 border border-stone-200/60 dark:border-stone-800">
-                      <span className="text-emerald-700 dark:text-emerald-400 font-bold shrink-0">•</span>
-                      <span className="font-sans leading-relaxed">{ing}</span>
-                    </div>
+                    <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
+                      <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
+                      <span>{ing}</span>
+                    </li>
                   ))}
-                </div>
-              </div>
+                </ul>
 
-              {/* Step-by-Step Preparation Method */}
-              <div className="relative z-10 mb-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <h4 className="text-xs uppercase tracking-[0.2em] font-bold text-stone-800 dark:text-stone-200">
-                    Preparation & Method
-                  </h4>
-                  <div className="flex-1 h-px bg-stone-300/80 dark:bg-stone-700/80" />
+                {/* SOLID VIBRANT BLUE BAR: INSTRUCTIONS */}
+                <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                  INSTRUCTIONS
                 </div>
-                <div className="space-y-2.5">
+                <ol className="space-y-3 mb-6 px-1">
                   {generatedRecipe.instructions.map((step, idx) => (
-                    <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white/70 dark:bg-stone-800/50 border border-stone-200/60 dark:border-stone-800 text-xs text-stone-800 dark:text-stone-200">
-                      <span className="font-serif font-bold text-sm text-[#1E5E3A] dark:text-emerald-400 shrink-0">
-                        {["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][idx] || `${idx + 1}.`}
+                    <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
+                      <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
+                        {idx + 1}.
                       </span>
-                      <span className="font-sans leading-relaxed pt-0.5">{step}</span>
-                    </div>
+                      <span className="flex-1">{step}</span>
+                    </li>
                   ))}
+                </ol>
+
+                {/* SOLID FRESH GREEN BAR: NUTRITIONAL BENEFITS */}
+                <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                  NUTRITIONAL BENEFITS
                 </div>
-              </div>
 
-              {/* Pediatric Consistency & Safety Note */}
-              <div className="relative z-10 p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 text-xs text-amber-900 dark:text-amber-200 mb-6 flex items-start gap-3">
-                <ShieldCheck className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="block text-[10px] uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-0.5">
-                    Clinical Pediatric Guidance:
-                  </strong>
-                  <span className="text-[11px] font-sans leading-relaxed">{generatedRecipe.safetyTip}</span>
+                {/* RESPONSIVE TABLE FORMAT FOR NUTRITIONAL BENEFITS */}
+                <div className="overflow-x-auto mb-6 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/95 dark:bg-stone-900/90 shadow-2xs">
+                  <table className="w-full text-left text-xs sm:text-sm font-sans">
+                    <thead>
+                      <tr className="bg-emerald-50/70 dark:bg-emerald-950/50 text-[#1E5E3A] dark:text-emerald-300 border-b border-emerald-100 dark:border-emerald-900/40">
+                        <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Key Nutrient</th>
+                        <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Primary Source</th>
+                        <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Pediatric Benefit</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                      {getNutritionalBenefitsTable(generatedRecipe).map((row, idx) => (
+                        <tr key={idx} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-colors">
+                          <td className="py-2.5 px-3 sm:px-4 font-semibold text-stone-800 dark:text-stone-200 text-xs sm:text-sm whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="text-[#48B774] font-bold">✓</span>
+                              <span>{row.nutrient}</span>
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-400 font-medium text-xs sm:text-sm">
+                            {row.source}
+                          </td>
+                          <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-snug">
+                            {row.benefit}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
 
-              {/* Book Page Footer (Folio & Actions) */}
-              <div className="relative z-10 pt-4 border-t border-stone-300/80 dark:border-stone-700/80 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span className="text-[10px] text-stone-400 font-serif italic">
-                  — Page Folio • BabyBites Personalized Recipe Book —
-                </span>
+                {/* CREAM CALLOUT BOX WITH DASHED BORDER: Precision Note */}
+                <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans mb-6">
+                  <span className="font-bold text-[#C06014] dark:text-amber-400 not-italic mr-1.5 font-sans">
+                    Precision Note:
+                  </span>
+                  <span className="italic leading-relaxed">
+                    {generatedRecipe.safetyTip}
+                  </span>
+                </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                {/* Action Buttons */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 font-sans">
                   {activeIngredients.length > 3 && (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleTriggerGenerate(variationCount + 1)}
-                      className="rounded-full text-xs h-9 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-forest font-serif cursor-pointer"
+                      className="w-full sm:w-auto rounded-full text-xs h-10 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-forest cursor-pointer"
                     >
-                      <RefreshCw className="w-3 h-3 mr-1.5" />
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
                       Try Another Variation
                     </Button>
                   )}
 
                   <Button
                     onClick={() => handleSaveRecipe(generatedRecipe)}
-                    className={`flex-1 sm:flex-initial rounded-full text-xs font-serif uppercase tracking-wider px-5 h-9 shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
+                    className={`w-full sm:w-auto rounded-full text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
                       isCurrentGeneratedSaved
                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200 cursor-default"
                         : "bg-[#1E5E3A] hover:bg-[#16482c] text-white"
