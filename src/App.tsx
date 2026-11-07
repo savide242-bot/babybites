@@ -24,6 +24,8 @@ import BirthdayCelebrationModal from "@/components/BirthdayCelebrationModal";
 import BottomNavigation from "@/components/BottomNavigation";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
+import { LiveVisualInspector } from "@/components/admin/LiveVisualInspector";
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 import { Skeleton } from "@/components/ui/skeleton";
 import SmartInstallBanner from "@/components/SmartInstallBanner";
 import { BadgeCelebrationModal } from "@/components/gamification/BadgeCelebrationModal";
@@ -98,6 +100,8 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F5] dark:bg-[#0f1411] text-stone-900 dark:text-stone-100 w-full max-w-full overflow-x-hidden min-w-0 transition-colors duration-200">
+      <AtmosphericBackground />
+      <LiveVisualInspector />
       <AdminPreviewBanner />
       {!isFullscreenRoute && <Header />}
       {!isFullscreenRoute && <BottomNavigation />}

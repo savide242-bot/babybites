@@ -13,7 +13,8 @@ import VideoRecipeManager from '@/components/admin/VideoRecipeManager';
 import FinancialManagement from '@/components/admin/FinancialManagement';
 import { RecipeManagement } from '@/components/admin/RecipeManagement';
 import AdminRecipeImages from '@/pages/AdminRecipeImages';
-import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink, DollarSign, UtensilsCrossed, Image as ImageIcon } from 'lucide-react';
+import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink, DollarSign, UtensilsCrossed, Image as ImageIcon, Palette } from 'lucide-react';
+import { ThemeManagement } from '@/components/admin/ThemeManagement';
 
 const PREVIEW_URL = 'https://id-preview--c5922e44-641f-47eb-8afc-e9b38124e2b3.lovable.app';
 
@@ -52,7 +53,11 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 h-auto overflow-x-auto min-w-0">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 h-auto overflow-x-auto min-w-0">
+          <TabsTrigger value="theme" className="flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 data-[state=active]:from-emerald-500 data-[state=active]:text-white">
+            <Palette className="h-4 w-4 text-emerald-600 dark:text-emerald-400 group-data-[state=active]:text-white" />
+            <span className="font-semibold">Visual Theme</span>
+          </TabsTrigger>
           <TabsTrigger value="recipes" className="flex items-center gap-2">
             <UtensilsCrossed className="h-4 w-4" />
             <span className="hidden sm:inline">Recipes</span>
@@ -95,6 +100,7 @@ const Admin = () => {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="theme" className="mt-6"><ThemeManagement /></TabsContent>
         <TabsContent value="recipes" className="mt-6"><RecipeManagement /></TabsContent>
         <TabsContent value="images" className="mt-6"><AdminRecipeImages /></TabsContent>
         <TabsContent value="dashboard" className="mt-6"><AdminDashboard /></TabsContent>
