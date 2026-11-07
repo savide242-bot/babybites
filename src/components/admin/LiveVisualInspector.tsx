@@ -135,19 +135,19 @@ export const LiveVisualInspector: React.FC = () => {
 
       if (isCard) {
         kind = "card";
-        label = `📦 Fundo Card (${hasVisibleBg ? "Fundo Branco/Cor" : "Container"})`;
+        label = `📦 Card Background (${hasVisibleBg ? "Filled" : "Container"})`;
       } else if (isHeader) {
         kind = "header";
-        label = `🧭 Cabeçalho / Barra`;
+        label = `🧭 Header / Bar`;
       } else if (isButton) {
         kind = "button";
-        label = `🔘 Botão`;
+        label = `🔘 Button`;
       } else if (isText) {
         kind = "text";
-        label = `🔤 Texto (${tagName.toUpperCase()})`;
+        label = `🔤 Text (${tagName.toUpperCase()})`;
       } else {
         kind = "container";
-        label = `📄 Bloco / Camada (${tagName})`;
+        label = `📄 Container (${tagName})`;
       }
 
       // Generate precise and global selectors
@@ -306,7 +306,7 @@ export const LiveVisualInspector: React.FC = () => {
       currentLayer.element.style.outline = "";
     }
 
-    toast.success(`🎉 Cor aplicada com sucesso para ${currentLayer.label}! Sincronizado para todos os usuários.`);
+    toast.success(`🎉 Color applied successfully for ${currentLayer.label}! Synced across all users.`);
     setLayers([]);
   };
 
@@ -329,7 +329,7 @@ export const LiveVisualInspector: React.FC = () => {
     if (currentLayer) {
       const targetSelector = applyGlobally ? currentLayer.globalSelector : currentLayer.selector;
       removeElementStyle(targetSelector);
-      toast.info(`Estilo personalizado removido.`);
+      toast.info(`Custom style removed.`);
     }
     handleCancel();
   };
@@ -351,7 +351,7 @@ export const LiveVisualInspector: React.FC = () => {
         <div className="flex items-center gap-2">
           <span className={`w-2.5 h-2.5 rounded-full ${settings.isInspectorActive ? "bg-emerald-400 animate-pulse" : "bg-stone-500"}`} />
           <span className="text-xs font-bold tracking-tight">
-            {settings.isInspectorActive ? "Inspector Ativo" : "Inspetor Visual"}
+            {settings.isInspectorActive ? "Inspector Active" : "Visual Inspector"}
           </span>
         </div>
 
@@ -363,14 +363,14 @@ export const LiveVisualInspector: React.FC = () => {
               : "bg-white/10 hover:bg-white/20 text-white"
           }`}
         >
-          {settings.isInspectorActive ? "Encerrar Inspeção" : "Toque p/ Editar"}
+          {settings.isInspectorActive ? "Exit Inspector" : "Tap to Edit"}
         </button>
 
         {settings.isInspectorActive && (
           <button
             onClick={() => setIsMinimized(!isMinimized)}
             className="w-6 h-6 rounded-full hover:bg-white/10 text-stone-400 flex items-center justify-center text-xs"
-            title={isMinimized ? "Expandir" : "Minimizar"}
+            title={isMinimized ? "Expand" : "Minimize"}
           >
             {isMinimized ? "+" : "−"}
           </button>
@@ -389,12 +389,12 @@ export const LiveVisualInspector: React.FC = () => {
               </div>
               <div>
                 <h4 className="text-xs font-bold text-stone-100 flex items-center gap-1.5">
-                  Inspetor de Camadas
+                  Layer Inspector
                   <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">
-                    {layers.length} camadas
+                    {layers.length} layers
                   </span>
                 </h4>
-                <p className="text-[10px] text-stone-400">Escolha a camada e veja o preview instantâneo</p>
+                <p className="text-[10px] text-stone-400">Select layer for instant live preview</p>
               </div>
             </div>
             <button
@@ -405,11 +405,11 @@ export const LiveVisualInspector: React.FC = () => {
             </button>
           </div>
 
-          {/* CAMADA POR CAMADA (Layer Selection Stack) */}
+          {/* Layer Selection Stack */}
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider flex items-center gap-1">
               <Layers className="w-3 h-3 text-emerald-400" />
-              Selecione a Camada que Deseja Alterar:
+              Select Layer to Customize:
             </span>
             <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-1">
               {layers.map((layer, idx) => {
@@ -432,7 +432,7 @@ export const LiveVisualInspector: React.FC = () => {
                       <span 
                         className="w-3.5 h-3.5 rounded-full border border-white/30 shrink-0" 
                         style={{ backgroundColor: layer.computedBg }}
-                        title={`Cor atual: ${layer.computedBg}`}
+                        title={`Current color: ${layer.computedBg}`}
                       />
                       {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
                     </div>
@@ -446,7 +446,7 @@ export const LiveVisualInspector: React.FC = () => {
           <div className="flex items-center justify-between bg-white/5 rounded-xl p-2 border border-white/5">
             <span className="text-[11px] text-stone-300 flex items-center gap-1.5">
               {applyGlobally ? <Globe className="w-3.5 h-3.5 text-emerald-400" /> : <Focus className="w-3.5 h-3.5 text-amber-400" />}
-              {applyGlobally ? "Aplicar em todos cards iguais do app" : "Aplicar só neste elemento"}
+              {applyGlobally ? "Apply to all matching elements" : "Apply only to this element"}
             </span>
             <button
               onClick={() => {
@@ -458,7 +458,7 @@ export const LiveVisualInspector: React.FC = () => {
               }}
               className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-stone-200 transition-colors"
             >
-              {applyGlobally ? "Mudar p/ Único" : "Mudar p/ Global"}
+              {applyGlobally ? "Switch to Single" : "Switch to Global"}
             </button>
           </div>
 
@@ -466,7 +466,7 @@ export const LiveVisualInspector: React.FC = () => {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                Toque na Cor para Visualizar no App:
+                Tap a Color for Instant Live Preview:
               </span>
               <span className="text-[10px] text-emerald-400 font-mono font-medium">
                 {previewBg || "Original"}
@@ -494,7 +494,7 @@ export const LiveVisualInspector: React.FC = () => {
 
           {/* Custom Hex Picker Input */}
           <div className="flex items-center gap-2 pt-1 border-t border-white/10">
-            <span className="text-[10px] text-stone-400 font-medium">Ou cor livre:</span>
+            <span className="text-[10px] text-stone-400 font-medium">Custom Hex:</span>
             <input
               type="color"
               value={customHex.startsWith("#") ? customHex : "#FFFFFF"}
@@ -524,7 +524,7 @@ export const LiveVisualInspector: React.FC = () => {
               className="h-8 text-xs border-white/15 text-stone-300 hover:bg-white/10 hover:text-white"
             >
               <RotateCcw className="w-3 h-3 mr-1" />
-              Restaurar
+              Reset
             </Button>
             <Button
               size="sm"
@@ -532,7 +532,7 @@ export const LiveVisualInspector: React.FC = () => {
               onClick={handleCancel}
               className="h-8 text-xs text-stone-400 hover:bg-white/10 hover:text-white"
             >
-              Cancelar
+              Cancel
             </Button>
             <Button
               size="sm"
@@ -540,7 +540,7 @@ export const LiveVisualInspector: React.FC = () => {
               className="h-8 text-xs bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold shadow-md gap-1"
             >
               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-              Salvar
+              Save
             </Button>
           </div>
 

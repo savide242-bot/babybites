@@ -52,47 +52,52 @@ export const DayCard = ({
   return (
     <div className="rounded-[28px] bg-white border border-[#EBE8DF] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden mb-5 transition-all">
       {/* Day Header */}
-      <div className="p-4 px-5 flex items-center justify-between border-b border-[#F5F3EC] bg-white">
+      <div className="p-3.5 sm:p-4 px-4 sm:px-5 flex items-center justify-between border-b border-[#F5F3EC] dark:border-stone-800 bg-white dark:bg-stone-900">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#EAF5EE] border border-[#CCE0D2] flex items-center justify-center font-serif font-bold text-forest text-sm">
-            {day.slice(0, 2)}
+          <div className="w-10 h-10 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 flex flex-col items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+            <span className="text-[9px] font-black uppercase tracking-wider bg-rose-500 text-white w-full text-center py-0.5 leading-none">
+              {day.slice(0, 3)}
+            </span>
+            <span className="font-bold text-stone-800 dark:text-stone-200 text-xs py-0.5 leading-none">
+              {dayIndex + 1}
+            </span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-serif font-bold text-gray-900 text-lg leading-tight">
+              <h3 className="font-serif font-bold text-gray-900 dark:text-stone-100 text-lg leading-tight">
                 {day}
               </h3>
               {isComplete && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#48B774] bg-[#EAF5EE] px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#48B774] bg-[#EAF5EE] dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
                   <CheckCircle2 className="w-3 h-3" /> All Done
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-gray-400 dark:text-stone-500">
               {plannedMeals}/4 meals planned • {preparedMeals} prepared
             </p>
           </div>
         </div>
 
         {/* Day Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={onCopyDay}
             title="Copy meals to another day"
-            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-stone-200 transition-colors"
           >
-            <Copy className="w-3.5 h-3.5" />
+            <Copy className="w-4 h-4" />
           </button>
           <button
             onClick={onClearDay}
             title="Clear day plan"
-            className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4 text-rose-500" />
           </button>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-stone-800 flex items-center justify-center text-gray-500 transition-colors"
           >
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
