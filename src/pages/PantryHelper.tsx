@@ -588,16 +588,15 @@ export const PantryHelper: React.FC = () => {
                 return (
                   <div
                     key={rec.id}
-                    className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white/95 dark:bg-[#161a18]/95 border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100"
+                    className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100"
                   >
-                    {/* Baby background image with 35% opacity as requested */}
+                    {/* Baby background image - crisp and clearly visible without milky fog */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
                       <img
                         src={customRecipeBgBaby}
                         alt=""
-                        className="w-full h-full object-cover object-center filter blur-[1px] opacity-35 dark:opacity-20 scale-105 pointer-events-none"
+                        className="w-full h-full object-cover object-center opacity-25 dark:opacity-15 pointer-events-none"
                       />
-                      <div className="absolute inset-0 bg-white/55 dark:bg-black/55 pointer-events-none" />
                     </div>
 
                     <div className="relative z-10">
@@ -621,32 +620,36 @@ export const PantryHelper: React.FC = () => {
                       </h3>
 
                       {/* Solid Orange Bar: INGREDIENTS */}
-                      <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                      <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
                         INGREDIENTS
                       </div>
-                      <ul className="space-y-2 mb-6 px-1">
-                        {rec.ingredients.map((ing, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
-                            <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
-                            <span>{ing}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
+                        <ul className="space-y-2 px-0.5">
+                          {rec.ingredients.map((ing, i) => (
+                            <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
+                              <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
+                              <span>{ing}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
                       {/* Solid Blue Bar: INSTRUCTIONS */}
-                      <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                      <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
                         INSTRUCTIONS
                       </div>
-                      <ol className="space-y-3 mb-6 px-1">
-                        {rec.instructions.map((step, idx) => (
-                          <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
-                            <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
-                              {idx + 1}.
-                            </span>
-                            <span className="flex-1">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
+                      <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
+                        <ol className="space-y-3 px-0.5">
+                          {rec.instructions.map((step, idx) => (
+                            <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
+                              <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
+                                {idx + 1}.
+                              </span>
+                              <span className="flex-1">{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
 
                       {/* Solid Green Bar: NUTRITIONAL BENEFITS */}
                       <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
@@ -830,16 +833,15 @@ export const PantryHelper: React.FC = () => {
 
           {/* DISPLAY GENERATED RECIPE CARD - MODERN CRISP COLOR-BANDED LAYOUT */}
           {generatedRecipe && (
-            <div className="mb-8 relative overflow-hidden rounded-[24px] sm:rounded-[30px] bg-white/95 dark:bg-[#161a18]/95 border border-[#EBE3D5] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.1)] p-5 sm:p-8 font-sans text-stone-900 dark:text-stone-100 animate-fade-in">
+            <div className="mb-8 relative overflow-hidden rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.1)] p-5 sm:p-8 font-sans text-stone-900 dark:text-stone-100 animate-fade-in">
               
-              {/* Baby background image with 35% opacity as requested */}
+              {/* Baby background image - crisp and clearly visible without milky fog */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
                 <img
                   src={customRecipeBgBaby}
                   alt=""
-                  className="w-full h-full object-cover object-center filter blur-[1px] opacity-35 dark:opacity-20 scale-105 pointer-events-none"
+                  className="w-full h-full object-cover object-center opacity-25 dark:opacity-15 pointer-events-none"
                 />
-                <div className="absolute inset-0 bg-white/55 dark:bg-black/55 pointer-events-none" />
               </div>
 
               <div className="relative z-10">
@@ -849,32 +851,36 @@ export const PantryHelper: React.FC = () => {
                 </h2>
 
                 {/* SOLID ORANGE BAR: INGREDIENTS */}
-                <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
                   INGREDIENTS
                 </div>
-                <ul className="space-y-2 mb-6 px-1">
-                  {generatedRecipe.ingredients.map((ing, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
-                      <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
-                      <span>{ing}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
+                  <ul className="space-y-2 px-0.5">
+                    {generatedRecipe.ingredients.map((ing, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
+                        <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
+                        <span>{ing}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 {/* SOLID VIBRANT BLUE BAR: INSTRUCTIONS */}
-                <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
+                <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
                   INSTRUCTIONS
                 </div>
-                <ol className="space-y-3 mb-6 px-1">
-                  {generatedRecipe.instructions.map((step, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#404040] dark:text-stone-300 font-sans leading-relaxed">
-                      <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
-                        {idx + 1}.
-                      </span>
-                      <span className="flex-1">{step}</span>
-                    </li>
-                  ))}
-                </ol>
+                <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
+                  <ol className="space-y-3 px-0.5">
+                    {generatedRecipe.instructions.map((step, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
+                        <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
+                          {idx + 1}.
+                        </span>
+                        <span className="flex-1">{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
 
                 {/* SOLID FRESH GREEN BAR: NUTRITIONAL BENEFITS */}
                 <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
