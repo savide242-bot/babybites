@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "BabyBites <onboarding@resend.dev>";
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "BabyBites <access@app.babybites.space>";
     const body: EmailPayload = await req.json();
 
     const {
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       message = "Here is an update on your baby's feeding journey.",
       babyName = "your baby",
       template = "welcome",
-      actionUrl = "https://babybites.app",
+      actionUrl = "https://app.babybites.space",
       actionText = "Open BabyBites",
     } = body;
 

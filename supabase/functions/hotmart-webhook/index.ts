@@ -325,8 +325,8 @@ Deno.serve(async (req) => {
     let emailSent = false;
     let emailError: string | null = null;
 
-    const appUrl = Deno.env.get("APP_URL") || "https://babybites.app";
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "BabyBites <onboarding@resend.dev>";
+    const appUrl = Deno.env.get("APP_URL") || "https://app.babybites.space";
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "BabyBites <access@app.babybites.space>";
 
     if (resendApiKey) {
       const emailHtml = `
