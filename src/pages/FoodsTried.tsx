@@ -1,3 +1,4 @@
+import { useBabyProfiles } from "@/hooks/useBabyProfiles";
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -151,27 +152,32 @@ const DEFAULT_100_FOODS: FoodItem[] = [
 const STORAGE_KEY = "babybites_100_foods_v3";
 
 export const FoodsTried: React.FC = () => {
+  const { activeBaby } = useBabyProfiles();
+  const babyKey = activeBaby?.id ? `${STORAGE_KEY}_${activeBaby.id}` : STORAGE_KEY;
+
   const [foods, setFoods] = useState<FoodItem[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(babyKey) || localStorage.getItem(STORAGE_KEY);
       if (saved) return JSON.parse(saved);
-
-      // Check legacy storage and clean any mock data
-      const legacy = localStorage.getItem("babybites_100_foods");
-      if (legacy) {
-        const parsed: FoodItem[] = JSON.parse(legacy);
-        const hasLegacyMock = parsed.some(f => f.triedDate === "2026-10-12" || f.notes === "Loved it instantly!");
-        if (hasLegacyMock) {
-          localStorage.removeItem("babybites_100_foods");
-          return DEFAULT_100_FOODS;
-        }
-        return parsed;
-      }
       return DEFAULT_100_FOODS;
     } catch {
       return DEFAULT_100_FOODS;
     }
   });
+
+  // Reload when switching babies
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(babyKey);
+      if (saved) {
+        setFoods(JSON.parse(saved));
+      } else {
+        setFoods(DEFAULT_100_FOODS);
+      }
+    } catch {
+      setFoods(DEFAULT_100_FOODS);
+    }
+  }, [babyKey]);
 
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -186,7 +192,7 @@ export const FoodsTried: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(foods));
+      localStorage.setItem(babyKey, JSON.stringify(foods));
     } catch (e) {
       console.error(e);
     }

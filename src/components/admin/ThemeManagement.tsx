@@ -1,3 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
+import { compressImageToWebP } from "@/utils/imageCompressor";
+import { extractStoragePathFromUrl } from "@/services/adminRecipeService";
 import React, { useState } from "react";
 import { useVisualTheme } from "@/hooks/useVisualTheme";
 import { 
@@ -57,8 +60,10 @@ export const ThemeManagement: React.FC = () => {
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [selectedTabPath, setSelectedTabPath] = useState(CORE_TABS[0].path);
 
-  // File upload handler for background photo
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File upload handler for background photo with WebP compression & storage cleanup
+  const [isUploadingWallpaper, setIsUploadingWallpaper] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -67,15 +72,65 @@ export const ThemeManagement: React.FC = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      if (result) {
-        setWallpaper(result);
-        toast.success("🎉 New background image uploaded and applied!");
+    setIsUploadingWallpaper(true);
+    const toastId = toast.loading("Compressing wallpaper to WebP and uploading to cloud...");
+
+    try {
+      // 1. Compress image to WebP
+      const compressed = await compressImageToWebP(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.85,
+      });
+
+      const timestamp = Date.now();
+      const storagePath = `wallpapers/app_wallpaper_${timestamp}.webp`;
+
+      // 2. Upload to Supabase Storage 'recipe-images' bucket
+      const { error: uploadError } = await supabase.storage
+        .from("recipe-images")
+        .upload(storagePath, compressed.file, {
+          contentType: "image/webp",
+          upsert: true,
+          cacheControl: "31536000",
+        });
+
+      let finalUrl = compressed.dataUrl;
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from("recipe-images")
+          .getPublicUrl(storagePath);
+        if (urlData?.publicUrl) {
+          finalUrl = urlData.publicUrl;
+        }
+
+        // 3. Clean up previous wallpaper from storage to prevent overloading
+        if (settings.wallpaperUrl) {
+          const oldPath = extractStoragePathFromUrl(settings.wallpaperUrl);
+          if (oldPath && oldPath.startsWith("wallpapers/")) {
+            try {
+              await supabase.storage.from("recipe-images").remove([oldPath]);
+              console.log("🗑️ Cleaned up previous wallpaper:", oldPath);
+            } catch (err) {
+              console.warn("Could not delete old wallpaper:", err);
+            }
+          }
+        }
       }
-    };
-    reader.readAsDataURL(file);
+
+      setWallpaper(finalUrl);
+      toast.dismiss(toastId);
+      toast.success("🎉 New background image uploaded and applied to all users!");
+    } catch (err: any) {
+      console.error("Wallpaper upload error:", err);
+      toast.dismiss(toastId);
+      toast.error("Failed to upload background: " + (err.message || "Unknown error"));
+    } finally {
+      setIsUploadingWallpaper(false);
+      // Reset input
+      e.target.value = "";
+    }
   };
 
   const handleApplyUrl = () => {

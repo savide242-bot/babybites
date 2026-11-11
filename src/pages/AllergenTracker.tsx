@@ -1,3 +1,4 @@
+import { useBabyProfiles } from "@/hooks/useBabyProfiles";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -136,24 +137,14 @@ const INITIAL_ALLERGENS: AllergenItem[] = [
 ];
 
 export const AllergenTracker: React.FC = () => {
+  const { activeBaby } = useBabyProfiles();
+  const babyKey = activeBaby?.id ? `babybites_allergens_v2_${activeBaby.id}` : "babybites_allergens_v2";
+
   const [allergens, setAllergens] = useState<AllergenItem[]>(() => {
-    const saved = localStorage.getItem("babybites_allergens_v2");
+    const saved = localStorage.getItem(babyKey) || localStorage.getItem("babybites_allergens_v2");
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {
-        return INITIAL_ALLERGENS;
-      }
-    }
-    // Fallback to legacy key if available
-    const legacy = localStorage.getItem("babybites_allergens");
-    if (legacy) {
-      try {
-        const parsed = JSON.parse(legacy);
-        return INITIAL_ALLERGENS.map((item) => {
-          const matched = parsed.find((p: any) => p.id === item.id);
-          return matched ? { ...item, status: matched.status, lastTestedDate: matched.testDate } : item;
-        });
       } catch (e) {
         return INITIAL_ALLERGENS;
       }
@@ -164,9 +155,23 @@ export const AllergenTracker: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<"all" | "tolerated" | "testing" | "pending">("all");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
+  // Reload when switching babies
   useEffect(() => {
-    localStorage.setItem("babybites_allergens_v2", JSON.stringify(allergens));
-  }, [allergens]);
+    const saved = localStorage.getItem(babyKey);
+    if (saved) {
+      try {
+        setAllergens(JSON.parse(saved));
+      } catch {
+        setAllergens(INITIAL_ALLERGENS);
+      }
+    } else {
+      setAllergens(INITIAL_ALLERGENS);
+    }
+  }, [babyKey]);
+
+  useEffect(() => {
+    localStorage.setItem(babyKey, JSON.stringify(allergens));
+  }, [allergens, babyKey]);
 
   const updateItemStatus = (id: string, status: AllergenItem["status"], testDay?: 1 | 2 | 3) => {
     setAllergens((prev) =>

@@ -40,9 +40,16 @@ import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground
 const STORAGE_KEY_PERSONALIZED = "babybites_persisted_personalized_plan_v4";
 const STORAGE_KEY_CUSTOM = "babybites_persisted_custom_plan_v4";
 
-const loadCachedPlan = (type: "personalized" | "custom"): MealPlan | null => {
+const getMealPlanStorageKey = (type: "personalized" | "custom", uid?: string | null, babyId?: string | null) => {
+  const base = type === "personalized" ? STORAGE_KEY_PERSONALIZED : STORAGE_KEY_CUSTOM;
+  if (!uid && !babyId) return base;
+  return `${base}_${uid || "guest"}_${babyId || "default"}`;
+};
+
+const loadCachedPlan = (type: "personalized" | "custom", uid?: string | null, babyId?: string | null): MealPlan | null => {
   try {
-    const raw = localStorage.getItem(type === "personalized" ? STORAGE_KEY_PERSONALIZED : STORAGE_KEY_CUSTOM);
+    const key = getMealPlanStorageKey(type, uid, babyId);
+    const raw = localStorage.getItem(key) || (!uid ? localStorage.getItem(type === "personalized" ? STORAGE_KEY_PERSONALIZED : STORAGE_KEY_CUSTOM) : null);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object" && Object.keys(parsed).length > 0) {
@@ -55,13 +62,11 @@ const loadCachedPlan = (type: "personalized" | "custom"): MealPlan | null => {
   return null;
 };
 
-const persistPlanLocal = (type: "personalized" | "custom", plan: MealPlan) => {
+const persistPlanLocal = (type: "personalized" | "custom", plan: MealPlan, uid?: string | null, babyId?: string | null) => {
   try {
     if (plan && Object.keys(plan).length > 0) {
-      localStorage.setItem(
-        type === "personalized" ? STORAGE_KEY_PERSONALIZED : STORAGE_KEY_CUSTOM,
-        JSON.stringify(plan)
-      );
+      const key = getMealPlanStorageKey(type, uid, babyId);
+      localStorage.setItem(key, JSON.stringify(plan));
     }
   } catch (e) {
     console.warn("Failed to persist plan to localStorage:", e);
@@ -149,8 +154,8 @@ const MealPlanner = () => {
     setCurrentWeekStart(weekStart);
 
     // 1. Instantly restore from localStorage (0ms loading delay, never wiped!)
-    const cachedPerso = loadCachedPlan("personalized");
-    const cachedCust = loadCachedPlan("custom");
+    const cachedPerso = loadCachedPlan("personalized", uid, activeBaby?.id);
+    const cachedCust = loadCachedPlan("custom", uid, activeBaby?.id);
 
     if (cachedPerso && Object.keys(cachedPerso).length > 0) {
       setPersonalizedPlan(cachedPerso);
@@ -200,13 +205,13 @@ const MealPlanner = () => {
           setPersonalizedPlan(persoPlan);
           setHasPersonalizedPlan(true);
           setPersonalizedPlanAccepted(true);
-          persistPlanLocal("personalized", persoPlan);
+          persistPlanLocal("personalized", persoPlan, uid, activeBaby?.id);
         }
 
         if (Object.keys(custPlan).length > 0) {
           setCustomPlan(custPlan);
           setHasCustomPlan(true);
-          persistPlanLocal("custom", custPlan);
+          persistPlanLocal("custom", custPlan, uid, activeBaby?.id);
         }
 
         setActiveTab(Object.keys(persoPlan).length > 0 ? "auto" : "manual");
@@ -295,7 +300,7 @@ const MealPlanner = () => {
       setIsGenerating(false);
 
       // PERSIST IMMEDIATELY TO LOCALSTORAGE
-      persistPlanLocal("personalized", generated);
+      persistPlanLocal("personalized", generated, userId, activeBaby?.id);
 
       // Auto-save in background to Supabase if logged in
       if (userId) {
@@ -336,7 +341,7 @@ const MealPlanner = () => {
     };
 
     setPersonalizedPlan(updatedPlan);
-    persistPlanLocal("personalized", updatedPlan);
+    persistPlanLocal("personalized", updatedPlan, userId, activeBaby?.id);
 
     if (slot.dbId) {
       try {

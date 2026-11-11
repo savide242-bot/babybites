@@ -69,6 +69,21 @@ export const convertToWebP = (file: File, maxDimension = 1200, quality = 0.85): 
   });
 };
 
+// Helper to extract storage path from full Supabase URL or raw path
+export const extractStoragePathFromUrl = (urlOrPath?: string): string | undefined => {
+  if (!urlOrPath || typeof urlOrPath !== "string") return undefined;
+  if (urlOrPath.startsWith("recipes/") || urlOrPath.startsWith("wallpapers/")) {
+    return urlOrPath;
+  }
+  if (urlOrPath.includes("/recipe-images/")) {
+    const parts = urlOrPath.split("/recipe-images/");
+    if (parts[1]) {
+      return decodeURIComponent(parts[1].split("?")[0]);
+    }
+  }
+  return undefined;
+};
+
 // Upload image to Supabase Storage bucket 'recipe-images' and clean up previous image if applicable
 export const uploadRecipeImage = async (
   file: File,
@@ -96,10 +111,12 @@ export const uploadRecipeImage = async (
     .from("recipe-images")
     .getPublicUrl(storagePath);
 
-  // 2. Clean up previous image if it exists in Supabase storage
-  if (oldStoragePath && oldStoragePath.startsWith("recipes/")) {
+  // 2. Clean up previous image if it exists in Supabase storage (prevents orphaned files)
+  const pathToDelete = extractStoragePathFromUrl(oldStoragePath);
+  if (pathToDelete) {
     try {
-      await supabase.storage.from("recipe-images").remove([oldStoragePath]);
+      await supabase.storage.from("recipe-images").remove([pathToDelete]);
+      console.log("🗑️ Cleaned up previous image from storage:", pathToDelete);
     } catch (err) {
       console.warn("Failed to delete previous recipe image from storage:", err);
     }
@@ -109,10 +126,12 @@ export const uploadRecipeImage = async (
 };
 
 // Delete image from storage
-export const deleteRecipeImageFromStorage = async (storagePath: string): Promise<void> => {
-  if (storagePath && storagePath.startsWith("recipes/")) {
+export const deleteRecipeImageFromStorage = async (storagePathOrUrl: string): Promise<void> => {
+  const pathToDelete = extractStoragePathFromUrl(storagePathOrUrl);
+  if (pathToDelete) {
     try {
-      await supabase.storage.from("recipe-images").remove([storagePath]);
+      await supabase.storage.from("recipe-images").remove([pathToDelete]);
+      console.log("🗑️ Deleted image from storage:", pathToDelete);
     } catch (err) {
       console.warn("Error removing image from storage:", err);
     }
@@ -458,8 +477,8 @@ export const getMergedRecipes = (isAdmin = false): Recipe[] => {
         prepTime: mod.prepTime || base.prepTime,
         servings: mod.servings || base.servings,
         image: mod.image || base.image,
-        ingredients: mod.ingredients || base.ingredients,
-        instructions: mod.instructions || base.instructions,
+        ingredients: (mod.ingredients && mod.ingredients.length > 0) ? mod.ingredients : base.ingredients,
+        instructions: (mod.instructions && mod.instructions.length > 0) ? mod.instructions : base.instructions,
       };
     }
     return base;

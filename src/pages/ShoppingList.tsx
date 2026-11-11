@@ -95,7 +95,8 @@ const QUICK_SUGGESTIONS = [
   { name: "Olive Oil", category: "Pantry Essentials" },
 ];
 
-const LOCAL_STORAGE_KEY = 'babybites_shopping_list_v4';
+const LOCAL_STORAGE_KEY_BASE = 'babybites_shopping_list_v4';
+const getStorageKey = (uid?: string | null) => uid ? `${LOCAL_STORAGE_KEY_BASE}_${uid}` : LOCAL_STORAGE_KEY_BASE;
 
 export const ShoppingList: React.FC = () => {
   const { toast } = useToast();
@@ -112,9 +113,9 @@ export const ShoppingList: React.FC = () => {
     checkUser();
   }, []);
 
-  const saveLocal = (updated: ShoppingItem[]) => {
+  const saveLocal = (updated: ShoppingItem[], uid?: string | null) => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      localStorage.setItem(getStorageKey(uid ?? userId), JSON.stringify(updated));
     } catch (e) {
       console.error(e);
     }
@@ -128,12 +129,12 @@ export const ShoppingList: React.FC = () => {
         await syncShoppingListFromMealPlans(user.id);
         await loadShoppingList(user.id);
       } else {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const saved = localStorage.getItem(getStorageKey(null));
         setItems(saved ? JSON.parse(saved) : []);
         setIsLoading(false);
       }
     } catch {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const saved = localStorage.getItem(getStorageKey(null));
       setItems(saved ? JSON.parse(saved) : []);
       setIsLoading(false);
     }
@@ -148,7 +149,7 @@ export const ShoppingList: React.FC = () => {
         .order('category');
 
       if (error || !data || data.length === 0) {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const saved = localStorage.getItem(getStorageKey(uid));
         setItems(saved ? JSON.parse(saved) : []);
       } else {
         const mappedItems: ShoppingItem[] = data.map((item) => ({

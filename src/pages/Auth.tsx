@@ -9,6 +9,13 @@ import GoogleLogo from "@/components/auth/GoogleLogo";
 import PasswordStrengthIndicator from "@/components/auth/PasswordStrengthIndicator";
 import FormInput from "@/components/auth/FormInput";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import appLogo from "@/assets/logo.png";
 
 const emailSchema = z.object({
@@ -502,10 +509,76 @@ export const Auth = () => {
           {/* Footer */}
           <p className="text-center text-xs text-gray-400 mt-6">
             By continuing, you agree to our{" "}
-            <a href="#" className="text-forest underline underline-offset-2">Terms</a>
+            <button
+              type="button"
+              onClick={() => setLegalModal("terms")}
+              className="text-forest underline underline-offset-2 hover:text-emerald-700 font-medium"
+            >
+              Terms
+            </button>
             {" "}and{" "}
-            <a href="#" className="text-forest underline underline-offset-2">Privacy Policy</a>
+            <button
+              type="button"
+              onClick={() => setLegalModal("privacy")}
+              className="text-forest underline underline-offset-2 hover:text-emerald-700 font-medium"
+            >
+              Privacy Policy
+            </button>
           </p>
+
+          {/* Legal Information Modal */}
+          <Dialog open={legalModal !== null} onOpenChange={(open) => !open && setLegalModal(null)}>
+            <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl p-6 bg-white dark:bg-[#161c18] border border-[#EBE8DF] dark:border-stone-800">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-serif font-bold text-forest dark:text-emerald-300">
+                  {legalModal === "terms" ? "Terms of Service" : "Privacy Policy"}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-stone-500">
+                  Last updated: 2026 • BabyBites Pediatric Nutrition Platform
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="text-xs text-stone-600 dark:text-stone-300 space-y-3 mt-3 leading-relaxed">
+                {legalModal === "terms" ? (
+                  <>
+                    <p>
+                      <strong>1. Acceptance of Terms:</strong> By creating an account or accessing BabyBites, you agree to comply with and be bound by these terms. BabyBites provides educational pediatric meal planning and baby-led weaning recipe guides.
+                    </p>
+                    <p>
+                      <strong>2. Pediatric Medical Disclaimer:</strong> BabyBites is an educational tool and does not substitute for certified pediatric medical advice, clinical diagnosis, or medical treatment. Always consult your pediatrician regarding your baby's specific dietary allergies and developmental readiness.
+                    </p>
+                    <p>
+                      <strong>3. User Accounts:</strong> You are responsible for safeguarding your login credentials. Each family profile is securely isolated to protect your child's nutrition records.
+                    </p>
+                    <p>
+                      <strong>4. Intellectual Property:</strong> All original recipes, nutritional guides, and photography are proprietary to BabyBites.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      <strong>1. Information Collection:</strong> We collect only necessary account data (name, email) and optional baby profile milestones (birth date, allergy preferences) to calculate age-appropriate nutrition.
+                    </p>
+                    <p>
+                      <strong>2. Child Privacy & Data Protection:</strong> We adhere to the strictest child privacy standards. Your child's growth measurements and meal records remain private to your account and are never sold or shared with third-party advertisers.
+                    </p>
+                    <p>
+                      <strong>3. Media & Photos:</strong> Photos shared in the Parents Community are compressed to secure WebP format and remain under your ownership. You can permanently delete your posts and photos at any time.
+                    </p>
+                    <p>
+                      <strong>4. Account Deletion:</strong> You have the right to request full account and data deletion at any moment through app settings.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-stone-200 dark:border-stone-800 flex justify-end">
+                <Button size="sm" onClick={() => setLegalModal(null)} className="bg-forest text-white hover:bg-emerald-800 rounded-full px-5">
+                  Understood
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </>
