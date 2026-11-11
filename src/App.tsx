@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import SmartInstallBanner from "@/components/SmartInstallBanner";
 import { BadgeCelebrationModal } from "@/components/gamification/BadgeCelebrationModal";
 import { BadgeDetailModal } from "@/components/gamification/BadgeDetailModal";
+import { SubscriptionPaywallModal } from "@/components/subscription/SubscriptionPaywallModal";
 
 // Eagerly imported core navigation tabs for INSTANT tab switching without white screen delay
 import Recipes from "./pages/Recipes";
@@ -178,6 +179,7 @@ const App = () => (
               <Sonner />
               <BadgeCelebrationModal />
               <BadgeDetailModal />
+              <SubscriptionPaywallModal />
               <BrowserRouter>
                 <AppWrapper />
               </BrowserRouter>
