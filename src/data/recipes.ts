@@ -504,20 +504,25 @@ export const recipes: Recipe[] = [
     prepTime: "20 minutes",
     servings: "3-4 servings",
     image: getRecipeImage(["green", "puree"]),
-    ingredients: ["1 small zucchini", "1 medium potato, peeled", "Water for boiling"],
-    instructions: [
-      "Wash one small zucchini and one medium potato thoroughly under cold running water, scrubbing to remove any dirt.",
-      "Peel the potato completely using a vegetable peeler, removing all skin. Potatoes with skin can be difficult for young babies to digest.",
-      "Cut the potato into uniform 3/4-inch cubes. Consistent sizing ensures all pieces cook evenly at the same rate.",
-      "Trim the ends off the zucchini. Since zucchini skin is thin and nutritious, you can leave it on for babies 7+ months, but peel it for younger babies. Cut the zucchini into rounds about 1/2 inch thick.",
-      "Fill a medium pot with enough water to cover the vegetables by about 2 inches. Bring the water to a rolling boil over high heat.",
-      "Add the potato cubes to the boiling water first, as they take longer to cook. Boil for 10 minutes.",
-      "After 10 minutes, add the zucchini slices to the pot with the potatoes. Continue boiling for another 8-10 minutes until both vegetables are completely tender and easily pierced with a fork.",
-      "Drain the vegetables in a colander and let them sit for 2 minutes to release excess steam and moisture.",
-      "Transfer the cooked vegetables to a bowl. For a chunkier texture, mash with a potato masher. For a smoother puree, transfer to a blender and blend until silky smooth.",
-      "Let the mash cool to a safe serving temperature. Stir before serving and test on your wrist - it should feel lukewarm, not hot. This mild puree is perfect for sensitive tummies."
+    ingredients: [
+      "1 small zucchini, trimmed and sliced",
+      "1 medium Yukon Gold potato, peeled and diced",
+      "1 tsp extra virgin olive oil",
+      "Pinch of dried thyme or fresh dill (optional)",
+      "2-3 tbsp warm breast milk, formula, or low-sodium vegetable stock"
     ],
-    nutrition: { calories: "55", protein: "2g", carbs: "12g", fat: "0g", fiber: "2g", vitamins: ["Vitamin C", "Potassium"] },
+    instructions: [
+      "Wash the zucchini and potato thoroughly under cold running water, scrubbing gently.",
+      "Peel the potato completely and cut into uniform 1/2-inch cubes so they steam quickly and evenly.",
+      "Cut the zucchini into 1/2-inch half-moons. (You can peel the zucchini if introducing it for the first time at 6 months).",
+      "Set a steamer basket inside a medium pot over 1-2 inches of water. Bring the water to a gentle simmer over medium heat.",
+      "Place the potato cubes into the steamer basket, cover tightly with a lid, and steam for 6 minutes.",
+      "Add the zucchini slices to the steamer basket with the potatoes, cover again, and steam together for another 6-8 minutes until both vegetables are tender to a fork. Steaming locks in rich vitamins, color, and natural flavors without making them waterlogged.",
+      "Transfer the warm steamed vegetables to a bowl. Add the extra virgin olive oil and the optional pinch of thyme or dill for gentle aroma.",
+      "Pour in warm breast milk, formula, or vegetable stock. Mash with a fork or potato masher for early texture exploration, or blend with an immersion blender for a silky velvety consistency.",
+      "Allow to cool to a comfortable lukewarm temperature before serving. Test a small dab on your inner wrist."
+    ],
+    nutrition: { calories: "65", protein: "2g", carbs: "12g", fat: "1.5g", fiber: "2g", vitamins: ["Vitamin C", "Potassium", "Vitamin B6"] },
     allergens: [],
     storage: "Refrigerate 3 days or freeze"
   },
@@ -917,7 +922,7 @@ export const recipes: Recipe[] = [
     instructions: [
       "If using fresh salmon, bake or steam it first until fully cooked and flaky. Let it cool completely. If using canned salmon, drain it very well and pat dry with paper towels.",
       "Carefully check the cooked salmon for any bones by running your fingers through it piece by piece. Remove any bones you find - even tiny ones. Flake the salmon into very small pieces using a fork.",
-      "Peel and cube one medium sweet potato. Steam or boil the cubes for 15-20 minutes until extremely soft and tender. Drain well and mash thoroughly until smooth with no lumps.",
+      "Peel and cube one medium sweet potato. Steam the cubes over simmering water for 12-14 minutes until tender. Mash thoroughly until smooth with no lumps.",
       "In a large mixing bowl, combine the flaked salmon, mashed sweet potato (about 1 cup), one beaten egg, 2 tablespoons of breadcrumbs, and 1 teaspoon of fresh lemon juice.",
       "Using a fork or your hands, mix everything together gently but thoroughly for about 2 minutes. The mixture should hold together well when squeezed. If it's too wet, add a bit more breadcrumbs; if too dry, add a tiny splash of milk.",
       "Cover the bowl with plastic wrap and refrigerate the mixture for 15-20 minutes. This chilling step helps the cakes hold their shape better during cooking.",

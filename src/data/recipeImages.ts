@@ -1,3 +1,9 @@
+import recipe239BakedVeggieFries from "@/assets/recipes/recipe-239-baked-veggie-fries.jpg";
+import recipe311LentilSpinachSoup from "@/assets/recipes/lentil-soup.jpg";
+import recipe312BananaOatPancakes from "@/assets/recipes/banana-pancakes.jpg";
+import recipe313EggMuffins from "@/assets/recipes/egg-muffins.jpg";
+import recipe314AvocadoMangoBowl from "@/assets/recipes/recipe-314-avocado-mango-smoothie-bowl.webp";
+import recipe315SweetPotatoApplePorridge from "@/assets/recipes/recipe-315-sweet-potato-apple-porridge.jpg";
 // Import all recipe images
 import recipe316ChickenTacos from "@/assets/recipe-316-chicken-tacos.jpg";
 import recipe317VeggieFriedRice from "@/assets/recipe-317-veggie-fried-rice.jpg";
@@ -775,7 +781,7 @@ const recipeImageMap: Record<string, string> = {
   "238": tofuFruit238,
 
   // IDs 239-271 (recipes239-271.ts) - ALL UNIQUE IMAGES
-  "239": veggieStickHummusUnique,
+  "239": recipe239BakedVeggieFries,
   "240": miniCheeseQuesadillas240,
   "241": bananaPancakeBites241,
   "242": steamedBroccoli242,
@@ -851,6 +857,13 @@ const recipeImageMap: Record<string, string> = {
   "308": babyMinestroneSoup,
   "309": spinachPotatoSoup,
   "310": nourishingChickenNoodleSoup,
+
+  // IDs 311-315 (recipes311-315.ts) - 9-18 MONTHS
+  "311": recipe311LentilSpinachSoup,
+  "312": recipe312BananaOatPancakes,
+  "313": recipe313EggMuffins,
+  "314": recipe314AvocadoMangoBowl,
+  "315": recipe315SweetPotatoApplePorridge,
 
   // IDs 316-325 (recipes316-325.ts) - 24+ MONTHS
   "316": recipe316ChickenTacos,
@@ -1012,5 +1025,5 @@ export const getRecipeImage = (keywords: string[]): string => {
 
 // Direct ID lookup function
 export const getRecipeImageById = (id: string): string => {
-  return recipeImageMap[id] || sweetPotatoCarrot;
+  return recipeImageMap[id] || getRecipeImage([id]) || sweetPotatoCarrot;
 };

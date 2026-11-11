@@ -1,4 +1,8 @@
+import recipe311LentilSpinachSoup from "@/assets/recipes/lentil-soup.jpg";
+import recipe312BananaOatPancakes from "@/assets/recipes/banana-pancakes.jpg";
+import recipe313EggMuffins from "@/assets/recipes/egg-muffins.jpg";
 import recipe314AvocadoMangoSmoothieBowl from "@/assets/recipes/recipe-314-avocado-mango-smoothie-bowl.webp";
+import recipe315SweetPotatoApplePorridge from "@/assets/recipes/recipe-315-sweet-potato-apple-porridge.jpg";
 
 export const recipes311to315 = [
   {
@@ -79,7 +83,7 @@ export const recipes311to315 = [
     category: "Finger Food",
     prepTime: "25 min",
     servings: "12 mini muffins",
-    image: "",
+    image: recipe313EggMuffins,
     ingredients: [
       "4 large eggs",
       "2 tbsp whole milk",

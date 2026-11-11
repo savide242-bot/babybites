@@ -8,20 +8,37 @@ export const recipes239to271: Recipe[] = [
   // FINGER FOODS (IDs 239-248)
   {
     id: "239",
-    title: "Veggie Sticks with Hummus Dip",
-    description: "Colorful steamed vegetable sticks served with creamy homemade hummus for dipping practice.",
+    title: "Crispy Herb-Baked Carrot and Sweet Potato Fries",
+    description: "Tender on the inside and gently golden on the outside, oven-roasted root veggie batons seasoned with sweet paprika and herbs, paired with a creamy avocado dip.",
     ageGroup: "9-12 months",
     category: "Finger Food",
-    prepTime: "20 mins",
+    prepTime: "25 mins",
     servings: "4",
-    image: getRecipeImage(["239", "veggie", "sticks", "hummus"]),
-    ingredients: ["2 carrots, cut into sticks", "1 cucumber, cut into sticks", "1/2 bell pepper, cut into strips", "1/2 cup chickpeas, cooked", "1 tbsp tahini", "1 tbsp olive oil", "1 tsp lemon juice"],
-    instructions: ["Steam carrot sticks for 8-10 minutes until soft enough to mash with gums.", "Cut cucumber into finger-sized sticks, removing seeds.", "Slice bell pepper into thin strips.", "For hummus: blend chickpeas, tahini, olive oil and lemon juice until smooth.", "Add water to reach desired consistency.", "Arrange veggie sticks on plate with hummus dip in center.", "Let baby practice dipping and self-feeding."],
-    nutrition: { calories: "85", protein: "3g", carbs: "12g", fat: "3g", fiber: "3g", vitamins: ["A", "C", "K", "Iron"] },
-    allergens: ["Sesame"],
-    storage: "Refrigerate veggies 3 days. Hummus keeps 5 days.",
-    healthBenefits: "Chickpeas provide plant-based protein and iron. Colorful vegetables offer diverse vitamins and introduce new textures. Dipping promotes fine motor skills.",
-    servingGuidance: "Offer 4-6 sticks with 2 tbsp hummus. Perfect for developing pincer grip."
+    image: getRecipeImage(["239", "baked", "carrot", "sweet", "potato", "fries"]),
+    ingredients: [
+      "1 medium sweet potato, peeled and cut into batons",
+      "2 large carrots, peeled and cut into finger-length sticks",
+      "1.5 tbsp extra virgin olive oil",
+      "1/4 tsp sweet paprika (mild, non-spicy)",
+      "1/4 tsp dried thyme or oregano",
+      "1 ripe avocado",
+      "2 tbsp whole milk Greek yogurt",
+      "1 tsp fresh lemon juice"
+    ],
+    instructions: [
+      "Preheat the oven to 200°C (400°F) and line a large baking sheet with parchment paper.",
+      "Cut the sweet potato and carrots into finger-length batons (approx. 7-8 cm long and 1 cm thick), ideal for little hands to grip.",
+      "Toss the veggie sticks in a bowl with olive oil, sweet paprika, and dried thyme until evenly coated.",
+      "Arrange the sticks in a single layer on the baking sheet with space between them so they roast to golden perfection rather than steaming.",
+      "Bake for 20-25 minutes, flipping halfway through, until fork-tender inside and lightly golden on the edges.",
+      "While the fries bake, mash the ripe avocado with Greek yogurt and lemon juice in a small bowl until creamy and smooth.",
+      "Let the fries cool to a safe warm temperature, verify tenderness between your fingers, and serve alongside the avocado dip for dipping practice."
+    ],
+    nutrition: { calories: "115", protein: "2.5g", carbs: "16g", fat: "5.5g", fiber: "4g", vitamins: ["Beta-Carotene", "Vitamin A", "Vitamin C", "Healthy Fats", "Potassium"] },
+    allergens: ["Dairy (Greek yogurt)"],
+    storage: "Store baked fries in an airtight container in the fridge for up to 3 days; re-crisp in a dry warm pan or toaster oven for 3 minutes. Avocado dip is best made fresh.",
+    healthBenefits: "Packed with beta-carotene and vitamin A for healthy eyesight and immunity. Healthy fats from avocado and olive oil support brain development.",
+    servingGuidance: "Serve 4-6 warm fries with a dollop of dip. Perfect handheld shape for palmar grasp and self-feeding confidence."
   },
   {
     id: "240",
