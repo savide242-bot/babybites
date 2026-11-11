@@ -63,6 +63,22 @@ function detectPlanDetails(body: any): {
   };
 }
 
+// Find user by email across all pages
+async function findUserByEmail(supabaseAdmin: any, email: string) {
+  let page = 1;
+  const target = email.toLowerCase().trim();
+  while (true) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 100 });
+    if (error || !data?.users || data.users.length === 0) break;
+    const match = data.users.find((u: any) => u.email?.toLowerCase().trim() === target);
+    if (match) return match;
+    if (data.users.length < 100) break;
+    page++;
+    if (page > 50) break;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -186,10 +202,7 @@ Deno.serve(async (req) => {
     if (isCancellationOrOverdue) {
       console.log(`🔒 Cutting access for ${cleanEmail} due to event: ${event || purchaseStatus}`);
 
-      const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-      const existingUser = userList?.users?.find(
-        (u) => u.email?.toLowerCase() === cleanEmail
-      );
+      const existingUser = await findUserByEmail(supabaseAdmin, cleanEmail);
 
       if (existingUser) {
         // Lock subscription status in auth user_metadata
@@ -237,10 +250,7 @@ Deno.serve(async (req) => {
     let isNewUser = false;
 
     // Check if user already exists
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = userList?.users?.find(
-      (u) => u.email?.toLowerCase() === cleanEmail
-    );
+    const existingUser = await findUserByEmail(supabaseAdmin, cleanEmail);
 
     if (existingUser) {
       targetUserId = existingUser.id;

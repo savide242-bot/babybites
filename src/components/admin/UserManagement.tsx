@@ -22,7 +22,8 @@ import { formatDistanceToNow, differenceInMonths } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Search, Filter, Bell, BellOff, RefreshCw, ChevronLeft, ChevronRight,
-  MoreHorizontal, Ban, Trash2, Shield, ShieldOff, Send, UserX, Baby, Eye, Clock, Globe, CheckCircle2
+  MoreHorizontal, Ban, Trash2, Shield, ShieldOff, Send, UserX, Baby, Eye, Clock, Globe, CheckCircle2,
+  UserPlus, Gift, Sparkles, KeyRound, Mail
 } from 'lucide-react';
 
 interface UserProfile {
@@ -61,6 +62,16 @@ const UserManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [addMotherDialogOpen, setAddMotherDialogOpen] = useState(false);
+  
+  // Add Mother Form State (Day 20 VIP Free Trial)
+  const [newMotherEmail, setNewMotherEmail] = useState('');
+  const [newMotherName, setNewMotherName] = useState('');
+  const [newMotherBabyName, setNewMotherBabyName] = useState('');
+  const [newMotherTrialDays, setNewMotherTrialDays] = useState('7');
+  const [newMotherPassword, setNewMotherPassword] = useState('');
+  const [addMotherLoading, setAddMotherLoading] = useState(false);
+
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [userRecipeViews, setUserRecipeViews] = useState<any[]>([]);
   const [userActivity, setUserActivity] = useState<any[]>([]);
@@ -163,6 +174,46 @@ const UserManagement = () => {
     if (success) { setBanDialogOpen(false); setBanReason(''); setSelectedUser(null); }
   };
 
+  const handleAddMother = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMotherEmail || !newMotherEmail.includes('@')) {
+      toast({ title: 'Validation Error', description: 'Please enter a valid email address.', variant: 'destructive' });
+      return;
+    }
+    setAddMotherLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-actions', {
+        body: {
+          action: 'create_trial_user',
+          email: newMotherEmail.trim().toLowerCase(),
+          motherName: newMotherName.trim() || 'Loving Mother',
+          babyName: newMotherBabyName.trim() || undefined,
+          trialDays: Number(newMotherTrialDays || 7),
+          customPassword: newMotherPassword.trim() || undefined,
+        }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({
+        title: '🎉 Mother Added Successfully!',
+        description: data.message || `Account created for ${newMotherEmail} with ${newMotherTrialDays} days free access. Welcome email sent with credentials!`,
+      });
+
+      setAddMotherDialogOpen(false);
+      setNewMotherEmail('');
+      setNewMotherName('');
+      setNewMotherBabyName('');
+      setNewMotherTrialDays('7');
+      setNewMotherPassword('');
+      fetchUsers();
+    } catch (err: any) {
+      toast({ title: 'Error Adding Mother', description: err.message || 'Failed to create user', variant: 'destructive' });
+    } finally {
+      setAddMotherLoading(false);
+    }
+  };
+
   const handleUnban = async (userId: string) => { await executeAdminAction('unban_user', userId); };
   const handleDelete = async () => {
     if (!selectedUser) return;
@@ -258,9 +309,19 @@ const UserManagement = () => {
                 </Badge>
               )}
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); fetchUsers(); }} disabled={refreshing}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => setAddMotherDialogOpen(true)} 
+                size="sm"
+                className="bg-[#1E5E3A] hover:bg-[#16482c] text-white shadow-sm font-medium"
+              >
+                <UserPlus className="h-4 w-4 mr-1.5" />
+                Add Mother (VIP Gift)
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); fetchUsers(); }} disabled={refreshing}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />Refresh
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 mt-4 md:flex-row">
@@ -550,21 +611,196 @@ const UserManagement = () => {
       <AlertDialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Ban User</AlertDialogTitle>
-            <AlertDialogDescription>Ban <strong>{selectedUser?.full_name}</strong>? They will be blocked from the app.</AlertDialogDescription>
+            <AlertDialogTitle>Suspend / Ban User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Block access for <strong>{selectedUser?.full_name}</strong>? They will be locked out and presented with a subscription notice.
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
-            <Label htmlFor="banReason">Reason (optional)</Label>
-            <Textarea id="banReason" placeholder="Reason..." value={banReason} onChange={(e) => setBanReason(e.target.value)} className="mt-2" />
+          <div className="py-3 space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground block mb-1.5">Quick Reason Select:</Label>
+              <div className="flex flex-wrap gap-1.5">
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 rounded-full" 
+                  onClick={() => setBanReason('Free Trial Ended')}
+                >
+                  ⏳ Free Trial Ended
+                </Button>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 rounded-full" 
+                  onClick={() => setBanReason('Subscription Past Due')}
+                >
+                  💳 Subscription Past Due
+                </Button>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7 rounded-full" 
+                  onClick={() => setBanReason('Account Suspended by Admin')}
+                >
+                  🚫 General Suspension
+                </Button>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="banReason" className="text-xs">Reason details</Label>
+              <Textarea 
+                id="banReason" 
+                placeholder="Reason (e.g. Free Trial Ended, Payment failed)..." 
+                value={banReason} 
+                onChange={(e) => setBanReason(e.target.value)} 
+                className="mt-1.5 text-sm" 
+              />
+            </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleBan} disabled={actionLoading} className="bg-amber-500 hover:bg-amber-600">
-              {actionLoading ? 'Banning...' : 'Ban'}
+            <AlertDialogAction onClick={handleBan} disabled={actionLoading} className="bg-amber-600 hover:bg-amber-700 text-white">
+              {actionLoading ? 'Suspending...' : 'Suspend Access'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Mother (VIP Gift Access) Dialog */}
+      <Dialog open={addMotherDialogOpen} onOpenChange={setAddMotherDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-[#1E5E3A] mb-1">
+              <Gift className="h-5 w-5" />
+              <DialogTitle>Add Mother &bull; VIP Gift Access</DialogTitle>
+            </div>
+            <DialogDescription>
+              Create an account for a mother and grant her complimentary VIP access. The system will automatically create her credentials and email her the access details.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddMother} className="space-y-4 py-2">
+            <div>
+              <Label htmlFor="newEmail" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                Mother's Email Address <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative mt-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="newEmail" 
+                  type="email" 
+                  required
+                  placeholder="mother@example.com" 
+                  value={newMotherEmail} 
+                  onChange={(e) => setNewMotherEmail(e.target.value)} 
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="newMotherName" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Mother's Name
+                </Label>
+                <Input 
+                  id="newMotherName" 
+                  placeholder="e.g. Sarah" 
+                  value={newMotherName} 
+                  onChange={(e) => setNewMotherName(e.target.value)} 
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="newBabyName" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Baby's Name (Optional)
+                </Label>
+                <Input 
+                  id="newBabyName" 
+                  placeholder="e.g. Leo" 
+                  value={newMotherBabyName} 
+                  onChange={(e) => setNewMotherBabyName(e.target.value)} 
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="trialDuration" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                Free Access Duration
+              </Label>
+              <Select value={newMotherTrialDays} onValueChange={setNewMotherTrialDays}>
+                <SelectTrigger id="trialDuration" className="mt-1">
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">3 Days (Quick Taste)</SelectItem>
+                  <SelectItem value="5">5 Days</SelectItem>
+                  <SelectItem value="7">7 Days (1 Week VIP Trial - Recommended)</SelectItem>
+                  <SelectItem value="14">14 Days (2 Weeks)</SelectItem>
+                  <SelectItem value="30">30 Days (Full Month Gift)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="newPassword" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                Custom Password (Optional)
+              </Label>
+              <div className="relative mt-1">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="newPassword" 
+                  placeholder="Auto-generated secure password if empty" 
+                  value={newMotherPassword} 
+                  onChange={(e) => setNewMotherPassword(e.target.value)} 
+                  className="pl-9"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Leave blank to automatically generate a friendly temporary password (e.g. Baby#9k4M2).
+              </p>
+            </div>
+
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-800/40 text-xs text-emerald-800 dark:text-emerald-300">
+              <span className="font-semibold block mb-0.5">✨ Automated Welcome Email:</span>
+              She will immediately receive an official BabyBites invitation email in English with her login credentials and direct access button.
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setAddMotherDialogOpen(false)} 
+                disabled={addMotherLoading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={addMotherLoading || !newMotherEmail}
+                className="bg-[#1E5E3A] hover:bg-[#16482c] text-white gap-2"
+              >
+                {addMotherLoading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Creating &amp; Sending Access...
+                  </>
+                ) : (
+                  <>
+                    <Gift className="h-4 w-4" />
+                    Grant VIP Free Access
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
