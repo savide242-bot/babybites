@@ -1,57 +1,27 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  Plus, 
   TrendingUp, 
-  Utensils, 
-  Scale, 
-  Ruler, 
-  Sparkles, 
+  Award, 
+  Plus, 
+  Trash2, 
   Calendar, 
+  Ruler, 
+  Scale, 
+  ShieldCheck, 
+  CheckCircle2, 
+  Baby, 
+  Sparkles,
   ChevronRight,
-  ShieldCheck,
-  Award,
-  CheckCircle2,
-  Heart,
-  Baby,
-  Smile,
-  BookOpen
+  Info
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { z } from "zod";
-import { format } from "date-fns";
-
-const growthSchema = z.object({
-  babyName: z.string().trim().min(1, "Baby name is required").max(100, "Name too long"),
-  weight: z.number().positive("Weight must be positive").max(50, "Weight seems too high"),
-  height: z.number().positive("Height must be positive").max(150, "Height seems too high"),
-  milestone: z.string().max(200, "Milestone too long").optional(),
-  notes: z.string().max(1000, "Notes too long").optional(),
-});
-
-const mealSchema = z.object({
-  babyName: z.string().trim().min(1, "Baby name is required").max(100, "Name too long"),
-  mealType: z.string().trim().min(1, "Meal type is required").max(50, "Meal type too long"),
-  recipeTitle: z.string().trim().min(1, "Recipe/food is required").max(200, "Title too long"),
-  calories: z.number().positive("Calories must be positive").max(10000, "Calories seem too high").optional(),
-  protein: z.number().min(0).max(500).optional(),
-  carbs: z.number().min(0).max(500).optional(),
-  fats: z.number().min(0).max(500).optional(),
-});
+import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface GrowthRecord {
   id: string;
@@ -59,812 +29,760 @@ interface GrowthRecord {
   weight_kg: number;
   height_cm: number;
   milestone: string | null;
-  recorded_at: string;
   notes: string | null;
-}
-
-interface MealLog {
-  id: string;
-  baby_name: string;
-  meal_type: string;
-  recipe_title: string;
-  calories: number | null;
-  protein_g: number | null;
-  carbs_g: number | null;
-  fats_g: number | null;
-  eaten_at: string;
+  recorded_at: string;
 }
 
 interface PediatricMilestone {
   id: string;
   stage: "4-6m" | "6-8m" | "9-11m" | "12m+";
   stageLabel: string;
+  ageSubtitle: string;
   title: string;
   description: string;
-  category: "eating" | "motor" | "oral";
+  category: "Readiness" | "Chewing & Oral" | "Motor Skills" | "Independence";
 }
 
-const PEDIATRIC_MILESTONES: PediatricMilestone[] = [
+const MILESTONES_DATA: PediatricMilestone[] = [
+  // 4 to 6 Months
   {
-    id: "m1",
+    id: "m_head_control",
     stage: "4-6m",
     stageLabel: "4 to 6 Months",
+    ageSubtitle: "First Tastes & Highchair Readiness",
     title: "Steadily Holds Head Upright",
-    description: "Maintains head & neck control securely in a highchair without slumping.",
-    category: "motor",
+    description: "Maintains strong head and neck control securely in a highchair without slumping.",
+    category: "Readiness"
   },
   {
-    id: "m2",
+    id: "m_tongue_thrust",
     stage: "4-6m",
     stageLabel: "4 to 6 Months",
+    ageSubtitle: "First Tastes & Highchair Readiness",
     title: "Diminished Tongue-Thrust Reflex",
     description: "Doesn't automatically push puree out of mouth with tongue when offered.",
-    category: "oral",
+    category: "Chewing & Oral"
   },
   {
-    id: "m3",
+    id: "m_spoon_interest",
     stage: "4-6m",
     stageLabel: "4 to 6 Months",
-    title: "Opens Mouth for Spoon & Puree",
-    description: "Shows keen interest in food and leans forward opening mouth when spoon nears.",
-    category: "eating",
+    ageSubtitle: "First Tastes & Highchair Readiness",
+    title: "Opens Mouth & Leans Toward Spoon",
+    description: "Shows keen curiosity when family eats and opens mouth when food approaches.",
+    category: "Readiness"
   },
+
+  // 6 to 8 Months
   {
-    id: "m4",
+    id: "m_palmar_grasp",
     stage: "6-8m",
     stageLabel: "6 to 8 Months",
-    title: "Palmar Grasp & Finger Food Exploration",
-    description: "Grabs steamed carrot or avocado stick with whole palm and brings to mouth.",
-    category: "motor",
+    ageSubtitle: "Textures & Finger Food Exploration",
+    title: "Palmar Grasp of Finger Foods",
+    description: "Grabs steamed carrot or avocado spear with whole palm and brings it to mouth.",
+    category: "Motor Skills"
   },
   {
-    id: "m5",
+    id: "m_jaw_munching",
     stage: "6-8m",
     stageLabel: "6 to 8 Months",
-    title: "Munching & Jaw Chewing Movement",
-    description: "Moves jaw up and down to mash soft lumps against gums.",
-    category: "oral",
+    ageSubtitle: "Textures & Finger Food Exploration",
+    title: "Up & Down Jaw Munching Movement",
+    description: "Moves jaw up and down to mash soft lumps and cooked textures against gums.",
+    category: "Chewing & Oral"
   },
   {
-    id: "m6",
+    id: "m_supported_sitting",
     stage: "6-8m",
     stageLabel: "6 to 8 Months",
-    title: "Sits Supported for 15+ Mins",
-    description: "Maintains upright posture comfortably throughout a full meal session.",
-    category: "motor",
+    ageSubtitle: "Textures & Finger Food Exploration",
+    title: "Sits Supported for 15+ Minutes",
+    description: "Comfortably maintains upright posture throughout an entire meal without fatigue.",
+    category: "Readiness"
   },
+
+  // 9 to 11 Months
   {
-    id: "m7",
+    id: "m_pincer_grasp",
     stage: "9-11m",
     stageLabel: "9 to 11 Months",
-    title: "Neat Pincer Grasp (Thumb & Forefinger)",
+    ageSubtitle: "Fine Motor & Textured Foods",
+    title: "Neat Pincer Grasp (Thumb & Index)",
     description: "Picks up tiny pea-sized bites or soft blueberries with tips of two fingers.",
-    category: "motor",
+    category: "Motor Skills"
   },
   {
-    id: "m8",
+    id: "m_rotary_chewing",
     stage: "9-11m",
     stageLabel: "9 to 11 Months",
-    title: "Rotary Chewing of Textured Foods",
-    description: "Moves food side-to-side across the tongue to grind thicker textures.",
-    category: "oral",
+    ageSubtitle: "Fine Motor & Textured Foods",
+    title: "Lateral Tongue & Rotary Chewing",
+    description: "Moves food side-to-side across the tongue to grind thicker textured solids.",
+    category: "Chewing & Oral"
   },
   {
-    id: "m9",
+    id: "m_independent_eating",
     stage: "9-11m",
     stageLabel: "9 to 11 Months",
-    title: "Self-Feeding Finger Foods Confidently",
-    description: "Regularly picks up and finishes pieces of baby food independently.",
-    category: "eating",
+    ageSubtitle: "Fine Motor & Textured Foods",
+    title: "Self-Feeding Finger Foods",
+    description: "Regularly picks up, bites, and finishes pieces of baby food independently.",
+    category: "Independence"
   },
+
+  // 12+ Months
   {
-    id: "m10",
+    id: "m_open_cup",
     stage: "12m+",
     stageLabel: "12+ Months",
-    title: "Open Cup Sipping with Minimal Spills",
-    description: "Drinks water or milk from an open baby training cup with two hands.",
-    category: "oral",
+    ageSubtitle: "Toddler Autonomy & Family Table",
+    title: "Open Cup Sipping with Few Spills",
+    description: "Drinks water or milk from a small open baby cup using both hands.",
+    category: "Independence"
   },
   {
-    id: "m11",
+    id: "m_spoon_loading",
     stage: "12m+",
     stageLabel: "12+ Months",
-    title: "Baby Spoon Loading & Dipping",
-    description: "Dips spoon into yogurt or porridge and guides it into mouth with pride.",
-    category: "eating",
+    ageSubtitle: "Toddler Autonomy & Family Table",
+    title: "Baby Spoon Dipping & Loading",
+    description: "Dips baby spoon into yogurt or porridge and guides it into mouth with pride.",
+    category: "Motor Skills"
   },
   {
-    id: "m12",
+    id: "m_family_meals",
     stage: "12m+",
     stageLabel: "12+ Months",
+    ageSubtitle: "Toddler Autonomy & Family Table",
     title: "Sharing Modified Family Table Meals",
-    description: "Eats balanced family table foods cut into bite-safe toddler pieces.",
-    category: "eating",
-  },
+    description: "Eats balanced family table meals cut into bite-safe toddler pieces.",
+    category: "Independence"
+  }
 ];
 
-export const GrowthTracker = () => {
+export const GrowthTracker: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"growth" | "milestones">("growth");
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
-  const [mealLogs, setMealLogs] = useState<MealLog[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const [showNewGrowth, setShowNewGrowth] = useState(false);
-  const [showNewMeal, setShowNewMeal] = useState(false);
-  const [babyProfile, setBabyProfile] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"growth" | "milestones" | "meals">("growth");
-  const [milestonesCompleted, setMilestonesCompleted] = useState<Record<string, boolean>>(() => {
+  const [babyName, setBabyName] = useState("Baby");
+  const [babyBirthDate, setBabyBirthDate] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // New record modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newWeight, setNewWeight] = useState("");
+  const [newHeight, setNewHeight] = useState("");
+  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newMilestone, setNewMilestone] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Completed milestones persistence
+  const [completedMilestones, setCompletedMilestones] = useState<Record<string, boolean>>(() => {
     try {
       const saved = localStorage.getItem("babybites_completed_milestones");
       return saved ? JSON.parse(saved) : {};
-    } catch (e) {
+    } catch {
       return {};
     }
   });
 
-  const navigate = useNavigate();
-
-  // Form states
-  const [babyName, setBabyName] = useState("");
-  const [weight, setWeight] = useState("");
-  const [height, setHeight] = useState("");
-  const [milestone, setMilestone] = useState("");
-  const [notes, setNotes] = useState("");
-  const [mealType, setMealType] = useState("Breakfast");
-  const [recipeTitle, setRecipeTitle] = useState("");
-  const [calories, setCalories] = useState("");
-  const [protein, setProtein] = useState("");
-  const [carbs, setCarbs] = useState("");
-  const [fats, setFats] = useState("");
-
-  // Stats
-  const latestWeight = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].weight_kg : 0;
-  const latestHeight = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1].height_cm : 0;
-  
-  // Pediatric weight gain since first recorded entry
-  const weightGain = growthRecords.length >= 2 
-    ? (growthRecords[growthRecords.length - 1].weight_kg - growthRecords[0].weight_kg).toFixed(2)
-    : "0.00";
-
   useEffect(() => {
-    checkUser();
+    loadUserData();
   }, []);
 
-  const checkUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      setUser(session.user);
-      fetchGrowthRecords(session.user.id);
-      fetchMealLogs(session.user.id);
-      fetchBabyProfile(session.user.id);
+  const loadUserData = async () => {
+    setIsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUserId(session.user.id);
+
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("baby_name, baby_birth_date")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          if (profile.baby_name) setBabyName(profile.baby_name);
+          if (profile.baby_birth_date) setBabyBirthDate(profile.baby_birth_date);
+        }
+
+        // Fetch growth records
+        const { data: records } = await supabase
+          .from("baby_growth")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .order("recorded_at", { ascending: false });
+
+        if (records && records.length > 0) {
+          setGrowthRecords(records);
+        } else {
+          // Check local storage fallback
+          const local = localStorage.getItem("babybites_local_growth");
+          if (local) setGrowthRecords(JSON.parse(local));
+        }
+      } else {
+        // Guest mode fallback
+        const local = localStorage.getItem("babybites_local_growth");
+        if (local) setGrowthRecords(JSON.parse(local));
+      }
+    } catch (e) {
+      console.error("Error loading growth data:", e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const fetchBabyProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("baby_name")
-      .eq("id", userId)
-      .single();
-    if (data) {
-      setBabyProfile(data);
-      setBabyName(data.baby_name || "");
+  // Calculate age string (e.g., "7 Months")
+  const ageDisplay = useMemo(() => {
+    if (!babyBirthDate) return "Infant Growth";
+    try {
+      const birth = new Date(babyBirthDate);
+      const now = new Date();
+      const diffMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+      if (diffMonths <= 0) return "Newborn (< 1 mo)";
+      if (diffMonths === 1) return "1 Month Old";
+      return `${diffMonths} Months Old`;
+    } catch {
+      return "Infant Growth";
     }
-  };
+  }, [babyBirthDate]);
 
-  const fetchGrowthRecords = async (userIdParam?: string) => {
-    const uid = userIdParam || user?.id;
-    if (!uid) return;
+  // Stats
+  const latestRecord = growthRecords[0] || null;
+  const initialRecord = growthRecords[growthRecords.length - 1] || null;
+  const totalGainKg = (latestRecord && initialRecord && growthRecords.length > 1) 
+    ? (latestRecord.weight_kg - initialRecord.weight_kg).toFixed(2) 
+    : null;
 
-    const { data, error } = await supabase
-      .from("baby_growth")
-      .select("*")
-      .eq("user_id", uid)
-      .order("recorded_at", { ascending: true })
-      .limit(100);
-
-    if (!error) setGrowthRecords(data || []);
-  };
-
-  const fetchMealLogs = async (userIdParam?: string) => {
-    const uid = userIdParam || user?.id;
-    if (!uid) return;
-
-    const { data, error } = await supabase
-      .from("meal_logs")
-      .select("*")
-      .eq("user_id", uid)
-      .order("eaten_at", { ascending: false })
-      .limit(50);
-
-    if (!error) setMealLogs(data || []);
-  };
+  const totalCompletedMilestones = useMemo(() => {
+    return Object.values(completedMilestones).filter(Boolean).length;
+  }, [completedMilestones]);
 
   const toggleMilestone = (id: string, title: string) => {
-    const next = { ...milestonesCompleted, [id]: !milestonesCompleted[id] };
-    setMilestonesCompleted(next);
-    localStorage.setItem("babybites_completed_milestones", JSON.stringify(next));
+    const next = { ...completedMilestones, [id]: !completedMilestones[id] };
+    setCompletedMilestones(next);
+    try {
+      localStorage.setItem("babybites_completed_milestones", JSON.stringify(next));
+    } catch (e) {
+      console.error(e);
+    }
 
     if (next[id]) {
-      toast.success(`🎉 Milestone Unlocked: ${title}!`);
+      toast.success(`🎉 Milestone Reached: ${title}!`);
     }
   };
 
-  const handleAddGrowth = async () => {
-    const validation = growthSchema.safeParse({
-      babyName: babyName || babyProfile?.baby_name || "Baby",
-      weight: parseFloat(weight),
-      height: parseFloat(height),
-      milestone: milestone || undefined,
-      notes: notes || undefined,
-    });
+  const handleSaveMeasurement = async () => {
+    const weightNum = parseFloat(newWeight);
+    const heightNum = parseFloat(newHeight);
 
-    if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
+    if (isNaN(weightNum) || weightNum <= 0 || weightNum > 35) {
+      toast.error("Please enter a valid weight in kg (e.g., 8.45)");
       return;
     }
 
-    if (!user) {
-      // Local fallback if guest
-      const newRec: GrowthRecord = {
-        id: Date.now().toString(),
-        baby_name: validation.data.babyName,
-        weight_kg: validation.data.weight,
-        height_cm: validation.data.height,
-        milestone: validation.data.milestone || null,
-        notes: validation.data.notes || null,
-        recorded_at: new Date().toISOString(),
-      };
-      setGrowthRecords([...growthRecords, newRec]);
-      toast.success(`🎉 Growth entry recorded for ${validation.data.babyName}!`);
-      setShowNewGrowth(false);
-      setWeight("");
-      setHeight("");
+    if (isNaN(heightNum) || heightNum <= 0 || heightNum > 150) {
+      toast.error("Please enter a valid length in cm (e.g., 69.5)");
       return;
     }
 
-    const { error } = await supabase.from("baby_growth").insert({
-      baby_name: validation.data.babyName,
-      weight_kg: validation.data.weight,
-      height_cm: validation.data.height,
-      milestone: validation.data.milestone || null,
-      notes: validation.data.notes || null,
-      recorded_at: new Date().toISOString(),
-      user_id: user.id,
-    });
+    setIsSaving(true);
+    const recordedTimestamp = new Date(newDate).toISOString();
 
-    if (error) {
-      toast.error("Failed to save growth record");
-      return;
+    const newRecord: GrowthRecord = {
+      id: Date.now().toString(),
+      baby_name: babyName,
+      weight_kg: weightNum,
+      height_cm: heightNum,
+      milestone: newMilestone.trim() || null,
+      notes: newNotes.trim() || null,
+      recorded_at: recordedTimestamp
+    };
+
+    try {
+      if (userId) {
+        const { data, error } = await supabase
+          .from("baby_growth")
+          .insert({
+            user_id: userId,
+            baby_name: babyName,
+            weight_kg: weightNum,
+            height_cm: heightNum,
+            milestone: newMilestone.trim() || null,
+            notes: newNotes.trim() || null,
+            recorded_at: recordedTimestamp
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          newRecord.id = data.id;
+        }
+      }
+
+      // Update state & local storage
+      const updated = [newRecord, ...growthRecords].sort(
+        (a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime()
+      );
+      setGrowthRecords(updated);
+      localStorage.setItem("babybites_local_growth", JSON.stringify(updated));
+
+      toast.success(`Measurement logged for ${babyName}! 🥑`);
+      setNewWeight("");
+      setNewHeight("");
+      setNewMilestone("");
+      setNewNotes("");
+      setShowAddModal(false);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to save measurement");
+    } finally {
+      setIsSaving(false);
     }
-
-    toast.success(`🎉 Growth entry recorded for ${validation.data.babyName}!`);
-    setWeight("");
-    setHeight("");
-    setMilestone("");
-    setNotes("");
-    setShowNewGrowth(false);
-    fetchGrowthRecords();
   };
 
-  const handleAddMeal = async () => {
-    const validation = mealSchema.safeParse({
-      babyName: babyName || babyProfile?.baby_name || "Baby",
-      mealType,
-      recipeTitle,
-      calories: calories ? parseInt(calories) : undefined,
-      protein: protein ? parseFloat(protein) : undefined,
-      carbs: carbs ? parseFloat(carbs) : undefined,
-      fats: fats ? parseFloat(fats) : undefined,
-    });
+  const handleDeleteRecord = async (id: string) => {
+    if (!window.confirm("Delete this measurement entry?")) return;
 
-    if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
-      return;
+    try {
+      if (userId) {
+        await supabase.from("baby_growth").delete().eq("id", id);
+      }
+      const updated = growthRecords.filter((r) => r.id !== id);
+      setGrowthRecords(updated);
+      localStorage.setItem("babybites_local_growth", JSON.stringify(updated));
+      toast.success("Entry deleted.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not delete entry");
     }
-
-    if (!user) {
-      toast.success("Meal logged locally!");
-      setShowNewMeal(false);
-      setRecipeTitle("");
-      return;
-    }
-
-    const { error } = await supabase.from("meal_logs").insert({
-      baby_name: validation.data.babyName,
-      meal_type: validation.data.mealType,
-      recipe_title: validation.data.recipeTitle,
-      calories: validation.data.calories || null,
-      protein_g: validation.data.protein || null,
-      carbs_g: validation.data.carbs || null,
-      fats_g: validation.data.fats || null,
-      eaten_at: new Date().toISOString(),
-      user_id: user.id,
-    });
-
-    if (error) {
-      toast.error("Failed to add meal log");
-      return;
-    }
-
-    toast.success("Meal logged successfully!");
-    setRecipeTitle("");
-    setCalories("");
-    setProtein("");
-    setCarbs("");
-    setFats("");
-    setShowNewMeal(false);
-    fetchMealLogs();
   };
-
-  const growthChartData = growthRecords.map((record) => ({
-    date: new Date(record.recorded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    weight: record.weight_kg,
-    height: record.height_cm,
-  }));
-
-  const totalCompletedMilestones = Object.values(milestonesCompleted).filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-28 pt-4 px-3.5 sm:px-6 w-full max-w-4xl mx-auto transition-colors">
-      {/* Editorial Luxury Header */}
-      <div className="mb-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider mb-2">
-          <Baby className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          Pediatric Development & Nutrition Tracker
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-          Baby Growth & Feeding Milestones
-        </h1>
-        <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1 max-w-xl leading-relaxed">
-          Monitor your baby&apos;s physical progress against WHO healthy developmental bands and celebrate key self-feeding milestones.
-        </p>
-      </div>
+    <div className="relative min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
+      <AtmosphericBackground />
+      <div className="relative z-10 space-y-6">
 
-      {/* 4 Overview Stat Cards (WHO-aligned, no adult BMI!) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {/* Latest Weight */}
-        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
-              <Scale className="w-4 h-4" />
-            </div>
-            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">Weight</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {latestWeight > 0 ? `${latestWeight.toFixed(1)} kg` : "—"}
-          </div>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-            {latestWeight > 0 ? "Latest check-in" : "Tap + to add"}
-          </span>
-        </div>
-
-        {/* Latest Length / Height */}
-        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 flex items-center justify-center">
-              <Ruler className="w-4 h-4" />
-            </div>
-            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">Length</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {latestHeight > 0 ? `${latestHeight.toFixed(1)} cm` : "—"}
-          </div>
-          <span className="text-[10px] text-teal-600 dark:text-teal-400 font-medium">
-            {latestHeight > 0 ? "WHO standard" : "Tap + to add"}
-          </span>
-        </div>
-
-        {/* WHO Healthy Growth Indicator */}
-        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">WHO Status</span>
-          </div>
-          <div className="text-sm sm:text-base font-serif font-bold text-stone-800 dark:text-stone-200">
-            {latestWeight > 0 ? "Healthy Band" : "Awaiting Data"}
-          </div>
-          <span className="text-[10px] text-stone-400 font-medium">
-            Optimal infant curve
-          </span>
-        </div>
-
-        {/* Milestones Achieved */}
-        <div className="p-4 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 flex items-center justify-center">
-              <Award className="w-4 h-4" />
-            </div>
-            <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">Milestones</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-            {totalCompletedMilestones} / 12
-          </div>
-          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">
-            {totalCompletedMilestones > 0 ? "Feeding skills active" : "Track first skill"}
-          </span>
-        </div>
-      </div>
-
-      {/* Nav Tabs */}
-      <div className="flex items-center gap-2 mb-6 border-b border-[#EBE8DF] dark:border-stone-800 pb-3">
-        <button
-          onClick={() => setActiveTab("growth")}
-          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
-            activeTab === "growth"
-              ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"
-              : "bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-[#EBE8DF] dark:border-stone-700 hover:border-stone-300"
-          }`}
-        >
-          <TrendingUp className="w-4 h-4" />
-          Growth Curve
-        </button>
-
-        <button
-          onClick={() => setActiveTab("milestones")}
-          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
-            activeTab === "milestones"
-              ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"
-              : "bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-[#EBE8DF] dark:border-stone-700 hover:border-stone-300"
-          }`}
-        >
-          <Award className="w-4 h-4" />
-          Feeding Milestones ({totalCompletedMilestones}/12)
-        </button>
-
-        <button
-          onClick={() => setActiveTab("meals")}
-          className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
-            activeTab === "meals"
-              ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"
-              : "bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-[#EBE8DF] dark:border-stone-700 hover:border-stone-300"
-          }`}
-        >
-          <Utensils className="w-4 h-4" />
-          Daily Meals ({mealLogs.length})
-        </button>
-      </div>
-
-      {/* TAB 1: GROWTH CURVE */}
-      {activeTab === "growth" && (
-        <div className="space-y-6">
+        {/* HERO PROFILE SUMMARY CARD */}
+        <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
-              Weight & Length Progression
-            </h2>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[#EAF5EF] dark:bg-emerald-950/80 border border-[#CCE0D2] dark:border-emerald-800 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center shrink-0">
+                <Baby className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+                  {babyName}'s Growth
+                </h1>
+                <p className="text-xs text-stone-500 font-medium">
+                  {ageDisplay} • Pediatric Milestone Companion
+                </p>
+              </div>
+            </div>
+
             <Button
-              onClick={() => setShowNewGrowth(!showNewGrowth)}
-              className="rounded-full bg-forest dark:bg-emerald-600 hover:bg-forest/90 text-white text-xs gap-1.5"
+              size="sm"
+              onClick={() => setShowAddModal(true)}
+              className="rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold gap-1.5 shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
-              Add Check-in
+              Log Check-in
             </Button>
           </div>
 
-          {/* New Record Form */}
-          {showNewGrowth && (
-            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-stone-900 border border-emerald-200 dark:border-emerald-800/50 shadow-sm animate-in fade-in duration-200">
-              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 mb-4 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Record Pediatric Measurement
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="babyName" className="text-xs text-stone-600 dark:text-stone-400">Baby Name</Label>
-                  <Input 
-                    id="babyName" 
-                    value={babyName} 
-                    onChange={(e) => setBabyName(e.target.value)} 
-                    placeholder={babyProfile?.baby_name || "Sophie"} 
-                    className="mt-1 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="weight" className="text-xs text-stone-600 dark:text-stone-400">Weight (kg) *</Label>
-                  <Input 
-                    id="weight" 
-                    type="number" 
-                    step="0.05" 
-                    value={weight} 
-                    onChange={(e) => setWeight(e.target.value)} 
-                    placeholder="e.g. 8.45" 
-                    className="mt-1 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="height" className="text-xs text-stone-600 dark:text-stone-400">Length (cm) *</Label>
-                  <Input 
-                    id="height" 
-                    type="number" 
-                    step="0.1" 
-                    value={height} 
-                    onChange={(e) => setHeight(e.target.value)} 
-                    placeholder="e.g. 69.5" 
-                    className="mt-1 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="milestone" className="text-xs text-stone-600 dark:text-stone-400">Milestone Note (Optional)</Label>
-                  <Input 
-                    id="milestone" 
-                    value={milestone} 
-                    onChange={(e) => setMilestone(e.target.value)} 
-                    placeholder="e.g. First tooth, sitting upright" 
-                    className="mt-1 rounded-xl"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Label htmlFor="notes" className="text-xs text-stone-600 dark:text-stone-400">Pediatrician Notes (Optional)</Label>
-                  <Textarea 
-                    id="notes" 
-                    value={notes} 
-                    onChange={(e) => setNotes(e.target.value)} 
-                    placeholder="Doctor commended solid foods variety..." 
-                    className="mt-1 rounded-xl"
-                  />
-                </div>
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            {/* Weight */}
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/80 text-center">
+              <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500 font-semibold mb-1">
+                <Scale className="w-3.5 h-3.5 text-[#1E5E3A]" />
+                <span>Weight</span>
               </div>
-              <div className="flex gap-2 mt-4">
-                <Button onClick={handleAddGrowth} className="rounded-full bg-forest dark:bg-emerald-600 text-white text-xs">
-                  Save Measurement
-                </Button>
-                <Button variant="ghost" onClick={() => setShowNewGrowth(false)} className="rounded-full text-xs">
-                  Cancel
-                </Button>
+              <div className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                {latestRecord ? `${latestRecord.weight_kg} kg` : "—"}
               </div>
+              <span className="text-[10px] text-stone-400 font-medium block">
+                {totalGainKg && parseFloat(totalGainKg) > 0 ? `+${totalGainKg} kg total` : "Recent record"}
+              </span>
             </div>
-          )}
 
-          {/* Growth Chart */}
-          {growthRecords.length > 0 ? (
-            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                    Weight Progression Curve
-                  </h3>
-                  <p className="text-xs text-stone-400">Smoothed trajectory over time</p>
-                </div>
-                {parseFloat(weightGain) > 0 && (
-                  <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-200/60">
-                    +{weightGain} kg gained
-                  </span>
-                )}
+            {/* Height */}
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/80 text-center">
+              <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500 font-semibold mb-1">
+                <Ruler className="w-3.5 h-3.5 text-teal-600" />
+                <span>Length</span>
+              </div>
+              <div className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                {latestRecord ? `${latestRecord.height_cm} cm` : "—"}
+              </div>
+              <span className="text-[10px] text-teal-600 dark:text-teal-400 font-medium block">
+                WHO standard
+              </span>
+            </div>
+
+            {/* Milestones */}
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/80 text-center">
+              <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500 font-semibold mb-1">
+                <Award className="w-3.5 h-3.5 text-rose-500" />
+                <span>Milestones</span>
+              </div>
+              <div className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                {totalCompletedMilestones} / 12
+              </div>
+              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium block">
+                {totalCompletedMilestones > 0 ? "Skills active" : "Track first"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* TAB NAVIGATION */}
+        <div className="flex items-center gap-2 p-1 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab("growth")}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              activeTab === "growth"
+                ? "bg-[#1E5E3A] text-white shadow-xs"
+                : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span>Growth Measurements ({growthRecords.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("milestones")}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              activeTab === "milestones"
+                ? "bg-[#1E5E3A] text-white shadow-xs"
+                : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
+            }`}
+          >
+            <Award className="w-4 h-4" />
+            <span>Feeding Milestones ({totalCompletedMilestones}/12)</span>
+          </button>
+        </div>
+
+        {/* TAB 1: GROWTH MEASUREMENTS */}
+        {activeTab === "growth" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <h2 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                  Pediatric Measurement History
+                </h2>
+                <p className="text-xs text-stone-500">
+                  Track weight and length progression over time
+                </p>
               </div>
 
-              <div className="w-full h-64 sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={growthChartData}>
-                    <defs>
-                      <linearGradient id="growthGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#1E5E3A" stopOpacity={0.35}/>
-                        <stop offset="100%" stopColor="#1E5E3A" stopOpacity={0.02}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EBE8DF" opacity={0.6} />
-                    <XAxis 
-                      dataKey="date" 
-                      tick={{ fontSize: 11, fill: '#888' }} 
-                      axisLine={{ stroke: '#EBE8DF' }}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 11, fill: '#888' }} 
-                      axisLine={{ stroke: '#EBE8DF' }}
-                      tickLine={false}
-                      domain={['auto', 'auto']}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1E5E3A', 
-                        border: 'none',
-                        borderRadius: '16px',
-                        color: '#fff',
-                        fontSize: '12px',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="weight"
-                      stroke="#1E5E3A"
-                      fill="url(#growthGradient)"
-                      strokeWidth={3}
-                      name="Weight (kg)"
-                      dot={{ fill: '#1E5E3A', strokeWidth: 0, r: 4 }}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          ) : (
-            <div className="p-8 rounded-3xl bg-white dark:bg-stone-900 border border-dashed border-[#EBE8DF] dark:border-stone-800 text-center">
-              <Scale className="w-10 h-10 text-stone-300 mx-auto mb-3" />
-              <h3 className="font-serif font-bold text-base text-stone-800 dark:text-stone-200 mb-1">
-                No growth measurements yet
-              </h3>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto mb-4">
-                Record your baby&apos;s latest pediatric weigh-in to generate their personal healthy growth curve.
-              </p>
-              <Button onClick={() => setShowNewGrowth(true)} className="rounded-full bg-forest dark:bg-emerald-600 text-white text-xs">
-                Log First Measurement
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddModal(true)}
+                className="rounded-full text-xs font-semibold border-[#CCE0D2] text-[#1E5E3A] hover:bg-emerald-50"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                Add Entry
               </Button>
             </div>
-          )}
 
-          {/* Recent Records Log */}
-          {growthRecords.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 p-5 shadow-2xs">
-              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 mb-3">
-                Measurement History
-              </h3>
-              <div className="space-y-2">
-                {growthRecords.slice(-5).reverse().map((rec) => (
-                  <div key={rec.id} className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border border-stone-100 dark:border-stone-800 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 flex items-center justify-center">
-                        <Calendar className="w-4 h-4" />
+            {growthRecords.length > 0 ? (
+              <div className="space-y-2.5">
+                {growthRecords.map((record) => (
+                  <div
+                    key={record.id}
+                    className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs hover:border-[#CCE0D2] transition-all flex items-center justify-between gap-3"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                          {new Date(record.recorded_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric"
+                          })}
+                        </span>
+                        {record.milestone && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 border border-emerald-200">
+                            {record.milestone}
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        <div className="text-xs font-semibold text-stone-800 dark:text-stone-200">
-                          {format(new Date(rec.recorded_at), "MMMM d, yyyy")}
-                        </div>
-                        <div className="text-[11px] text-stone-500">
-                          {rec.weight_kg} kg • {rec.height_cm} cm {rec.milestone && `• ${rec.milestone}`}
-                        </div>
+
+                      <div className="flex items-center gap-4 text-sm font-semibold text-stone-900 dark:text-stone-100">
+                        <span className="flex items-center gap-1.5">
+                          <Scale className="w-3.5 h-3.5 text-[#1E5E3A]" />
+                          {record.weight_kg} kg
+                        </span>
+                        <span className="text-stone-300 dark:text-stone-700">•</span>
+                        <span className="flex items-center gap-1.5">
+                          <Ruler className="w-3.5 h-3.5 text-teal-600" />
+                          {record.height_cm} cm
+                        </span>
                       </div>
+
+                      {record.notes && (
+                        <p className="text-xs text-stone-500 italic pt-0.5">
+                          "{record.notes}"
+                        </p>
+                      )}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRecord(record.id)}
+                      className="w-8 h-8 rounded-full text-stone-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 inline-flex items-center justify-center transition-colors"
+                      title="Delete record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 2: FEEDING MILESTONES */}
-      {activeTab === "milestones" && (
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/30 text-xs text-emerald-900 dark:text-emerald-200">
-            <strong>Pediatric Feeding Milestones:</strong> Track oral-motor skills as your baby transitions from smooth purees to finger foods and family meals. Tap to celebrate each milestone!
+            ) : (
+              <div className="p-8 rounded-[24px] bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#FAF9F5] dark:bg-stone-800 border border-[#EBE8DF] text-stone-400 mx-auto flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-[#1E5E3A]" />
+                </div>
+                <h3 className="text-sm font-serif font-bold text-stone-800 dark:text-stone-200">
+                  No Measurements Recorded Yet
+                </h3>
+                <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                  Log your baby's current weight and length after pediatric visits to monitor steady, healthy growth.
+                </p>
+                <Button
+                  onClick={() => setShowAddModal(true)}
+                  className="rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold px-5"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Record First Measurement
+                </Button>
+              </div>
+            )}
           </div>
+        )}
 
-          <div className="space-y-3">
-            {PEDIATRIC_MILESTONES.map((item) => {
-              const isChecked = !!milestonesCompleted[item.id];
+        {/* TAB 2: FEEDING MILESTONES */}
+        {activeTab === "milestones" && (
+          <div className="space-y-6">
+            <div className="px-1">
+              <h2 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                Pediatric Feeding & Oral Milestones
+              </h2>
+              <p className="text-xs text-stone-500">
+                Check off skills as your baby masters them on their culinary journey
+              </p>
+            </div>
+
+            {/* Group by stage */}
+            {(["4-6m", "6-8m", "9-11m", "12m+"] as const).map((stageKey) => {
+              const stageItems = MILESTONES_DATA.filter((m) => m.stage === stageKey);
+              const stageCompleted = stageItems.filter((m) => completedMilestones[m.id]).length;
+              const allDone = stageCompleted === stageItems.length;
 
               return (
-                <div
-                  key={item.id}
-                  onClick={() => toggleMilestone(item.id, item.title)}
-                  className={`p-4 rounded-3xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
-                    isChecked
-                      ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800"
-                      : "bg-white dark:bg-stone-900 border-[#EBE8DF] dark:border-stone-800 hover:border-stone-300"
-                  }`}
+                <div 
+                  key={stageKey}
+                  className="bg-white dark:bg-stone-900 rounded-[24px] border border-[#EBE8DF] dark:border-stone-800 p-5 shadow-xs space-y-3"
                 >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                        isChecked
-                          ? "bg-emerald-600 border-emerald-600 text-white"
-                          : "border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800"
-                      }`}
-                    >
-                      {isChecked && <CheckCircle2 className="w-4 h-4" />}
-                    </div>
+                  {/* Stage Header */}
+                  <div className="flex items-center justify-between pb-2.5 border-b border-[#EBE8DF] dark:border-stone-800">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
-                          {item.stageLabel}
-                        </span>
-                        <span className="text-[10px] text-stone-400 capitalize">
-                          {item.category} skill
-                        </span>
+                        <h3 className="text-sm sm:text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                          {stageItems[0].stageLabel}
+                        </h3>
+                        {allDone && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300">
+                            Stage Complete ✓
+                          </span>
+                        )}
                       </div>
-                      <h4 className={`font-serif font-bold text-sm sm:text-base mt-1 ${
-                        isChecked ? "text-emerald-900 dark:text-emerald-100" : "text-stone-900 dark:text-stone-100"
-                      }`}>
-                        {item.title}
-                      </h4>
-                      <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5 leading-relaxed">
-                        {item.description}
-                      </p>
+                      <span className="text-[11px] text-stone-500 font-medium">
+                        {stageItems[0].ageSubtitle}
+                      </span>
                     </div>
+
+                    <span className="text-xs font-bold text-stone-600 dark:text-stone-300 px-2.5 py-1 rounded-full bg-[#FAF9F5] dark:bg-stone-800">
+                      {stageCompleted} / {stageItems.length}
+                    </span>
+                  </div>
+
+                  {/* Milestone Checklist */}
+                  <div className="space-y-2.5 pt-1">
+                    {stageItems.map((milestone) => {
+                      const isChecked = !!completedMilestones[milestone.id];
+
+                      return (
+                        <div
+                          key={milestone.id}
+                          onClick={() => toggleMilestone(milestone.id, milestone.title)}
+                          className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+                            isChecked
+                              ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-[#CCE0D2] dark:border-emerald-800/80"
+                              : "bg-[#FAF9F5] dark:bg-stone-800/50 border-[#EBE8DF] dark:border-stone-700/70 hover:border-stone-300"
+                          }`}
+                        >
+                          {/* Checkbox button */}
+                          <div 
+                            className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                              isChecked
+                                ? "bg-[#1E5E3A] text-white"
+                                : "border-2 border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800"
+                            }`}
+                          >
+                            {isChecked && <CheckCircle2 className="w-4 h-4" />}
+                          </div>
+
+                          {/* Content */}
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className={`text-xs sm:text-sm font-bold ${
+                                isChecked 
+                                  ? "text-[#1E5E3A] dark:text-emerald-300 line-through decoration-emerald-600/40" 
+                                  : "text-stone-900 dark:text-stone-100"
+                              }`}>
+                                {milestone.title}
+                              </h4>
+                              <span className="text-[9px] font-semibold uppercase tracking-wider text-stone-400 shrink-0">
+                                {milestone.category}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+                              {milestone.description}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* TAB 3: DAILY MEAL LOG */}
-      {activeTab === "meals" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
-              Daily Nutrition Diary
-            </h2>
-            <Button
-              onClick={() => setShowNewMeal(!showNewMeal)}
-              className="rounded-full bg-forest dark:bg-emerald-600 hover:bg-forest/90 text-white text-xs gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Log Meal
-            </Button>
-          </div>
+        {/* LOG MEASUREMENT MODAL */}
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+          <DialogContent className="sm:max-w-md rounded-3xl p-6 bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800">
+            <DialogHeader>
+              <div className="w-10 h-10 rounded-full bg-[#EAF5EF] dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center mb-2">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <DialogTitle className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                Log Pediatric Measurement
+              </DialogTitle>
+              <DialogDescription className="text-xs text-stone-500">
+                Record {babyName}'s weight and length to keep an organized history.
+              </DialogDescription>
+            </DialogHeader>
 
-          {/* New Meal Form */}
-          {showNewMeal && (
-            <div className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-emerald-200 dark:border-emerald-800/50 shadow-sm animate-in fade-in">
-              <h3 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100 mb-3">
-                Log Baby Meal
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-4 pt-2">
+              <div>
+                <Label htmlFor="dateInput" className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  Date Recorded
+                </Label>
+                <Input
+                  id="dateInput"
+                  type="date"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  className="mt-1 rounded-xl"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Meal Category</Label>
-                  <select
-                    value={mealType}
-                    onChange={(e) => setMealType(e.target.value)}
-                    className="w-full h-10 px-3 mt-1 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-xs"
-                  >
-                    <option value="Breakfast">Breakfast</option>
-                    <option value="Lunch">Lunch</option>
-                    <option value="Dinner">Dinner</option>
-                    <option value="Snack">Snack</option>
-                  </select>
-                </div>
-                <div>
-                  <Label className="text-xs">Dish or Recipe Served *</Label>
+                  <Label htmlFor="weightInput" className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                    Weight (kg) *
+                  </Label>
                   <Input
-                    value={recipeTitle}
-                    onChange={(e) => setRecipeTitle(e.target.value)}
-                    placeholder="e.g. Avocado Sweet Potato Mash"
-                    className="mt-1 rounded-xl text-xs"
+                    id="weightInput"
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 8.45"
+                    value={newWeight}
+                    onChange={(e) => setNewWeight(e.target.value)}
+                    className="mt-1 rounded-xl"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="heightInput" className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                    Length / Height (cm) *
+                  </Label>
+                  <Input
+                    id="heightInput"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 69.5"
+                    value={newHeight}
+                    onChange={(e) => setNewHeight(e.target.value)}
+                    className="mt-1 rounded-xl"
                   />
                 </div>
               </div>
-              <div className="flex gap-2 mt-4">
-                <Button onClick={handleAddMeal} className="rounded-full bg-forest dark:bg-emerald-600 text-white text-xs">
-                  Save Meal
-                </Button>
-                <Button variant="ghost" onClick={() => setShowNewMeal(false)} className="rounded-full text-xs">
+
+              <div>
+                <Label htmlFor="milestoneInput" className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  Milestone Tag (Optional)
+                </Label>
+                <Input
+                  id="milestoneInput"
+                  type="text"
+                  placeholder="e.g. 6 Months Checkup, First Tooth"
+                  value={newMilestone}
+                  onChange={(e) => setNewMilestone(e.target.value)}
+                  className="mt-1 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="notesInput" className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                  Pediatrician Notes (Optional)
+                </Label>
+                <Textarea
+                  id="notesInput"
+                  placeholder="e.g. Doctor said baby is tracking well in 50th percentile."
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  className="mt-1 rounded-xl text-xs h-20"
+                />
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 rounded-full text-xs"
+                >
                   Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSaveMeasurement}
+                  disabled={isSaving || !newWeight || !newHeight}
+                  className="flex-1 rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold"
+                >
+                  {isSaving ? "Saving..." : "Save Measurement"}
                 </Button>
               </div>
             </div>
-          )}
+          </DialogContent>
+        </Dialog>
 
-          {/* Meal History */}
-          <div className="space-y-2.5">
-            {mealLogs.length > 0 ? (
-              mealLogs.map((meal) => (
-                <div key={meal.id} className="p-3.5 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 flex items-center justify-center">
-                      <Utensils className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-stone-800 dark:text-stone-200">
-                        {meal.recipe_title}
-                      </div>
-                      <div className="text-[11px] text-stone-400">
-                        {meal.meal_type} • {format(new Date(meal.eaten_at), "MMM d, h:mm a")}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 rounded-3xl bg-white dark:bg-stone-900 border border-dashed border-[#EBE8DF] dark:border-stone-800 text-center">
-                <Utensils className="w-10 h-10 text-stone-300 mx-auto mb-2" />
-                <p className="text-xs text-stone-500">No meals logged yet today.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
