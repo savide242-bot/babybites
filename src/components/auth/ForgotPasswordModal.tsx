@@ -38,7 +38,6 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
   }, [email]);
 
   const handleSendResetEmail = async () => {
-    
     setError("");
     const validation = emailSchema.safeParse({ email: resetEmail });
     
@@ -51,34 +50,32 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
     try {
       const redirectUrl = `${window.location.origin}/auth/reset-password`;
       
-      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim().toLowerCase(), {
         redirectTo: redirectUrl
       });
       
-      
       if (error) {
-        
-        if (error.message.includes('rate limit') || error.message.includes('too many')) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes('rate limit') || msg.includes('too many')) {
           setCooldown(60);
           toast.error("Too many requests. Please wait 60 seconds.");
-        } else if (error.message.includes('Email not confirmed')) {
+        } else if (msg.includes('email not confirmed')) {
           toast.error("Please confirm your email first before resetting password.");
-        } else if (error.message.includes('User not found')) {
+        } else if (msg.includes('user not found')) {
           // Don't reveal if user exists - still show success for security
           setIsSent(true);
-          toast.success("If an account exists, you'll receive an email.");
+          toast.success("If an account exists, you will receive a reset email.");
           return;
         } else {
-          toast.error(`Reset failed: ${error.message}`);
+          toast.error("Unable to send reset instructions. Please verify your email and try again.");
         }
         return;
       }
       
       setIsSent(true);
-      toast.success("Password reset email sent! Check your inbox.");
+      toast.success("BabyBites password reset email sent! Check your inbox.");
       
-    } catch (error: any) {
-      
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -106,9 +103,9 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Mail className="w-6 h-6 text-primary" />
               </div>
-              <DialogTitle className="text-center text-2xl">Reset Your Password</DialogTitle>
-              <DialogDescription className="text-center">
-                Enter your email and we'll send you a link to reset your password.
+              <DialogTitle className="text-center text-2xl font-serif">Reset Your Password</DialogTitle>
+              <DialogDescription className="text-center text-sm text-muted-foreground">
+                Enter your BabyBites registered email address and we'll send you a secure link to create a new password.
               </DialogDescription>
             </DialogHeader>
 
@@ -128,14 +125,14 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1"
+                className="flex-1 rounded-full"
                 disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSendResetEmail}
-                className="flex-1"
+                className="flex-1 rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white"
                 disabled={isLoading || !resetEmail}
               >
                 {isLoading ? (
@@ -151,37 +148,37 @@ const ForgotPasswordModal = ({ email, isOpen, onClose }: ForgotPasswordModalProp
           </div>
         ) : (
           <div className="space-y-6 text-center animate-fade-in">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-primary" />
+            <div className="mx-auto w-16 h-16 rounded-full bg-[#EAF5EE] flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-[#1E5E3A]" />
             </div>
             
             <DialogHeader>
-              <DialogTitle className="text-2xl">Email Sent!</DialogTitle>
-              <DialogDescription className="text-base pt-2">
+              <DialogTitle className="text-2xl font-serif text-[#1E5E3A]">Email Sent!</DialogTitle>
+              <DialogDescription className="text-base pt-2 text-stone-600">
                 Check your inbox at:<br />
-                <span className="font-medium text-foreground">{resetEmail}</span>
+                <span className="font-semibold text-foreground">{resetEmail}</span>
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Click the link in the email to reset your password.</p>
+              <p>Click the secure link in the email from <strong>BabyBites</strong> to reset your password.</p>
               <p>The link expires in <span className="font-medium text-foreground">60 minutes</span>.</p>
-              <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg mt-3">
-                <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-amber-600 dark:text-amber-400">
-                  Can't find the email? Check your <span className="font-medium">spam or junk folder</span>.
+              <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-xl mt-3 text-left">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-800 dark:text-amber-300">
+                  Can't find the email? Check your <span className="font-medium">spam or promotions folder</span> or search for <strong>BabyBites</strong>.
                 </p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <Button onClick={handleClose} className="w-full">
-                Close
+              <Button onClick={handleClose} className="w-full rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white">
+                Back to Sign In
               </Button>
               <button
                 onClick={handleResend}
                 disabled={cooldown > 0}
-                className={`text-sm ${cooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-primary hover:underline'}`}
+                className={`text-sm ${cooldown > 0 ? 'text-muted-foreground cursor-not-allowed' : 'text-[#1E5E3A] hover:underline font-medium'}`}
               >
                 {cooldown > 0 
                   ? `Wait ${cooldown}s to resend` 

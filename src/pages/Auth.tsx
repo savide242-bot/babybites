@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Mail, Lock, Loader2, Heart, Star, Users, ShieldCheck, Eye, EyeOff, Info } from "lucide-react";
 import { z } from "zod";
-import GoogleLogo from "@/components/auth/GoogleLogo";
 import FormInput from "@/components/auth/FormInput";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import {
@@ -100,13 +99,23 @@ export const Auth = () => {
       });
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+        const msg = error.message.toLowerCase();
+        if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
           setErrors({
-            password: "Incorrect email or password. If you just purchased access on Hotmart, check your inbox for your temporary password.",
+            password: "Incorrect email or password. If you just purchased access or were invited, check your inbox for your temporary password.",
           });
           return;
         }
-        throw error;
+        if (msg.includes("email not confirmed")) {
+          toast.error("Please confirm your email address. Check your inbox for the BabyBites activation link.");
+          return;
+        }
+        if (msg.includes("rate limit") || msg.includes("too many requests")) {
+          toast.error("Too many sign-in attempts. For security, please wait 60 seconds.");
+          return;
+        }
+        toast.error("Unable to sign in. Please verify your credentials or use the temporary code sent to your email.");
+        return;
       }
 
       if (data.user) {
@@ -119,25 +128,10 @@ export const Auth = () => {
         }
         navigate("/", { replace: true });
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in. Please verify your credentials.");
+    } catch {
+      toast.error("Unable to connect to BabyBites. Please verify your network and credentials.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleAuth = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with Google");
     }
   };
 
@@ -146,7 +140,7 @@ export const Auth = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#FAF9F5]">
         <div className="text-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#1E5E3A]" />
-          <p className="text-gray-500 text-sm">Verifying session...</p>
+          <p className="text-gray-500 text-sm">Verifying your BabyBites session...</p>
         </div>
       </div>
     );
@@ -211,7 +205,7 @@ export const Auth = () => {
               <div className="space-y-0.5 leading-relaxed">
                 <span className="font-bold">Verified Member Access Only:</span>
                 <p className="text-emerald-900/80">
-                  Accounts are automatically created upon purchase on Hotmart. Your temporary login password was sent directly to your email inbox.
+                  Accounts are automatically created upon purchase on Hotmart or through an invitation. Your temporary login password was sent directly to your email inbox.
                 </p>
               </div>
             </div>
@@ -282,7 +276,7 @@ export const Auth = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Signing in...
+                    Signing in to BabyBites...
                   </>
                 ) : (
                   "Sign In to BabyBites"
@@ -290,31 +284,12 @@ export const Auth = () => {
               </Button>
             </form>
 
-            <div className="relative my-5">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-[#EBE8DF]" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray-400">Or continue with</span>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleGoogleAuth}
-              variant="outline"
-              size="lg"
-              className="w-full h-12 rounded-full text-sm font-semibold border border-[#EBE8DF] hover:bg-gray-50 text-gray-700"
-            >
-              <GoogleLogo />
-              <span className="ml-3">Continue with Google</span>
-            </Button>
-
             {/* Non-member guidance */}
             <div className="mt-6 pt-4 border-t border-[#EBE8DF] text-center">
               <p className="text-xs text-gray-500 flex items-center justify-center gap-1.5">
                 <Info className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                 <span>
-                  Didn't receive your email? Check your spam folder or search for <strong>BabyBites</strong>.
+                  Didn't receive your credentials? Check spam or search for <strong>BabyBites</strong>.
                 </span>
               </p>
             </div>
@@ -362,7 +337,7 @@ export const Auth = () => {
                       <strong>2. Pediatric Medical Disclaimer:</strong> BabyBites is an educational tool and does not substitute for certified pediatric medical advice, clinical diagnosis, or medical treatment. Always consult your pediatrician regarding your baby's specific dietary allergies and developmental readiness.
                     </p>
                     <p>
-                      <strong>3. User Accounts:</strong> Membership is granted exclusively through verified checkout. You are responsible for safeguarding your login credentials.
+                      <strong>3. User Accounts:</strong> Membership is granted exclusively through verified checkout or admin VIP gift. You are responsible for safeguarding your login credentials.
                     </p>
                     <p>
                       <strong>4. Intellectual Property:</strong> All original recipes, nutritional guides, and photography are proprietary to BabyBites.
