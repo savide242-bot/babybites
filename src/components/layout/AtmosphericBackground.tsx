@@ -1,13 +1,20 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import appBgBaby from "@/assets/app-bg-baby.jpg";
 import { useVisualTheme } from "@/hooks/useVisualTheme";
 
 export const AtmosphericBackground: React.FC = () => {
   const location = useLocation();
   const { settings } = useVisualTheme();
 
-  // Explicit user requirement: Do not apply wallpaper background on Home, Pantry Helper, and Community tabs
+  // If no custom wallpaper has been explicitly configured in Theme Management, do not inject any background image.
+  // This ensures all tabs (Saved Collections, Growth Tracker, Meal Planner, etc.) have the clean, pristine
+  // botanical #FAF9F5 background with crisp legibility and zero elements being washed out.
+  const activeImage = settings.wallpaperUrl;
+  if (!activeImage) {
+    return null;
+  }
+
+  // Explicit user requirement: Do not apply wallpaper background on Home, Pantry Helper, Community tabs
   const isExcluded = 
     location.pathname === '/' || 
     location.pathname === '/home' || 
@@ -18,18 +25,17 @@ export const AtmosphericBackground: React.FC = () => {
     return null;
   }
 
-  const currentTabBg = settings.tabBackgrounds[location.pathname];
-  const activeImage = settings.wallpaperUrl || appBgBaby;
-  const blurPx = settings.wallpaperBlur ?? 1.5;
-  const opacityLight = (settings.wallpaperOpacityLight ?? 70) / 100;
-  const opacityDark = (settings.wallpaperOpacityDark ?? 20) / 100;
+  const currentTabBg = settings.tabBackgrounds?.[location.pathname];
+  const blurPx = settings.wallpaperBlur ?? 4;
+  const opacityLight = Math.min((settings.wallpaperOpacityLight ?? 20) / 100, 0.15); // gentle watermark only
+  const opacityDark = Math.min((settings.wallpaperOpacityDark ?? 10) / 100, 0.10);
 
   return (
     <div 
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" 
       aria-hidden="true"
     >
-      {/* Background Wallpaper */}
+      {/* Background Wallpaper - Subtle watermark only if admin explicitly set custom wallpaper */}
       <img
         src={activeImage}
         alt=""
@@ -38,7 +44,7 @@ export const AtmosphericBackground: React.FC = () => {
           opacity: opacityLight,
         }}
         className="w-full h-full object-cover object-top sm:object-center scale-105 transform-gpu transition-all duration-300 dark:hidden"
-        loading="eager"
+        loading="lazy"
       />
       <img
         src={activeImage}
@@ -48,21 +54,21 @@ export const AtmosphericBackground: React.FC = () => {
           opacity: opacityDark,
         }}
         className="w-full h-full object-cover object-top sm:object-center scale-105 transform-gpu transition-all duration-300 hidden dark:block"
-        loading="eager"
+        loading="lazy"
       />
 
       {/* Light mode base tint & custom tab background overlay */}
       <div 
         className="absolute inset-0 transition-colors duration-300 pointer-events-none dark:hidden"
         style={{
-          backgroundColor: currentTabBg ? currentTabBg : "rgba(250, 249, 245, 0.45)",
-          opacity: currentTabBg ? 0.75 : 1,
+          backgroundColor: currentTabBg ? currentTabBg : "rgba(250, 249, 245, 0.85)",
+          opacity: 1,
         }}
       />
 
       {/* Dark mode base tint */}
       <div 
-        className="absolute inset-0 transition-colors duration-300 pointer-events-none hidden dark:block bg-[#121614]/85"
+        className="absolute inset-0 transition-colors duration-300 pointer-events-none hidden dark:block bg-[#121614]/90"
       />
     </div>
   );

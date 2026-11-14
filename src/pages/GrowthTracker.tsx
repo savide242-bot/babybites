@@ -20,7 +20,6 @@ import {
   Info
 } from "lucide-react";
 import { toast } from "sonner";
-import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface GrowthRecord {
@@ -364,22 +363,21 @@ export const GrowthTracker: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors">
-      <AtmosphericBackground />
+    <div className="relative min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors font-['Times_New_Roman',Times,serif]">
       <div className="relative z-10 space-y-6">
 
         {/* HERO PROFILE SUMMARY CARD */}
-        <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-stone-900 rounded-[28px] border border-[#EBE8DF] dark:border-stone-800 p-5 sm:p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#EAF5EF] dark:bg-emerald-950/80 border border-[#CCE0D2] dark:border-emerald-800 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-full bg-[#EAF5EF] dark:bg-emerald-950/80 border border-[#CCE0D2] dark:border-emerald-800 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center shrink-0 shadow-2xs">
                 <Baby className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+                <h1 className="text-2xl sm:text-3xl font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-50 tracking-tight">
                   {babyName}'s Growth
                 </h1>
-                <p className="text-xs text-stone-500 font-medium">
+                <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-semibold mt-0.5">
                   {ageDisplay} • Pediatric Milestone Companion
                 </p>
               </div>
@@ -388,7 +386,7 @@ export const GrowthTracker: React.FC = () => {
             <Button
               size="sm"
               onClick={() => setShowAddModal(true)}
-              className="rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold gap-1.5 shadow-xs"
+              className="rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-bold gap-1.5 shadow-sm font-['Times_New_Roman',Times,serif]"
             >
               <Plus className="w-3.5 h-3.5" />
               Log Check-in
@@ -398,43 +396,43 @@ export const GrowthTracker: React.FC = () => {
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-3 gap-2.5 pt-1">
             {/* Weight */}
-            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/80 text-center">
-              <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500 font-semibold mb-1">
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/80 border border-[#E0DDD3] dark:border-stone-700 text-center shadow-2xs">
+              <div className="flex items-center justify-center gap-1 text-xs text-stone-700 dark:text-stone-300 font-bold mb-1">
                 <Scale className="w-3.5 h-3.5 text-[#1E5E3A]" />
                 <span>Weight</span>
               </div>
-              <div className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+              <div className="text-lg sm:text-xl font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-white">
                 {latestRecord ? `${latestRecord.weight_kg} kg` : "—"}
               </div>
-              <span className="text-[10px] text-stone-400 font-medium block">
+              <span className="text-[11px] text-stone-600 dark:text-stone-400 font-semibold block mt-0.5">
                 {totalGainKg && parseFloat(totalGainKg) > 0 ? `+${totalGainKg} kg total` : "Recent record"}
               </span>
             </div>
 
             {/* Height */}
-            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/80 text-center">
-              <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500 font-semibold mb-1">
-                <Ruler className="w-3.5 h-3.5 text-teal-600" />
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/80 border border-[#E0DDD3] dark:border-stone-700 text-center shadow-2xs">
+              <div className="flex items-center justify-center gap-1 text-xs text-teal-800 dark:text-teal-300 font-bold mb-1">
+                <Ruler className="w-3.5 h-3.5 text-teal-700" />
                 <span>Length</span>
               </div>
-              <div className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+              <div className="text-lg sm:text-xl font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-white">
                 {latestRecord ? `${latestRecord.height_cm} cm` : "—"}
               </div>
-              <span className="text-[10px] text-teal-600 dark:text-teal-400 font-medium block">
+              <span className="text-[11px] text-teal-800 dark:text-teal-300 font-semibold block mt-0.5">
                 WHO standard
               </span>
             </div>
 
             {/* Milestones */}
-            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/80 text-center">
-              <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500 font-semibold mb-1">
-                <Award className="w-3.5 h-3.5 text-rose-500" />
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F5] dark:bg-stone-800/80 border border-[#E0DDD3] dark:border-stone-700 text-center shadow-2xs">
+              <div className="flex items-center justify-center gap-1 text-xs text-rose-800 dark:text-rose-300 font-bold mb-1">
+                <Award className="w-3.5 h-3.5 text-rose-600" />
                 <span>Milestones</span>
               </div>
-              <div className="text-base sm:text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+              <div className="text-lg sm:text-xl font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-white">
                 {totalCompletedMilestones} / 12
               </div>
-              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium block">
+              <span className="text-[11px] text-rose-800 dark:text-rose-300 font-semibold block mt-0.5">
                 {totalCompletedMilestones > 0 ? "Skills active" : "Track first"}
               </span>
             </div>
@@ -442,14 +440,14 @@ export const GrowthTracker: React.FC = () => {
         </div>
 
         {/* TAB NAVIGATION */}
-        <div className="flex items-center gap-2 p-1 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs">
           <button
             type="button"
             onClick={() => setActiveTab("growth")}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold font-['Times_New_Roman',Times,serif] transition-all flex items-center justify-center gap-2 ${
               activeTab === "growth"
                 ? "bg-[#1E5E3A] text-white shadow-xs"
-                : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
+                : "text-stone-700 dark:text-stone-300 hover:text-stone-950"
             }`}
           >
             <TrendingUp className="w-4 h-4" />
@@ -459,10 +457,10 @@ export const GrowthTracker: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab("milestones")}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold font-['Times_New_Roman',Times,serif] transition-all flex items-center justify-center gap-2 ${
               activeTab === "milestones"
                 ? "bg-[#1E5E3A] text-white shadow-xs"
-                : "text-stone-600 dark:text-stone-400 hover:text-stone-900"
+                : "text-stone-700 dark:text-stone-300 hover:text-stone-950"
             }`}
           >
             <Award className="w-4 h-4" />
@@ -475,10 +473,10 @@ export const GrowthTracker: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <div>
-                <h2 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                <h2 className="text-lg font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-50">
                   Pediatric Measurement History
                 </h2>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">
                   Track weight and length progression over time
                 </p>
               </div>
@@ -487,7 +485,7 @@ export const GrowthTracker: React.FC = () => {
                 size="sm"
                 variant="outline"
                 onClick={() => setShowAddModal(true)}
-                className="rounded-full text-xs font-semibold border-[#CCE0D2] text-[#1E5E3A] hover:bg-emerald-50"
+                className="rounded-full text-xs font-bold border-[#CCE0D2] text-[#1E5E3A] hover:bg-emerald-50 font-['Times_New_Roman',Times,serif]"
               >
                 <Plus className="w-3.5 h-3.5 mr-1" />
                 Add Entry
@@ -499,12 +497,12 @@ export const GrowthTracker: React.FC = () => {
                 {growthRecords.map((record) => (
                   <div
                     key={record.id}
-                    className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 shadow-2xs hover:border-[#CCE0D2] transition-all flex items-center justify-between gap-3"
+                    className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-[#E0DDD3] dark:border-stone-800 shadow-2xs hover:border-[#1E5E3A] transition-all flex items-center justify-between gap-3"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-stone-400" />
+                        <span className="text-xs font-bold text-stone-900 dark:text-stone-100 flex items-center gap-1 font-['Times_New_Roman',Times,serif]">
+                          <Calendar className="w-3.5 h-3.5 text-stone-500" />
                           {new Date(record.recorded_at).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
@@ -512,26 +510,26 @@ export const GrowthTracker: React.FC = () => {
                           })}
                         </span>
                         {record.milestone && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#1E5E3A] dark:text-emerald-300 border border-emerald-200">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 border border-emerald-300 font-['Times_New_Roman',Times,serif]">
                             {record.milestone}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm font-semibold text-stone-900 dark:text-stone-100">
+                      <div className="flex items-center gap-4 text-sm font-bold text-stone-950 dark:text-white font-['Times_New_Roman',Times,serif]">
                         <span className="flex items-center gap-1.5">
                           <Scale className="w-3.5 h-3.5 text-[#1E5E3A]" />
                           {record.weight_kg} kg
                         </span>
-                        <span className="text-stone-300 dark:text-stone-700">•</span>
+                        <span className="text-stone-400 dark:text-stone-600">•</span>
                         <span className="flex items-center gap-1.5">
-                          <Ruler className="w-3.5 h-3.5 text-teal-600" />
+                          <Ruler className="w-3.5 h-3.5 text-teal-700" />
                           {record.height_cm} cm
                         </span>
                       </div>
 
                       {record.notes && (
-                        <p className="text-xs text-stone-500 italic pt-0.5">
+                        <p className="text-xs text-stone-600 dark:text-stone-400 italic pt-0.5 font-['Times_New_Roman',Times,serif]">
                           "{record.notes}"
                         </p>
                       )}
@@ -540,7 +538,7 @@ export const GrowthTracker: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleDeleteRecord(record.id)}
-                      className="w-8 h-8 rounded-full text-stone-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 inline-flex items-center justify-center transition-colors"
+                      className="w-8 h-8 rounded-full text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 inline-flex items-center justify-center transition-colors"
                       title="Delete record"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -549,19 +547,19 @@ export const GrowthTracker: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="p-8 rounded-[24px] bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 text-center space-y-3">
+              <div className="p-8 rounded-[24px] bg-white dark:bg-stone-900 border border-[#EBE8DF] dark:border-stone-800 text-center space-y-3 shadow-xs">
                 <div className="w-12 h-12 rounded-full bg-[#FAF9F5] dark:bg-stone-800 border border-[#EBE8DF] text-stone-400 mx-auto flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-[#1E5E3A]" />
                 </div>
-                <h3 className="text-sm font-serif font-bold text-stone-800 dark:text-stone-200">
+                <h3 className="text-base font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-50">
                   No Measurements Recorded Yet
                 </h3>
-                <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                <p className="text-xs text-stone-600 dark:text-stone-400 font-medium max-w-sm mx-auto font-['Times_New_Roman',Times,serif]">
                   Log your baby's current weight and length after pediatric visits to monitor steady, healthy growth.
                 </p>
                 <Button
                   onClick={() => setShowAddModal(true)}
-                  className="rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-semibold px-5"
+                  className="rounded-full bg-[#1E5E3A] hover:bg-[#16482c] text-white text-xs font-bold px-5 font-['Times_New_Roman',Times,serif]"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" />
                   Record First Measurement
@@ -573,12 +571,12 @@ export const GrowthTracker: React.FC = () => {
 
         {/* TAB 2: FEEDING MILESTONES */}
         {activeTab === "milestones" && (
-          <div className="space-y-6">
+          <div className="space-y-6 font-['Times_New_Roman',Times,serif]">
             <div className="px-1">
-              <h2 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+              <h2 className="text-lg font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-50">
                 Pediatric Feeding & Oral Milestones
               </h2>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">
                 Check off skills as your baby masters them on their culinary journey
               </p>
             </div>
@@ -592,27 +590,27 @@ export const GrowthTracker: React.FC = () => {
               return (
                 <div 
                   key={stageKey}
-                  className="bg-white dark:bg-stone-900 rounded-[24px] border border-[#EBE8DF] dark:border-stone-800 p-5 shadow-xs space-y-3"
+                  className="bg-white dark:bg-stone-900 rounded-[24px] border border-[#E0DDD3] dark:border-stone-800 p-5 shadow-xs space-y-3"
                 >
                   {/* Stage Header */}
                   <div className="flex items-center justify-between pb-2.5 border-b border-[#EBE8DF] dark:border-stone-800">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm sm:text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                        <h3 className="text-base sm:text-lg font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-50">
                           {stageItems[0].stageLabel}
                         </h3>
                         {allDone && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#1E5E3A] dark:text-emerald-300 border border-emerald-300">
                             Stage Complete ✓
                           </span>
                         )}
                       </div>
-                      <span className="text-[11px] text-stone-500 font-medium">
+                      <span className="text-xs text-stone-600 dark:text-stone-400 font-semibold">
                         {stageItems[0].ageSubtitle}
                       </span>
                     </div>
 
-                    <span className="text-xs font-bold text-stone-600 dark:text-stone-300 px-2.5 py-1 rounded-full bg-[#FAF9F5] dark:bg-stone-800">
+                    <span className="text-xs font-bold text-stone-800 dark:text-stone-200 px-3 py-1 rounded-full bg-[#FAF9F5] dark:bg-stone-800 border border-[#EBE8DF] dark:border-stone-700">
                       {stageCompleted} / {stageItems.length}
                     </span>
                   </div>
@@ -628,16 +626,16 @@ export const GrowthTracker: React.FC = () => {
                           onClick={() => toggleMilestone(milestone.id, milestone.title)}
                           className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
                             isChecked
-                              ? "bg-emerald-50/70 dark:bg-emerald-950/30 border-[#CCE0D2] dark:border-emerald-800/80"
-                              : "bg-[#FAF9F5] dark:bg-stone-800/50 border-[#EBE8DF] dark:border-stone-700/70 hover:border-stone-300"
+                              ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-[#CCE0D2] dark:border-emerald-800"
+                              : "bg-[#FAF9F5] dark:bg-stone-800/60 border-[#E0DDD3] dark:border-stone-700 hover:border-stone-400"
                           }`}
                         >
                           {/* Checkbox button */}
                           <div 
                             className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                               isChecked
-                                ? "bg-[#1E5E3A] text-white"
-                                : "border-2 border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800"
+                                ? "bg-[#1E5E3A] text-white shadow-2xs"
+                                : "border-2 border-stone-400 dark:border-stone-500 bg-white dark:bg-stone-800"
                             }`}
                           >
                             {isChecked && <CheckCircle2 className="w-4 h-4" />}
@@ -646,18 +644,18 @@ export const GrowthTracker: React.FC = () => {
                           {/* Content */}
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <h4 className={`text-xs sm:text-sm font-bold ${
+                              <h4 className={`text-sm sm:text-base font-['Times_New_Roman',Times,serif] font-bold ${
                                 isChecked 
-                                  ? "text-[#1E5E3A] dark:text-emerald-300 line-through decoration-emerald-600/40" 
-                                  : "text-stone-900 dark:text-stone-100"
+                                  ? "text-[#1E5E3A] dark:text-emerald-300 line-through decoration-emerald-700/60" 
+                                  : "text-stone-950 dark:text-stone-50"
                               }`}>
                                 {milestone.title}
                               </h4>
-                              <span className="text-[9px] font-semibold uppercase tracking-wider text-stone-400 shrink-0">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 shrink-0">
                                 {milestone.category}
                               </span>
                             </div>
-                            <p className="text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed font-normal">
                               {milestone.description}
                             </p>
                           </div>

@@ -12,8 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import pantryHeroBanner from "@/assets/pantry-hero-banner.webp";
 import pantryEmptyBanner from "@/assets/pantry-empty-banner.webp";
-import appBgBaby from "@/assets/app-bg-baby.jpg";
-import customRecipeBgBaby from "@/assets/custom-recipe-bg-baby.webp";
 
 
 export interface CustomGeneratedRecipe {
@@ -35,6 +33,21 @@ export interface CustomGeneratedRecipe {
 }
 
 export const SAVED_RECIPES_STORAGE_KEY = "babybites_saved_custom_recipes_v1";
+
+const POPULAR_PANTRY_STAPLES = [
+  { name: "avocado", label: "🥑 Avocado" },
+  { name: "sweet potato", label: "🍠 Sweet Potato" },
+  { name: "banana", label: "🍌 Banana" },
+  { name: "oats", label: "🌾 Oats" },
+  { name: "apple", label: "🍎 Apple" },
+  { name: "carrot", label: "🥕 Carrot" },
+  { name: "broccoli", label: "🥦 Broccoli" },
+  { name: "salmon", label: "🐟 Salmon" },
+  { name: "egg", label: "🥚 Egg" },
+  { name: "yogurt", label: "🥛 Yogurt" },
+  { name: "chicken", label: "🍗 Chicken" },
+  { name: "pumpkin", label: "🎃 Pumpkin" },
+];
 
 // Ingredient profiles for harmonious culinary clustering
 const INGREDIENT_PROFILES: Record<string, string[]> = {
@@ -369,6 +382,226 @@ function generateCustomRecipe(
   };
 }
 
+interface BotanicalCustomRecipeCardProps {
+  recipe: CustomGeneratedRecipe;
+  isSaved?: boolean;
+  onSave?: (recipe: CustomGeneratedRecipe) => void;
+  onTryAnother?: () => void;
+  canTryAnother?: boolean;
+  onClose?: () => void;
+  onDelete?: () => void;
+}
+
+const BotanicalCustomRecipeCard: React.FC<BotanicalCustomRecipeCardProps> = ({
+  recipe,
+  isSaved,
+  onSave,
+  onTryAnother,
+  canTryAnother,
+  onClose,
+  onDelete,
+}) => {
+  const nutBenefits = getNutritionalBenefitsTable(recipe);
+
+  return (
+    <div className="rounded-[28px] sm:rounded-[32px] bg-white dark:bg-stone-900 border border-[#E8E4DA] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.08)] p-5 sm:p-8 space-y-6 text-stone-900 dark:text-stone-100 animate-fade-in font-['Times_New_Roman',Times,serif]">
+      {/* Header bar */}
+      <div className="space-y-3 pb-5 border-b border-[#EBE8DF] dark:border-stone-800">
+        <div className="flex flex-wrap items-center justify-between gap-2 font-sans">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-[#EAF5EE] dark:bg-emerald-950/80 text-[#1E5E3A] dark:text-emerald-300 border border-[#CCE0D2] dark:border-emerald-800">
+            <Sparkles className="w-3.5 h-3.5" />
+            {recipe.category || "Custom Recipe"} • {recipe.ageGroup}
+          </span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400">
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-[#1E5E3A]" /> Prep: {recipe.prepTime}</span>
+            <span>•</span>
+            <span>Cook: {recipe.cookTime}</span>
+            <span>•</span>
+            <span>{recipe.servings}</span>
+          </div>
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-50 tracking-tight leading-tight">
+          {recipe.title}
+        </h2>
+
+        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans leading-relaxed">
+          {recipe.description}
+        </p>
+      </div>
+
+      {/* Harmonious Pediatric Pairing Callout */}
+      <div className="p-4 rounded-2xl bg-[#F4F9F5] dark:bg-emerald-950/30 border border-[#CCE0D2] dark:border-emerald-800 flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-[#EAF5EE] dark:bg-emerald-900/80 text-[#1E5E3A] dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+          <ChefHat className="w-4 h-4" />
+        </div>
+        <div className="space-y-0.5 text-xs sm:text-sm">
+          <span className="font-bold text-[#1E5E3A] dark:text-emerald-300 block font-sans">
+            Harmonious Pediatric Pairing
+          </span>
+          <p className="text-stone-700 dark:text-stone-300 leading-relaxed font-sans">
+            {recipe.pairingExplanation}
+          </p>
+        </div>
+      </div>
+
+      {/* Ingredients & Proportions */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#1E5E3A]" />
+          <h3 className="text-sm sm:text-base font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-100 uppercase tracking-wider">
+            Fresh Ingredients & Proportions
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {recipe.ingredients.map((ing, i) => (
+            <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/70 text-xs sm:text-sm text-stone-800 dark:text-stone-200">
+              <CheckCircle2 className="w-4 h-4 text-[#1E5E3A] dark:text-emerald-400 shrink-0 mt-0.5" />
+              <span className="font-medium leading-snug font-sans">{ing}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Step-by-Step Preparation */}
+      <div className="space-y-3 pt-1">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#1E5E3A]" />
+          <h3 className="text-sm sm:text-base font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-100 uppercase tracking-wider">
+            Step-by-Step Preparation
+          </h3>
+        </div>
+        <div className="space-y-2.5">
+          {recipe.instructions.map((step, idx) => (
+            <div key={idx} className="flex items-start gap-3 p-3.5 rounded-xl bg-[#FAF9F5] dark:bg-stone-800/60 border border-[#EBE8DF] dark:border-stone-700/70 text-xs sm:text-sm text-stone-800 dark:text-stone-200">
+              <span className="w-6 h-6 rounded-full bg-[#1E5E3A] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-2xs font-['Times_New_Roman',Times,serif]">
+                {idx + 1}
+              </span>
+              <span className="flex-1 font-medium leading-relaxed font-sans pt-0.5">{step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Nutritional Highlights Table */}
+      <div className="space-y-3 pt-1">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#1E5E3A]" />
+          <h3 className="text-sm sm:text-base font-['Times_New_Roman',Times,serif] font-bold text-stone-950 dark:text-stone-100 uppercase tracking-wider">
+            Nutritional Benefits for Baby
+          </h3>
+        </div>
+        <div className="overflow-x-auto rounded-2xl border border-[#E0DDD3] dark:border-stone-700 bg-white dark:bg-stone-900 shadow-2xs">
+          <table className="w-full text-left text-xs sm:text-sm font-sans">
+            <thead>
+              <tr className="bg-[#EAF5EE] dark:bg-emerald-950/70 text-[#1E5E3A] dark:text-emerald-300 border-b border-[#CCE0D2] dark:border-emerald-800">
+                <th className="py-2.5 px-4 font-bold uppercase tracking-wider text-[11px]">Key Nutrient</th>
+                <th className="py-2.5 px-4 font-bold uppercase tracking-wider text-[11px]">Primary Source</th>
+                <th className="py-2.5 px-4 font-bold uppercase tracking-wider text-[11px]">Pediatric Benefit</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EBE8DF] dark:divide-stone-800">
+              {nutBenefits.map((row, idx) => (
+                <tr key={idx} className="hover:bg-[#FAF9F5] dark:hover:bg-stone-800/50 transition-colors">
+                  <td className="py-2.5 px-4 font-bold text-stone-900 dark:text-stone-100 text-xs sm:text-sm whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-[#1E5E3A] font-bold">✓</span>
+                      <span>{row.nutrient}</span>
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-4 text-stone-700 dark:text-stone-300 font-semibold text-xs sm:text-sm">
+                    {row.source}
+                  </td>
+                  <td className="py-2.5 px-4 text-stone-600 dark:text-stone-400 text-xs sm:text-sm leading-snug">
+                    {row.benefit}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Pediatric Texture & Safety Guide */}
+      <div className="p-4 rounded-2xl bg-[#FFFDF5] dark:bg-amber-950/20 border border-[#F3C98B] dark:border-amber-800/60 flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="space-y-0.5 text-xs sm:text-sm">
+          <span className="font-bold text-amber-900 dark:text-amber-300 block font-sans">
+            Pediatric Texture & Safety Guide
+          </span>
+          <p className="text-stone-700 dark:text-stone-300 leading-relaxed italic font-sans">
+            "{recipe.safetyTip}"
+          </p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 font-sans">
+        {onClose ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="w-full sm:w-auto rounded-full text-xs h-10 px-5 border-[#EBE8DF] text-[#1E5E3A] hover:bg-emerald-50 cursor-pointer"
+          >
+            <ArrowRight className="w-3.5 h-3.5 rotate-180 mr-1.5" />
+            Back to Saved Recipes
+          </Button>
+        ) : <div />}
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          {canTryAnother && onTryAnother && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onTryAnother}
+              className="rounded-full text-xs h-10 px-4 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-[#1E5E3A] cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              Try Another Variation
+            </Button>
+          )}
+
+          {onSave && (
+            <Button
+              onClick={() => onSave(recipe)}
+              className={`rounded-full text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                isSaved
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200 cursor-default"
+                  : "bg-[#1E5E3A] hover:bg-[#16482c] text-white"
+              }`}
+            >
+              {isSaved ? (
+                <>
+                  <BookmarkCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                  <span>Saved to Book ✓</span>
+                </>
+              ) : (
+                <>
+                  <Bookmark className="w-4 h-4" />
+                  <span>Save to Recipe Book</span>
+                </>
+              )}
+            </Button>
+          )}
+
+          {onDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              className="rounded-full text-xs h-10 px-4 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+              Delete
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const PantryHelper: React.FC = () => {
   const [inputText, setInputText] = useState("");
   const [activeIngredients, setActiveIngredients] = useState<string[]>([]);
@@ -639,142 +872,13 @@ export const PantryHelper: React.FC = () => {
               const nutBenefits = getNutritionalBenefitsTable(rec);
 
               return (
-                <div className="space-y-4 font-sans animate-fade-in">
-                  <div className="flex items-center justify-between gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setOpenedSavedRecipeId(null)}
-                      className="rounded-full text-xs h-8 gap-1.5 border-[#EBE8DF] dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 bg-white dark:bg-stone-900 shadow-2xs cursor-pointer"
-                    >
-                      <ArrowRight className="w-3.5 h-3.5 rotate-180" />
-                      <span>Back to saved recipes</span>
-                    </Button>
-
-                    <button
-                      onClick={() => handleDeleteSavedRecipe(rec.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-300 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-
-                  <div className="p-5 sm:p-7 rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_8px_30px_-6px_rgba(0,0,0,0.06)] relative overflow-hidden text-stone-900 dark:text-stone-100">
-                    {/* Baby background image - crisp and clearly visible without milky fog */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
-                      <img
-                        src={customRecipeBgBaby}
-                        alt=""
-                        className="w-full h-full object-cover object-center opacity-25 dark:opacity-15 pointer-events-none"
-                      />
-                    </div>
-
-                    <div className="relative z-10">
-                      {/* Top Bar with Category */}
-                      <div className="flex items-center justify-between gap-3 pb-3 mb-2 border-b border-stone-200/70 dark:border-stone-800">
-                        <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#1E5E3A] dark:text-emerald-400">
-                          {rec.category || "Custom Recipe"} • {rec.ageGroup}
-                        </span>
-                        <span className="text-[11px] text-stone-400">
-                          Saved Recipe
-                        </span>
-                      </div>
-
-                      {/* Centered Modern Sans-Serif Title */}
-                      <h3 className="text-xl sm:text-2xl font-bold text-center text-[#262626] dark:text-stone-100 mb-5 font-sans tracking-tight">
-                        {rec.title}
-                      </h3>
-
-                      {/* Solid Orange Bar: INGREDIENTS */}
-                      <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
-                        INGREDIENTS
-                      </div>
-                      <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
-                        <ul className="space-y-2 px-0.5">
-                          {rec.ingredients.map((ing, i) => (
-                            <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
-                              <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
-                              <span>{ing}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Solid Blue Bar: INSTRUCTIONS */}
-                      <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
-                        INSTRUCTIONS
-                      </div>
-                      <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
-                        <ol className="space-y-3 px-0.5">
-                          {rec.instructions.map((step, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
-                              <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
-                                {idx + 1}.
-                              </span>
-                              <span className="flex-1">{step}</span>
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-
-                      {/* Solid Green Bar: NUTRITIONAL BENEFITS */}
-                      <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
-                        NUTRITIONAL BENEFITS
-                      </div>
-                      <div className="overflow-x-auto mb-6 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/95 dark:bg-stone-900/90 shadow-2xs">
-                        <table className="w-full text-left text-xs sm:text-sm font-sans">
-                          <thead>
-                            <tr className="bg-emerald-50/70 dark:bg-emerald-950/50 text-[#1E5E3A] dark:text-emerald-300 border-b border-emerald-100 dark:border-emerald-900/40">
-                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Key Nutrient</th>
-                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Primary Source</th>
-                              <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Pediatric Benefit</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                            {nutBenefits.map((row, idx) => (
-                              <tr key={idx} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-colors">
-                                <td className="py-2.5 px-3 sm:px-4 font-semibold text-stone-800 dark:text-stone-200 text-xs sm:text-sm whitespace-nowrap">
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <span className="text-[#48B774] font-bold">✓</span>
-                                    <span>{row.nutrient}</span>
-                                  </span>
-                                </td>
-                                <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-400 font-medium text-xs sm:text-sm">
-                                  {row.source}
-                                </td>
-                                <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-snug">
-                                  {row.benefit}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* Precision Note Callout Box */}
-                      <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans mb-4">
-                        <span className="font-bold text-[#C06014] dark:text-amber-400 not-italic mr-1.5 font-sans">
-                          Precision Note:
-                        </span>
-                        <span className="italic leading-relaxed">
-                          {rec.safetyTip}
-                        </span>
-                      </div>
-
-                      {/* Bottom close button */}
-                      <div className="text-center pt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setOpenedSavedRecipeId(null)}
-                          className="rounded-full text-xs px-6 h-9 border-[#EBE8DF] text-[#1E5E3A] hover:bg-gray-50"
-                        >
-                          Back to Saved Recipes
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                <div className="space-y-4 animate-fade-in">
+                  <BotanicalCustomRecipeCard
+                    recipe={rec}
+                    isSaved={true}
+                    onClose={() => setOpenedSavedRecipeId(null)}
+                    onDelete={() => handleDeleteSavedRecipe(rec.id)}
+                  />
                 </div>
               );
             })()
@@ -819,6 +923,40 @@ export const PantryHelper: React.FC = () => {
                 Type ingredients separated by commas (e.g. <em>oats, banana, mango, orange</em>).
               </p>
             </form>
+
+            {/* Quick Tap Organic Staples */}
+            <div className="mt-3.5 pt-3 border-t border-[#F1EFEA] dark:border-stone-800">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 block mb-2">
+                Quick-Tap Pantry Staples:
+              </span>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {POPULAR_PANTRY_STAPLES.map((staple) => {
+                  const isSelected = activeIngredients.includes(staple.name);
+                  return (
+                    <button
+                      key={staple.name}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          removeIngredient(staple.name);
+                        } else {
+                          setActiveIngredients((prev) => [...prev, staple.name]);
+                          setGeneratedRecipe(null);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                        isSelected
+                          ? "bg-[#1E5E3A] text-white shadow-xs"
+                          : "bg-[#FAF9F5] hover:bg-[#EAF5EE] dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-[#E0DDD3] dark:border-stone-700"
+                      }`}
+                    >
+                      <span>{staple.label}</span>
+                      {isSelected && <span className="text-emerald-200 text-xs ml-0.5">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Active Ingredients Tags */}
             {activeIngredients.length > 0 && (
@@ -910,140 +1048,16 @@ export const PantryHelper: React.FC = () => {
             </div>
           )}
 
-          {/* DISPLAY GENERATED RECIPE CARD - MODERN CRISP COLOR-BANDED LAYOUT */}
+          {/* DISPLAY GENERATED RECIPE CARD - PURE BOTANICAL EDITORIAL LAYOUT */}
           {generatedRecipe && (
-            <div className="mb-8 relative overflow-hidden rounded-[24px] sm:rounded-[30px] bg-white dark:bg-[#161a18] border border-[#EBE3D5] dark:border-stone-800 shadow-[0_12px_40px_-10px_rgba(30,94,58,0.1)] p-5 sm:p-8 font-sans text-stone-900 dark:text-stone-100 animate-fade-in">
-              
-              {/* Baby background image - crisp and clearly visible without milky fog */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
-                <img
-                  src={customRecipeBgBaby}
-                  alt=""
-                  className="w-full h-full object-cover object-center opacity-25 dark:opacity-15 pointer-events-none"
-                />
-              </div>
-
-              <div className="relative z-10">
-                {/* Centered Modern Sans-Serif Title (Salmon & Sweet Potato Mini Cakes style) */}
-                <h2 className="text-xl sm:text-2xl font-bold text-center text-[#262626] dark:text-stone-100 mb-6 font-sans tracking-tight">
-                  {generatedRecipe.title}
-                </h2>
-
-                {/* SOLID ORANGE BAR: INGREDIENTS */}
-                <div className="w-full bg-[#E89234] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
-                  INGREDIENTS
-                </div>
-                <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
-                  <ul className="space-y-2 px-0.5">
-                    {generatedRecipe.ingredients.map((ing, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
-                        <span className="text-[#E89234] text-base leading-none select-none font-bold">•</span>
-                        <span>{ing}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* SOLID VIBRANT BLUE BAR: INSTRUCTIONS */}
-                <div className="w-full bg-[#3B82F6] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3 font-sans shadow-2xs">
-                  INSTRUCTIONS
-                </div>
-                <div className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xs rounded-xl p-3 sm:p-3.5 mb-5 border border-stone-200/50 dark:border-stone-800/50">
-                  <ol className="space-y-3 px-0.5">
-                    {generatedRecipe.instructions.map((step, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#303030] dark:text-stone-200 font-sans leading-relaxed">
-                        <span className="font-bold text-[#3B82F6] shrink-0 font-sans select-none min-w-[1.25rem]">
-                          {idx + 1}.
-                        </span>
-                        <span className="flex-1">{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-
-                {/* SOLID FRESH GREEN BAR: NUTRITIONAL BENEFITS */}
-                <div className="w-full bg-[#48B774] text-white font-bold text-xs sm:text-sm uppercase tracking-wider px-4 py-2.5 rounded-md mb-3.5 font-sans shadow-2xs">
-                  NUTRITIONAL BENEFITS
-                </div>
-
-                {/* RESPONSIVE TABLE FORMAT FOR NUTRITIONAL BENEFITS */}
-                <div className="overflow-x-auto mb-6 rounded-xl border border-stone-200/80 dark:border-stone-800 bg-white/95 dark:bg-stone-900/90 shadow-2xs">
-                  <table className="w-full text-left text-xs sm:text-sm font-sans">
-                    <thead>
-                      <tr className="bg-emerald-50/70 dark:bg-emerald-950/50 text-[#1E5E3A] dark:text-emerald-300 border-b border-emerald-100 dark:border-emerald-900/40">
-                        <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Key Nutrient</th>
-                        <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Primary Source</th>
-                        <th className="py-2.5 px-3 sm:px-4 font-bold uppercase tracking-wider text-[10px] sm:text-xs">Pediatric Benefit</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                      {getNutritionalBenefitsTable(generatedRecipe).map((row, idx) => (
-                        <tr key={idx} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-colors">
-                          <td className="py-2.5 px-3 sm:px-4 font-semibold text-stone-800 dark:text-stone-200 text-xs sm:text-sm whitespace-nowrap">
-                            <span className="inline-flex items-center gap-1.5">
-                              <span className="text-[#48B774] font-bold">✓</span>
-                              <span>{row.nutrient}</span>
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-400 font-medium text-xs sm:text-sm">
-                            {row.source}
-                          </td>
-                          <td className="py-2.5 px-3 sm:px-4 text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-snug">
-                            {row.benefit}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* CREAM CALLOUT BOX WITH DASHED BORDER: Precision Note */}
-                <div className="p-3.5 sm:p-4 rounded-xl bg-[#FFFDF5] dark:bg-amber-950/25 border border-dashed border-[#F3C98B] dark:border-amber-800/60 text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-sans mb-6">
-                  <span className="font-bold text-[#C06014] dark:text-amber-400 not-italic mr-1.5 font-sans">
-                    Precision Note:
-                  </span>
-                  <span className="italic leading-relaxed">
-                    {generatedRecipe.safetyTip}
-                  </span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 font-sans">
-                  {activeIngredients.length > 3 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTriggerGenerate(variationCount + 1)}
-                      className="w-full sm:w-auto rounded-full text-xs h-10 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:text-forest cursor-pointer"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                      Try Another Variation
-                    </Button>
-                  )}
-
-                  <Button
-                    onClick={() => handleSaveRecipe(generatedRecipe)}
-                    className={`w-full sm:w-auto rounded-full text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                      isCurrentGeneratedSaved
-                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200 cursor-default"
-                        : "bg-[#1E5E3A] hover:bg-[#16482c] text-white"
-                    }`}
-                  >
-                    {isCurrentGeneratedSaved ? (
-                      <>
-                        <BookmarkCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
-                        <span>Saved to Book ✓</span>
-                      </>
-                    ) : (
-                      <>
-                        <Bookmark className="w-4 h-4" />
-                        <span>Save to Recipe Book</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-
+            <div className="mb-8">
+              <BotanicalCustomRecipeCard
+                recipe={generatedRecipe}
+                isSaved={isCurrentGeneratedSaved}
+                onSave={handleSaveRecipe}
+                canTryAnother={activeIngredients.length > 3}
+                onTryAnother={() => handleTriggerGenerate(variationCount + 1)}
+              />
             </div>
           )}
 

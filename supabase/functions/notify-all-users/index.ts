@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { 
   sendWebPushNotification, 
   getVapidKeys, 
-  type PushSubscription,
+  type PushSubscription, 
   type NotificationPayload 
 } from "../_shared/webpush.ts";
 
@@ -14,6 +14,8 @@ const corsHeaders = {
 interface RequestPayload {
   title: string;
   body: string;
+  channel?: 'push' | 'email' | 'both';
+  emailSubject?: string;
   icon?: string;
   action_label?: string;
   action_url?: string;
@@ -32,7 +34,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('🔔 notify-all-users v2.0 - Using unified webpush module');
+    console.log('🔔 notify-all-users v3.0 - Multichannel (Push & Resend Email)');
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -71,156 +73,252 @@ Deno.serve(async (req) => {
 
     console.log('✅ Admin verified:', user.id);
 
-    // Get VAPID keys
-    const vapidKeys = getVapidKeys();
-    if (!vapidKeys) {
-      throw new Error('VAPID keys not configured');
-    }
-
     const payload: RequestPayload = await req.json();
-    console.log('📝 Notification payload:', { title: payload.title, segment: payload.segment || 'all' });
+    const channel = payload.channel || 'push';
+    console.log('📝 Notification payload:', { 
+      title: payload.title, 
+      channel, 
+      segment: payload.segment || 'all' 
+    });
 
-    // Fetch push subscriptions based on segment or target user
-    let query = supabase
-      .from('push_subscriptions')
-      .select('id, user_id, endpoint, p256dh, auth');
+    let pushSuccess = 0;
+    let pushFailed = 0;
+    let emailSuccess = 0;
+    let emailFailed = 0;
 
-    if (payload.targetUserId) {
-      query = query.eq('user_id', payload.targetUserId);
-    }
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'BabyBites <access@app.babybites.space>';
 
-    // Apply segment filter if needed
-    if (payload.segment === 'active') {
-      // Get users active in last 7 days
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: activeSessions } = await supabase
-        .from('user_sessions')
-        .select('user_id')
-        .gte('last_active', sevenDaysAgo);
-      
-      const activeUserIds = activeSessions?.map(s => s.user_id) || [];
-      if (activeUserIds.length > 0) {
-        query = query.in('user_id', activeUserIds);
+    // ==========================================
+    // 1. PUSH NOTIFICATION DELIVERY
+    // ==========================================
+    if (channel === 'push' || channel === 'both') {
+      const vapidKeys = getVapidKeys();
+      if (vapidKeys) {
+        let query = supabase
+          .from('push_subscriptions')
+          .select('id, user_id, endpoint, p256dh, auth');
+
+        if (payload.targetUserId) {
+          query = query.eq('user_id', payload.targetUserId);
+        }
+
+        if (payload.segment === 'active') {
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          const { data: activeSessions } = await supabase
+            .from('user_sessions')
+            .select('user_id')
+            .gte('last_active', sevenDaysAgo);
+          const activeUserIds = activeSessions?.map(s => s.user_id) || [];
+          if (activeUserIds.length > 0) {
+            query = query.in('user_id', activeUserIds);
+          }
+        } else if (payload.segment === 'inactive') {
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          const { data: activeSessions } = await supabase
+            .from('user_sessions')
+            .select('user_id')
+            .gte('last_active', sevenDaysAgo);
+          const activeUserIds = activeSessions?.map(s => s.user_id) || [];
+          if (activeUserIds.length > 0) {
+            query = query.not('user_id', 'in', `(${activeUserIds.join(',')})`);
+          }
+        }
+
+        const { data: subscriptions } = await query;
+
+        if (subscriptions && subscriptions.length > 0) {
+          const expiredIds: string[] = [];
+          const notification: NotificationPayload = {
+            title: payload.title,
+            body: payload.body,
+            icon: payload.icon || 'https://app.babybites.space/icon-192.png',
+            badge: 'https://app.babybites.space/icon-192.png',
+            tag: `admin-${Date.now()}`,
+            data: {
+              url: payload.action_url || '/',
+              timestamp: Date.now(),
+            },
+            actions: payload.action_label ? [
+              { action: 'open', title: payload.action_label }
+            ] : [],
+          };
+
+          for (const sub of subscriptions) {
+            if (!sub.p256dh || !sub.auth) {
+              pushFailed++;
+              continue;
+            }
+
+            const pushSub: PushSubscription = {
+              id: sub.id,
+              user_id: sub.user_id,
+              endpoint: sub.endpoint,
+              keys: { p256dh: sub.p256dh, auth: sub.auth },
+            };
+
+            const result = await sendWebPushNotification(
+              pushSub,
+              notification,
+              vapidKeys.publicKey,
+              vapidKeys.privateKey
+            );
+
+            if (result.success) {
+              pushSuccess++;
+            } else {
+              pushFailed++;
+              if (result.expired) {
+                expiredIds.push(sub.id);
+              }
+            }
+          }
+
+          if (expiredIds.length > 0) {
+            await supabase.from('push_subscriptions').delete().in('id', expiredIds);
+          }
+        }
       } else {
-        return new Response(
-          JSON.stringify({ message: 'No active users found', total: 0, successful: 0, failed: 0 }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else if (payload.segment === 'inactive') {
-      // Get users NOT active in last 7 days
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: activeSessions } = await supabase
-        .from('user_sessions')
-        .select('user_id')
-        .gte('last_active', sevenDaysAgo);
-      
-      const activeUserIds = activeSessions?.map(s => s.user_id) || [];
-      if (activeUserIds.length > 0) {
-        query = query.not('user_id', 'in', `(${activeUserIds.join(',')})`);
+        console.warn('VAPID keys not configured, skipping push');
       }
     }
 
-    const { data: subscriptions, error: subsError } = await query;
+    // ==========================================
+    // 2. EMAIL (RESEND) BROADCAST DELIVERY
+    // ==========================================
+    if ((channel === 'email' || channel === 'both') && resendApiKey) {
+      const emailSubject = payload.emailSubject || payload.title || 'Important update from BabyBites';
+      const emailActionUrl = payload.action_url?.startsWith('http') 
+        ? payload.action_url 
+        : `https://app.babybites.space${payload.action_url || ''}`;
 
-    if (subsError) throw subsError;
+      const generateHtml = (recipientName: string) => `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF9F5; margin: 0; padding: 24px; color: #2D3748; }
+            .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 24px; border: 1px solid #EBE8DF; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+            .header { background-color: #FAF9F5; padding: 28px 24px; text-align: center; border-bottom: 1px solid #EBE8DF; }
+            .logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+            .content { padding: 32px 28px; line-height: 1.6; }
+            .title { font-size: 20px; font-weight: bold; color: #1E5E3A; margin: 0 0 16px 0; }
+            .body-text { font-size: 15px; color: #4A5568; margin-bottom: 24px; white-space: pre-line; }
+            .btn { display: inline-block; background-color: #1E5E3A; color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 9999px; font-weight: bold; font-size: 14px; text-align: center; }
+            .footer { padding: 20px 24px; background-color: #FAF9F5; text-align: center; font-size: 11px; color: #718096; border-top: 1px solid #EBE8DF; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <img src="https://app.babybites.space/logo.png" alt="BabyBites" class="logo" />
+              <div style="margin-top: 8px; font-size: 16px; font-weight: bold; color: #1E5E3A;">BabyBites</div>
+            </div>
+            <div class="content">
+              <h2 class="title">${payload.title}</h2>
+              <div class="body-text">
+                Dear ${recipientName || 'Mom'},<br><br>
+                ${payload.body}
+              </div>
+              <div style="text-align: center; margin-top: 28px;">
+                <a href="${emailActionUrl}" class="btn">${payload.action_label || 'Open BabyBites'}</a>
+              </div>
+            </div>
+            <div class="footer">
+              BabyBites &bull; Gentle, Pediatric Weaning &amp; Nutrition Companion<br>
+              You received this message because you are a registered member of BabyBites.
+            </div>
+          </div>
+        </body>
+      </html>
+      `;
 
-    if (!subscriptions || subscriptions.length === 0) {
-      return new Response(
-        JSON.stringify({ message: 'No subscriptions found', total: 0, successful: 0, failed: 0 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      let targetEmails: Array<{ email: string; name: string }> = [];
 
-    console.log(`📤 Sending to ${subscriptions.length} subscriptions...`);
-
-    let successCount = 0;
-    let failCount = 0;
-    const expiredIds: string[] = [];
-
-    // Prepare notification
-    const notification: NotificationPayload = {
-      title: payload.title,
-      body: payload.body,
-      icon: payload.icon || 'https://babybites.lovable.app/icon-192x192.png',
-      badge: 'https://babybites.lovable.app/icon-192x192.png',
-      tag: `admin-${Date.now()}`,
-      data: {
-        url: payload.action_url || '/',
-        timestamp: Date.now(),
-      },
-      actions: payload.action_label ? [
-        { action: 'open', title: payload.action_label }
-      ] : [],
-    };
-
-    // Send to each subscription using the unified module
-    for (const sub of subscriptions) {
-      if (!sub.p256dh || !sub.auth) {
-        failCount++;
-        continue;
-      }
-
-      const pushSub: PushSubscription = {
-        id: sub.id,
-        user_id: sub.user_id,
-        endpoint: sub.endpoint,
-        keys: { p256dh: sub.p256dh, auth: sub.auth },
-      };
-
-      const result = await sendWebPushNotification(
-        pushSub,
-        notification,
-        vapidKeys.publicKey,
-        vapidKeys.privateKey
-      );
-
-      if (result.success) {
-        successCount++;
+      if (payload.targetUserId) {
+        const { data: targetUser } = await supabase.auth.admin.getUserById(payload.targetUserId);
+        if (targetUser?.user?.email) {
+          const { data: profile } = await supabase.from('profiles').select('mother_name, full_name').eq('id', payload.targetUserId).maybeSingle();
+          targetEmails.push({
+            email: targetUser.user.email,
+            name: profile?.mother_name || profile?.full_name || 'Mom'
+          });
+        }
       } else {
-        failCount++;
-        if (result.expired) {
-          expiredIds.push(sub.id);
+        // Broadcast to all registered users
+        const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 100 });
+        if (usersData?.users) {
+          const { data: profiles } = await supabase.from('profiles').select('id, mother_name, full_name');
+          const profileMap = new Map(profiles?.map(p => [p.id, p.mother_name || p.full_name]) || []);
+
+          targetEmails = usersData.users
+            .filter((u: any) => u.email && u.email.includes('@'))
+            .map((u: any) => ({
+              email: u.email,
+              name: profileMap.get(u.id) || 'Mom'
+            }));
+        }
+      }
+
+      console.log(`✉️ Dispatching emails to ${targetEmails.length} recipients...`);
+
+      for (const recipient of targetEmails) {
+        try {
+          const res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${resendApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: recipient.email,
+              subject: emailSubject,
+              html: generateHtml(recipient.name),
+            }),
+          });
+
+          if (res.ok) {
+            emailSuccess++;
+          } else {
+            emailFailed++;
+            const errData = await res.json();
+            console.warn(`Resend failed for ${recipient.email}:`, errData);
+          }
+        } catch (mailErr) {
+          emailFailed++;
+          console.warn(`Resend network error for ${recipient.email}:`, mailErr);
         }
       }
     }
 
-    // Clean up expired subscriptions
-    if (expiredIds.length > 0) {
-      console.log(`🧹 Cleaning ${expiredIds.length} expired subscriptions`);
-      await supabase
-        .from('push_subscriptions')
-        .delete()
-        .in('id', expiredIds);
-    }
-
     // Log admin notification
-    await supabase
-      .from('admin_notifications')
-      .insert({
-        created_by: user.id,
-        title: payload.title,
-        body: payload.body,
-        icon: payload.icon,
-        action_label: payload.action_label,
-        action_url: payload.action_url,
-        recipients_count: subscriptions.length,
-        successful_count: successCount,
-        failed_count: failCount,
-      });
+    await supabase.from('admin_notifications').insert({
+      created_by: user.id,
+      title: payload.title,
+      body: payload.body,
+      icon: payload.icon,
+      action_label: payload.action_label,
+      action_url: payload.action_url,
+      successful_count: pushSuccess + emailSuccess,
+      failed_count: pushFailed + emailFailed,
+    });
 
-    console.log(`📊 Results: ${successCount} sent, ${failCount} failed, ${expiredIds.length} expired`);
+    console.log(`📊 Completed broadcast. Push: ${pushSuccess} ok / ${pushFailed} err. Email: ${emailSuccess} ok / ${emailFailed} err.`);
 
     return new Response(
       JSON.stringify({
-        message: 'Notifications sent',
-        total: subscriptions.length,
-        successful: successCount,
-        failed: failCount,
-        expired: expiredIds.length,
+        message: 'Notification dispatch completed',
+        channel,
+        push: { successful: pushSuccess, failed: pushFailed },
+        email: { successful: emailSuccess, failed: emailFailed },
+        successful: pushSuccess + emailSuccess,
+        failed: pushFailed + emailFailed,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
     console.error('❌ Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, TestTube, Loader2, Users, User, Radio, Sparkles } from 'lucide-react';
+import { Send, TestTube, Loader2, Users, User, Radio, Sparkles, Mail, Smartphone, Rocket } from 'lucide-react';
 import NotificationHistory from './NotificationHistory';
 
 const MASTER_SUPER_ADMINS = [
@@ -25,6 +25,8 @@ interface UserItem {
 const NotificationComposer = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [channel, setChannel] = useState<'push' | 'email' | 'both'>('both');
+  const [emailSubject, setEmailSubject] = useState('');
   const [actionUrl, setActionUrl] = useState('/');
   const [audience, setAudience] = useState<'all' | 'specific' | 'active' | 'inactive'>('all');
   const [selectedUserId, setSelectedUserId] = useState<string>('');
@@ -138,10 +140,12 @@ const NotificationComposer = () => {
 
       const startTime = Date.now();
 
-      // Dispatch via notify-all-users with segment or specific targetUserId
+      // Dispatch via notify-all-users with channel, segment, or specific targetUserId
       const payload: any = {
         title,
         body,
+        channel,
+        emailSubject: emailSubject.trim() || title,
         action_url: actionUrl || '/',
         segment: audience === 'specific' ? undefined : audience,
         targetUserId: audience === 'specific' ? selectedUserId : undefined,
@@ -154,7 +158,7 @@ const NotificationComposer = () => {
       const duration = Date.now() - startTime;
 
       if (error) {
-        console.warn('Push edge function error, falling back to database broadcast:', error);
+        console.warn('Multichannel edge function error, falling back to database broadcast:', error);
       }
 
       // Insert into admin_notifications table so in-app users receive it
@@ -172,15 +176,20 @@ const NotificationComposer = () => {
         console.warn('Could not record in admin_notifications:', dbErr);
       }
 
+      const pushSummary = data?.push ? `Push: ${data.push.successful} ok` : '';
+      const emailSummary = data?.email ? `Email: ${data.email.successful} sent` : '';
+      const details = [pushSummary, emailSummary].filter(Boolean).join(' • ');
+
       toast({
-        title: '✅ Push Notification Dispatched!',
+        title: '✅ Broadcast Dispatched!',
         description: audience === 'specific' 
-          ? `Delivered to selected mother successfully (${duration}ms).`
-          : `Broadcast sent to all subscribers: ${data?.successful || 'Delivered'} (${duration}ms).`,
+          ? `Delivered to selected mother (${details || 'Success'}, ${duration}ms).`
+          : `Dispatched to parents: ${details || data?.successful || 'Delivered'} (${duration}ms).`,
       });
 
       setTitle('');
       setBody('');
+      setEmailSubject('');
       setSelectedUserId('');
     } catch (error: any) {
       console.error('Send notification error:', error);
@@ -191,28 +200,76 @@ const NotificationComposer = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="border border-stone-200 dark:border-stone-800 shadow-sm">
-        <CardHeader className="bg-stone-50/60 dark:bg-stone-800/40 border-b border-stone-200/60 dark:border-stone-800">
+    <div className="space-y-6 font-['Times_New_Roman',Times,serif]">
+      <Card className="border border-stone-200 dark:border-stone-800 shadow-sm bg-white dark:bg-stone-900">
+        <CardHeader className="bg-stone-50/70 dark:bg-stone-800/40 border-b border-stone-200/60 dark:border-stone-800">
           <div className="flex items-center gap-2">
             <Radio className="w-5 h-5 text-emerald-600 animate-pulse" />
-            <CardTitle className="text-lg font-serif">Push Notification Broadcast Center</CardTitle>
+            <CardTitle className="text-xl font-serif font-bold text-stone-950 dark:text-stone-50">Multichannel Broadcast Center</CardTitle>
           </div>
-          <CardDescription>
-            Broadcast urgent announcements, recipe updates, or tips to all registered mothers or target individuals.
+          <CardDescription className="text-xs text-stone-600 dark:text-stone-400 font-sans">
+            Broadcast urgent announcements, recipe updates, or feeding tips to mothers via Web Push, Resend Email, or both simultaneously.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 pt-5">
+        <CardContent className="space-y-5 pt-5">
+
+          {/* Delivery Channel Selector */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-sans">
+              Delivery Channel *
+            </Label>
+            <div className="grid grid-cols-3 gap-2.5 font-sans">
+              <button
+                type="button"
+                onClick={() => setChannel('both')}
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  channel === 'both'
+                    ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300 shadow-2xs'
+                    : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:border-stone-300'
+                }`}
+              >
+                <Rocket className="w-4 h-4 text-[#1E5E3A] dark:text-emerald-400" />
+                <span>Both (Push + Email)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setChannel('email')}
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  channel === 'email'
+                    ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300 shadow-2xs'
+                    : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:border-stone-300'
+                }`}
+              >
+                <Mail className="w-4 h-4 text-emerald-600" />
+                <span>Email Only (Resend)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setChannel('push')}
+                className={`flex items-center justify-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  channel === 'push'
+                    ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300 shadow-2xs'
+                    : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:border-stone-300'
+                }`}
+              >
+                <Smartphone className="w-4 h-4 text-emerald-600" />
+                <span>Web Push Only</span>
+              </button>
+            </div>
+          </div>
+
           {/* Target Audience Selector */}
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300">
+            <Label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-sans">
               Target Audience *
             </Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-sans">
               <button
                 type="button"
                 onClick={() => setAudience('all')}
-                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   audience === 'all'
                     ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
                     : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
@@ -225,7 +282,7 @@ const NotificationComposer = () => {
               <button
                 type="button"
                 onClick={() => setAudience('specific')}
-                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   audience === 'specific'
                     ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
                     : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
@@ -238,7 +295,7 @@ const NotificationComposer = () => {
               <button
                 type="button"
                 onClick={() => setAudience('active')}
-                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   audience === 'active'
                     ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
                     : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
@@ -251,7 +308,7 @@ const NotificationComposer = () => {
               <button
                 type="button"
                 onClick={() => setAudience('inactive')}
-                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                   audience === 'inactive'
                     ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
                     : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
@@ -297,6 +354,26 @@ const NotificationComposer = () => {
             />
             <span className="text-[10px] text-muted-foreground">{title.length}/60 characters</span>
           </div>
+
+          {(channel === 'email' || channel === 'both') && (
+            <div className="space-y-2 p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 animate-fade-in font-sans">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="emailSubject" className="text-xs font-bold text-[#1E5E3A] dark:text-emerald-300 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5" />
+                  Email Subject Line (Optional)
+                </Label>
+                <span className="text-[10px] text-stone-500">Defaults to title if left blank</span>
+              </div>
+              <Input
+                id="emailSubject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder={title ? `Subject: ${title}` : "e.g. A loving reminder from BabyBites"}
+                maxLength={90}
+                className="rounded-xl text-xs bg-white dark:bg-stone-800"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="body" className="text-xs font-bold text-stone-700 dark:text-stone-300">

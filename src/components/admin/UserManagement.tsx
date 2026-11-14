@@ -78,6 +78,7 @@ const UserManagement = () => {
   const [banReason, setBanReason] = useState('');
   const [notifyTitle, setNotifyTitle] = useState('');
   const [notifyBody, setNotifyBody] = useState('');
+  const [notifyChannel, setNotifyChannel] = useState<'both' | 'email' | 'push'>('both');
   const [actionLoading, setActionLoading] = useState(false);
   
   const { toast } = useToast();
@@ -243,10 +244,31 @@ const UserManagement = () => {
 
   const handleSendNotification = async () => {
     if (!selectedUser || !notifyTitle || !notifyBody) return;
-    const success = await executeAdminAction('send_notification', selectedUser.id, {
-      notification: { title: notifyTitle, body: notifyBody }
-    });
-    if (success) { setNotifyDialogOpen(false); setNotifyTitle(''); setNotifyBody(''); setSelectedUser(null); }
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('notify-all-users', {
+        body: {
+          targetUserId: selectedUser.id,
+          channel: notifyChannel,
+          title: notifyTitle,
+          body: notifyBody,
+          action_url: '/',
+        }
+      });
+      if (error) throw error;
+      toast({
+        title: '✅ Notification Sent',
+        description: `Delivered to ${selectedUser.full_name || 'mother'} via ${notifyChannel === 'both' ? 'Push & Email' : notifyChannel === 'email' ? 'Email (Resend)' : 'Web Push'}.`
+      });
+      setNotifyDialogOpen(false);
+      setNotifyTitle('');
+      setNotifyBody('');
+      setSelectedUser(null);
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message || 'Failed to dispatch notification', variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -820,25 +842,81 @@ const UserManagement = () => {
 
       {/* Notify Dialog */}
       <Dialog open={notifyDialogOpen} onOpenChange={setNotifyDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Send Notification</DialogTitle>
-            <DialogDescription>Send push to <strong>{selectedUser?.full_name}</strong></DialogDescription>
+            <DialogTitle>Send Direct Message</DialogTitle>
+            <DialogDescription>
+              Deliver message to <strong>{selectedUser?.mother_name || selectedUser?.full_name}</strong>
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2 font-sans">
             <div>
-              <Label htmlFor="notifyTitle">Title</Label>
-              <Input id="notifyTitle" placeholder="Title" value={notifyTitle} onChange={(e) => setNotifyTitle(e.target.value)} className="mt-2" />
+              <Label className="text-xs font-bold uppercase tracking-wider text-stone-600 dark:text-stone-300">
+                Delivery Channel
+              </Label>
+              <div className="grid grid-cols-3 gap-2 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setNotifyChannel('both')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    notifyChannel === 'both'
+                      ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                  }`}
+                >
+                  Push + Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNotifyChannel('email')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    notifyChannel === 'email'
+                      ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                  }`}
+                >
+                  Email Only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNotifyChannel('push')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    notifyChannel === 'push'
+                      ? 'border-[#1E5E3A] bg-[#EAF5EE] text-[#1E5E3A] dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                  }`}
+                >
+                  Push Only
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="notifyTitle" className="text-xs font-semibold">Title *</Label>
+              <Input 
+                id="notifyTitle" 
+                placeholder="e.g. 🥑 Important update on your baby's meal plan" 
+                value={notifyTitle} 
+                onChange={(e) => setNotifyTitle(e.target.value)} 
+                className="mt-1 text-xs" 
+              />
             </div>
             <div>
-              <Label htmlFor="notifyBody">Message</Label>
-              <Textarea id="notifyBody" placeholder="Message..." value={notifyBody} onChange={(e) => setNotifyBody(e.target.value)} className="mt-2" />
+              <Label htmlFor="notifyBody" className="text-xs font-semibold">Message Body *</Label>
+              <Textarea 
+                id="notifyBody" 
+                placeholder="Type your message here..." 
+                value={notifyBody} 
+                onChange={(e) => setNotifyBody(e.target.value)} 
+                rows={4}
+                className="mt-1 text-xs" 
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNotifyDialogOpen(false)} disabled={actionLoading}>Cancel</Button>
-            <Button onClick={handleSendNotification} disabled={actionLoading || !notifyTitle || !notifyBody}>
-              {actionLoading ? 'Sending...' : 'Send'}
+            <Button onClick={handleSendNotification} disabled={actionLoading || !notifyTitle || !notifyBody} className="bg-[#1E5E3A] hover:bg-[#16482c] text-white">
+              {actionLoading ? 'Dispatching...' : 'Dispatch Notification'}
             </Button>
           </DialogFooter>
         </DialogContent>
