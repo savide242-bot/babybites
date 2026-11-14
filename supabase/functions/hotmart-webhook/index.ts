@@ -113,19 +113,23 @@ Deno.serve(async (req) => {
 
     console.log("📥 Hotmart Webhook Received:", JSON.stringify(body, null, 2));
 
-    // 2. Hottok verification
-    const expectedHottok = Deno.env.get("HOTMART_HOTTOK");
-    const receivedHottok =
+    // 2. Hottok verification (Strict security check)
+    const expectedHottok = Deno.env.get("HOTMART_HOTTOK")?.trim();
+    const receivedHottok = (
       req.headers.get("x-hotmart-hottok") ||
       body.hottok ||
-      body.data?.hottok;
+      body.data?.hottok ||
+      ""
+    ).toString().trim();
 
-    if (expectedHottok && receivedHottok && expectedHottok !== receivedHottok) {
-      console.warn("❌ Hotmart hottok token mismatch");
-      return new Response(
-        JSON.stringify({ error: "Invalid Hotmart security token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (expectedHottok) {
+      if (!receivedHottok || expectedHottok !== receivedHottok) {
+        console.warn("❌ Hotmart webhook unauthorized: Token missing or mismatch");
+        return new Response(
+          JSON.stringify({ error: "Unauthorized: Invalid or missing Hotmart security token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // 3. Extract event type and status

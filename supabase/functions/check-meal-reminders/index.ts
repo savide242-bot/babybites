@@ -96,6 +96,37 @@ Deno.serve(async (req) => {
         const body = await req.json();
         force = !!body?.force || !!body?.test;
         targetUserId = body?.user_id || body?.userId || null;
+
+        // Security check for targeted / forced pushes
+        if (force || targetUserId) {
+          const authHeader = req.headers.get('Authorization') || '';
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+          const isService = serviceKey && authHeader.includes(serviceKey);
+
+          if (!isService) {
+            // Verify authenticated user
+            const userClient = createClient(
+              Deno.env.get('SUPABASE_URL')!,
+              Deno.env.get('SUPABASE_ANON_KEY')!,
+              { global: { headers: { Authorization: authHeader } } }
+            );
+            const { data: { user } } = await userClient.auth.getUser();
+            if (!user) {
+              return new Response(
+                JSON.stringify({ error: 'Unauthorized: authentication required to trigger reminders' }),
+                { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+
+            // Normal users may only trigger test for themselves
+            if (targetUserId && targetUserId !== user.id) {
+              const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+              if (!isAdmin) {
+                targetUserId = user.id; // Enforce self-test only
+              }
+            }
+          }
+        }
       }
     } catch {
       // No JSON body or empty

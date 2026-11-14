@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -20,12 +22,40 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
+
     if (!resendApiKey) {
       return new Response(
         JSON.stringify({ error: "RESEND_API_KEY not configured in Supabase Secrets" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // 1. Strict Security Authentication Check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing Authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Allow service role key directly or verify authenticated user JWT
+    const isServiceRole = authHeader.includes(serviceRoleKey);
+    if (!isServiceRole) {
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: authErr } = await userClient.auth.getUser();
+      if (authErr || !user) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized access: valid session required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "BabyBites <access@app.babybites.space>";
@@ -37,14 +67,22 @@ Deno.serve(async (req) => {
       title = "Hello from BabyBites!",
       message = "Here is an update on your baby's feeding journey.",
       babyName = "your baby",
-      template = "welcome",
       actionUrl = "https://app.babybites.space",
       actionText = "Open BabyBites",
     } = body;
 
-    if (!to || !subject) {
+    // Validate email address
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!to || !emailRegex.test(to.trim())) {
       return new Response(
-        JSON.stringify({ error: "Recipient email ('to') and 'subject' are required." }),
+        JSON.stringify({ error: "Valid recipient email ('to') is required." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!subject || subject.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Email subject is required." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -105,8 +143,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [to],
-        subject: subject,
+        to: [to.trim().toLowerCase()],
+        subject: subject.trim(),
         html: html,
       }),
     });
@@ -115,20 +153,21 @@ Deno.serve(async (req) => {
 
     if (!resendResponse.ok) {
       console.error("Resend API error:", data);
-      return new Response(JSON.stringify({ error: data }), {
-        status: resendResponse.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: data.message || "Failed to dispatch email" }),
+        { status: resendResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    return new Response(JSON.stringify({ success: true, id: data.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: true, id: data.id }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error: any) {
-    console.error("Error sending email:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("send-email-notification error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
