@@ -32,7 +32,7 @@ import { BadgeCelebrationModal } from "@/components/gamification/BadgeCelebratio
 import { BadgeDetailModal } from "@/components/gamification/BadgeDetailModal";
 import { SubscriptionPaywallModal } from "@/components/subscription/SubscriptionPaywallModal";
 
-// Eagerly imported core navigation tabs for INSTANT tab switching without white screen delay
+// Eagerly imported core navigation tabs and pages for INSTANT switching without white screen delay
 import Recipes from "./pages/Recipes";
 import MealPlanner from "./pages/MealPlanner";
 import Community from "./pages/Community";
@@ -43,27 +43,27 @@ import FoodAnalyzer from "./pages/FoodAnalyzer";
 import Favorites from "./pages/Favorites";
 import Achievements from "./pages/Achievements";
 import { Leaderboard } from "./pages/Leaderboard";
+import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
+import Advice from "./pages/Advice";
+import Bonus from "./pages/Bonus";
+import FoodDiary from "./pages/FoodDiary";
+import AllergenTracker from "./pages/AllergenTracker";
+import FoodsTried from "./pages/FoodsTried";
+import FreezerPrep from "./pages/FreezerPrep";
+import IngredientSwap from "./pages/IngredientSwap";
+import MistakesGuide from "./pages/MistakesGuide";
+import RecipeDetail from "./pages/RecipeDetail";
 
-// Lazy load secondary/admin routes
+// Lazy load remaining secondary pages
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const FirstDay = lazy(() => import("./pages/FirstDay"));
-const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
 const VideoRecipeDetail = lazy(() => import("./pages/VideoRecipeDetail"));
-const Advice = lazy(() => import("./pages/Advice"));
-const Bonus = lazy(() => import("./pages/Bonus"));
-const Settings = lazy(() => import("./pages/Settings"));
 const Install = lazy(() => import("./pages/Install"));
 const ProgressReports = lazy(() => import("./pages/ProgressReports"));
 const ShoppingList = lazy(() => import("./pages/ShoppingList"));
-const Admin = lazy(() => import("./pages/Admin"));
 const AdminRecipeImages = lazy(() => import("./pages/AdminRecipeImages"));
-const FoodDiary = lazy(() => import("./pages/FoodDiary"));
-const AllergenTracker = lazy(() => import("./pages/AllergenTracker"));
-const FreezerPrep = lazy(() => import("./pages/FreezerPrep"));
-const FoodsTried = lazy(() => import("./pages/FoodsTried"));
-const IngredientSwap = lazy(() => import("./pages/IngredientSwap"));
 const IOSPushSetup = lazy(() => import("./pages/IOSPushSetup"));
-const MistakesGuide = lazy(() => import("./pages/MistakesGuide"));
 
 // Non-disruptive loading fallback for secondary lazy pages (preserves background, no white flash)
 const PageLoader = () => (
