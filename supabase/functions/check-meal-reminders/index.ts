@@ -193,7 +193,6 @@ Deno.serve(async (req) => {
       }
 
       // Check subscription before logging
-      const subs = subsMap.get(mt.user_id);
       if (!subs?.length) {
         console.log(`  ⚠️ ${mt.meal_type} | user=${mt.user_id.substring(0,8)} | IN WINDOW but NO subscription`);
         noSubCount++;
