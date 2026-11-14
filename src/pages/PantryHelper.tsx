@@ -590,7 +590,7 @@ export const PantryHelper: React.FC = () => {
             /* CLOSED NUMBERED LIST FORMAT (1-, 2-, ...) - Does not stretch page down */
             <div className="space-y-2.5 font-sans animate-fade-in">
               <p className="text-xs text-stone-500 dark:text-stone-400 mb-1 px-1">
-                Toque no nome de qualquer receita para visualizá-la completa:
+                Tap any recipe name to view its full preparation guide:
               </p>
               {savedRecipes.map((rec, idx) => (
                 <div
@@ -624,7 +624,7 @@ export const PantryHelper: React.FC = () => {
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <span className="text-xs font-semibold text-[#1E5E3A] dark:text-emerald-400 hidden sm:inline">
-                      Abrir receita →
+                      Open recipe →
                     </span>
                     <ArrowRight className="w-4 h-4 text-stone-400 group-hover:text-[#1E5E3A] group-hover:translate-x-0.5 transition-all" />
                   </div>
@@ -648,7 +648,7 @@ export const PantryHelper: React.FC = () => {
                       className="rounded-full text-xs h-8 gap-1.5 border-[#EBE8DF] dark:border-stone-700 text-[#1E5E3A] dark:text-emerald-400 bg-white dark:bg-stone-900 shadow-2xs cursor-pointer"
                     >
                       <ArrowRight className="w-3.5 h-3.5 rotate-180" />
-                      <span>Voltar para a lista</span>
+                      <span>Back to saved recipes</span>
                     </Button>
 
                     <button
@@ -656,7 +656,7 @@ export const PantryHelper: React.FC = () => {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-300 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Excluir</span>
+                      <span>Delete</span>
                     </button>
                   </div>
 
@@ -677,7 +677,7 @@ export const PantryHelper: React.FC = () => {
                           {rec.category || "Custom Recipe"} • {rec.ageGroup}
                         </span>
                         <span className="text-[11px] text-stone-400">
-                          Receita salva
+                          Saved Recipe
                         </span>
                       </div>
 
@@ -770,7 +770,7 @@ export const PantryHelper: React.FC = () => {
                           onClick={() => setOpenedSavedRecipeId(null)}
                           className="rounded-full text-xs px-6 h-9 border-[#EBE8DF] text-[#1E5E3A] hover:bg-gray-50"
                         >
-                          Fechar e voltar à lista
+                          Back to Saved Recipes
                         </Button>
                       </div>
                     </div>

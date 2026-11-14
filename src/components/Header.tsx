@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Search, 
@@ -30,8 +31,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 export const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleLogout = async () => {
+    setSheetOpen(false);
     await supabase.auth.signOut();
     navigate("/auth");
   };
@@ -83,7 +86,7 @@ export const Header = () => {
           <ThemeToggle variant="icon" />
 
           {/* Side Drawer Menu for all extra features */}
-          <Sheet>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
@@ -124,6 +127,7 @@ export const Header = () => {
                       <Link
                         key={item.to}
                         to={item.to}
+                        onClick={() => setSheetOpen(false)}
                         className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all ${
                           isActive
                             ? "bg-forest dark:bg-emerald-600 text-white shadow-xs"

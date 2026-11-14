@@ -2,9 +2,22 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const CACHE_KEY = 'babybites_favorite_recipes_cache';
+
+const getInitialFavorites = (): Set<string> => {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {}
+  return new Set();
+};
+
 export const useFavorites = () => {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState<Set<string>>(getInitialFavorites);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchFavorites();
@@ -12,23 +25,25 @@ export const useFavorites = () => {
 
   const fetchFavorites = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         return;
       }
 
       const { data, error } = await supabase
         .from('favorite_recipes')
         .select('recipe_id')
-        .eq('user_id', user.id);
+        .eq('user_id', session.user.id);
 
       if (error) throw error;
 
       const favoriteIds = new Set(data?.map(f => f.recipe_id) || []);
       setFavorites(favoriteIds);
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(Array.from(favoriteIds)));
+      } catch {}
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      console.warn('Notice: Using cached favorites:', error);
     } finally {
       setLoading(false);
     }
@@ -36,48 +51,48 @@ export const useFavorites = () => {
 
   const toggleFavorite = async (recipeId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Please sign in to save favorites');
-        return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+
+      const isFav = favorites.has(recipeId);
+      const newSet = new Set(favorites);
+
+      if (isFav) {
+        newSet.delete(recipeId);
+      } else {
+        newSet.add(recipeId);
       }
 
-      const isFavorite = favorites.has(recipeId);
+      // Optimistic update
+      setFavorites(newSet);
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(Array.from(newSet)));
+      } catch {}
 
-      if (isFavorite) {
-        // Remove from favorites
-        const { error } = await supabase
-          .from('favorite_recipes')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('recipe_id', recipeId);
-
-        if (error) throw error;
-
-        setFavorites(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(recipeId);
-          return newSet;
-        });
-
+      if (isFav) {
         toast.success('Removed from favorites');
       } else {
-        // Add to favorites
-        const { error } = await supabase
-          .from('favorite_recipes')
-          .insert({
-            user_id: user.id,
-            recipe_id: recipeId,
-          });
+        toast.success('Saved to your favorites box! 💕');
+      }
 
-        if (error) throw error;
-
-        setFavorites(prev => new Set([...prev, recipeId]));
-        toast.success('Added to favorites');
+      if (user) {
+        if (isFav) {
+          await supabase
+            .from('favorite_recipes')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('recipe_id', recipeId);
+        } else {
+          await supabase
+            .from('favorite_recipes')
+            .insert({
+              user_id: user.id,
+              recipe_id: recipeId,
+            });
+        }
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      toast.error('Failed to update favorites');
     }
   };
 

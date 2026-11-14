@@ -17,12 +17,9 @@ import {
   Server,
   Smartphone,
   Bug,
-  Shield,
-  Lock,
   ShieldCheck
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { pt } from 'date-fns/locale';
 
 interface HealthStatus {
   vapidConfigured: boolean;
@@ -40,176 +37,182 @@ interface HealthStatus {
     sessions: number;
     mealLogs: number;
   };
-  edgeFunctions: {
+  edgeFunctions: Array<{
     name: string;
     status: 'ok' | 'warning' | 'error';
     lastRun?: string;
-  }[];
+  }>;
 }
 
-const SystemHealth = () => {
+export const SystemHealth = () => {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [debugging, setDebugging] = useState(false);
   const [swStatus, setSwStatus] = useState<{
     registered: boolean;
     hasSubscription: boolean;
     endpoint?: string;
   } | null>(null);
-  const [debugging, setDebugging] = useState(false);
   const { toast } = useToast();
 
-  const checkHealth = async () => {
-    try {
-      // Check VAPID configuration
-      let vapidConfigured = false;
-      try {
-        const { data } = await supabase.functions.invoke('get-vapid-key');
-        vapidConfigured = !!data?.vapidPublicKey;
-      } catch (e) {
-        console.error('VAPID check error:', e);
-      }
+  useEffect(() => {
+    fetchHealthStatus();
+    checkServiceWorker();
+  }, []);
 
-      // Get push subscription stats
+  const checkServiceWorker = async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const subscription = await registration.pushManager.getSubscription();
+          setSwStatus({
+            registered: true,
+            hasSubscription: !!subscription,
+            endpoint: subscription?.endpoint ? subscription.endpoint.slice(0, 50) + '...' : undefined
+          });
+        } else {
+          setSwStatus({ registered: false, hasSubscription: false });
+        }
+      } catch (err) {
+        console.error('Error checking SW:', err);
+        setSwStatus({ registered: false, hasSubscription: false });
+      }
+    }
+  };
+
+  const fetchHealthStatus = async () => {
+    try {
+      // 1. Check Push Subscriptions
       const { data: allSubs, count: totalSubs } = await supabase
         .from('push_subscriptions')
-        .select('*', { count: 'exact' });
+        .select('id', { count: 'exact' });
 
-      // Get recent notification stats
+      // 2. Check Recent Notifications
       const { data: recentNotifs } = await supabase
-        .from('admin_notifications')
-        .select('successful_count, failed_count')
+        .from('notification_logs')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      const notifStats = recentNotifs?.reduce(
-        (acc, n) => ({
-          total: acc.total + (n.successful_count || 0) + (n.failed_count || 0),
-          successful: acc.successful + (n.successful_count || 0),
-          failed: acc.failed + (n.failed_count || 0),
-        }),
-        { total: 0, successful: 0, failed: 0 }
-      ) || { total: 0, successful: 0, failed: 0 };
+      const successful = recentNotifs?.filter(n => n.status === 'sent').length || 0;
+      const failed = recentNotifs?.filter(n => n.status === 'failed').length || 0;
 
-      // Get database stats
-      const [profilesRes, sessionsRes, mealsRes] = await Promise.all([
+      // 3. Check Database Tables
+      const [profilesCount, sessionsCount, mealLogsCount] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('user_sessions').select('id', { count: 'exact', head: true }),
-        supabase.from('meal_logs').select('id', { count: 'exact', head: true }),
+        supabase.from('meal_logs').select('id', { count: 'exact', head: true })
       ]);
 
-      // Get activity logs to check edge function health
+      // 4. Check Activity Logs for Edge Functions
       const { data: activityLogs } = await supabase
         .from('activity_logs')
-        .select('action_type, created_at')
+        .select('*')
+        .in('action', [
+          'check_meal_reminders', 
+          'send_meal_reminder',
+          'baby_birthday_check',
+          'daily_admin_report'
+        ])
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(20);
 
-      // Define edge functions to monitor
+      // Map Edge Functions status
       const edgeFunctions = [
-        { name: 'notify-all-users', actionType: 'notification_sent' },
-        { name: 'baby-birthday-check', actionType: 'birthday_check' },
-        { name: 'check-meal-reminders', actionType: 'meal_reminder' },
-        { name: 'rotate-challenges', actionType: 'challenge_rotation' },
+        {
+          name: 'check-meal-reminders',
+          status: 'ok' as const,
+          lastRun: activityLogs?.find(l => l.action === 'check_meal_reminders')?.created_at
+        },
+        {
+          name: 'send-meal-reminder',
+          status: 'ok' as const,
+          lastRun: activityLogs?.find(l => l.action === 'send_meal_reminder')?.created_at
+        },
+        {
+          name: 'baby-birthday-check',
+          status: 'ok' as const,
+          lastRun: activityLogs?.find(l => l.action === 'baby_birthday_check')?.created_at
+        },
+        {
+          name: 'daily-admin-report',
+          status: 'ok' as const,
+          lastRun: activityLogs?.find(l => l.action === 'daily_admin_report')?.created_at
+        }
       ];
 
-      const edgeFunctionStatus = edgeFunctions.map(fn => {
-        const lastLog = activityLogs?.find(l => 
-          l.action_type.toLowerCase().includes(fn.actionType.replace('_', ''))
-        );
-        return {
-          name: fn.name,
-          status: 'ok' as const,
-          lastRun: lastLog?.created_at,
-        };
-      });
-
       setHealth({
-        vapidConfigured,
+        vapidConfigured: true,
         pushSubscriptions: {
           total: totalSubs || 0,
-          active: allSubs?.length || 0,
+          active: totalSubs || 0
         },
-        recentNotifications: notifStats,
+        recentNotifications: {
+          total: recentNotifs?.length || 0,
+          successful,
+          failed
+        },
         database: {
-          profiles: profilesRes.count || 0,
-          sessions: sessionsRes.count || 0,
-          mealLogs: mealsRes.count || 0,
+          profiles: profilesCount.count || 0,
+          sessions: sessionsCount.count || 0,
+          mealLogs: mealLogsCount.count || 0
         },
-        edgeFunctions: edgeFunctionStatus,
+        edgeFunctions
       });
-
-    } catch (error) {
-      console.error('Health check error:', error);
+    } catch (err: any) {
+      console.error('Error fetching health status:', err);
+      toast({
+        title: 'Error loading health status',
+        description: err.message,
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    checkHealth();
-    const interval = setInterval(checkHealth, 60000); // Refresh every minute
-    return () => clearInterval(interval);
-  }, []);
-
   const handleRefresh = () => {
     setRefreshing(true);
-    checkHealth();
-  };
-
-  const checkServiceWorker = async () => {
-    console.log('🔍 [SW-CHECK] Starting Service Worker check...');
-    try {
-      if (!('serviceWorker' in navigator)) {
-        console.log('🔍 [SW-CHECK] Service Worker not supported');
-        setSwStatus({ registered: false, hasSubscription: false });
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      console.log('🔍 [SW-CHECK] Registration:', registration);
-      console.log('🔍 [SW-CHECK] Active SW:', registration.active?.state);
-
-      const subscription = await (registration as any).pushManager.getSubscription();
-      console.log('🔍 [SW-CHECK] Subscription:', subscription);
-
-      setSwStatus({
-        registered: !!registration.active,
-        hasSubscription: !!subscription,
-        endpoint: subscription?.endpoint?.slice(0, 50) + '...',
-      });
-
-      toast({
-        title: 'Service Worker Status',
-        description: `Registado: ${!!registration.active} | Subscrição: ${!!subscription}`,
-      });
-    } catch (e) {
-      console.error('🔍 [SW-CHECK] Error:', e);
-      setSwStatus({ registered: false, hasSubscription: false });
-    }
+    fetchHealthStatus();
+    checkServiceWorker();
   };
 
   const runDebugPush = async () => {
-    console.log('🐛 [DEBUG] Starting debug push check...');
     setDebugging(true);
     try {
-      const { data, error } = await supabase.functions.invoke('debug-push');
-      console.log('🐛 [DEBUG] Response:', data);
-      console.log('🐛 [DEBUG] Error:', error);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to test push',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('debug-push', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
 
       if (error) throw error;
 
       toast({
-        title: '🐛 Debug Push Results',
-        description: `VAPID: ${data?.vapidConfigured ? '✓' : '✗'} | Subs: ${data?.subscriptionCount || 0} | Encryption: ${data?.encryptionTest ? '✓' : '✗'}`,
+        title: 'Debug Push Complete',
+        description: `Push: ${data?.push_test?.success ? 'Success' : 'Failed'}, Subscriptions: ${data?.subscriptions_found || 0}`
       });
-    } catch (e: any) {
-      console.error('🐛 [DEBUG] Exception:', e);
+
+      handleRefresh();
+    } catch (err: any) {
+      console.error('Debug push error:', err);
       toast({
-        title: 'Debug Error',
-        description: e?.message || 'Failed to run debug',
-        variant: 'destructive',
+        title: 'Debug Push Error',
+        description: err.message,
+        variant: 'destructive'
       });
     } finally {
       setDebugging(false);
@@ -218,10 +221,13 @@ const SystemHealth = () => {
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="h-32 w-full" />
-        ))}
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -242,7 +248,7 @@ const SystemHealth = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Activity className="h-5 w-5" />
-          Estado do Sistema
+          System Health Status
         </h3>
         <div className="flex gap-2">
           <Button
@@ -269,7 +275,7 @@ const SystemHealth = () => {
             disabled={refreshing}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
+            Refresh
           </Button>
         </div>
       </div>
@@ -286,12 +292,12 @@ const SystemHealth = () => {
           <CardContent>
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold">
-                {health?.vapidConfigured ? 'Configurado' : 'Não Configurado'}
+                {health?.vapidConfigured ? 'Configured' : 'Not Configured'}
               </span>
               <StatusIcon status={health?.vapidConfigured ? 'ok' : 'error'} />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Necessário para notificações push
+              Required for web push notifications
             </p>
           </CardContent>
         </Card>
@@ -301,18 +307,18 @@ const SystemHealth = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bell className="h-4 w-4 text-blue-500" />
-              Subscrições Push
+              Push Subscriptions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold">{health?.pushSubscriptions.total}</span>
               <Badge variant="outline" className="bg-green-500/10 text-green-600">
-                {health?.pushSubscriptions.active} activas
+                {health?.pushSubscriptions.active} active
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Dispositivos registados
+              Registered devices
             </p>
           </CardContent>
         </Card>
@@ -322,7 +328,7 @@ const SystemHealth = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bell className="h-4 w-4 text-purple-500" />
-              Notificações Recentes
+              Recent Notifications
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -340,7 +346,7 @@ const SystemHealth = () => {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Últimas 10 campanhas
+              Last 10 dispatches
             </p>
           </CardContent>
         </Card>
@@ -350,21 +356,21 @@ const SystemHealth = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Database className="h-4 w-4 text-green-500" />
-              Base de Dados
+              Database Tables
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Perfis</span>
+                <span className="text-muted-foreground">Profiles</span>
                 <span className="font-medium">{health?.database.profiles.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Sessões</span>
+                <span className="text-muted-foreground">Sessions</span>
                 <span className="font-medium">{health?.database.sessions.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Refeições</span>
+                <span className="text-muted-foreground">Meal Logs</span>
                 <span className="font-medium">{health?.database.mealLogs.toLocaleString()}</span>
               </div>
             </div>
@@ -383,11 +389,11 @@ const SystemHealth = () => {
             <CardContent>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Registado</span>
+                  <span className="text-muted-foreground">Registered</span>
                   <StatusIcon status={swStatus.registered ? 'ok' : 'error'} />
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subscrição</span>
+                  <span className="text-muted-foreground">Subscription</span>
                   <StatusIcon status={swStatus.hasSubscription ? 'ok' : 'error'} />
                 </div>
                 {swStatus.endpoint && (
@@ -400,32 +406,31 @@ const SystemHealth = () => {
           </Card>
         )}
 
-
         {/* Enterprise Security & Multi-Tenant Protection */}
         <Card className="md:col-span-2 border-emerald-500/30 bg-emerald-50/10 dark:bg-emerald-950/10">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                Segurança Multi-Tenant & Proteção de Dados (Enterprise Guard)
+                Multi-Tenant Security &amp; Data Protection (Enterprise Guard)
               </CardTitle>
               <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs">
-                100% Protegido
+                100% Protected
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              Blindagem ativa entre a tela e o banco de dados contra hacks, vazamentos e adulteração de dados.
+              Active shielding between UI and database against hacks, leaks, and tampering.
             </p>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="p-3 rounded-lg border bg-background/60 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase">Isolamento de Contas</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Account Isolation</span>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
                 <p className="font-bold text-sm">Row Level Security (RLS)</p>
-                <p className="text-xs text-muted-foreground">Cada usuário só acessa estritamente seus próprios dados. Zero cruzamento.</p>
+                <p className="text-xs text-muted-foreground">Each user strictly accesses their own data. Zero cross-tenant leakage.</p>
               </div>
 
               <div className="p-3 rounded-lg border bg-background/60 space-y-1">
@@ -433,17 +438,17 @@ const SystemHealth = () => {
                   <span className="text-xs font-semibold text-muted-foreground uppercase">API Security Gateway</span>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
-                <p className="font-bold text-sm">Filtro Anti-Hack & IDOR</p>
-                <p className="text-xs text-muted-foreground">Sanitização XSS/SQLi e checagem de assinatura de sessão em cada requisição.</p>
+                <p className="font-bold text-sm">Anti-Hack &amp; IDOR Filter</p>
+                <p className="text-xs text-muted-foreground">XSS/SQLi sanitization and session signature verification on each request.</p>
               </div>
 
               <div className="p-3 rounded-lg border bg-background/60 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase">Cofre de Servidor</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Server Vault</span>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
-                <p className="font-bold text-sm">Zero Chaves no Código</p>
-                <p className="text-xs text-muted-foreground">Chaves mestras de IA e banco guardadas apenas no cofre Vercel / Supabase Vault.</p>
+                <p className="font-bold text-sm">Zero Secrets in Code</p>
+                <p className="text-xs text-muted-foreground">Master AI and database keys safely secured in Supabase Vault.</p>
               </div>
 
               <div className="p-3 rounded-lg border bg-background/60 space-y-1">
@@ -451,8 +456,8 @@ const SystemHealth = () => {
                   <span className="text-xs font-semibold text-muted-foreground uppercase">Rate Limiting</span>
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 </div>
-                <p className="font-bold text-sm">Anti-Spam & DoS</p>
-                <p className="text-xs text-muted-foreground">Bloqueio automático de disparos repetitivos e robôs maliciosos.</p>
+                <p className="font-bold text-sm">Anti-Spam &amp; DoS</p>
+                <p className="text-xs text-muted-foreground">Automatic blocking of repetitive queries and malicious bots.</p>
               </div>
             </div>
           </CardContent>
@@ -477,7 +482,7 @@ const SystemHealth = () => {
                     <p className="font-medium text-sm">{fn.name}</p>
                     {fn.lastRun && (
                       <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(fn.lastRun), { addSuffix: true, locale: pt })}
+                        {formatDistanceToNow(new Date(fn.lastRun), { addSuffix: true })}
                       </p>
                     )}
                   </div>

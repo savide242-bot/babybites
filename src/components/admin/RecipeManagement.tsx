@@ -92,14 +92,14 @@ export const RecipeManagement = () => {
       const ok = await syncPublishedRecipesToCloud(pub);
       await syncCloud();
       if (ok) {
-        toast.success("Catálogo sincronizado com a nuvem com sucesso!", {
-          description: "Todos os celulares e computadores receberão as imagens mais recentes.",
+        toast.success("Catalog synced with cloud successfully!", {
+          description: "All devices will immediately receive the latest recipe catalog and images.",
         });
       } else {
-        toast.info("Catálogo atualizado localmente.");
+        toast.info("Catalog updated locally.");
       }
     } catch (e: any) {
-      toast.error("Erro na sincronização: " + (e.message || "Verifique a conexão"));
+      toast.error("Sync error: " + (e.message || "Please check connection"));
     } finally {
       setIsCloudSyncing(false);
     }

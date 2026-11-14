@@ -16,7 +16,7 @@ import AdminRecipeImages from '@/pages/AdminRecipeImages';
 import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink, DollarSign, UtensilsCrossed, Image as ImageIcon, Palette } from 'lucide-react';
 import { ThemeManagement } from '@/components/admin/ThemeManagement';
 
-const PREVIEW_URL = 'https://id-preview--c5922e44-641f-47eb-8afc-e9b38124e2b3.lovable.app';
+const PREVIEW_URL = 'https://app.babybites.space';
 
 const Admin = () => {
   const { isAdmin, isLoading } = useAdminRole();

@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Clock, Heart, ArrowLeft, Snowflake, Sparkles, Zap, Utensils, FolderHeart } from "lucide-react";
-import { recipes, getMealCategory } from "@/data/recipes";
+import { recipes as staticRecipes, getMealCategory } from "@/data/recipes";
+import { useAppRecipes } from "@/hooks/useAppRecipes";
 import { useFavorites } from "@/hooks/useFavorites";
 
 const COLLECTIONS = [
@@ -15,11 +16,13 @@ const COLLECTIONS = [
 
 export const Favorites = () => {
   const { favorites, loading, toggleFavorite } = useFavorites();
+  const { recipes: appRecipes } = useAppRecipes();
+  const allRecipes = (appRecipes && appRecipes.length > 0) ? appRecipes : staticRecipes;
   const [selectedCollection, setSelectedCollection] = useState("all");
 
   const favoriteRecipes = useMemo(() => {
-    return recipes.filter((recipe) => favorites.has(recipe.id));
-  }, [favorites]);
+    return allRecipes.filter((recipe) => favorites.has(recipe.id));
+  }, [allRecipes, favorites]);
 
   const filteredByCollection = useMemo(() => {
     if (selectedCollection === "all") return favoriteRecipes;
@@ -142,6 +145,12 @@ export const Favorites = () => {
                       src={recipe.image}
                       alt={recipe.title}
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.endsWith("/logo.png")) {
+                          target.src = "/logo.png";
+                        }
+                      }}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 

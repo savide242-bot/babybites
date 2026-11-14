@@ -97,6 +97,12 @@ const RecipeCard = memo(({
           alt={recipe.title}
           loading="lazy"
           decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.endsWith("/logo.png")) {
+              target.src = "/logo.png";
+            }
+          }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -239,7 +245,7 @@ export const Recipes = () => {
     if (openedCustomRecipeId === id) {
       setOpenedCustomRecipeId(null);
     }
-    toast.success("Receita personalizada removida.");
+    toast.success("Custom recipe removed.");
   };
 
   // Sync URL parameters on load
