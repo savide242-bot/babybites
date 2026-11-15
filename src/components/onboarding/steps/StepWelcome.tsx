@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles, ChefHat, Calendar, Heart } from "lucide-react";
+import { ArrowLeft, Sparkles, ChefHat, Calendar, Heart, Loader2 } from "lucide-react";
 import { differenceInMonths } from "date-fns";
 import confetti from "canvas-confetti";
 import { useEffect } from "react";
@@ -17,108 +17,115 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
   const babyAgeMonths = birthDate ? differenceInMonths(new Date(), birthDate) : 6;
 
   useEffect(() => {
-    // Trigger confetti on mount
     const timer = setTimeout(() => {
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 80,
+        spread: 60,
         origin: { y: 0.6 },
-        colors: ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181']
+        colors: ['#48B774', '#1E5E3A', '#86efac', '#d1fae5', '#FFE66D'],
       });
     }, 300);
-
     return () => clearTimeout(timer);
   }, []);
 
   const getAgeBasedMessage = () => {
-    if (babyAgeMonths < 6) {
-      return "Perfect for starting the weaning journey!";
-    } else if (babyAgeMonths < 9) {
-      return "Great time to explore new flavors and textures!";
-    } else if (babyAgeMonths < 12) {
-      return "Ready for more complex recipes and finger foods!";
-    } else {
-      return "Perfect time for family meals together!";
-    }
+    if (babyAgeMonths < 6) return "Starting the weaning journey!";
+    if (babyAgeMonths < 9) return "Exploring new flavors and textures!";
+    if (babyAgeMonths < 12) return "Ready for more complex recipes and finger foods!";
+    return "Perfect time for family meals together!";
   };
+
+  const features = [
+    {
+      icon: <ChefHat className="w-5 h-5" style={{ color: '#1E5E3A' }} />,
+      bg: '#1E5E3A',
+      title: '340+ Personalized Recipes',
+      subtitle: `Tailored for ${babyAgeMonths} months`,
+    },
+    {
+      icon: <Calendar className="w-5 h-5" style={{ color: '#1E5E3A' }} />,
+      bg: '#1E5E3A',
+      title: 'Weekly Meal Plans',
+      subtitle: getAgeBasedMessage(),
+    },
+    {
+      icon: <Heart className="w-5 h-5" style={{ color: '#be185d' }} />,
+      bg: '#be185d',
+      title: 'Daily Nutrition Tips',
+      subtitle: 'Expert baby nutrition advice',
+    },
+  ];
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary via-mint to-cyan-400 mb-4 animate-pulse">
-          <Sparkles className="w-10 h-10 text-white" />
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div
+          className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+          style={{ background: 'linear-gradient(135deg, #1E5E3A, #48B774)' }}
+        >
+          <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-3xl font-bold text-foreground">
-          🎉 All set, {motherName}!
+        <h2 className="text-2xl font-serif font-bold" style={{ color: '#111827' }}>
+          🎉 All set, {motherName || 'there'}!
         </h2>
-        <p className="text-lg text-muted-foreground">
-          Welcome to BabyBites
+        <p className="text-sm" style={{ color: '#6b7280' }}>
+          Welcome to <span style={{ color: '#1E5E3A', fontWeight: 600 }}>BabyBites</span>
         </p>
       </div>
 
-      <div className="bg-gradient-to-br from-primary/10 via-mint/10 to-cyan-100/30 rounded-2xl p-6 space-y-4">
-        <h3 className="font-semibold text-foreground text-center">
-          What we prepared for {babyName}:
-        </h3>
-        
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 bg-white/50 rounded-xl p-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <ChefHat className="w-5 h-5 text-primary" />
+      {/* Features card */}
+      <div
+        className="rounded-2xl p-5 space-y-3"
+        style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}
+      >
+        <p className="text-xs font-semibold text-center uppercase tracking-wide" style={{ color: '#16a34a' }}>
+          Ready for {babyName || 'your baby'}
+        </p>
+        {features.map((f, i) => (
+          <div key={i} className="flex items-center gap-3 rounded-xl p-3" style={{ backgroundColor: '#ffffff' }}>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: `${f.bg}18` }}
+            >
+              {f.icon}
             </div>
             <div>
-              <p className="font-medium text-foreground">340+ Personalized Recipes</p>
-              <p className="text-sm text-muted-foreground">Tailored for {babyAgeMonths} months</p>
+              <p className="text-sm font-semibold" style={{ color: '#111827' }}>{f.title}</p>
+              <p className="text-xs" style={{ color: '#6b7280' }}>{f.subtitle}</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-3 bg-white/50 rounded-xl p-3">
-            <div className="w-10 h-10 rounded-full bg-mint/20 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-mint" />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Weekly Meal Plan</p>
-              <p className="text-sm text-muted-foreground">{getAgeBasedMessage()}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 bg-white/50 rounded-xl p-3">
-            <div className="w-10 h-10 rounded-full bg-pink-400/20 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-pink-500" />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Daily Tips</p>
-              <p className="text-sm text-muted-foreground">Expert baby nutrition advice</p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
+      {/* Buttons */}
       <div className="flex gap-3">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1 py-6"
           disabled={isLoading}
+          className="flex-1 rounded-full border-stone-200 text-stone-600 hover:bg-stone-50"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-1" />
           Back
         </Button>
         <Button
+          type="button"
           onClick={onComplete}
-          className="flex-1 bg-gradient-to-r from-primary to-mint text-white font-semibold py-6 text-lg hover:shadow-glow transition-all duration-300 hover:scale-[1.02]"
           disabled={isLoading}
+          className="flex-1 rounded-full font-semibold text-white"
+          style={{ background: 'linear-gradient(135deg, #1E5E3A, #48B774)' }}
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving...
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving…
             </span>
           ) : (
             <span className="flex items-center gap-2">
-              Start exploring!
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
+              Let's go!
             </span>
           )}
         </Button>

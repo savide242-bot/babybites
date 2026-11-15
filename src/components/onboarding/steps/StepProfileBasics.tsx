@@ -1,5 +1,4 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Baby, Calendar, Heart, Sparkles } from "lucide-react";
@@ -46,66 +45,84 @@ export const StepProfileBasics: React.FC<StepProfileBasicsProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
       <div className="text-center space-y-1.5 mb-2">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1E5E3A]/10 text-[#1E5E3A] mb-1">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1E5E3A]/10 mb-1">
           <Heart className="w-7 h-7 text-[#1E5E3A] fill-[#1E5E3A]/20" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-stone-900">
+        <h2 className="text-2xl font-serif font-bold" style={{ color: '#111827' }}>
           Tell us about your family
         </h2>
-        <p className="text-stone-500 text-xs max-w-sm mx-auto">
-          We customize all recipe textures, portion sizes, and weekly meal plans based on these details.
+        <p className="text-xs max-w-sm mx-auto" style={{ color: '#6b7280' }}>
+          We'll personalize recipes, textures, and meal plans just for your baby.
         </p>
       </div>
 
       <div className="space-y-4">
         {/* Mother / Parent's Name */}
         <div className="space-y-1.5">
-          <Label htmlFor="motherName" className="text-xs font-semibold text-stone-700">
+          <Label htmlFor="motherName" className="text-xs font-semibold" style={{ color: '#374151' }}>
             Your Name (Parent)
           </Label>
-          <Input
+          <input
             id="motherName"
             type="text"
             placeholder="e.g. Sarah Jenkins"
             value={motherName}
             onChange={(e) => onMotherNameChange(e.target.value)}
-            className="rounded-xl border-stone-200 bg-stone-50/50 text-sm h-11 focus-visible:ring-[#1E5E3A]"
             required
             autoFocus
+            style={{
+              color: '#111827',
+              backgroundColor: '#ffffff',
+              borderColor: '#d1d5db',
+              caretColor: '#1E5E3A',
+            }}
+            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all"
           />
         </div>
 
         {/* Baby's Name */}
         <div className="space-y-1.5">
-          <Label htmlFor="babyName" className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+          <Label htmlFor="babyName" className="text-xs font-semibold flex items-center gap-1.5" style={{ color: '#374151' }}>
             <Baby className="w-3.5 h-3.5 text-[#1E5E3A]" />
             Baby's Name or Nickname
           </Label>
-          <Input
+          <input
             id="babyName"
             type="text"
             placeholder="e.g. Oliver"
             value={babyName}
             onChange={(e) => onBabyNameChange(e.target.value)}
-            className="rounded-xl border-stone-200 bg-stone-50/50 text-sm h-11 focus-visible:ring-[#1E5E3A]"
             required
+            style={{
+              color: '#111827',
+              backgroundColor: '#ffffff',
+              borderColor: '#d1d5db',
+              caretColor: '#1E5E3A',
+            }}
+            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all"
           />
         </div>
 
         {/* Baby's Birth Date */}
         <div className="space-y-1.5">
-          <Label htmlFor="birthDate" className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+          <Label htmlFor="birthDate" className="text-xs font-semibold flex items-center gap-1.5" style={{ color: '#374151' }}>
             <Calendar className="w-3.5 h-3.5 text-[#1E5E3A]" />
             Baby's Date of Birth
           </Label>
-          <Input
+          <input
             id="birthDate"
             type="date"
             value={birthDate}
             onChange={(e) => onBirthDateChange(e.target.value)}
             max={new Date().toISOString().split("T")[0]}
-            className="rounded-xl border-stone-200 bg-stone-50/50 text-sm h-11 focus-visible:ring-[#1E5E3A]"
             required
+            style={{
+              color: birthDate ? '#111827' : '#9ca3af',
+              backgroundColor: '#ffffff',
+              borderColor: '#d1d5db',
+              caretColor: '#1E5E3A',
+            }}
+            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all"
           />
           {birthDate && (
             <div className="p-2.5 rounded-xl bg-[#1E5E3A]/5 border border-[#1E5E3A]/15 text-xs text-[#1E5E3A] font-medium flex items-center gap-2 mt-1">
@@ -119,10 +136,10 @@ export const StepProfileBasics: React.FC<StepProfileBasicsProps> = ({
       <Button
         type="submit"
         disabled={!isComplete}
-        className="w-full h-12 rounded-full font-semibold bg-[#1E5E3A] hover:bg-[#16472c] text-white shadow-sm mt-4 text-sm"
+        className="w-full h-12 rounded-full font-semibold bg-[#1E5E3A] hover:bg-[#16472c] text-white shadow-sm mt-4 text-sm disabled:opacity-40"
       >
         <span className="flex items-center gap-2">
-          Continue to Preferences
+          Continue
           <ArrowRight className="w-4 h-4" />
         </span>
       </Button>

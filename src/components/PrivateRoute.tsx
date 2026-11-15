@@ -9,21 +9,22 @@ interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const ONBOARDED_STORAGE_KEY_PREFIX = "babybites_user_onboarded_";
-
+// Two localStorage key variants for compatibility
 const isCachedOnboarded = (userId: string): boolean => {
   try {
-    return localStorage.getItem(`${ONBOARDED_STORAGE_KEY_PREFIX}${userId}`) === "true";
+    return (
+      localStorage.getItem(`babybites_user_onboarded_${userId}`) === "true" ||
+      localStorage.getItem(`babybites_onboarded_${userId}`) === "true"
+    );
   } catch {
     return false;
   }
 };
 
-const setCachedOnboarded = (userId: string, value: boolean): void => {
+const setCachedOnboarded = (userId: string): void => {
   try {
-    localStorage.setItem(`${ONBOARDED_STORAGE_KEY_PREFIX}${userId}`, value ? "true" : "false");
+    localStorage.setItem(`babybites_user_onboarded_${userId}`, "true");
+    localStorage.setItem(`babybites_onboarded_${userId}`, "true");
   } catch {
     // Ignore
   }
@@ -40,10 +41,10 @@ const ensureUserProfile = async (user: User): Promise<void> => {
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Only insert columns that actually exist in the profiles table
   await supabase.from("profiles").upsert(
     {
       id: user.id,
-      onboarding_completed: false,
       dietary_preferences: [],
       timezone,
     },
@@ -51,15 +52,25 @@ const ensureUserProfile = async (user: User): Promise<void> => {
   );
 };
 
-const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
-  // If already known to be onboarded from local storage, return false immediately (instant tab switches)
+const fetchNeedsOnboarding = async (
+  userId: string,
+  userMetadata?: Record<string, unknown>
+): Promise<boolean> => {
+  // 1. Fast path: local cache
   if (isCachedOnboarded(userId)) {
     return false;
   }
 
+  // 2. Fast path: auth metadata flag set during onboarding completion
+  if (userMetadata?.onboarding_completed === true) {
+    setCachedOnboarded(userId);
+    return false;
+  }
+
+  // 3. Full DB check — only columns that exist in the schema
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("mother_name, baby_name, baby_birth_date, onboarding_completed")
+    .select("mother_name, baby_name, baby_birth_date, bio")
     .eq("id", userId)
     .maybeSingle();
 
@@ -67,28 +78,42 @@ const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
     return true;
   }
 
-  // If explicitly flagged as incomplete, enforce onboarding
-  if (profile.onboarding_completed === false) {
-    return true;
+  // 4. Check if bio contains a babies array (existing accounts store babies in bio JSON)
+  let hasBabyInBio = false;
+  if (profile.bio) {
+    try {
+      const parsed = JSON.parse(profile.bio);
+      if (Array.isArray(parsed.babies) && parsed.babies.length > 0) {
+        hasBabyInBio = true;
+      }
+    } catch {
+      // bio is plain text, ignore
+    }
   }
 
-  // Completeness check: Mother name, baby name, and real baby birth date must ALL exist
-  const hasIncompleteProfile =
-    !profile.mother_name ||
-    !profile.baby_name ||
-    !profile.baby_birth_date ||
-    profile.mother_name === "User" ||
-    profile.mother_name === "Loving Mother" ||
-    profile.baby_name === "My Baby";
+  // 5. Profile is complete if:
+  //    — has mother_name AND baby_name AND baby_birth_date in columns, OR
+  //    — has baby data stored in the bio JSON (existing accounts)
+  const hasColumnarData =
+    Boolean(profile.mother_name) &&
+    Boolean(profile.baby_name) &&
+    Boolean(profile.baby_birth_date) &&
+    profile.mother_name !== "User" &&
+    profile.mother_name !== "Loving Mother" &&
+    profile.baby_name !== "My Baby";
 
-  if (!hasIncompleteProfile) {
-    setCachedOnboarded(userId, true);
+  const isComplete = hasColumnarData || hasBabyInBio;
+
+  if (isComplete) {
+    setCachedOnboarded(userId);
   }
 
-  return hasIncompleteProfile;
+  return !isComplete;
 };
 
-const checkBanStatus = async (userId: string): Promise<{ banned: boolean; reason?: string | null }> => {
+const checkBanStatus = async (
+  userId: string
+): Promise<{ banned: boolean; reason?: string | null }> => {
   const { data: profile } = await supabase
     .from("profiles")
     .select("is_banned, banned_reason")
@@ -114,7 +139,6 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const [banReason, setBanReason] = useState<string | null>(null);
 
   // Tracks the user ID whose profile has already been verified in this session
-  // This prevents unmounting and showing white screens on tab / route switches
   const checkedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -156,18 +180,18 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 
     const currentUserId = session.user.id;
 
-    // IF ALREADY CHECKED FOR THIS USER: NEVER SHOW SKELETON OR WHITE SCREEN DURING TAB SWITCHING!
+    // Already verified in this session — skip
     if (checkedUserIdRef.current === currentUserId) {
       return;
     }
 
-    // If local cache confirms user is onboarded, allow instant mount without blocking UI
+    // Fast path via local cache — allow instant mount
     const alreadyOnboarded = isCachedOnboarded(currentUserId);
     if (alreadyOnboarded) {
       checkedUserIdRef.current = currentUserId;
       setNeedsOnboarding(false);
       setProfileChecking(false);
-      // Run background check without unmounting the app
+      // Background ban check
       checkBanStatus(currentUserId).then((ban) => {
         if (ban.banned) {
           setIsBanned(true);
@@ -182,10 +206,10 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
     setProfileChecking(true);
 
     (async () => {
-      // Check ban status FIRST
+      // Check ban status first
       const banStatus = await checkBanStatus(currentUserId);
       if (cancelled) return;
-      
+
       if (banStatus.banned) {
         setIsBanned(true);
         setBanReason(banStatus.reason || null);
@@ -195,27 +219,29 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
       }
 
       await ensureUserProfile(session.user);
-      const needs = await fetchNeedsOnboarding(currentUserId);
+      const needs = await fetchNeedsOnboarding(
+        currentUserId,
+        session.user.user_metadata as Record<string, unknown>
+      );
       if (!cancelled) {
         setNeedsOnboarding(needs);
         checkedUserIdRef.current = currentUserId;
       }
-    })()
-      .finally(() => {
-        if (!cancelled) setProfileChecking(false);
-      });
+    })().finally(() => {
+      if (!cancelled) setProfileChecking(false);
+    });
 
     return () => {
       cancelled = true;
     };
   }, [authReady, session?.user?.id, location.pathname]);
 
-  // Show banned screen — this persists even after sign out
+  // Show banned screen
   if (isBanned) {
     return <BannedScreen reason={banReason} />;
   }
 
-  // Only show skeleton on first cold boot while reading session
+  // Only show skeleton on cold boot
   if (!authReady || (profileChecking && checkedUserIdRef.current !== session?.user?.id)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF9F5] dark:bg-[#0f1411]">

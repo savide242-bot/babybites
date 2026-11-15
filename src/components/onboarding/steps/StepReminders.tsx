@@ -20,7 +20,7 @@ interface StepRemindersProps {
   onBack: () => void;
 }
 
-const DEFAULT_REMINDERS: ReminderSetting[] = [
+export const DEFAULT_REMINDERS: ReminderSetting[] = [
   { id: 'breakfast', label: 'Breakfast', emoji: '🍳', enabled: true, hour: 7, minute: 30 },
   { id: 'morning-snack', label: 'Morning snack', emoji: '🍎', enabled: false, hour: 10, minute: 0 },
   { id: 'lunch', label: 'Lunch', emoji: '🥗', enabled: true, hour: 12, minute: 30 },

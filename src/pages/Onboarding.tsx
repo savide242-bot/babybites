@@ -9,19 +9,17 @@ import { useBabyProfiles } from "@/contexts/BabyProfileContext";
 
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
 import StepProfileBasics from "@/components/onboarding/steps/StepProfileBasics";
-import StepDietaryPreferences from "@/components/onboarding/steps/StepDietaryPreferences";
-import StepReminders, { ReminderSetting, DEFAULT_REMINDERS } from "@/components/onboarding/steps/StepReminders";
 import StepWelcome from "@/components/onboarding/steps/StepWelcome";
+import { DEFAULT_REMINDERS } from "@/components/onboarding/steps/StepReminders";
 
-const TOTAL_STEPS = 4;
+// Streamlined: 2 steps only — Basics + Welcome
+const TOTAL_STEPS = 2;
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [motherName, setMotherName] = useState("");
   const [babyName, setBabyName] = useState("");
   const [birthDateStr, setBirthDateStr] = useState("");
-  const [dietaryPreferences, setDietaryPreferences] = useState<DietaryTag[]>([]);
-  const [reminders, setReminders] = useState<ReminderSetting[]>(DEFAULT_REMINDERS);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { refreshBabies } = useBabyProfiles();
@@ -45,7 +43,7 @@ const Onboarding = () => {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         toast.error("Session expired. Please sign in again.");
         navigate('/auth');
@@ -62,7 +60,7 @@ const Onboarding = () => {
         motherName.trim() ||
         "Parent";
 
-      // Use upsert to reliably save the mother and baby profile permanently
+      // Save profile — only columns that actually exist in the DB
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -70,63 +68,54 @@ const Onboarding = () => {
           full_name: fullName,
           mother_name: motherName.trim(),
           baby_name: babyName.trim(),
-          baby_birth_date: birthDateStr || undefined,
-          dietary_preferences: dietaryPreferences,
+          baby_birth_date: birthDateStr || null,
           timezone: detectedTimezone,
-          onboarding_completed: true,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 
-      // Update user_metadata so Auth session immediately reflects onboarding completion
+      // Update user_metadata so Auth session reflects completion instantly
       await supabase.auth.updateUser({
         data: {
           full_name: fullName,
           mother_name: motherName.trim(),
           baby_name: babyName.trim(),
-          baby_birth_date: birthDateStr || undefined,
+          baby_birth_date: birthDateStr || null,
           onboarding_completed: true,
         }
       });
 
-      // Mark local cache as onboarded
+      // Mark local cache as onboarded (two key variants for compatibility)
       try {
         localStorage.setItem(`babybites_onboarded_${session.user.id}`, 'true');
+        localStorage.setItem(`babybites_user_onboarded_${session.user.id}`, 'true');
       } catch (e) {
         console.warn('Could not cache onboarding flag:', e);
       }
 
-      // Sync BabyProfileContext so child age is calculated from real birthdate
+      // Sync BabyProfileContext
       try {
         await refreshBabies();
       } catch (refErr) {
         console.warn('Could not refresh baby profile context:', refErr);
       }
 
-      // Save meal times to baby_meal_times
-      const mealTimesToInsert = reminders.map(reminder => ({
-        user_id: session.user.id,
-        meal_type: reminder.id,
-        enabled: reminder.enabled,
-        preferred_hour: reminder.hour,
-        preferred_minute: reminder.minute,
-      }));
-
-      for (const mealTime of mealTimesToInsert) {
-        const { error: mealTimeError } = await supabase
+      // Save default meal times to baby_meal_times
+      for (const reminder of DEFAULT_REMINDERS) {
+        await supabase
           .from('baby_meal_times')
-          .upsert(mealTime, {
-            onConflict: 'user_id,meal_type'
-          });
-
-        if (mealTimeError) {
-          console.error('Error saving meal time:', mealTimeError);
-        }
+          .upsert({
+            user_id: session.user.id,
+            meal_type: reminder.id,
+            enabled: reminder.enabled,
+            preferred_hour: reminder.hour,
+            preferred_minute: reminder.minute,
+          }, { onConflict: 'user_id,meal_type' });
       }
 
-      // Generate initial weekly meal plan based on baby's age and dietary preferences
-      await generateInitialMealPlan(session.user.id, birthDate, dietaryPreferences);
+      // Generate initial weekly meal plan
+      await generateInitialMealPlan(session.user.id, birthDate, []);
 
       toast.success(`Welcome to BabyBites, ${motherName}! 🌱`);
       navigate('/');
@@ -154,25 +143,6 @@ const Onboarding = () => {
         );
       case 2:
         return (
-          <StepDietaryPreferences
-            value={dietaryPreferences}
-            babyName={babyName || "your baby"}
-            onChange={setDietaryPreferences}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        );
-      case 3:
-        return (
-          <StepReminders
-            value={reminders}
-            onChange={setReminders}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        );
-      case 4:
-        return (
           <StepWelcome
             motherName={motherName}
             babyName={babyName}
@@ -198,18 +168,18 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Subtle botanical background decoration */}
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ backgroundColor: '#FAF9F5' }}>
+      {/* Botanical background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#48B774]/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#1E5E3A]/5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(72,183,116,0.08)' }} />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(30,94,58,0.05)' }} />
       </div>
 
       <Card className="w-full max-w-md relative z-10 border border-[#EBE8DF] bg-white rounded-[32px] shadow-[0_12px_40px_-8px_rgba(30,94,58,0.08)]">
         <CardContent className="p-6 sm:p-8 space-y-6">
           <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-          
-          <div className="min-h-[400px] flex flex-col justify-center">
+
+          <div className="min-h-[380px] flex flex-col justify-center">
             {renderStep()}
           </div>
         </CardContent>
