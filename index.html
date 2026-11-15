@@ -22,6 +22,20 @@
       })();
     </script>
 
+        <!-- PWA Install Prompt Early Capture: ensures the beforeinstallprompt event is never missed -->
+    <script>
+      window.__pwaInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__pwaInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-prompt-available', { detail: e }));
+      });
+      window.addEventListener('appinstalled', function() {
+        window.__pwaInstallPrompt = null;
+        try { localStorage.setItem('babybites_pwa_installed', 'true'); } catch(e){}
+      });
+    </script>
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1E5E3A" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
