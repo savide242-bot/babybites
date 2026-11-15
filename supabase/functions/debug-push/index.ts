@@ -24,11 +24,9 @@ Deno.serve(async (req) => {
       if (vapidKeys) {
         vapidConfigured = true;
         vapidPublicKeyPreview = vapidKeys.publicKey.slice(0, 20) + "...";
-        console.log("🐛 [DEBUG-PUSH] VAPID keys found");
       }
     } catch (e: any) {
       vapidError = e.message;
-      console.error("🐛 [DEBUG-PUSH] VAPID error:", e);
     }
 
     // Check database subscriptions
@@ -39,12 +37,9 @@ Deno.serve(async (req) => {
     const { data: subscriptions, error: subError, count } = await supabase
       .from("push_subscriptions")
       .select("*", { count: "exact" })
-      .limit(5);
+      .order("created_at", { ascending: false })
+      .limit(10);
 
-    console.log("🐛 [DEBUG-PUSH] Subscription count:", count);
-    console.log("🐛 [DEBUG-PUSH] Subscription error:", subError);
-
-    // Sample subscription details (redacted)
     const sampleSubscriptions = subscriptions?.map((sub: any) => ({
       id: sub.id,
       user_id: sub.user_id,
@@ -54,22 +49,25 @@ Deno.serve(async (req) => {
       updated_at: sub.updated_at,
     })) || [];
 
-    // Test encryption capability
-    let encryptionTest = false;
-    let encryptionError = "";
-    try {
-      // Just check if we can create the crypto key
-      const testKey = await crypto.subtle.generateKey(
-        { name: "ECDH", namedCurve: "P-256" },
-        true,
-        ["deriveKey", "deriveBits"]
-      );
-      encryptionTest = !!testKey;
-      console.log("🐛 [DEBUG-PUSH] Encryption test passed");
-    } catch (e: any) {
-      encryptionError = e.message;
-      console.error("🐛 [DEBUG-PUSH] Encryption test failed:", e);
-    }
+    // Check theme config
+    const { data: themeRow } = await supabase
+      .from("recipe_image_overrides")
+      .select("*")
+      .eq("recipe_id", "app_theme_config")
+      .maybeSingle();
+
+    // Check meal times
+    const { data: mealTimes } = await supabase
+      .from("baby_meal_times")
+      .select("*")
+      .limit(10);
+
+    // Check notification logs
+    const { data: notifLogs, error: notifErr } = await supabase
+      .from("notification_logs")
+      .select("*")
+      .order("sent_at", { ascending: false })
+      .limit(10);
 
     // Check recent notifications
     const { data: recentNotifs } = await supabase
@@ -86,14 +84,6 @@ Deno.serve(async (req) => {
       created_at: n.created_at,
     })) || [];
 
-    // Environment check
-    const envCheck = {
-      hasSupabaseUrl: !!Deno.env.get("SUPABASE_URL"),
-      hasServiceKey: !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
-      hasVapidPublic: !!Deno.env.get("VAPID_PUBLIC_KEY"),
-      hasVapidPrivate: !!Deno.env.get("VAPID_PRIVATE_KEY"),
-    };
-
     const result = {
       timestamp: new Date().toISOString(),
       vapidConfigured,
@@ -102,21 +92,18 @@ Deno.serve(async (req) => {
       subscriptionCount: count || 0,
       subscriptionError: subError?.message || null,
       sampleSubscriptions,
-      encryptionTest,
-      encryptionError: encryptionError || null,
+      themeRow,
+      mealTimes,
+      notifLogs,
+      notifErr: notifErr?.message || null,
       recentNotifications,
-      envCheck,
-      denoVersion: Deno.version,
     };
-
-    console.log("🐛 [DEBUG-PUSH] Result:", JSON.stringify(result, null, 2));
 
     return new Response(JSON.stringify(result, null, 2), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error: any) {
-    console.error("🐛 [DEBUG-PUSH] Fatal error:", error);
     return new Response(
       JSON.stringify({ 
         error: error.message, 

@@ -372,6 +372,15 @@ export function NotificationPreferences() {
           });
       }
 
+      // Auto-subscribe this device if supported and not yet subscribed
+      if (!isSubscribed && isSupported) {
+        try {
+          await subscribe();
+        } catch (subErr) {
+          console.warn('Auto-subscribe notice during save:', subErr);
+        }
+      }
+
       // Save succeeded — update UI immediately
       setInitialPrefs(prefs);
       setInitialTimezone(userTimezone);
@@ -403,16 +412,16 @@ export function NotificationPreferences() {
 
   return (
     <div className="space-y-6">
-      {/* Device Activation Notice */}
-      {(!diagnostics?.hasSubscription || diagnostics?.subscriptionCount === 0) && (
+      {/* Device Activation Notice - English Only */}
+      {!isSubscribed ? (
         <div className="p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
           <div>
             <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-200 flex items-center gap-2">
               <Bell className="h-4 w-4 text-amber-600" />
-              Notificações Não Ativadas neste Dispositivo
+              Push Notifications Not Active on This Device
             </h4>
             <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
-              Ao limpar dados do navegador ou trocar de aparelho, a chave de push é apagada. Clique para reativar e voltar a receber lembretes.
+              To receive scheduled meal reminders and admin updates on this screen, tap below to link this device.
             </p>
           </div>
           <Button
@@ -421,8 +430,8 @@ export function NotificationPreferences() {
               const ok = await subscribe();
               if (ok) {
                 toast({
-                  title: "✅ Notificações Ativadas!",
-                  description: "Este dispositivo agora está registado para receber os lembretes.",
+                  title: "✅ Notifications Activated!",
+                  description: "This device is now registered to receive meal alerts.",
                 });
                 await loadDiagnostics();
               }
@@ -434,12 +443,48 @@ export function NotificationPreferences() {
             {subscribing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Ativando...
+                Activating...
               </>
             ) : (
               <>
                 <Zap className="h-4 w-4" />
-                Ativar Notificações no Aparelho
+                Enable Alerts on This Device
+              </>
+            )}
+          </Button>
+        </div>
+      ) : (
+        <div className="p-3.5 rounded-xl border border-emerald-300/80 bg-emerald-50 dark:bg-emerald-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-emerald-950 dark:text-emerald-100">
+                This Device is Registered & Active
+              </p>
+              <p className="text-[11px] text-emerald-800 dark:text-emerald-300">
+                Scheduled meal reminders and admin notifications will arrive directly on this screen.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleSendMealReminderNow}
+            disabled={sendingMealReminder}
+            className="text-xs font-bold border-emerald-400 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 shrink-0 gap-1.5"
+          >
+            {sendingMealReminder ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Send className="h-3.5 w-3.5" />
+                Test Alert Now
               </>
             )}
           </Button>

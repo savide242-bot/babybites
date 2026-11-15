@@ -85,6 +85,7 @@ export function usePushNotifications() {
         p256dh: subJson.keys.p256dh,
         auth: subJson.keys.auth,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        updated_at: new Date().toISOString(),
       } as any, { onConflict: 'user_id,endpoint' });
 
     if (dbError) {

@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'Nunito', 'system-ui', 'sans-serif'],
         serif: ['Fraunces', '"Playfair Display"', 'Georgia', 'serif'],
+        times: ['"Times New Roman"', 'Times', 'serif'],
       },
       colors: {
         forest: {

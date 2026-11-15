@@ -518,11 +518,10 @@ export const IngredientSwap: React.FC = () => {
 
   return (
     <div 
-      className="relative min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-3xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors"
+      className="relative z-10 min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-3xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors"
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      <AtmosphericBackground />
-      <div className="relative z-10 space-y-6">
+      <div className="space-y-6">
         
         {/* Photographic Hero Banner */}
         <div className="rounded-[24px] sm:rounded-[32px] overflow-hidden shadow-xs border border-[#EBE8DF] dark:border-stone-800 bg-white dark:bg-stone-900">

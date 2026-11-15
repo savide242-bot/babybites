@@ -363,7 +363,7 @@ export const GrowthTracker: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-900 dark:text-stone-100 transition-colors font-['Times_New_Roman',Times,serif]">
+    <div className="relative z-10 min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3.5 sm:px-6 w-full max-w-2xl mx-auto min-w-0 overflow-x-hidden text-stone-950 dark:text-stone-50 transition-colors font-times" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
       <div className="relative z-10 space-y-6">
 
         {/* HERO PROFILE SUMMARY CARD */}

@@ -12,6 +12,7 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { useBanCheck } from "@/hooks/useBanCheck";
+import { useAutoResubscribe } from "@/hooks/useAutoResubscribe";
 import AppErrorBoundary from "./components/AppErrorBoundary";
 import Header from "./components/Header";
 import Home from "./pages/Home";
@@ -87,6 +88,7 @@ const AppContent = () => {
   useServiceWorkerUpdate();
   useSessionTracking();
   useBanCheck();
+  useAutoResubscribe();
 
   // Navigation refs for app tour
   const recipesNavRef = useRef<HTMLAnchorElement>(null);

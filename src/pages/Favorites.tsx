@@ -67,7 +67,7 @@ export const Favorites = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0">
+    <div className="relative z-10 min-h-screen bg-[#FAF9F5] dark:bg-[#121614] pb-24 pt-4 px-3 sm:px-4 max-w-2xl mx-auto w-full max-w-full overflow-x-hidden min-w-0 text-stone-900 dark:text-stone-100">
       {/* Header */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-2">

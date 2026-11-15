@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     // 1) Fetch all enabled meal times
     let mtQuery = supabase
       .from('baby_meal_times')
-      .select('user_id, meal_type, preferred_hour, preferred_minute')
+      .select('user_id, meal_type, preferred_hour, preferred_minute, updated_at')
       .eq('enabled', true);
 
     if (targetUserId) {
@@ -199,22 +199,38 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // 4) Duplicate prevention (unless force=true for testing)
+      // 4) Duplicate prevention with parent re-scheduling resilience
       if (!force) {
-        const { error: logErr } = await supabase.from('notification_logs').insert({
-          user_id: mt.user_id,
-          meal_type: mt.meal_type,
-          sent_date: localDate,
-        });
+        const { data: existingLog } = await supabase
+          .from('notification_logs')
+          .select('id, sent_at')
+          .eq('user_id', mt.user_id)
+          .eq('meal_type', mt.meal_type)
+          .eq('sent_date', localDate)
+          .maybeSingle();
 
-        if (logErr) {
-          if (logErr.code === '23505' || logErr.message?.includes('duplicate') || logErr.message?.includes('unique')) {
+        if (existingLog) {
+          const logTime = new Date(existingLog.sent_at || 0).getTime();
+          const updateTime = new Date((mt as any).updated_at || 0).getTime();
+          // If the user updated the meal time more than 1 min after the last notification was sent, permit delivery
+          const userUpdatedAfterSent = updateTime > (logTime + 60000);
+
+          if (!userUpdatedAfterSent) {
             console.log(`  ⏭️ Already sent ${mt.meal_type} today for user=${mt.user_id.substring(0,8)}`);
             skipped++;
             continue;
+          } else {
+            console.log(`  🔄 User updated ${mt.meal_type} time after last notification. Re-sending at new time!`);
           }
-          console.error('  ❌ Log insert error:', logErr);
         }
+
+        // Upsert log so sent_at is refreshed
+        await supabase.from('notification_logs').upsert({
+          user_id: mt.user_id,
+          meal_type: mt.meal_type,
+          sent_date: localDate,
+          sent_at: now.toISOString(),
+        }, { onConflict: 'user_id,meal_type,sent_date' });
       }
 
       // 5) Send push
