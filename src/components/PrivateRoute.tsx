@@ -38,19 +38,12 @@ const ensureUserProfile = async (user: User): Promise<void> => {
 
   if (existing) return;
 
-  const fullName =
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    user.email?.split("@")[0] ||
-    "User";
-
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   await supabase.from("profiles").upsert(
     {
       id: user.id,
-      full_name: fullName,
-      mother_name: fullName,
+      onboarding_completed: false,
       dietary_preferences: [],
       timezone,
     },
@@ -66,7 +59,7 @@ const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("mother_name, baby_name")
+    .select("mother_name, baby_name, baby_birth_date, onboarding_completed")
     .eq("id", userId)
     .maybeSingle();
 
@@ -74,11 +67,19 @@ const fetchNeedsOnboarding = async (userId: string): Promise<boolean> => {
     return true;
   }
 
+  // If explicitly flagged as incomplete, enforce onboarding
+  if (profile.onboarding_completed === false) {
+    return true;
+  }
+
+  // Completeness check: Mother name, baby name, and real baby birth date must ALL exist
   const hasIncompleteProfile =
     !profile.mother_name ||
     !profile.baby_name ||
+    !profile.baby_birth_date ||
     profile.mother_name === "User" ||
-    profile.baby_name === null;
+    profile.mother_name === "Loving Mother" ||
+    profile.baby_name === "My Baby";
 
   if (!hasIncompleteProfile) {
     setCachedOnboarded(userId, true);

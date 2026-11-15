@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DietaryTag } from "@/hooks/useDietaryPreferences";
 import { generateInitialMealPlan } from "@/utils/mealPlanGenerator";
+import { useBabyProfiles } from "@/contexts/BabyProfileContext";
 
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress";
 import StepProfileBasics from "@/components/onboarding/steps/StepProfileBasics";
@@ -23,6 +24,7 @@ const Onboarding = () => {
   const [reminders, setReminders] = useState<ReminderSetting[]>(DEFAULT_REMINDERS);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { refreshBabies } = useBabyProfiles();
 
   const birthDate = birthDateStr ? new Date(birthDateStr) : undefined;
 
@@ -60,7 +62,7 @@ const Onboarding = () => {
         motherName.trim() ||
         "Parent";
 
-      // Use upsert to reliably create or update the profile
+      // Use upsert to reliably save the mother and baby profile permanently
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -71,9 +73,36 @@ const Onboarding = () => {
           baby_birth_date: birthDateStr || undefined,
           dietary_preferences: dietaryPreferences,
           timezone: detectedTimezone,
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
         }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
+
+      // Update user_metadata so Auth session immediately reflects onboarding completion
+      await supabase.auth.updateUser({
+        data: {
+          full_name: fullName,
+          mother_name: motherName.trim(),
+          baby_name: babyName.trim(),
+          baby_birth_date: birthDateStr || undefined,
+          onboarding_completed: true,
+        }
+      });
+
+      // Mark local cache as onboarded
+      try {
+        localStorage.setItem(`babybites_onboarded_${session.user.id}`, 'true');
+      } catch (e) {
+        console.warn('Could not cache onboarding flag:', e);
+      }
+
+      // Sync BabyProfileContext so child age is calculated from real birthdate
+      try {
+        await refreshBabies();
+      } catch (refErr) {
+        console.warn('Could not refresh baby profile context:', refErr);
+      }
 
       // Save meal times to baby_meal_times
       const mealTimesToInsert = reminders.map(reminder => ({

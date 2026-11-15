@@ -57,6 +57,13 @@ const RecipeDetail = () => {
   const location = useLocation();
   const cameFromPlanner = location.state?.from === "planner";
 
+  // Ensure page always opens at the very top
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [id]);
+
   const recipe: Recipe | undefined =
     recipes?.find((r) => r.id === id) || staticRecipes.find((r) => r.id === id);
 

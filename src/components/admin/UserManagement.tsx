@@ -723,32 +723,9 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="newMotherName" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Mother's Name
-                </Label>
-                <Input 
-                  id="newMotherName" 
-                  placeholder="e.g. Sarah" 
-                  value={newMotherName} 
-                  onChange={(e) => setNewMotherName(e.target.value)} 
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="newBabyName" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Baby's Name (Optional)
-                </Label>
-                <Input 
-                  id="newBabyName" 
-                  placeholder="e.g. Leo" 
-                  value={newMotherBabyName} 
-                  onChange={(e) => setNewMotherBabyName(e.target.value)} 
-                  className="mt-1"
-                />
-              </div>
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200">
+              <span className="font-semibold block mb-0.5">👶 Automated First-Login Onboarding:</span>
+              You only need to enter the mother's email. On her very first login, she will fill in her name, baby's name, and real birthdate, saving them permanently.
             </div>
 
             <div>

@@ -40,7 +40,7 @@ export interface Recipe {
   servingGuidance: string;
 }
 
-export const ageGroups = ["All Ages", "6-8 months", "9-11 months", "12-23 months", "24+ months"];
+export const ageGroups = ["All Ages", "6-9 months", "9-11 months", "12-23 months", "24+ months"];
 export const categories = ["All Categories", "Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
 
 // Standardized official 4 age groups normalization
@@ -72,10 +72,10 @@ export const normalizeAgeGroup = (raw: string): string => {
 
   // 4. 6-8 months (covers 6-9 months, 6-8 months, 6 months)
   if (s.includes("6-9") || s.includes("6-8") || s.startsWith("6") || s.startsWith("7") || s.startsWith("8")) {
-    return "6-8 months";
+    return "6-9 months";
   }
 
-  return "6-8 months";
+  return "6-9 months";
 };
 
 // Standardized official 4 categories: Breakfast, Lunch & Dinner, Snack, Dessert

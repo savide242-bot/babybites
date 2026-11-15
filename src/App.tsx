@@ -27,6 +27,7 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { LiveVisualInspector } from "@/components/admin/LiveVisualInspector";
 import { AtmosphericBackground } from "@/components/layout/AtmosphericBackground";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { Skeleton } from "@/components/ui/skeleton";
 import SmartInstallBanner from "@/components/SmartInstallBanner";
 import { BadgeCelebrationModal } from "@/components/gamification/BadgeCelebrationModal";
@@ -183,6 +184,7 @@ const App = () => (
               <BadgeDetailModal />
               <SubscriptionPaywallModal />
               <BrowserRouter>
+                <ScrollToTop />
                 <AppWrapper />
               </BrowserRouter>
             </TooltipProvider>

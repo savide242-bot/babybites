@@ -756,7 +756,7 @@ export const recipes151to200: Omit<Recipe, "healthBenefits" | "servingGuidance">
     id: "180",
     title: "Cinnamon Roasted Pear Slices",
     description: "Tender, warm oven-roasted pear wedges with gentle cinnamon",
-    ageGroup: "6-8 months",
+    ageGroup: "6-9 months",
     category: "Snack",
     prepTime: "20 minutes",
     servings: "3 servings",
