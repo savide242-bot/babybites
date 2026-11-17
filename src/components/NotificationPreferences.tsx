@@ -300,16 +300,20 @@ export function NotificationPreferences() {
     setCronJobStatus(null);
     try {
       // Call check-meal-reminders with force: true to test delivery immediately
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user;
+      
+      const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-meal-reminders`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Authorization': `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ force: true, user_id: currentUser?.id }),
+          body: JSON.stringify({ force: true, user_id: currentUser?.id, test: true }),
         }
       );
 

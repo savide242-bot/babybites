@@ -136,12 +136,35 @@ export function usePushNotifications() {
       }
       const vapidKey = vapidData.vapidPublicKey.replace(/^["']|["']$/g, '').trim();
 
-      // 4. Get or create browser subscription
+      // 4. Get or create browser subscription with VAPID key verification
       let subscription = await registration.pushManager.getSubscription();
+      const targetKeyBuffer = urlBase64ToUint8Array(vapidKey);
+
+      if (subscription) {
+        try {
+          const rawKey = subscription.options?.applicationServerKey;
+          if (rawKey) {
+            const rawKeyArray = new Uint8Array(rawKey);
+            const targetKeyArray = new Uint8Array(targetKeyBuffer);
+            const match =
+              rawKeyArray.length === targetKeyArray.length &&
+              rawKeyArray.every((val, i) => val === targetKeyArray[i]);
+
+            if (!match) {
+              console.log('🔄 Subscription key mismatch with server VAPID key. Re-subscribing cleanly...');
+              await subscription.unsubscribe();
+              subscription = null;
+            }
+          }
+        } catch (e) {
+          console.warn('Could not verify existing subscription key:', e);
+        }
+      }
+
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+          applicationServerKey: targetKeyBuffer,
         });
       }
 

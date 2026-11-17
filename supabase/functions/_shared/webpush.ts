@@ -130,6 +130,7 @@ async function generateVapidAuthHeader(
   const jwt = `${unsignedToken}.${signatureB64}`;
 
   return {
+    jwt,
     authorization: `vapid t=${jwt}, k=${vapidPublicKey}`,
     cryptoKey: `p256ecdsa=${vapidPublicKey}`,
   };
@@ -290,18 +291,21 @@ export async function sendWebPushNotification(
     console.log('🔐 Payload encrypted, sending to push service...');
     console.log('📍 Endpoint URL:', subscription.endpoint.substring(0, 80));
 
-    // Build headers - some push services need different header combinations
+    // Check if endpoint is Apple APNs (Safari on iOS / iPadOS / macOS)
+    const isApple = subscription.endpoint.includes('push.apple.com');
+
+    // Build headers - Apple strictly requires 'Bearer <jwt>', while FCM/Mozilla use 'vapid t=..., k=...'
     const headers: Record<string, string> = {
       'Content-Type': 'application/octet-stream',
       'Content-Encoding': 'aes128gcm',
-      'Authorization': vapidHeaders.authorization,
+      'Authorization': isApple ? `Bearer ${vapidHeaders.jwt}` : vapidHeaders.authorization,
       'TTL': '86400',
       'Urgency': 'high',
     };
     
-    // Add Crypto-Key header for services that need it (FCM, some others)
-    // Only add if the endpoint is NOT an Apple/Safari endpoint
-    if (!subscription.endpoint.includes('push.apple.com')) {
+    // Add Crypto-Key header for services that need it (FCM, Mozilla)
+    // Apple APNs rejects Crypto-Key header
+    if (!isApple) {
       headers['Crypto-Key'] = vapidHeaders.cryptoKey;
     }
 

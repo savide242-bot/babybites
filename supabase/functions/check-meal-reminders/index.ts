@@ -68,7 +68,10 @@ function getUserLocalDate(utcDate: Date, timezone: string): string {
 function isInMealWindow(userHour: number, userMinute: number, mealHour: number, mealMinute: number): boolean {
   const userTotal = userHour * 60 + userMinute;
   const mealTotal = mealHour * 60 + mealMinute;
-  const diff = userTotal - mealTotal;
+  let diff = userTotal - mealTotal;
+  // Handle 24-hour wrap-around across midnight (e.g. 23:58 vs 00:05)
+  if (diff > 720) diff -= 1440;
+  if (diff < -720) diff += 1440;
   return diff >= -WINDOW_BEFORE_MIN && diff <= WINDOW_AFTER_MIN;
 }
 
@@ -95,7 +98,7 @@ Deno.serve(async (req) => {
       if (req.method === 'POST') {
         const body = await req.json();
         force = !!body?.force || !!body?.test;
-        targetUserId = body?.user_id || body?.userId || null;
+        targetUserId = body?.user_id || body?.userId || body?.targetUserId || null;
 
         // Security check for targeted / forced pushes
         if (force || targetUserId) {
@@ -223,14 +226,6 @@ Deno.serve(async (req) => {
             console.log(`  🔄 User updated ${mt.meal_type} time after last notification. Re-sending at new time!`);
           }
         }
-
-        // Upsert log so sent_at is refreshed
-        await supabase.from('notification_logs').upsert({
-          user_id: mt.user_id,
-          meal_type: mt.meal_type,
-          sent_date: localDate,
-          sent_at: now.toISOString(),
-        }, { onConflict: 'user_id,meal_type,sent_date' });
       }
 
       // 5) Send push
@@ -247,6 +242,8 @@ Deno.serve(async (req) => {
       };
 
       console.log(`  🚀 Sending ${mt.meal_type} to user=${mt.user_id.substring(0,8)} (${subs.length} device(s)) [local=${local.hour}:${String(local.minute).padStart(2,'0')} target=${mt.preferred_hour}:${String(mt.preferred_minute).padStart(2,'0')}]`);
+
+      let mealDeliveredToAnyDevice = false;
 
       for (const sub of subs) {
         if (!sub.p256dh || !sub.auth) {
@@ -268,6 +265,7 @@ Deno.serve(async (req) => {
 
             if (result.success) {
               sentCount++;
+              mealDeliveredToAnyDevice = true;
               console.log(`  ✅ Sent to device ${sub.id.substring(0,8)}`);
               break;
             }
@@ -290,6 +288,16 @@ Deno.serve(async (req) => {
             break;
           }
         }
+      }
+
+      // Record successful delivery in notification_logs
+      if (mealDeliveredToAnyDevice && !force) {
+        await supabase.from('notification_logs').upsert({
+          user_id: mt.user_id,
+          meal_type: mt.meal_type,
+          sent_date: localDate,
+          sent_at: now.toISOString(),
+        }, { onConflict: 'user_id,meal_type,sent_date' });
       }
     }
 
