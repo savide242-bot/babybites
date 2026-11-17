@@ -57,7 +57,7 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" style={{ colorScheme: 'light', color: '#111827' }}>
       {/* Header */}
       <div className="text-center space-y-2">
         <div
@@ -69,7 +69,7 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
         <h2 className="text-2xl font-serif font-bold" style={{ color: '#111827' }}>
           🎉 All set, {motherName || 'there'}!
         </h2>
-        <p className="text-sm" style={{ color: '#6b7280' }}>
+        <p className="text-sm" style={{ color: '#4b5563' }}>
           Welcome to <span style={{ color: '#1E5E3A', fontWeight: 600 }}>BabyBites</span>
         </p>
       </div>
@@ -77,13 +77,13 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
       {/* Features card */}
       <div
         className="rounded-2xl p-5 space-y-3"
-        style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}
+        style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}
       >
         <p className="text-xs font-semibold text-center uppercase tracking-wide" style={{ color: '#16a34a' }}>
           Ready for {babyName || 'your baby'}
         </p>
         {features.map((f, i) => (
-          <div key={i} className="flex items-center gap-3 rounded-xl p-3" style={{ backgroundColor: '#ffffff' }}>
+          <div key={i} className="flex items-center gap-3 rounded-xl p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${f.bg}18` }}
@@ -92,7 +92,7 @@ const StepWelcome = ({ motherName, babyName, birthDate, isLoading, onComplete, o
             </div>
             <div>
               <p className="text-sm font-semibold" style={{ color: '#111827' }}>{f.title}</p>
-              <p className="text-xs" style={{ color: '#6b7280' }}>{f.subtitle}</p>
+              <p className="text-xs" style={{ color: '#4b5563' }}>{f.subtitle}</p>
             </div>
           </div>
         ))}

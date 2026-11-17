@@ -325,3 +325,29 @@ html, body {
   width: 100% !important;
   min-height: 100vh;
 }
+
+/* Force legible, high-contrast inputs on iOS Safari and Dark Mode */
+input, textarea, select {
+  color-scheme: light;
+}
+
+.onboarding-card input,
+.onboarding-card textarea,
+.onboarding-card select {
+  color-scheme: light !important;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  caret-color: #1E5E3A !important;
+}
+
+.onboarding-card input[type="date"]::-webkit-datetime-edit,
+.onboarding-card input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.onboarding-card input[type="date"]::-webkit-datetime-edit-text,
+.onboarding-card input[type="date"]::-webkit-datetime-edit-month-field,
+.onboarding-card input[type="date"]::-webkit-datetime-edit-day-field,
+.onboarding-card input[type="date"]::-webkit-datetime-edit-year-field {
+  color-scheme: light !important;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+}

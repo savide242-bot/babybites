@@ -58,15 +58,15 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
   const enabledCount = reminders.filter(r => r.enabled).length;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in" style={{ colorScheme: 'light', color: '#111827' }}>
       <div className="text-center space-y-2">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 mb-4">
           <Bell className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">
+        <h2 className="text-2xl font-bold" style={{ color: '#111827' }}>
           Meal reminders
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-sm" style={{ color: '#4b5563' }}>
           Get notified at meal times
         </p>
       </div>
@@ -78,16 +78,20 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
             className={cn(
               "flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200",
               reminder.enabled
-                ? "border-primary/50 bg-primary/5"
-                : "border-border bg-card"
+                ? "border-[#1E5E3A] bg-[#f0fdf4]"
+                : "border-stone-200 bg-white"
             )}
+            style={{
+              backgroundColor: reminder.enabled ? '#f0fdf4' : '#ffffff',
+              borderColor: reminder.enabled ? '#1E5E3A' : '#e5e7eb',
+            }}
           >
             <span className="text-2xl">{reminder.emoji}</span>
             <div className="flex-1">
-              <p className="font-medium text-foreground">{reminder.label}</p>
+              <p className="font-medium" style={{ color: '#111827' }}>{reminder.label}</p>
               {reminder.enabled && (
                 <div className="flex items-center gap-2 mt-1">
-                  <Clock className="w-3 h-3 text-muted-foreground" />
+                  <Clock className="w-3 h-3 text-[#1E5E3A]" />
                   <input
                     type="time"
                     value={formatTime(reminder.hour, reminder.minute)}
@@ -95,7 +99,12 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
                       const [h, m] = e.target.value.split(':').map(Number);
                       updateTime(reminder.id, h, m);
                     }}
-                    className="text-sm text-muted-foreground bg-transparent border-none p-0 focus:outline-none focus:ring-0"
+                    style={{
+                      color: '#111827',
+                      colorScheme: 'light',
+                      WebkitTextFillColor: '#111827',
+                    }}
+                    className="text-sm bg-transparent border-none p-0 focus:outline-none focus:ring-0 font-medium"
                   />
                 </div>
               )}
@@ -109,7 +118,7 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
       </div>
 
       {enabledCount === 0 && (
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm" style={{ color: '#6b7280' }}>
           You can always enable reminders later in settings
         </p>
       )}
@@ -139,4 +148,3 @@ const StepReminders = ({ value, onChange, onNext, onBack }: StepRemindersProps) 
 };
 
 export default StepReminders;
-export { DEFAULT_REMINDERS };

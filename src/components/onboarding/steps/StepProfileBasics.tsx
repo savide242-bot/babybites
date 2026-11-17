@@ -71,12 +71,14 @@ export const StepProfileBasics: React.FC<StepProfileBasicsProps> = ({
             required
             autoFocus
             style={{
+              colorScheme: 'light',
+              WebkitTextFillColor: '#111827',
               color: '#111827',
               backgroundColor: '#ffffff',
               borderColor: '#d1d5db',
               caretColor: '#1E5E3A',
             }}
-            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all"
+            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all text-neutral-900 bg-white placeholder:text-neutral-400"
           />
         </div>
 
@@ -94,12 +96,14 @@ export const StepProfileBasics: React.FC<StepProfileBasicsProps> = ({
             onChange={(e) => onBabyNameChange(e.target.value)}
             required
             style={{
+              colorScheme: 'light',
+              WebkitTextFillColor: '#111827',
               color: '#111827',
               backgroundColor: '#ffffff',
               borderColor: '#d1d5db',
               caretColor: '#1E5E3A',
             }}
-            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all"
+            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all text-neutral-900 bg-white placeholder:text-neutral-400"
           />
         </div>
 
@@ -117,12 +121,14 @@ export const StepProfileBasics: React.FC<StepProfileBasicsProps> = ({
             max={new Date().toISOString().split("T")[0]}
             required
             style={{
-              color: birthDate ? '#111827' : '#9ca3af',
+              colorScheme: 'light',
+              WebkitTextFillColor: '#111827',
+              color: '#111827',
               backgroundColor: '#ffffff',
               borderColor: '#d1d5db',
               caretColor: '#1E5E3A',
             }}
-            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all"
+            className="w-full rounded-xl border px-3 py-2.5 text-sm h-11 outline-none focus:ring-2 focus:ring-[#1E5E3A] focus:border-[#1E5E3A] transition-all text-neutral-900 bg-white placeholder:text-neutral-400"
           />
           {birthDate && (
             <div className="p-2.5 rounded-xl bg-[#1E5E3A]/5 border border-[#1E5E3A]/15 text-xs text-[#1E5E3A] font-medium flex items-center gap-2 mt-1">

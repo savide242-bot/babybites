@@ -9,6 +9,11 @@ interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
+const MASTER_SUPER_ADMINS = [
+  'octaviomoiane2007@gmail.com',
+  'savide242@gmail.com',
+];
+
 // Two localStorage key variants for compatibility
 const isCachedOnboarded = (userId: string): boolean => {
   try {
@@ -54,31 +59,57 @@ const ensureUserProfile = async (user: User): Promise<void> => {
 
 const fetchNeedsOnboarding = async (
   userId: string,
-  userMetadata?: Record<string, unknown>
+  userMetadata?: Record<string, unknown>,
+  email?: string
 ): Promise<boolean> => {
-  // 1. Fast path: local cache
+  // 1. Fast path: Master super admins NEVER need onboarding
+  if (email && MASTER_SUPER_ADMINS.includes(email.toLowerCase().trim())) {
+    setCachedOnboarded(userId);
+    return false;
+  }
+
+  // 2. Fast path: local cache
   if (isCachedOnboarded(userId)) {
     return false;
   }
 
-  // 2. Fast path: auth metadata flag set during onboarding completion
+  // 3. Fast path: auth metadata flag set during onboarding completion
   if (userMetadata?.onboarding_completed === true) {
     setCachedOnboarded(userId);
     return false;
   }
 
-  // 3. Full DB check — only columns that exist in the schema
+  // 4. Check if user already has baby profiles stored in localStorage (existing users)
+  try {
+    const rawBabies = localStorage.getItem(`babybites_babies_${userId}`);
+    if (rawBabies) {
+      const parsed = JSON.parse(rawBabies);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setCachedOnboarded(userId);
+        return false;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 5. Full DB check — only columns that exist in the schema
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("mother_name, baby_name, baby_birth_date, bio")
+    .select("mother_name, baby_name, baby_birth_date, bio, full_name")
     .eq("id", userId)
     .maybeSingle();
 
   if (error || !profile) {
+    // If not a blank VIP gift, never force into onboarding on DB error
+    if (userMetadata?.source !== "admin_vip_gift") {
+      setCachedOnboarded(userId);
+      return false;
+    }
     return true;
   }
 
-  // 4. Check if bio contains a babies array (existing accounts store babies in bio JSON)
+  // 6. Check if bio contains a babies array (existing accounts store babies in bio JSON)
   let hasBabyInBio = false;
   if (profile.bio) {
     try {
@@ -91,18 +122,25 @@ const fetchNeedsOnboarding = async (
     }
   }
 
-  // 5. Profile is complete if:
-  //    — has mother_name AND baby_name AND baby_birth_date in columns, OR
-  //    — has baby data stored in the bio JSON (existing accounts)
-  const hasColumnarData =
-    Boolean(profile.mother_name) &&
-    Boolean(profile.baby_name) &&
-    Boolean(profile.baby_birth_date) &&
-    profile.mother_name !== "User" &&
-    profile.mother_name !== "Loving Mother" &&
-    profile.baby_name !== "My Baby";
+  // 7. Profile is complete if user has ANY real baby or mother information
+  const hasExistingBaby = Boolean(profile.baby_name && profile.baby_name.trim().length > 0 && profile.baby_name !== "My Baby");
+  const hasExistingMother = Boolean(profile.mother_name && profile.mother_name.trim().length > 0 && profile.mother_name !== "Loving Mother" && profile.mother_name !== "User");
+  const hasCustomFullName = Boolean(profile.full_name && profile.full_name.trim().length > 0 && !profile.full_name.includes("User") && !profile.full_name.includes("Loving Mother"));
 
-  const isComplete = hasColumnarData || hasBabyInBio;
+  // If user has existing baby data in bio, or baby_name, or mother_name with birth date or name, exempt them!
+  const isComplete =
+    hasBabyInBio ||
+    hasExistingBaby ||
+    (hasExistingMother && Boolean(profile.baby_birth_date)) ||
+    (hasExistingMother && hasCustomFullName);
+
+  // 8. If the account was created manually (NOT through admin_vip_gift), DO NOT force onboarding if any profile data exists!
+  if (userMetadata?.source !== "admin_vip_gift") {
+    if (isComplete || hasExistingMother || hasCustomFullName) {
+      setCachedOnboarded(userId);
+      return false;
+    }
+  }
 
   if (isComplete) {
     setCachedOnboarded(userId);
@@ -221,7 +259,8 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
       await ensureUserProfile(session.user);
       const needs = await fetchNeedsOnboarding(
         currentUserId,
-        session.user.user_metadata as Record<string, unknown>
+        session.user.user_metadata as Record<string, unknown>,
+        session.user.email
       );
       if (!cancelled) {
         setNeedsOnboarding(needs);
