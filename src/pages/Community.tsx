@@ -58,6 +58,8 @@ export interface CommentItem {
 }
 
 const ADMIN_EMAILS = [
+  "octaviomoiane2007@gmail.com",
+  "savide242@gmail.com",
   "admin@babybites.app",
   "superadmin@babybites.app",
   "dona@babybites.app",
@@ -299,6 +301,57 @@ export const Community: React.FC = () => {
         }
       }
 
+      // Fetch user's liked posts to accurately display liked status
+      const userLikesSet = new Set<string>();
+      const postIds = (!error && data) ? data.map((p: any) => p.id) : [];
+      if (currentUserId && currentUserId !== "guest" && postIds.length > 0) {
+        try {
+          const { data: likesData } = await supabase
+            .from("post_likes")
+            .select("post_id")
+            .eq("user_id", currentUserId)
+            .in("post_id", postIds);
+          if (likesData) {
+            likesData.forEach((l: any) => userLikesSet.add(l.post_id));
+          }
+        } catch (likesErr) {
+          console.warn("Post likes fetch notice:", likesErr);
+        }
+      }
+
+      // Fetch real-time comments from database for visible posts
+      if (postIds.length > 0) {
+        try {
+          const { data: dbComments } = await supabase
+            .from("post_comments")
+            .select("id, post_id, user_id, content, created_at")
+            .in("post_id", postIds)
+            .order("created_at", { ascending: true });
+
+          if (dbComments && dbComments.length > 0) {
+            const grouped: Record<string, CommentItem[]> = {};
+            dbComments.forEach((c: any) => {
+              const prof = profilesMap[c.user_id];
+              const authorName = prof?.mother_name || prof?.full_name || (c.user_id === currentUserId ? currentUserName : "Community Mom");
+              const authorBaby = prof?.baby_name ? `Mom of ${prof.baby_name}` : undefined;
+              if (!grouped[c.post_id]) grouped[c.post_id] = [];
+              grouped[c.post_id].push({
+                id: c.id,
+                post_id: c.post_id,
+                user_id: c.user_id,
+                author_name: authorName,
+                author_baby: authorBaby,
+                content: c.content,
+                created_at: c.created_at,
+              });
+            });
+            setCommentsByPost((prev) => ({ ...prev, ...grouped }));
+          }
+        } catch (commsErr) {
+          console.warn("Comments fetch notice:", commsErr);
+        }
+      }
+
       const mappedSupabase: Post[] = (!error && data) ? data.map((p: any) => {
         const isMine = (currentUserId && currentUserId !== "guest" && p.user_id === currentUserId) || p.author_name === currentUserName;
         const prof = profilesMap[p.user_id];
@@ -331,7 +384,7 @@ export const Community: React.FC = () => {
           author_name: authorName,
           author_baby: authorBaby,
           author_avatar: authorAvatar,
-          user_has_liked: false,
+          user_has_liked: userLikesSet.has(p.id),
           age_tag: p.age_tag || "6-8 Months",
         };
       }) : [];
@@ -360,27 +413,43 @@ export const Community: React.FC = () => {
     }
   };
 
-  const handleLike = (id: string) => {
+  const handleLike = async (id: string) => {
+    let nextLiked = false;
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id === id) {
-          const nextLiked = !p.user_has_liked;
+          nextLiked = !p.user_has_liked;
           return {
             ...p,
             user_has_liked: nextLiked,
-            likes_count: p.likes_count + (nextLiked ? 1 : -1),
+            likes_count: Math.max(0, p.likes_count + (nextLiked ? 1 : -1)),
           };
         }
         return p;
       })
     );
+
+    // Persist to Supabase post_likes
+    if (currentUserId && currentUserId !== "guest" && !id.startsWith("sample-")) {
+      try {
+        if (nextLiked) {
+          await supabase.from("post_likes").upsert({ post_id: id, user_id: currentUserId }, { onConflict: "post_id,user_id" });
+        } else {
+          await supabase.from("post_likes").delete().eq("post_id", id).eq("user_id", currentUserId);
+        }
+      } catch (err) {
+        console.warn("Could not sync like to server:", err);
+      }
+    }
   };
 
-  const handleDoubleTapPhoto = (id: string) => {
+  const handleDoubleTapPhoto = async (id: string) => {
+    let wasAlreadyLiked = false;
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id === id) {
-          if (!p.user_has_liked) {
+          wasAlreadyLiked = !!p.user_has_liked;
+          if (!wasAlreadyLiked) {
             return {
               ...p,
               user_has_liked: true,
@@ -396,6 +465,14 @@ export const Community: React.FC = () => {
     setTimeout(() => {
       setHeartPops((prev) => ({ ...prev, [id]: false }));
     }, 900);
+
+    if (!wasAlreadyLiked && currentUserId && currentUserId !== "guest" && !id.startsWith("sample-")) {
+      try {
+        await supabase.from("post_likes").upsert({ post_id: id, user_id: currentUserId }, { onConflict: "post_id,user_id" });
+      } catch (err) {
+        console.warn("Could not sync double tap like to server:", err);
+      }
+    }
   };
 
   const handleToggleFollow = (authorName: string) => {
