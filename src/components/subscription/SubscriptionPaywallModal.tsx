@@ -9,6 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { toast } from "sonner";
 
+const MASTER_SUPER_ADMINS = [
+  'octaviomoiane2007@gmail.com',
+  'savide242@gmail.com',
+];
+
 export const SubscriptionPaywallModal: React.FC = () => {
   const { isAdmin } = useAdminRole();
   const [isLocked, setIsLocked] = useState(false);
@@ -30,7 +35,7 @@ export const SubscriptionPaywallModal: React.FC = () => {
       setUserEmail(email);
 
       // Super admin or admin is never locked
-      if (email === "octaviomoiane2007@gmail.com" || isAdmin) {
+      if (MASTER_SUPER_ADMINS.includes(email) || isAdmin) {
         setIsLocked(false);
         return;
       }

@@ -70,6 +70,7 @@ const UserManagement = () => {
   const [newMotherBabyName, setNewMotherBabyName] = useState('');
   const [newMotherTrialDays, setNewMotherTrialDays] = useState('7');
   const [newMotherPassword, setNewMotherPassword] = useState('');
+  const [newMotherCustomMessage, setNewMotherCustomMessage] = useState('');
   const [addMotherLoading, setAddMotherLoading] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
@@ -191,6 +192,7 @@ const UserManagement = () => {
           babyName: newMotherBabyName.trim() || undefined,
           trialDays: Number(newMotherTrialDays || 7),
           customPassword: newMotherPassword.trim() || undefined,
+          customMessage: newMotherCustomMessage.trim() || undefined,
         }
       });
       if (error) throw error;
@@ -207,6 +209,7 @@ const UserManagement = () => {
       setNewMotherBabyName('');
       setNewMotherTrialDays('7');
       setNewMotherPassword('');
+      setNewMotherCustomMessage('');
       fetchUsers();
     } catch (err: any) {
       toast({ title: 'Error Adding Mother', description: err.message || 'Failed to create user', variant: 'destructive' });
@@ -763,6 +766,20 @@ const UserManagement = () => {
               <p className="text-[11px] text-muted-foreground mt-1">
                 Leave blank to automatically generate a friendly temporary password (e.g. Baby#9k4M2).
               </p>
+            </div>
+
+            <div>
+              <Label htmlFor="customMessage" className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                Custom Personal Note (Optional)
+              </Label>
+              <textarea
+                id="customMessage"
+                rows={2}
+                placeholder="Optional personalized greeting (e.g. Welcome to BabyBites, so thrilled to have you here!). Leave blank for default invitation text."
+                value={newMotherCustomMessage}
+                onChange={(e) => setNewMotherCustomMessage(e.target.value)}
+                className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              />
             </div>
 
             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-800/40 text-xs text-emerald-800 dark:text-emerald-300">

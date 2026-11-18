@@ -580,15 +580,19 @@ const RecipeDetail = () => {
                   </Button>
                 ) : (
                   <Button
-                    asChild
+                    onClick={() => {
+                      if (window.history.state && window.history.state.idx > 0) {
+                        navigate(-1);
+                      } else {
+                        navigate("/recipes");
+                      }
+                    }}
                     variant="secondary"
                     size="sm"
                     className="rounded-full bg-white/80 dark:bg-black/60 hover:bg-white dark:hover:bg-black/80 backdrop-blur-md text-stone-900 dark:text-stone-100 shadow-md border border-white/20 text-xs px-3.5"
                   >
-                    <Link to="/recipes">
-                      <ArrowLeft className="mr-1.5 h-3.5 w-3.5 text-[#1E5E3A] dark:text-emerald-400" />
-                      Recipes
-                    </Link>
+                    <ArrowLeft className="mr-1.5 h-3.5 w-3.5 text-[#1E5E3A] dark:text-emerald-400" />
+                    Back
                   </Button>
                 )}
               </div>

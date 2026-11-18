@@ -122,31 +122,39 @@ const fetchNeedsOnboarding = async (
     }
   }
 
-  // 7. Profile is complete if user has ANY real baby or mother information
+  // 7. Determine baby and mother completeness
   const hasExistingBaby = Boolean(profile.baby_name && profile.baby_name.trim().length > 0 && profile.baby_name !== "My Baby");
+  const hasBabyBirthDate = Boolean(profile.baby_birth_date);
   const hasExistingMother = Boolean(profile.mother_name && profile.mother_name.trim().length > 0 && profile.mother_name !== "Loving Mother" && profile.mother_name !== "User");
   const hasCustomFullName = Boolean(profile.full_name && profile.full_name.trim().length > 0 && !profile.full_name.includes("User") && !profile.full_name.includes("Loving Mother"));
 
-  // If user has existing baby data in bio, or baby_name, or mother_name with birth date or name, exempt them!
-  const isComplete =
-    hasBabyInBio ||
-    hasExistingBaby ||
-    (hasExistingMother && Boolean(profile.baby_birth_date)) ||
-    (hasExistingMother && hasCustomFullName);
+  // Check if this account was gifted via the admin panel
+  const isVipGift = userMetadata?.source === "admin_vip_gift";
 
-  // 8. If the account was created manually (NOT through admin_vip_gift), DO NOT force onboarding if any profile data exists!
-  if (userMetadata?.source !== "admin_vip_gift") {
-    if (isComplete || hasExistingMother || hasCustomFullName) {
+  if (isVipGift) {
+    // Mothers created by admin MUST complete onboarding to provide their baby's name & birthdate
+    const hasCompleteBaby = (hasExistingBaby && hasBabyBirthDate) || hasBabyInBio;
+    if (hasCompleteBaby) {
       setCachedOnboarded(userId);
       return false;
     }
+    // No baby data yet -> show onboarding so the mother can register her baby
+    return true;
   }
 
-  if (isComplete) {
+  // 8. For manual signups and existing accounts, do not force onboarding if any profile data exists
+  const isComplete =
+    hasBabyInBio ||
+    hasExistingBaby ||
+    (hasExistingMother && hasBabyBirthDate) ||
+    (hasExistingMother && hasCustomFullName);
+
+  if (isComplete || hasExistingMother || hasCustomFullName) {
     setCachedOnboarded(userId);
+    return false;
   }
 
-  return !isComplete;
+  return true;
 };
 
 const checkBanStatus = async (

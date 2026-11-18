@@ -192,7 +192,13 @@ Deno.serve(async (req) => {
         ? payload.action_url 
         : `https://app.babybites.space${payload.action_url || ''}`;
 
-      const generateHtml = (recipientName: string) => `
+      const generateHtml = (recipientName: string) => {
+        // If the admin already included an opening greeting or full custom message, do not force "Dear ..."
+        const rawBody = (payload.body || '').trim();
+        const hasGreeting = /^(dear|hello|hi|hey|olá|ola|oi|welcome|bom dia|boa tarde|prezada|querida)/i.test(rawBody);
+        const greetingPrefix = hasGreeting ? '' : (recipientName ? `Dear ${recipientName},<br><br>` : '');
+
+        return `
       <!DOCTYPE html>
       <html>
         <head>
@@ -217,10 +223,7 @@ Deno.serve(async (req) => {
             </div>
             <div class="content">
               <h2 class="title">${payload.title}</h2>
-              <div class="body-text">
-                Dear ${recipientName || 'Mom'},<br><br>
-                ${payload.body}
-              </div>
+              <div class="body-text">${greetingPrefix}${rawBody}</div>
               <div style="text-align: center; margin-top: 28px;">
                 <a href="${emailActionUrl}" class="btn">${payload.action_label || 'Open BabyBites'}</a>
               </div>
@@ -233,6 +236,7 @@ Deno.serve(async (req) => {
         </body>
       </html>
       `;
+      };
 
       let targetEmails: Array<{ email: string; name: string }> = [];
 

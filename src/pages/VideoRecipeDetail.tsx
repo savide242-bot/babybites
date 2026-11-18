@@ -35,9 +35,7 @@ const VideoRecipeDetail = () => {
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
   const [videoError, setVideoError] = useState<string | null>(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
+
 
   if (loading) {
     return (
@@ -140,13 +138,20 @@ const VideoRecipeDetail = () => {
       <div className="container px-3 sm:px-4 max-w-3xl">
         {/* Back */}
         <div className="pt-4 mb-4">
-          <Link
-            to="/recipes"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.state && window.history.state.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate("/recipes");
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Recipes
-          </Link>
+            Back
+          </button>
         </div>
 
         {/* Video Player */}

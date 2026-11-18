@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
         const babyName = (body.babyName || body.baby_name || '').toString().trim();
         const trialDays = Number(body.trialDays || body.trial_days || 7);
         const customPassword = body.customPassword || body.password;
+        const customMessage = (body.customMessage || body.message || '').toString().trim();
 
         if (!email || !email.includes('@')) {
           return new Response(
@@ -256,7 +257,10 @@ Deno.serve(async (req) => {
                 <div class="content">
                   <div class="greeting">Welcome, ${motherName}! ✨</div>
                   <div class="body-text">
-                    You have been personally selected and gifted with <strong>${trialDays} Days of 100% Free VIP Access</strong> to the complete BabyBites platform! We are delighted to guide you and your baby through wholesome, pediatrician-backed meals, allergy trackers, and stress-free weekly planners.
+                    ${customMessage 
+                      ? customMessage.replace(/\n/g, '<br>') 
+                      : `You have been personally selected and gifted with <strong>${trialDays} Days of 100% Free VIP Access</strong> to the complete BabyBites platform! We are delighted to guide you and your baby through wholesome, pediatrician-backed meals, allergy trackers, and stress-free weekly planners.`
+                    }
                   </div>
 
                   <div class="gift-badge">
