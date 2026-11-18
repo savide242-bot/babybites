@@ -13,8 +13,9 @@ import VideoRecipeManager from '@/components/admin/VideoRecipeManager';
 import FinancialManagement from '@/components/admin/FinancialManagement';
 import { RecipeManagement } from '@/components/admin/RecipeManagement';
 import AdminRecipeImages from '@/pages/AdminRecipeImages';
-import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink, DollarSign, UtensilsCrossed, Image as ImageIcon, Palette } from 'lucide-react';
+import { Shield, Users, Bell, Activity, MessageSquare, Server, Film, ExternalLink, DollarSign, UtensilsCrossed, Image as ImageIcon, Palette, Cloud } from 'lucide-react';
 import { ThemeManagement } from '@/components/admin/ThemeManagement';
+import CloudQuotaMonitor from '@/components/admin/CloudQuotaMonitor';
 
 const PREVIEW_URL = 'https://app.babybites.space';
 
@@ -53,7 +54,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 h-auto overflow-x-auto min-w-0">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 h-auto overflow-x-auto min-w-0">
           <TabsTrigger value="theme" className="flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 data-[state=active]:from-emerald-500 data-[state=active]:text-white">
             <Palette className="h-4 w-4 text-emerald-600 dark:text-emerald-400 group-data-[state=active]:text-white" />
             <span className="font-semibold">Visual Theme</span>
@@ -94,6 +95,10 @@ const Admin = () => {
             <Server className="h-4 w-4" />
             <span className="hidden sm:inline">System</span>
           </TabsTrigger>
+          <TabsTrigger value="quotas" className="flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 data-[state=active]:from-emerald-600 data-[state=active]:text-white">
+            <Cloud className="h-4 w-4 text-emerald-600 dark:text-emerald-400 group-data-[state=active]:text-white" />
+            <span className="font-semibold">Cloud Quotas</span>
+          </TabsTrigger>
           <TabsTrigger value="logs" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">Logs</span>
@@ -110,6 +115,7 @@ const Admin = () => {
         <TabsContent value="notifications" className="mt-6"><NotificationComposer /></TabsContent>
         <TabsContent value="content" className="mt-6"><ContentModeration /></TabsContent>
         <TabsContent value="health" className="mt-6"><SystemHealth /></TabsContent>
+        <TabsContent value="quotas" className="mt-6"><CloudQuotaMonitor /></TabsContent>
         <TabsContent value="logs" className="mt-6"><ActivityLogs /></TabsContent>
       </Tabs>
     </div>

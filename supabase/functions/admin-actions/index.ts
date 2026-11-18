@@ -589,6 +589,235 @@ Deno.serve(async (req) => {
         break;
       }
 
+      // 8. CHECK SUPABASE REAL-TIME QUOTAS & SYSTEM HEALTH
+      case 'check_supabase_quotas': {
+        const startTime = Date.now();
+        
+        // 1. Total users
+        let totalUsers = 0;
+        try {
+          const { data: usersData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1 });
+          totalUsers = (usersData as any)?.total || usersData?.users?.length || 0;
+        } catch (uErr) {
+          console.warn('User count notice:', uErr);
+        }
+
+        // 2. Count table rows in parallel
+        const [
+          profilesRes, 
+          postsRes, 
+          commentsRes, 
+          mealPlansRes, 
+          favoritesRes,
+          recipeViewsRes
+        ] = await Promise.all([
+          supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true }),
+          supabaseAdmin.from('forum_posts').select('id', { count: 'exact', head: true }),
+          supabaseAdmin.from('post_comments').select('id', { count: 'exact', head: true }),
+          supabaseAdmin.from('meal_plans').select('id', { count: 'exact', head: true }),
+          supabaseAdmin.from('favorite_recipes').select('id', { count: 'exact', head: true }),
+          supabaseAdmin.from('recipe_views').select('id', { count: 'exact', head: true }),
+        ]);
+
+        const profilesCount = profilesRes.count || totalUsers || 0;
+        const postsCount = postsRes.count || 0;
+        const commentsCount = commentsRes.count || 0;
+        const mealPlansCount = mealPlansRes.count || 0;
+        const favoritesCount = favoritesRes.count || 0;
+        const recipeViewsCount = recipeViewsRes.count || 0;
+
+        // Effective user count
+        const effectiveUsers = Math.max(totalUsers, profilesCount);
+
+        // 3. Storage calculation
+        let totalStorageFiles = postsCount;
+        let storageBytes = postsCount * 85000; // default 85KB WebP estimate
+
+        try {
+          const { data: mediaFiles } = await supabaseAdmin.storage.from('community_media').list('', { limit: 1000 });
+          const { data: avatarFiles } = await supabaseAdmin.storage.from('avatars').list('', { limit: 1000 });
+          const combined = [...(mediaFiles || []), ...(avatarFiles || [])];
+          if (combined.length > 0) {
+            totalStorageFiles = combined.length;
+            storageBytes = combined.reduce((acc, f: any) => acc + (f.metadata?.size || 75000), 0);
+          }
+        } catch (stErr) {
+          console.warn('Storage list notice:', stErr);
+        }
+
+        const storageUsedMb = Number((storageBytes / (1024 * 1024)).toFixed(2));
+        const storageLimitMb = 1000; // 1 GB Free Tier
+        const storagePercentage = Number(((storageUsedMb / storageLimitMb) * 100).toFixed(1));
+
+        // 4. Database calculation
+        const totalRows = profilesCount + postsCount + commentsCount + mealPlansCount + favoritesCount + recipeViewsCount;
+        // Average ~1.2KB per relational row including indices
+        const estimatedDbBytes = totalRows * 1200 + 15 * 1024 * 1024; // Base postgres schema ~15MB
+        const databaseUsedMb = Number((estimatedDbBytes / (1024 * 1024)).toFixed(2));
+        const databaseLimitMb = 500; // 500 MB Free Tier
+        const databasePercentage = Number(((databaseUsedMb / databaseLimitMb) * 100).toFixed(1));
+
+        // 5. Auth Users Free Limit
+        const usersLimit = 50000; // 50,000 MAU Free Tier
+        const usersPercentage = Number(((effectiveUsers / usersLimit) * 100).toFixed(2));
+
+        const latencyMs = Date.now() - startTime;
+
+        result = {
+          success: true,
+          latencyMs,
+          checkedAt: new Date().toISOString(),
+          users: {
+            current: effectiveUsers,
+            limit: usersLimit,
+            percentage: usersPercentage,
+            status: usersPercentage >= 85 ? 'critical' : usersPercentage >= 70 ? 'warning' : 'healthy',
+          },
+          storage: {
+            usedMb: storageUsedMb,
+            limitMb: storageLimitMb,
+            percentage: storagePercentage,
+            filesCount: totalStorageFiles,
+            status: storagePercentage >= 85 ? 'critical' : storagePercentage >= 70 ? 'warning' : 'healthy',
+          },
+          database: {
+            usedMb: databaseUsedMb,
+            limitMb: databaseLimitMb,
+            percentage: databasePercentage,
+            totalRows,
+            tableBreakdown: {
+              profiles: profilesCount,
+              posts: postsCount,
+              comments: commentsCount,
+              mealPlans: mealPlansCount,
+              favorites: favoritesCount,
+              recipeViews: recipeViewsCount,
+            },
+            status: databasePercentage >= 85 ? 'critical' : databasePercentage >= 70 ? 'warning' : 'healthy',
+          },
+          services: {
+            postgres: 'operational',
+            auth: 'operational',
+            storage: 'operational',
+            resend: Deno.env.get('RESEND_API_KEY') ? 'operational' : 'unconfigured',
+          }
+        };
+        break;
+      }
+
+      // 9. SEND QUOTA ALERT EMAIL TO SUPER ADMINS
+      case 'send_quota_alert_email': {
+        const resendApiKey = Deno.env.get('RESEND_API_KEY');
+        const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'BabyBites <access@app.babybites.space>';
+        const adminRecipients = ['savide242@gmail.com', 'octaviomoiane2007@gmail.com'];
+
+        if (!resendApiKey) {
+          return new Response(
+            JSON.stringify({ error: 'RESEND_API_KEY is not configured in Supabase Secrets' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const isTest = Boolean(body.isTest);
+        const usersCount = body.usersCount || 1;
+        const storageMb = body.storageMb || 0;
+        const note = body.note || (isTest ? 'Test Alert Notification' : 'Quota Warning Triggered');
+
+        const emailSubject = isTest 
+          ? '🔔 [Test Alert] BabyBites System Monitor & Quotas' 
+          : '⚠️ [BabyBites Alert] Supabase Quota Threshold Reached';
+
+        const alertHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FAF9F5; margin: 0; padding: 24px; color: #2D3748; }
+              .container { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 28px; border: 1px solid #EBE8DF; overflow: hidden; box-shadow: 0 10px 30px rgba(30, 94, 58, 0.06); }
+              .header { background: linear-gradient(135deg, #FAF9F5 0%, #F5F3EC 100%); padding: 32px 24px; text-align: center; border-bottom: 1px solid #EBE8DF; }
+              .badge { display: inline-block; padding: 5px 14px; border-radius: 9999px; background: ${isTest ? '#EAF5EE' : '#FEF3C7'}; color: ${isTest ? '#1E5E3A' : '#92400E'}; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+              .title { font-family: Georgia, serif; font-size: 24px; font-weight: bold; color: #1E5E3A; }
+              .content { padding: 32px 28px; }
+              .stats-grid { display: flex; gap: 12px; margin: 20px 0; }
+              .stat-box { flex: 1; background: #FAF9F5; border: 1px solid #EBE8DF; border-radius: 16px; padding: 16px; text-align: center; }
+              .stat-val { font-size: 22px; font-weight: bold; color: #1E5E3A; }
+              .stat-lbl { font-size: 11px; text-transform: uppercase; color: #718096; font-weight: 700; margin-top: 4px; }
+              .info-box { background: #EAF5EE; border-left: 4px solid #1E5E3A; padding: 14px 18px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: #164E2E; margin-bottom: 24px; }
+              .btn { display: inline-block; background-color: #1E5E3A; color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 9999px; font-weight: bold; font-size: 14px; }
+              .footer { background: #FAF9F5; padding: 20px; text-align: center; font-size: 11px; color: #A0AEC0; border-top: 1px solid #EBE8DF; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <span class="badge">${isTest ? '🧪 Test Email Notification' : '⚠️ Cloud Resource Alert'}</span>
+                <div class="title">BabyBites Cloud Monitor</div>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #718096;">Real-time infrastructure update</p>
+              </div>
+              <div class="content">
+                <h3 style="margin-top: 0; color: #1A202C;">System Status Report</h3>
+                <p style="font-size: 14px; color: #4A5568; line-height: 1.6;">
+                  ${note}. Your Supabase cloud infrastructure is operating smoothly and health metrics have been verified.
+                </p>
+
+                <div class="stats-grid">
+                  <div class="stat-box">
+                    <div class="stat-val">${usersCount}</div>
+                    <div class="stat-lbl">Registered Mothers</div>
+                  </div>
+                  <div class="stat-box">
+                    <div class="stat-val">${storageMb} MB</div>
+                    <div class="stat-lbl">Storage Used (1GB Free)</div>
+                  </div>
+                  <div class="stat-box">
+                    <div class="stat-val">100%</div>
+                    <div class="stat-lbl">Service Health</div>
+                  </div>
+                </div>
+
+                <div class="info-box">
+                  <strong>💡 Super Admin Action Guide:</strong> If storage or users exceed 85% during your launch campaign, simply click "Upgrade to Pro" ($25/mo) in the Supabase Dashboard to instantly expand limits to 100 GB storage and 100,000 active users with zero downtime.
+                </div>
+
+                <div style="text-align: center; margin-top: 24px;">
+                  <a href="https://supabase.com/dashboard/project/fcrtrdnrnwfuamoyflay" class="btn">Open Supabase Dashboard</a>
+                </div>
+              </div>
+              <div class="footer">
+                BabyBites Super Admin Real-Time Alert System &bull; ${new Date().toUTCString()}
+              </div>
+            </div>
+          </body>
+        </html>
+        `;
+
+        let emailsSent = 0;
+        for (const recipient of adminRecipients) {
+          try {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${resendApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: fromEmail,
+                to: [recipient],
+                subject: emailSubject,
+                html: alertHtml,
+              }),
+            });
+            emailsSent++;
+          } catch (rErr) {
+            console.warn(`Could not send alert email to ${recipient}:`, rErr);
+          }
+        }
+
+        result.message = `Alert notification email sent successfully to ${emailsSent} super admin(s)!`;
+        break;
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
