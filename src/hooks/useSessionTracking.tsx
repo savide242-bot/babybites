@@ -44,10 +44,8 @@ export const useSessionTracking = () => {
   }, []);
 
   useEffect(() => {
-    const trackSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const trackUserSession = async (user: any) => {
       if (!user) return;
-
       const deviceInfo = getDeviceInfo();
       const now = new Date().toISOString();
 
@@ -68,21 +66,32 @@ export const useSessionTracking = () => {
         await supabase
           .from('user_sessions')
           .upsert(
-            { user_id: user.id, last_login: now, last_active: now, total_sessions: 1, device_info: deviceInfo },
+            { 
+              user_id: user.id, 
+              last_login: now, 
+              last_active: now, 
+              total_sessions: 1, 
+              device_info: deviceInfo 
+            },
             { onConflict: 'user_id' }
           );
 
-        // Bump total_sessions
+        // Bump total_sessions if existing
         const { data: existing } = await supabase
           .from('user_sessions')
           .select('total_sessions')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (existing && existing.total_sessions > 0) {
+        if (existing && existing.total_sessions > 1) {
           await supabase
             .from('user_sessions')
-            .update({ total_sessions: existing.total_sessions + 1 })
+            .update({ 
+              total_sessions: existing.total_sessions + 1,
+              last_login: now,
+              last_active: now,
+              device_info: deviceInfo
+            })
             .eq('user_id', user.id);
         }
 
@@ -93,7 +102,17 @@ export const useSessionTracking = () => {
       }
     };
 
-    trackSession();
+    // Initial check
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) trackUserSession(user);
+    });
+
+    // Listen to real-time sign in events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+        trackUserSession(session.user);
+      }
+    });
 
     // Update last_active every 2 minutes
     const activityInterval = setInterval(async () => {
@@ -106,8 +125,11 @@ export const useSessionTracking = () => {
       }
     }, 2 * 60 * 1000);
 
-    return () => clearInterval(activityInterval);
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(activityInterval);
+    };
+  }, [location.pathname, logActivity]);
 
   // Log page views on route change (debounced)
   useEffect(() => {

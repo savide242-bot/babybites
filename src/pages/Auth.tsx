@@ -119,6 +119,24 @@ export const Auth = () => {
       }
 
       if (data.user) {
+        // Immediate session registration on login
+        const now = new Date().toISOString();
+        try {
+          await supabase.from('user_sessions').upsert({
+            user_id: data.user.id,
+            last_login: now,
+            last_active: now,
+            total_sessions: 1,
+            device_info: navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser'
+          }, { onConflict: 'user_id' });
+
+          await supabase.from('activity_logs').insert({
+            user_id: data.user.id,
+            action_type: 'login_success',
+            action_details: { email: data.user.email, timestamp: now }
+          });
+        } catch { /* silent non-blocking */ }
+
         if (data.user.user_metadata?.must_change_password) {
           toast.success("Welcome to BabyBites! 🥑✨", {
             description: "You logged in with your temporary password. You can customize it anytime in Settings.",

@@ -47,6 +47,9 @@ interface UserProfile {
   isAdmin?: boolean;
   recipeViewCount?: number;
   is_verified?: boolean;
+  subscription_plan?: string | null;
+  subscription_expires_at?: string | null;
+  is_vip?: boolean;
 }
 
 const ITEMS_PER_PAGE = 15;
@@ -306,6 +309,7 @@ const UserManagement = () => {
       const matchesStatus = statusFilter === 'all' ||
         (statusFilter === 'online' && isOnlineNow) ||
         (statusFilter === 'active' && isActive) ||
+        (statusFilter === 'trial' && (user.is_vip || user.subscription_plan === 'trial')) ||
         (statusFilter === 'inactive' && !isActive) ||
         (statusFilter === 'banned' && user.is_banned);
 
@@ -325,6 +329,8 @@ const UserManagement = () => {
     return la && Math.floor((Date.now() - la.getTime()) / 60000) < 5;
   }).length;
 
+  const vipCount = users.filter(u => u.is_vip || u.subscription_plan === 'trial').length;
+
   useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter, pushFilter]);
 
   if (loading) return <Skeleton className="h-96 w-full" />;
@@ -343,6 +349,11 @@ const UserManagement = () => {
             <CardTitle className="flex items-center gap-2 flex-wrap text-base">
               User Management
               <Badge variant="outline" className="text-xs">{filteredUsers.length}/{users.length}</Badge>
+              {vipCount > 0 && (
+                <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 text-xs">
+                  🎁 {vipCount} VIP Trials
+                </Badge>
+              )}
               {onlineCount > 0 && (
                 <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
                   <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse mr-1" />
@@ -385,6 +396,7 @@ const UserManagement = () => {
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="online">🟢 Online</SelectItem>
                 <SelectItem value="active">Active (24h)</SelectItem>
+                <SelectItem value="trial">🎁 7-Day VIP Trial</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="banned">🚫 Banned</SelectItem>
               </SelectContent>
@@ -442,6 +454,18 @@ const UserManagement = () => {
                                   <span>✉️</span> {user.email}
                                 </div>
                               )}
+                              {(user.is_vip || user.subscription_plan === 'trial') && (
+                                <div className="mt-1 flex items-center gap-1">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                    🎁 7-Day VIP Trial
+                                    {user.subscription_expires_at && (
+                                      <span className="text-[9px] opacity-80 font-normal">
+                                        (until {new Date(user.subscription_expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              )}
                               {user.mother_name && user.mother_name !== user.full_name && (
                                 <div className="text-[10px] text-muted-foreground">👩 {user.mother_name}</div>
                               )}
@@ -458,19 +482,25 @@ const UserManagement = () => {
                         </TableCell>
                         <TableCell>
                           {isOnlineNow ? (
-                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Online</Badge>
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">🟢 Online</Badge>
                           ) : isActive ? (
-                            <Badge variant="outline" className="text-[10px]">Active</Badge>
+                            <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-700 bg-emerald-50/50">Active</Badge>
+                          ) : lastActive ? (
+                            <Badge variant="secondary" className="text-[10px]">Logged In</Badge>
                           ) : (
-                            <Badge variant="secondary" className="text-[10px]">Inactive</Badge>
+                            <Badge variant="secondary" className="text-[10px] text-stone-400 bg-stone-100 dark:bg-stone-800">Never Logged In</Badge>
                           )}
-                          {lastActive && (
-                            <div className="text-[10px] text-muted-foreground mt-0.5">
+                          {lastActive ? (
+                            <div className="text-[10px] text-muted-foreground mt-0.5" title={`Last active: ${new Date(lastActive).toLocaleString()}`}>
                               {minutesSinceActive !== null && minutesSinceActive < 60
                                 ? `${minutesSinceActive}m ago`
                                 : minutesSinceActive !== null && minutesSinceActive < 60 * 24
                                 ? `${Math.floor(minutesSinceActive / 60)}h ago`
                                 : formatDistanceToNow(lastActive, { addSuffix: true })}
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-stone-400 mt-0.5">
+                              Pending first login
                             </div>
                           )}
                         </TableCell>
