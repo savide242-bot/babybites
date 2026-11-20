@@ -124,12 +124,15 @@ const UserManagement = () => {
           knownEmailsByName[profile.mother_name?.trim().toLowerCase()] ||
           undefined;
 
+        const hasBabyData = Boolean(profile.baby_name || profile.baby_birth_date);
+        const fallbackActive = hasBabyData ? profile.updated_at : undefined;
+
         return {
           ...profile,
           email: resolvedEmail,
-          last_login: session?.last_login,
-          last_active: session?.last_active,
-          total_sessions: session?.total_sessions || 0,
+          last_login: session?.last_login || fallbackActive,
+          last_active: session?.last_active || fallbackActive,
+          total_sessions: Math.max(session?.total_sessions || 0, hasBabyData ? 1 : 0),
           device_info: session?.device_info,
           hasPush: pushUserIds.has(profile.id),
           isAdmin: adminUserIds.has(profile.id),
