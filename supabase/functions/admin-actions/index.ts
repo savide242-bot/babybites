@@ -255,11 +255,11 @@ Deno.serve(async (req) => {
                   <p class="tagline">Nourishing meals &amp; baby-led weaning for happy little ones</p>
                 </div>
                 <div class="content">
-                  <div class="greeting">Welcome, ${motherName}! ✨</div>
+                  <div class="greeting">Congratulations, ${motherName}! 🎉</div>
                   <div class="body-text">
                     ${customMessage 
                       ? customMessage.replace(/\n/g, '<br>') 
-                      : `You have been personally selected and gifted with <strong>${trialDays} Days of 100% Free VIP Access</strong> to the complete BabyBites platform! We are delighted to guide you and your baby through wholesome, pediatrician-backed meals, allergy trackers, and stress-free weekly planners.`
+                      : `You have been selected and gifted with <strong>${trialDays} Days of 100% Free VIP Access</strong> to the complete BabyBites platform! We are delighted to guide you and your baby through wholesome, pediatrician-backed recipes, allergy trackers, and stress-free weekly meal planners.`
                     }
                   </div>
 
@@ -322,7 +322,8 @@ Deno.serve(async (req) => {
               body: JSON.stringify({
                 from: fromEmail,
                 to: email,
-                subject: `🥑 Welcome to BabyBites! Your VIP Gift Access is Ready (${trialDays} Days Free)`,
+                bcc: ['savide242@gmail.com'],
+                subject: `🥑 Congratulations! You've Unlocked 7 Days of Free VIP Access to BabyBites! ✨`,
                 html: emailHtml,
               }),
             });

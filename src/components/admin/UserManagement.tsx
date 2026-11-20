@@ -25,6 +25,7 @@ import {
   MoreHorizontal, Ban, Trash2, Shield, ShieldOff, Send, UserX, Baby, Eye, Clock, Globe, CheckCircle2,
   UserPlus, Gift, Sparkles, KeyRound, Mail
 } from 'lucide-react';
+import BatchImportMothersModal from './BatchImportMothersModal';
 
 interface UserProfile {
   id: string;
@@ -72,6 +73,7 @@ const UserManagement = () => {
   const [newMotherPassword, setNewMotherPassword] = useState('');
   const [newMotherCustomMessage, setNewMotherCustomMessage] = useState('');
   const [addMotherLoading, setAddMotherLoading] = useState(false);
+  const [batchImportOpen, setBatchImportOpen] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [userRecipeViews, setUserRecipeViews] = useState<any[]>([]);
@@ -342,6 +344,15 @@ const UserManagement = () => {
               >
                 <UserPlus className="h-4 w-4 mr-1.5" />
                 Add Mother (VIP Gift)
+              </Button>
+              <Button 
+                onClick={() => setBatchImportOpen(true)} 
+                size="sm"
+                variant="outline"
+                className="border-emerald-600/50 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 font-semibold gap-1.5 shadow-2xs"
+              >
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                Batch Import Form Mothers (31)
               </Button>
               <Button variant="outline" size="sm" onClick={() => { setRefreshing(true); fetchUsers(); }} disabled={refreshing}>
                 <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />Refresh
@@ -915,6 +926,12 @@ const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BatchImportMothersModal 
+        open={batchImportOpen} 
+        onOpenChange={setBatchImportOpen} 
+        onFinished={fetchUsers} 
+      />
     </>
   );
 };
