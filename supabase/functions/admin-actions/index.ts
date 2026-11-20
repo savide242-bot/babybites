@@ -134,6 +134,7 @@ Deno.serve(async (req) => {
           console.log(`Existing user ${email} found (${existing.id}). Upgrading to VIP Trial...`);
 
           await supabaseAdmin.auth.admin.updateUserById(existing.id, {
+            password: tempPassword,
             email_confirm: true,
             user_metadata: {
               ...(existing.user_metadata || {}),

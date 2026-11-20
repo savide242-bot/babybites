@@ -25,10 +25,11 @@ import {
   MoreHorizontal, Ban, Trash2, Shield, ShieldOff, Send, UserX, Baby, Eye, Clock, Globe, CheckCircle2,
   UserPlus, Gift, Sparkles, KeyRound, Mail
 } from 'lucide-react';
-import BatchImportMothersModal from './BatchImportMothersModal';
+import BatchImportMothersModal, { INITIAL_FORM_MOTHERS } from './BatchImportMothersModal';
 
 interface UserProfile {
   id: string;
+  email?: string;
   full_name: string;
   mother_name: string | null;
   baby_name: string | null;
@@ -107,10 +108,22 @@ const UserManagement = () => {
       const viewCounts: Record<string, number> = {};
       recipeViewsRes.data?.forEach(v => { viewCounts[v.user_id] = (viewCounts[v.user_id] || 0) + 1; });
 
+      const knownEmailsByName: Record<string, string> = {};
+      INITIAL_FORM_MOTHERS.forEach(m => {
+        knownEmailsByName[m.name.trim().toLowerCase()] = m.email.trim().toLowerCase();
+      });
+
       const usersWithData = profilesRes.data?.map(profile => {
         const session = sessionsRes.data?.find(s => s.user_id === profile.id);
+        const resolvedEmail = 
+          (profile as any).email ||
+          knownEmailsByName[profile.full_name?.trim().toLowerCase()] ||
+          knownEmailsByName[profile.mother_name?.trim().toLowerCase()] ||
+          undefined;
+
         return {
           ...profile,
+          email: resolvedEmail,
           last_login: session?.last_login,
           last_active: session?.last_active,
           total_sessions: session?.total_sessions || 0,
@@ -282,7 +295,8 @@ const UserManagement = () => {
       const matchesSearch = !searchTerm || 
         user.full_name?.toLowerCase().includes(searchLower) ||
         user.mother_name?.toLowerCase().includes(searchLower) ||
-        user.baby_name?.toLowerCase().includes(searchLower);
+        user.baby_name?.toLowerCase().includes(searchLower) ||
+        (user.email && user.email.toLowerCase().includes(searchLower));
 
       const lastActive = user.last_active ? new Date(user.last_active) : null;
       const minutesSinceActive = lastActive ? Math.floor((Date.now() - lastActive.getTime()) / (1000 * 60)) : null;
@@ -423,6 +437,11 @@ const UserManagement = () => {
                                 {user.isAdmin && <Shield className="h-3 w-3 text-purple-500" />}
                                 {user.is_banned && <Ban className="h-3 w-3 text-red-500" />}
                               </div>
+                              {user.email && (
+                                <div className="text-[11px] text-stone-500 font-mono flex items-center gap-1">
+                                  <span>✉️</span> {user.email}
+                                </div>
+                              )}
                               {user.mother_name && user.mother_name !== user.full_name && (
                                 <div className="text-[10px] text-muted-foreground">👩 {user.mother_name}</div>
                               )}
