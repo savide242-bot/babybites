@@ -166,6 +166,7 @@ Deno.serve(async (req) => {
 
           await supabaseAdmin.from('profiles').upsert({
             id: existing.id,
+            email: email,
             full_name: motherName,
             mother_name: motherName,
             baby_name: babyName || null,
@@ -202,6 +203,7 @@ Deno.serve(async (req) => {
 
           await supabaseAdmin.from('profiles').upsert({
             id: targetId,
+            email: email,
             full_name: motherName,
             mother_name: motherName,
             baby_name: babyName || null,
