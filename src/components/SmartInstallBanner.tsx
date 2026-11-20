@@ -103,30 +103,27 @@ export const SmartInstallBanner: React.FC = () => {
 
   return (
     <>
-      {/* LUXURY BOTANICAL FLOATING PWA BANNER */}
+      {/* SLEEK FLOATING PWA INSTALL BANNER */}
       <aside 
-        aria-label="Add BabyBites to Home Screen"
-        className="fixed bottom-[74px] sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-40 animate-in fade-in slide-in-from-bottom-5 duration-300"
+        aria-label="Install BabyBites"
+        className="fixed bottom-[74px] sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-[380px] z-50 animate-in fade-in slide-in-from-bottom-5 duration-300 font-sans"
       >
-        <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-r from-[#123E24] via-[#1A5432] to-[#123E24] text-white p-4 shadow-[0_16px_40px_-8px_rgba(18,62,36,0.55)] border border-emerald-400/30 backdrop-blur-xl">
+        <div className="relative rounded-2xl bg-[#0F172A] border border-slate-800 text-white p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
           
-          {/* Subtle botanical glow */}
-          <div className="absolute -top-12 -right-12 w-28 h-28 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#48B774]/20 rounded-full blur-xl pointer-events-none" />
-
-          {/* Close button */}
+          {/* Close 'X' button */}
           <button
             type="button"
             onClick={handleDismiss}
-            aria-label="Close download banner"
-            className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 text-white/80 transition-colors z-10"
+            aria-label="Close"
+            className="absolute top-3.5 right-3.5 w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-10"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
 
+          {/* Top row: App Icon + Titles */}
           <div className="flex items-start gap-3.5 pr-6">
-            {/* App Icon */}
-            <div className="relative w-12 h-12 rounded-2xl overflow-hidden bg-white p-1 border border-emerald-300/40 shadow-sm shrink-0">
+            {/* App Icon badge matching reference */}
+            <div className="w-13 h-13 rounded-2xl bg-emerald-500 p-2 flex items-center justify-center shrink-0 shadow-md">
               <img 
                 src="/logo.png" 
                 alt="BabyBites" 
@@ -135,40 +132,35 @@ export const SmartInstallBanner: React.FC = () => {
               />
             </div>
 
-            {/* Banner Copy */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="font-times font-bold text-base sm:text-lg text-white leading-tight tracking-tight">
-                  Add BabyBites to Screen
-                </h3>
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
-                  <Sparkles className="w-2.5 h-2.5 text-emerald-300" /> Free
-                </span>
-              </div>
-              <p className="text-xs text-stone-200 mt-1 leading-snug font-sans">
-                {deviceType === 'ios'
-                  ? 'Access 390+ recipes & meal alerts directly from your iPhone home screen.'
-                  : 'Instant offline access & timely meal reminders directly on your phone.'}
+            {/* Text content */}
+            <div className="min-w-0 pt-0.5">
+              <h3 className="font-bold text-base sm:text-lg text-white leading-tight">
+                Install BabyBites
+              </h3>
+              <p className="text-xs sm:text-[13px] text-slate-400 mt-1 leading-snug">
+                Access faster by adding to home screen
               </p>
             </div>
           </div>
 
-          {/* Action Row */}
-          <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
-            <span className="text-[11px] text-stone-300 font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-              <span>0 MB storage required</span>
-            </span>
-
+          {/* Bottom row: Install button + 'Not now' */}
+          <div className="mt-4 pt-1 flex items-center gap-3">
             <Button
               type="button"
               size="sm"
               onClick={handleActionClick}
-              className="rounded-full bg-[#FAF9F5] hover:bg-white text-[#1E5E3A] font-bold text-xs px-4 h-9 shadow-md gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shrink-0"
+              className="rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm px-7 h-10 shadow-sm transition-all active:scale-95"
             >
-              <Download className="w-3.5 h-3.5 text-[#1E5E3A]" />
-              <span>Add to Screen</span>
+              Install
             </Button>
+
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="text-slate-400 hover:text-white text-sm font-medium px-2 py-2 transition-colors cursor-pointer"
+            >
+              Not now
+            </button>
           </div>
         </div>
       </aside>

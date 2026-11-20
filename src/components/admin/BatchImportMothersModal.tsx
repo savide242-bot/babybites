@@ -16,7 +16,8 @@ import {
   Users, 
   AlertCircle,
   Play,
-  Lock
+  Lock,
+  Copy
 } from 'lucide-react';
 
 export interface BatchMother {
@@ -120,11 +121,32 @@ export const BatchImportMothersModal: React.FC<BatchImportMothersModalProps> = (
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
 
+        const isSent = Boolean(data.user?.emailSent);
+        const errDetails = data.user?.emailError;
+
+        // Try direct notification copy to admin
+        try {
+          await supabase.functions.invoke('send-email-notification', {
+            body: {
+              to: 'savide242@gmail.com',
+              subject: `🥑 [VIP Mother Created] ${item.name} (${item.email})`,
+              title: `VIP Trial Account: ${item.name}`,
+              message: `Mother: ${item.name}\nEmail: ${item.email}\nTemporary Password: ${data.user?.tempPassword || 'BabyBites#2026'}\nExpires: 7 Days from now\nEmail Status: ${isSent ? 'Sent to mother' : `Not sent (${errDetails || 'unconfigured'})`}`,
+              actionUrl: 'https://app.babybites.space/auth',
+              actionText: 'Open BabyBites'
+            }
+          });
+        } catch (copyErr) {
+          console.warn('Admin copy dispatch notice:', copyErr);
+        }
+
         updated[i] = {
           ...updated[i],
           status: 'success',
-          tempPassword: data.user?.tempPassword,
-          message: data.user?.emailSent ? 'Account created & Welcome Email dispatched!' : 'Account created (Email queued)'
+          tempPassword: data.user?.tempPassword || 'BabyBites#2026',
+          message: isSent 
+            ? '✅ Account Created & Email Dispatched!' 
+            : `⚠️ Account Created, Email Error: ${errDetails || 'Check Resend domain verification'}`
         };
       } catch (err: any) {
         console.error(`Error creating mother ${item.email}:`, err);
@@ -159,6 +181,41 @@ export const BatchImportMothersModal: React.FC<BatchImportMothersModalProps> = (
     }
 
     if (onFinished) onFinished();
+  };
+
+  const handleCopyCredentials = () => {
+    const lines = mothers.map((m, idx) => 
+      `${idx + 1}. ${m.name} | ${m.email} | Temp Password: ${m.tempPassword || 'BabyBites#2026'}`
+    );
+    const fullText = `🥑 BabyBites - VIP Trial Accounts (7 Days Free)\n\n${lines.join('\n')}\n\nLogin URL: https://app.babybites.space/auth`;
+    
+    navigator.clipboard.writeText(fullText);
+    toast.success('📋 Copied all 31 credentials and login details to clipboard!');
+  };
+
+  const [testingEmail, setTestingEmail] = useState(false);
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: 'savide242@gmail.com',
+          subject: '🧪 [Test Resend] BabyBites VIP Email System Verification',
+          title: 'Resend Email System Test',
+          message: 'Hello Super Admin! If you received this email, the Resend email integration is working perfectly on app.babybites.space.',
+          actionUrl: 'https://app.babybites.space/auth',
+          actionText: 'Open BabyBites'
+        }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('📧 Test email dispatched to savide242@gmail.com! Check your inbox and spam folder.');
+    } catch (err: any) {
+      console.error('Email test error:', err);
+      toast.error(`❌ Resend Error: ${err.message || 'Check if domain or API key is active'}`);
+    } finally {
+      setTestingEmail(false);
+    }
   };
 
   return (
@@ -263,20 +320,43 @@ export const BatchImportMothersModal: React.FC<BatchImportMothersModalProps> = (
           <span className="font-medium text-emerald-700">7 Days Free VIP Trial</span>
         </div>
 
-        <DialogFooter className="pt-3 border-t border-stone-200 dark:border-stone-800 flex sm:justify-between items-center gap-3">
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)} 
-            disabled={isRunning}
-            className="rounded-full text-xs font-semibold"
-          >
-            Close
-          </Button>
+        <DialogFooter className="pt-3 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row sm:justify-between items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)} 
+              disabled={isRunning}
+              className="rounded-full text-xs font-semibold"
+            >
+              Close
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyCredentials}
+              className="rounded-full text-xs font-medium gap-1.5 border-stone-300"
+            >
+              <Copy className="w-3.5 h-3.5 text-stone-600" />
+              <span>Copy 31 Logins</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestEmail}
+              disabled={testingEmail || isRunning}
+              className="rounded-full text-xs font-medium gap-1.5 border-emerald-300 text-emerald-800 hover:bg-emerald-50 dark:text-emerald-300 dark:bg-stone-900"
+            >
+              <Mail className={`w-3.5 h-3.5 ${testingEmail ? 'animate-spin' : ''}`} />
+              <span>{testingEmail ? 'Testing Resend...' : 'Test Email to Admin'}</span>
+            </Button>
+          </div>
 
           <Button
             onClick={runBatchCreation}
             disabled={isRunning || successCount === mothers.length}
-            className="rounded-full text-xs font-bold gap-2 bg-[#1E5E3A] hover:bg-[#16482c] text-white shadow-sm"
+            className="rounded-full text-xs font-bold gap-2 bg-[#1E5E3A] hover:bg-[#16482c] text-white shadow-sm w-full sm:w-auto"
           >
             {isRunning ? (
               <>
